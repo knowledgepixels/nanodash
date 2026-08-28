@@ -76,7 +76,7 @@ public class IriItem extends AbstractContextComponent {
         if (!statementPartId.equals(template.getFirstOccurrence(iri))) {
             labelString = labelString.replaceFirst("^[aA]n? ", "the ");
         }
-        if (!labelString.isEmpty() && parentId.equals("subj") && !labelString.matches("https?://.*")) {
+        if (!labelString.isEmpty() && parentId.equals("subj") && !Utils.isUriValue(labelString)) {
             // Capitalize first letter of label if at subject position:
             labelString = labelString.substring(0, 1).toUpperCase() + labelString.substring(1);
         }

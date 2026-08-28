@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxNavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -99,7 +100,7 @@ public class QueryResultRdf extends Panel {
         @Override
         public void populateItem(Item<ICellPopulator<String[]>> cellItem, String componentId, IModel<String[]> rowModel) {
             String value = rowModel.getObject()[index];
-            if (value.matches("https?://.+")) {
+            if (Utils.isUriValue(value)) {
                 cellItem.add(new NanodashLink(componentId, value));
             } else {
                 cellItem.add(new Label(componentId, value));

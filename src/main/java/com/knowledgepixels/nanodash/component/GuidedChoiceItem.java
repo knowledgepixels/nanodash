@@ -76,7 +76,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
     private String getChoiceLabel(String choiceId) {
         Template template = context.getTemplate();
         String label = null;
-        if (choiceId.matches("https?://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
+        if (Utils.isUriValue(choiceId) && template.getLabel(vf.createIRI(choiceId)) != null) {
             label = template.getLabel(vf.createIRI(choiceId));
         } else if (labelMap.containsKey(choiceId)) {
             label = labelMap.get(choiceId);
@@ -126,7 +126,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             prefixLabelComp = new Label("prefix", "");
             prefixLabelComp.setVisible(false);
         } else {
-            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !Utils.isUriValue(prefixLabel)) {
                 // Capitalize first letter of label if at subject position:
                 prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
             }
@@ -167,7 +167,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                     response.addAll(possibleValues);
                     return;
                 }
-                if (term.startsWith("https://") || term.startsWith("http://")) {
+                if (Utils.isUriValue(term)) {
                     if (prefix == null || term.startsWith(prefix)) {
                         response.add(term);
                     }

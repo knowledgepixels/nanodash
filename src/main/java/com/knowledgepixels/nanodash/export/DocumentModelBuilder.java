@@ -357,7 +357,7 @@ public final class DocumentModelBuilder {
             for (int i = 0; i < parts.length; i++) {
                 String part = parts[i];
                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
-                if (part.matches("https?://.+")) {
+                if (Utils.isUriValue(part)) {
                     if (label == null || label.equals(part)) {
                         label = Utils.getShortNameFromURI(part);
                     }
@@ -377,7 +377,7 @@ public final class DocumentModelBuilder {
                 String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
                 appendSeparated(inlines, new Inline(plainText(display), null));
             }
-        } else if (value.matches("https?://.+")) {
+        } else if (Utils.isUriValue(value)) {
             String label = entry.get(key + "_label");
             if (label == null || label.isBlank() || label.equals(value)) {
                 label = Utils.getShortNameFromURI(value);

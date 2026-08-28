@@ -18,6 +18,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.string.Strings;
+import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -28,6 +29,7 @@ import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
+import org.nanopub.UriSchemes;
 import org.nanopub.extra.security.KeyDeclaration;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
@@ -47,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2Choice;
 
 import java.io.Serializable;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -100,6 +103,8 @@ public class Utils {
         if (uri.startsWith("https://doi.org/") || uri.startsWith("http://dx.doi.org/")) {
             return uri.replaceFirst("^https?://(dx\\.)?doi.org/", "doi:");
         }
+        String nonHierarchicalName = getNonHierarchicalShortName(uri);
+        if (nonHierarchicalName != null) return nonHierarchicalName;
         uri = uri.replaceFirst("\\?.*$", "");
         uri = uri.replaceFirst("[/#]$", "");
         uri = uri.replaceFirst("^.*[/#]([^/#]*)[/#]([0-9]+)$", "$1/$2");
@@ -112,6 +117,56 @@ public class Utils {
         uri = uri.replaceFirst("(^|[^A-Za-z0-9\\-_])RA[A-Za-z0-9\\-_]{43}[^A-Za-z0-9\\-_](.+)$", "$2");
         uri = URLDecoder.decode(uri, UTF_8);
         return uri;
+    }
+
+    // Length below which an identifier is shown whole rather than elided.
+    private static final int SHORT_NAME_ELISION_THRESHOLD = 14;
+
+    /**
+     * Short label for the URI schemes whose identifiers are opaque rather than hierarchical
+     * (issue #655). The general logic in {@link #getShortNameFromURI(String)} splits on "/" and
+     * "#", which a DID has neither of, and which leaves a bare CID as a 59-character "short"
+     * name. The scheme is kept — it is the part that says what kind of thing this is — and the
+     * identifier is elided in the middle, keeping its start (for a CID, the multibase and codec
+     * prefix) and its end (enough to tell two of them apart).
+     *
+     * @param uri the URI to shorten
+     * @return the short label, or null if the URI is hierarchical and handled by the caller
+     */
+    private static String getNonHierarchicalShortName(String uri) {
+        String scheme = UriSchemes.getScheme(uri);
+        if (scheme == null) return null;
+        if (scheme.equals("ipfs") || scheme.equals("ipns")) {
+            String id = uri.substring(scheme.length() + 1).replaceFirst("^//", "");
+            // A path under the CID is hierarchical after all, so the general rules apply.
+            if (id.contains("/")) return null;
+            return scheme + ":" + elideMiddle(id);
+        }
+        if (scheme.equals("did")) {
+            // did:<method>:<method-specific-id> -- the method is short and meaningful, so only
+            // the identifier after it is elided.
+            String rest = uri.substring(4);
+            int colon = rest.indexOf(':');
+            if (colon < 1) return "did:" + elideMiddle(rest);
+            return "did:" + rest.substring(0, colon + 1) + elideMiddle(rest.substring(colon + 1));
+        }
+        if (scheme.equals("at")) {
+            // at://<did>/<collection>/<rkey> -- the record key identifies the record, and is
+            // what the general rules would pick out too, but they choke on a URI without a path.
+            String rest = uri.substring(3).replaceFirst("^//", "");
+            int lastSlash = rest.lastIndexOf('/');
+            if (lastSlash >= 0) return "at:" + rest.substring(lastSlash + 1);
+            // No record key: what is left is the repository, which is a DID, so it shortens by
+            // the rule above rather than being elided as one opaque blob.
+            String repository = getNonHierarchicalShortName(rest);
+            return "at:" + (repository != null ? repository : elideMiddle(rest));
+        }
+        return null;
+    }
+
+    private static String elideMiddle(String id) {
+        if (id.length() <= SHORT_NAME_ELISION_THRESHOLD) return id;
+        return id.substring(0, 4) + "…" + id.substring(id.length() - 4);
     }
 
     /**
@@ -736,9 +791,15 @@ public class Utils {
                 .allowAttributes(SVG_ATTRIBUTES).onElements(SVG_ELEMENTS_WITH_LINK);
     }
 
+    // Links a view emits may point at any scheme a nanopublication is allowed to reference
+    // (issue #655); without them here the sanitizer silently strips the href. All of these are
+    // inert reference schemes -- nothing script-executing is added.
+    private static final String[] SANITIZER_URL_PROTOCOLS =
+            UriSchemes.ALLOWED_SCHEMES.stream().sorted().toArray(String[]::new);
+
     private static final PolicyFactory htmlSanitizePolicy = allowSvgSubset(new HtmlPolicyBuilder()
             .allowCommonBlockElements().allowCommonInlineFormattingElements()
-            .allowUrlProtocols("https", "http", "mailto")
+            .allowUrlProtocols(SANITIZER_URL_PROTOCOLS).allowUrlProtocols("mailto")
             .allowElements("a").allowAttributes("href").onElements("a")
             .allowElements("img").allowAttributes("src").onElements("img")
             .allowElements("pre")
@@ -756,7 +817,7 @@ public class Utils {
     }
 
     private static final PolicyFactory svgSanitizePolicy = allowSvgSubset(new HtmlPolicyBuilder()
-            .allowUrlProtocols("https", "http")
+            .allowUrlProtocols(SANITIZER_URL_PROTOCOLS)
             .allowElements("a")
             .allowWithoutAttributes("a")
             .allowAttributes("href").onElements("a")).toFactory();
@@ -1460,6 +1521,126 @@ public class Utils {
      */
     public static boolean isLocalURI(String uriAsString) {
         return !uriAsString.isBlank() && uriAsString.startsWith(LocalUri.PREFIX);
+    }
+
+    /**
+     * Checks whether a string should be treated as a URI reference rather than as plain text.
+     * This is the single discriminator used across the code base, replacing the ad-hoc
+     * {@code matches("https?://.+")} tests that only recognized http(s) (issue #655).
+     * <p>
+     * The set of accepted schemes comes from {@link UriSchemes} in nanopub-java, so that Nanodash
+     * and the nanopublication verifier agree on what counts as a URI.
+     * <p>
+     * {@link UriSchemes#isAllowedUriScheme(String)} on its own only inspects the scheme, so it
+     * accepts strings such as {@code "at: home"} that happen to start with an allowed scheme name
+     * and a colon. Since many call sites use this method to decide between a literal and an IRI,
+     * that would silently turn ordinary prose into a link. The extra conditions below reject such
+     * values: a URI contains no whitespace, and must have something after the scheme -- which,
+     * for the {@code scheme://} form, means something after the slashes, so that a bare
+     * {@code "http://"} is no more a URI than it was under the {@code "https?://.+"} test.
+     *
+     * @param value the string to check
+     * @return true if the string is a URI in one of the allowed schemes
+     */
+    public static boolean isUriValue(String value) {
+        if (value == null || value.isBlank()) return false;
+        if (!UriSchemes.isAllowedUriScheme(value)) return false;
+        for (int i = 0; i < value.length(); i++) {
+            if (Character.isWhitespace(value.charAt(i))) return false;
+        }
+        String rest = value.substring(value.indexOf(':') + 1);
+        if (rest.startsWith("//")) rest = rest.substring(2);
+        return !rest.isEmpty();
+    }
+
+    /**
+     * The external web URL where a URI Nanodash cannot display itself can be looked up, from the
+     * scheme-to-template map in {@link NanodashPreferences#getUriResolvers()} (issue #655).
+     * http(s) URIs are never resolved this way: they are their own web address.
+     *
+     * @param uri the URI to resolve
+     * @return the resolver URL, or null if the scheme has no configured resolver
+     */
+    public static String getExternalResolverUrl(String uri) {
+        String scheme = UriSchemes.getScheme(uri);
+        if (scheme == null || scheme.equals("http") || scheme.equals("https")) return null;
+        String template = NanodashPreferences.get().getUriResolvers().get(scheme);
+        if (template == null || template.isBlank()) return null;
+        String rest = uri.substring(scheme.length() + 1);
+        if (rest.startsWith("//")) rest = rest.substring(2);
+        return template.replace("$rest", encodeForPath(rest)).replace("$uri", encodeForPath(uri));
+    }
+
+    // The resolvers substitute into the path of a URL, where the colons of a DID and the slashes
+    // of an AT-URI or IPFS path are legal and load-bearing -- form encoding them (as urlEncode
+    // does) would produce a URL the resolver cannot read. So only what is unsafe in a path is
+    // escaped, which importantly includes "?" and "#": left as they are, a crafted URI could
+    // append a query or fragment to the resolver URL rather than being resolved by it.
+    private static final String PATH_SAFE_PUNCTUATION = "-._~!$&'()*+,;=:@/";
+
+    private static String encodeForPath(String s) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < s.length()) {
+            int codePoint = s.codePointAt(i);
+            int width = Character.charCount(codePoint);
+            char c = s.charAt(i);
+            boolean alnum = width == 1
+                    && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
+            // An existing percent-escape is passed through, so that an already-encoded URI does
+            // not come out double-encoded.
+            boolean keptEscape = width == 1 && c == '%' && i + 2 < s.length()
+                    && isHexDigit(s.charAt(i + 1)) && isHexDigit(s.charAt(i + 2));
+            if (alnum || keptEscape || (width == 1 && PATH_SAFE_PUNCTUATION.indexOf(c) >= 0)) {
+                sb.append(c);
+            } else {
+                for (byte b : new String(Character.toChars(codePoint)).getBytes(UTF_8)) {
+                    sb.append(String.format("%%%02X", b));
+                }
+            }
+            i += width;
+        }
+        return sb.toString();
+    }
+
+    private static boolean isHexDigit(char c) {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+
+    /**
+     * The allowed URI schemes as a sorted, comma-separated list, for use in validation messages.
+     *
+     * @return the allowed schemes, e.g. "at, did, http, https, ipfs, ipns"
+     */
+    public static String getAllowedUriSchemesLabel() {
+        return UriSchemes.ALLOWED_SCHEMES.stream().sorted().collect(java.util.stream.Collectors.joining(", "));
+    }
+
+    /**
+     * Checks whether a string is a well-formed absolute URI.
+     * <p>
+     * {@link ParsedIRI} is tried first, so that http(s) input is judged exactly as it was before
+     * issue #655. It cannot parse AT-URIs: in {@code at://did:plc:abc/app.bsky.feed.post/3k} the
+     * authority is {@code did:plc:abc}, and it reads the colon as introducing a port, which then
+     * fails to be a number. {@link URI} allows a registry-based authority and accepts these, while
+     * still rejecting genuinely malformed input such as {@code at://}, {@code did:} or embedded
+     * spaces, so it serves as the fallback rather than as a blanket exemption.
+     *
+     * @param uri the string to check
+     * @return true if the string is a well-formed absolute URI
+     */
+    public static boolean isWellFormedUri(String uri) {
+        if (uri == null || uri.isBlank()) return false;
+        try {
+            if (new ParsedIRI(uri).isAbsolute()) return true;
+        } catch (URISyntaxException ex) {
+            // fall through to the more permissive parser below
+        }
+        try {
+            return new URI(uri).isAbsolute();
+        } catch (URISyntaxException ex) {
+            return false;
+        }
     }
 
     public static String unescapeMultiValue(String s) {

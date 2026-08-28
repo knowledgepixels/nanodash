@@ -481,7 +481,7 @@ public class TemplateContext implements Serializable {
                     prefix = targetNamespace;
                     unresolvedPrefix = false;
                 }
-                if (tfObject.matches("https?://.+")) {
+                if (Utils.isUriValue(tfObject)) {
                     prefix = "";
                     unresolvedPrefix = false;
                 }
@@ -491,7 +491,7 @@ public class TemplateContext implements Serializable {
                 if (!unresolvedPrefix) {
                     String v = prefix + tf.getObject();
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                    if (v.matches("https?://.*")) {
+                    if (Utils.isUriValue(v)) {
                         processedValue = vf.createIRI(v);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
@@ -515,7 +515,7 @@ public class TemplateContext implements Serializable {
                 if (template.isAutoEscapePlaceholder(iri)) {
                     v = prefix + Utils.urlEncode(tf.getObject());
                 } else {
-                    if (tfObject.matches("https?://.+")) {
+                    if (Utils.isUriValue(tfObject)) {
                         prefix = "";
                         unresolvedPrefix = false;
                     }

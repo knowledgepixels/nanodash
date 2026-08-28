@@ -22,7 +22,6 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
-import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.nanopub.SimpleCreatorPattern;
@@ -33,7 +32,6 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -101,7 +99,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             prefixLabelComp = new Label("prefix", "");
             prefixLabelComp.setVisible(false);
         } else {
-            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !Utils.isUriValue(prefixLabel)) {
                 // Capitalize first letter of label if at subject position:
                 prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
             }
@@ -177,7 +175,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             public boolean isRequired() {
                 if (super.isRequired()) return true;
                 String raw = textfield.getInput();
-                return raw != null && !raw.isBlank() && !raw.matches("https?://.+");
+                return raw != null && !raw.isBlank() && !Utils.isUriValue(raw);
             }
 
         };
@@ -436,7 +434,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             if (template.isAutoEscapePlaceholder(iri)) {
                 sv = Utils.urlEncode(sv);
             }
-            if (sv.matches("https?://.+")) {
+            if (Utils.isUriValue(sv)) {
                 p = "";
             } else if (sv.contains(":") || sv.contains("#")) {
                 s.error(new ValidationError("Invalid character in postfix (e.g., colon, hash)"));
@@ -446,16 +444,11 @@ public class IriTextfieldItem extends AbstractContextComponent {
                 p = LocalUri.PREFIX;
                 iriString = p + sv;
             }
-            try {
-                ParsedIRI piri = new ParsedIRI(iriString);
-                if (!piri.isAbsolute()) {
-                    s.error(new ValidationError("IRI not well-formed"));
-                }
-                if (p.isEmpty() && !Utils.isLocalURI(sv) && !sv.matches("https?://.+")) {
-                    s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
-                }
-            } catch (URISyntaxException ex) {
+            if (!Utils.isWellFormedUri(iriString)) {
                 s.error(new ValidationError("IRI not well-formed"));
+            }
+            if (p.isEmpty() && !Utils.isLocalURI(sv) && !Utils.isUriValue(sv)) {
+                s.error(new ValidationError("IRI scheme not allowed here; use one of: " + Utils.getAllowedUriSchemesLabel()));
             }
             String regex = template.getRegex(iri);
             if (regex != null) {
@@ -464,7 +457,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
                 }
             }
             if (template.isExternalUriPlaceholder(iri)) {
-                if (!iriString.matches("https?://.+")) {
+                if (!Utils.isUriValue(iriString)) {
                     s.error(new ValidationError("Not an external IRI"));
                 }
             }

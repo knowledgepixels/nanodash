@@ -10,7 +10,10 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Class to manage Nanodash preferences.
@@ -57,6 +60,7 @@ public class NanodashPreferences implements Serializable {
     private String claudeChatModel;
     private boolean mcpRemoteEnabled = false;
     private String apiCacheFile;
+    private String uriResolvers;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -70,6 +74,23 @@ public class NanodashPreferences implements Serializable {
      * Value for {@link #getApiCacheFile()} that disables API cache persistence.
      */
     public static final String API_CACHE_DISABLED = "none";
+
+    /**
+     * Where non-http(s) URIs are sent when they are followed as links (issue #655). Nanodash
+     * cannot display an {@code ipfs:}, {@code did:} or {@code at:} resource itself, so it hands
+     * the URI to a web resolver. Keys are schemes, values are URL templates in which
+     * {@code $uri} expands to the whole URI and {@code $rest} to the part after the scheme
+     * (and after {@code //}, where present), both percent-encoded.
+     * <p>
+     * These defaults are public third-party services and are meant to be overridden — an IPFS
+     * gateway in particular is better pointed at a local node, e.g.
+     * {@code ipfs=http://127.0.0.1:8080/ipfs/$rest}.
+     */
+    public static final Map<String, String> DEFAULT_URI_RESOLVERS = Map.of(
+            "ipfs", "https://ipfs.io/ipfs/$rest",
+            "ipns", "https://ipfs.io/ipns/$rest",
+            "did", "https://dev.uniresolver.io/1.0/identifiers/$uri",
+            "at", "https://pdsls.dev/$uri");
 
     /** Where an instance is assumed to be reachable when nothing says otherwise: a local run. */
     public static final String DEFAULT_WEBSITE_URL = "http://localhost:37373/";
@@ -405,6 +426,41 @@ public class NanodashPreferences implements Serializable {
      */
     public void setApiCacheFile(String apiCacheFile) {
         this.apiCacheFile = apiCacheFile;
+    }
+
+    /**
+     * Get the resolvers for non-http(s) URI schemes, from the {@code NANODASH_URI_RESOLVERS}
+     * environment variable or the preferences file, falling back to
+     * {@link #DEFAULT_URI_RESOLVERS}. The configured form is a comma-separated list of
+     * {@code scheme=urlTemplate} entries; it replaces the defaults rather than adding to them,
+     * so an empty value switches outbound resolution off entirely.
+     *
+     * @return scheme to URL template, keyed by lower-case scheme
+     */
+    public Map<String, String> getUriResolvers() {
+        String s = System.getenv("NANODASH_URI_RESOLVERS");
+        if (s == null) s = uriResolvers;
+        if (s == null) return DEFAULT_URI_RESOLVERS;
+        Map<String, String> map = new HashMap<>();
+        for (String entry : s.split(",")) {
+            if (entry.isBlank()) continue;
+            int eq = entry.indexOf('=');
+            if (eq < 1) {
+                logger.warn("Ignoring malformed URI resolver entry (expected scheme=urlTemplate): {}", entry);
+                continue;
+            }
+            map.put(entry.substring(0, eq).trim().toLowerCase(Locale.ROOT), entry.substring(eq + 1).trim());
+        }
+        return map;
+    }
+
+    /**
+     * Set the resolvers for non-http(s) URI schemes.
+     *
+     * @param uriResolvers comma-separated {@code scheme=urlTemplate} entries
+     */
+    public void setUriResolvers(String uriResolvers) {
+        this.uriResolvers = uriResolvers;
     }
 
     public String getHomeResource() {

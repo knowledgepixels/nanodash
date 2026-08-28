@@ -168,7 +168,7 @@ public class QueryResultList extends QueryResult {
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
                                 if (isPublishLink(part)) {
                                     multiComponents.add(new Label("component", publishButtonHtml(part, label)).setEscapeModelStrings(false));
-                                } else if (part.matches("https?://.+")) {
+                                } else if (Utils.isUriValue(part)) {
                                     if (label != null && label.equals(part)) {
                                         label = null;
                                     }
@@ -210,7 +210,7 @@ public class QueryResultList extends QueryResult {
                             // A ready-made link to the publish form: an action the view offers,
                             // shown as a button rather than as a link to content.
                             components.add(new Label("component", publishButtonHtml(entryValue, entry.get(key + "_label"))).setEscapeModelStrings(false));
-                        } else if (entryValue.matches("https?://.+")) {
+                        } else if (Utils.isUriValue(entryValue)) {
                             String entryLabel = entry.get(key + "_label");
                             if ("^".equals(entryLabel)) {
                                 // Folded into the per-row actions dropdown appended below.
