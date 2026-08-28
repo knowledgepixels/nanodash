@@ -353,6 +353,12 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 MaintainedResourceRepository.get().forceRootRefresh(waitMs);
             } else if (AbstractResourceWithProfile.isResourceWithProfile(target)) {
                 AbstractResourceWithProfile resource = AbstractResourceWithProfile.get(target);
+                // What was just published can be a new version of a view this resource
+                // shows, whose resolution the rebuilt structure would otherwise take from
+                // the memo and so keep showing the previous definition (issue #654). The
+                // views' results are left alone: only the view that was acted on is
+                // refreshed (issue #622).
+                resource.requestViewDefinitionRefresh();
                 resource.forceRefresh(waitMs);
                 if (resource instanceof Space) {
                     SpaceRepository.get().forceRootRefresh(waitMs);

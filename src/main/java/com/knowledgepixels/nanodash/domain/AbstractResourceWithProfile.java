@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
@@ -56,6 +57,13 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     // on is refreshed (issue #622). Taken away by the first view list built once the
     // refreshed structure has landed. See isViewRefreshDue.
     private volatile boolean viewRefreshRequested = false;
+    // The same page-level "refresh now" also asks for the view definitions the refreshed
+    // structure references to be re-checked, not only their results (issue #654): a
+    // memoized resolution is otherwise only re-checked once a minute in the background, so
+    // a view published a moment ago would keep rendering as its previous version. Read and
+    // taken by the structure update itself, where going back to the API costs nobody's
+    // request thread. See buildViewDisplays.
+    private volatile boolean viewDefinitionRefreshRequested = false;
 
     // Whether the view lists built during the current request are to refresh their views,
     // answered once per resource and remembered for the rest of the render so that several
@@ -160,6 +168,11 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
             runUpdateAfter = null;
             logger.info("Data needs update for resource {}, starting update thread", id);
             dataNeedsUpdate = false;
+            // Taken here rather than in the task, so that a request arriving while the
+            // fetch runs is left standing for the next round instead of being answered by
+            // a build that started before it.
+            final boolean refreshViewDefinitions = viewDefinitionRefreshRequested;
+            viewDefinitionRefreshRequested = false;
             return NanodashThreadPool.submit(() -> {
                 try {
                     ResourceWithProfile newData = new ResourceWithProfile();
@@ -171,7 +184,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     // aggregation in getViewDisplays() resolves overrides between presets and
                     // standalone displays correctly, in either direction.
                     seedFromCacheIfPossible();
-                    newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef()));
+                    newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef(), refreshViewDefinitions));
                     newData.profilePicture = fetchProfilePicture();
                     data = newData;
                     dataInitialized = true;
@@ -183,6 +196,8 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     logger.error("Error while trying to update data for resource {}", id, ex);
                     runUpdateAfter = System.currentTimeMillis() + FAILED_UPDATE_BACKOFF_MS;
                     dataNeedsUpdate = true;
+                    // Nothing was rebuilt, so the request the retry is to honour is put back.
+                    if (refreshViewDefinitions) viewDefinitionRefreshRequested = true;
                 }
             });
         }
@@ -279,9 +294,27 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * honoured by the first view list built once the refreshed structure has landed (see
      * {@link #isViewRefreshDue(boolean)}), so it is the refreshed list that gets refreshed, not
      * the one that happened to be on screen when the user clicked.
+     * <p>
+     * "Up to date" covers each view's definition as well as its results: the structure
+     * update re-resolves the referenced views instead of trusting the memoized resolution,
+     * so a view definition superseded a moment ago is picked up by this refresh rather than
+     * by whichever one happens to follow it (issue #654).
      */
     public void requestViewRefresh() {
         viewRefreshRequested = true;
+        requestViewDefinitionRefresh();
+    }
+
+    /**
+     * Asks for the view definitions this resource's structure references to be re-resolved
+     * when it is next rebuilt, without asking for the views' results to be refreshed along
+     * with them. What a publication needs: the nanopub just published may be a new version
+     * of a view shown here, and the resolution that would otherwise be reused is memoized
+     * (issue #654). Refreshing every view's results on top of that is what issue #622 took
+     * away, so it stays away — only the view that was acted on is refreshed there.
+     */
+    public void requestViewDefinitionRefresh() {
+        viewDefinitionRefreshRequested = true;
     }
 
     /**
@@ -339,8 +372,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     public String getStructureSignature() {
         StringBuilder sb = new StringBuilder();
         for (ViewDisplay vd : data.viewDisplays) {
+            // Both the referenced view and the version it resolved to: a new version of a
+            // view the displays already reference leaves the reference as it was, and the
+            // page would go on showing the previous definition if that were all we compared.
             sb.append(vd.getNanopubId()).append('\t')
                     .append(vd.getViewIri()).append('\t')
+                    .append(vd.getView() == null ? "" : vd.getView().getId()).append('\t')
                     .append(vd.getStructuralPosition()).append('\n');
         }
         return sb.toString();
@@ -496,12 +533,33 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * displays with a bound {@code ?display}, and preset-supplied views with an unbound one).
      */
     private List<ViewDisplay> buildViewDisplays(QueryRef ref) {
+        return buildViewDisplays(ref, false);
+    }
+
+    /**
+     * @param refreshViewDefinitions whether to go back to the API for each referenced view's
+     *                               latest version instead of trusting what is memoized —
+     *                               what a page-level "refresh now" asks for (issue #654).
+     *                               Only ever true on the update thread, as the lookups block.
+     */
+    private List<ViewDisplay> buildViewDisplays(QueryRef ref, boolean refreshViewDefinitions) {
         // Null on a cold cache or a failed (flaky federated) fetch — yields nothing for now;
         // the cache refreshes asynchronously and the page's auto-refresh repopulates it.
-        return buildViewDisplays(ApiCache.retrieveResponseSync(ref, true), ref);
+        return buildViewDisplays(ApiCache.retrieveResponseSync(ref, true), ref, refreshViewDefinitions);
     }
 
     private List<ViewDisplay> buildViewDisplays(ApiResponse response, QueryRef ref) {
+        return buildViewDisplays(response, ref, false);
+    }
+
+    private List<ViewDisplay> buildViewDisplays(ApiResponse response, QueryRef ref, boolean refreshViewDefinitions) {
+        if (refreshViewDefinitions) {
+            // Every view this build resolves goes back to the API rather than to the memo.
+            // Done around the whole build rather than per row: which id a display's view is
+            // resolved by is up to the display nanopub (the referenced version) and the
+            // query variant (the server-resolved one), and the scope catches either.
+            return View.withFreshResolution(() -> buildViewDisplays(response, ref, false));
+        }
         List<ViewDisplay> list = new ArrayList<>();
         if (response == null) return list;
         // The unresolved query variant returns ?view as the referenced version, leaving
@@ -511,11 +569,11 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         boolean viewsPreResolved = !QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED.equals(ref.getQueryId());
         for (ApiResponseEntry r : response.getData()) {
             try {
+                String view = r.get("view");
                 String display = r.get("display");
                 if (display != null && !display.isEmpty()) {
-                    list.add(ViewDisplay.get(display, viewsPreResolved ? r.get("view") : null));
+                    list.add(ViewDisplay.get(display, viewsPreResolved ? view : null));
                 } else {
-                    String view = r.get("view");
                     if (view == null || view.isEmpty()) continue;
                     boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
                     boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
