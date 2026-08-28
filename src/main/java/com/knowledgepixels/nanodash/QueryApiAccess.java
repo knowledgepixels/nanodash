@@ -404,6 +404,18 @@ public class QueryApiAccess {
     }
 
     /**
+     * Drops the memoized latest-version lookup for a nanopub, so that the next
+     * {@link #getLatestVersionId(String)} goes back to the query API instead of answering
+     * from a memo that can be up to a minute old. For the places where the user explicitly
+     * asks for current data, such as {@link View#refreshLatestVersion(String)}.
+     *
+     * @param nanopubId The ID of the nanopublication.
+     */
+    public static void forgetLatestVersion(String nanopubId) {
+        latestVersionMap.remove(nanopubId);
+    }
+
+    /**
      * Checks whether the given nanopublication has been loaded by the query services,
      * with a single cheap indexed lookup. A negative answer only means the instance that
      * happened to answer does not have the nanopub yet.

@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.GuidedChoiceItem;
 import com.knowledgepixels.nanodash.component.RefreshingResultPanel;
@@ -198,6 +199,10 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
         addToOwnLink.setVisible(showAddToOwn);
         addEntry("addToOwn", addToOwnLink);
 
+        // The version of the view definition this display is showing. A newer one can have
+        // been published since the page was built, which "refresh now" checks for below.
+        final String shownViewId = viewDisplay.getView() == null ? null : viewDisplay.getView().getId();
+
         // Refreshes this one view where it stands. Re-rendering the whole page would work too,
         // but it takes the reader back to the top of it, away from the view they were looking
         // at — and re-runs everything else on the page for a refresh they asked of one view.
@@ -205,6 +210,25 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
             @Override
             public void onClick(Optional<AjaxRequestTarget> target) {
                 ApiCache.clearCache(queryRef, 0);
+                // Bringing a view up to date is not only a matter of re-running its query:
+                // the view definition itself can have been superseded since this page was
+                // built, and neither the memoized resolution nor the version the page's
+                // structure resolved to would notice on their own (issue #654).
+                View latestView = shownViewId == null ? null : View.refreshLatestVersion(shownViewId);
+                if (latestView != null && !shownViewId.equals(latestView.getId())) {
+                    // A new version can change everything the display is made of — its query,
+                    // its columns, its actions, its width — which is more than the piece on
+                    // screen can be patched into. The version in use comes from the page's
+                    // structure (the get-view-displays query resolves it server-side), so the
+                    // structure is what has to be asked again: the same route the page-level
+                    // "refresh now" takes, with the current structure kept on screen under a
+                    // spinner until the refreshed one lands.
+                    AbstractResourceWithProfile r = pageResourceId.isEmpty()
+                            ? null : AbstractResourceWithProfile.get(pageResourceId);
+                    if (r != null) r.forceRefresh(0);
+                    setResponsePage(getPage().getClass(), getPage().getPageParameters());
+                    return;
+                }
                 QueryResult view = findParent(QueryResult.class);
                 // A view is not always what stands in the page: while it waits for its first
                 // results it is inside Wicket's lazy-loading panel, and while it is being
