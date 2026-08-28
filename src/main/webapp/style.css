@@ -993,13 +993,23 @@ a.actionlink {
   max-height: 28px;
 }
 
-.select2-selection__rendered > span.term {
+.select2-selection__rendered > span.term,
+.select2-selection__rendered > span.mint-note {
   display: inline-block;
   margin-top: 3px;
 }
 
 .select2-dropdown span.term {
   font-weight: bold;
+}
+
+/* The note on a value that the nanopublication will mint itself: an aside about the value, not
+   part of it, so it is set apart from the term next to it -- but only in weight and slant, since
+   it sits on the same line and shares the rules above with that term (issue #652). */
+span.mint-note {
+  font-weight: normal;
+  font-style: italic;
+  vertical-align: middle;
 }
 
 .select2-dropdown.select2-dropdown--below {

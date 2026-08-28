@@ -990,7 +990,10 @@ public class Utils {
      * @param selectItem the Select2Choice component to set the escape markup for
      */
     public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
-        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
+        // The note of a to-be-minted value is not part of the value, so it is set in its own
+        // span and styled as an aside rather than as the term itself (issue #652).
+        String noteRegex = TO_BE_MINTED_NOTE.replace("(", "\\(").replace(")", "\\)");
+        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
     }
 
     /**
@@ -1124,6 +1127,44 @@ public class Utils {
     }
 
     /**
+     * Whether a term typed into a choice field can be entered as a plain name for a resource that
+     * has no identifier yet (issue #652): it is not a URI already, and the IRI validator accepts
+     * it once a prefix is put in front of it -- the field's own, or the local one when it has
+     * none, in which case the nanopublication mints it under its own namespace.
+     *
+     * @param term the term typed into the field
+     * @return true if the term can be offered as a plain name
+     */
+    public static boolean isPlainName(String term) {
+        if (term == null || term.isBlank()) return false;
+        if (isUriValue(term)) return false;
+        // Same rule as the validator: no colon, hash or whitespace, and well-formed as a URI once
+        // prefixed.
+        if (!term.matches("[^:#\\s]+")) return false;
+        return isWellFormedUri(LocalUri.PREFIX + term);
+    }
+
+    /**
+     * How a value that a nanopublication will mint under its own namespace is shown in a choice
+     * field: with the local prefix in front of it and marked as not being an identifier yet, e.g.
+     * "local:john (to be minted)" (issue #652). See
+     * {@link com.knowledgepixels.nanodash.template.TemplateContext#isToBeMinted(IRI, String)} for
+     * which values these are.
+     *
+     * @param value the plain name held for the placeholder
+     * @return the label to show for it
+     */
+    public static String getToBeMintedLabel(String value) {
+        return LocalUri.PREFIX + value + " " + TO_BE_MINTED_NOTE;
+    }
+
+    /**
+     * The note appended to a to-be-minted value, set apart from the value itself by
+     * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)}.
+     */
+    private static final String TO_BE_MINTED_NOTE = "(mint locally)";
+
+    /**
      * Gets an ExternalLink with a URI label.
      *
      * @param markupId the markup ID for the link
@@ -1142,7 +1183,29 @@ public class Utils {
      * @return an ExternalLink with the URI label
      */
     public static ExternalLink getUriLink(String markupId, IModel<String> model) {
-        return new ExternalLink(markupId, model, new UriLabelModel(model));
+        return new ExternalLink(markupId, new UriHrefModel(model), new UriLabelModel(model));
+    }
+
+    /**
+     * The href of a URI link: empty for anything that isn't a URI to link to, so that a local
+     * URI or a locally minted name (issue #652) isn't turned into a relative link. This mirrors
+     * what {@link #getUriLink(String, String)} does with local URIs.
+     */
+    private static class UriHrefModel implements IModel<String> {
+
+        private IModel<String> uriModel;
+
+        public UriHrefModel(IModel<String> uriModel) {
+            this.uriModel = uriModel;
+        }
+
+        @Override
+        public String getObject() {
+            String uri = uriModel.getObject();
+            if (uri == null || isLocalURI(uri) || !isUriValue(uri)) return "";
+            return uri;
+        }
+
     }
 
     private static class UriLabelModel implements IModel<String> {
