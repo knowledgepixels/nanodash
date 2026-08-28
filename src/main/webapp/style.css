@@ -2515,6 +2515,30 @@ p.waiting {
   margin-left: 0;
 }
 
+/* A header view's title row is built differently — an h3 above a rule, baseline-aligned,
+   with no filter field — but the spinner means the same thing and goes to the same place.
+   Centred rather than baseline-aligned: an empty inline-block's baseline is its own bottom
+   edge, which would hang it below the title's. */
+.view-header-titlerow > .refresh-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-left: 10px;
+  margin-right: auto;
+  align-self: center;
+  flex: none;
+}
+
+/* As in a panel title row: the title stops filling the row so the spinner takes that space
+   instead, and the buttons' auto left margin gives way to the spinner's auto right one. */
+[class*="col-"].section-header .view-header-titlerow:has(> .refresh-spinner) h3 {
+  flex: 0 1 auto;
+}
+
+.view-header-titlerow:has(> .refresh-spinner) > span.buttons {
+  margin-left: 0;
+}
+
 /* Standing on its own — a whole page section or panel body with nothing in it yet — the
    same spinner is drawn larger: there is no title or message beside it to carry the eye,
    and none of the gutter's width limit applies. */

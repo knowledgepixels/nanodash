@@ -178,10 +178,33 @@ function makeSpinner() {
 var UPDATE_SPINNER_DELAY_MS = 250;
 /* Backstop for a call that never reports completion, so a spinner cannot get stuck. */
 var UPDATE_SPINNER_MAX_MS = 30000;
+/* An update the user explicitly asked for — a view's "refresh now" — is the exception to
+   the delay above: it shows at once and stays long enough to be read. The delay is there so
+   that updates happening *incidentally*, as a side effect of typing or paging, do not
+   flicker; a refresh someone clicked for is the opposite case, and answering it with
+   nothing visible reads as a click that did nothing. Most of these round trips finish in
+   about a tenth of a second, which is why the delay alone left them silent. */
+var REQUESTED_SPINNER_MIN_MS = 600;
 var updatingPanels = new Map();
 
 function isVisible(el) {
   return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+/* The title rows a spinner can go in: a regular view panel's, and a header view's, which
+   is built differently (an h3 under a rule rather than an h4) but sits in the same place
+   and means the same thing. */
+var TITLE_ROW_SELECTOR = ".paneltitlerow, .view-header-titlerow";
+var TITLE_SELECTOR = "h4, h3";
+
+/* Whether an Ajax call came from a control the user clicked to ask for a refresh, as
+   opposed to one where updating is a side effect (a filter field, a paging link). The
+   markup says so: "refresh now" carries the class. */
+function isRequestedRefresh(attributes) {
+  var id = attributes && attributes.c;
+  if (!id || typeof id !== "string") return false;
+  var el = document.getElementById(id);
+  return !!(el && el.classList.contains("refresh-request"));
 }
 
 /* The view panel an Ajax call was triggered from, or null for calls that belong to no
@@ -195,7 +218,7 @@ function findUpdatingPanel(attributes) {
   var panel = el.closest('[class*="col-"]');
   // A view panel is a column with a title row; anything else (a page-level column, a
   // form) is left alone, since the gutter position is meaningless there.
-  return panel && panel.querySelector(".paneltitlerow") ? panel : null;
+  return panel && panel.querySelector(TITLE_ROW_SELECTOR) ? panel : null;
 }
 
 function showUpdateSpinner(panel) {
@@ -207,9 +230,9 @@ function showUpdateSpinner(panel) {
   if (existing && isVisible(existing)) return;
   // Right after the title, where the view's own spinner goes; the title row's layout keeps
   // it clear of the title icon and of the filter and menu on the right.
-  var titleRow = panel.querySelector(".paneltitlerow");
-  var title = titleRow ? titleRow.querySelector("h4") : null;
+  var titleRow = panel.querySelector(TITLE_ROW_SELECTOR);
   if (!titleRow) return;
+  var title = titleRow.querySelector(TITLE_SELECTOR);
   var spinner = makeSpinner();
   spinner.title = "Updating...";
   panel.classList.add("view-refreshing");
@@ -219,8 +242,18 @@ function showUpdateSpinner(panel) {
 
 function hideUpdateSpinner(panel) {
   var state = updatingPanels.get(panel);
-  updatingPanels.delete(panel);
   if (!state) return;
+  // An explicitly requested refresh keeps its spinner until it has been visible long
+  // enough to register, however quickly the server answered.
+  if (state.minUntil) {
+    var left = state.minUntil - performance.now();
+    if (left > 0) {
+      state.minUntil = null;
+      setTimeout(function () { hideUpdateSpinner(panel); }, left);
+      return;
+    }
+  }
+  updatingPanels.delete(panel);
   if (state.showTimer) clearTimeout(state.showTimer);
   if (state.maxTimer) clearTimeout(state.maxTimer);
   if (!state.spinner) return;
@@ -232,16 +265,21 @@ function hideUpdateSpinner(panel) {
   }
 }
 
-function onUpdateStart(panel) {
+function onUpdateStart(panel, requested) {
   var state = updatingPanels.get(panel);
   if (state) {
     state.count++;
     return;
   }
-  state = {count: 1, spinner: null, showTimer: null, maxTimer: null};
+  state = {count: 1, spinner: null, showTimer: null, maxTimer: null, minUntil: null};
   updatingPanels.set(panel, state);
-  state.showTimer = setTimeout(function () { showUpdateSpinner(panel); }, UPDATE_SPINNER_DELAY_MS);
   state.maxTimer = setTimeout(function () { hideUpdateSpinner(panel); }, UPDATE_SPINNER_MAX_MS);
+  if (requested) {
+    state.minUntil = performance.now() + REQUESTED_SPINNER_MIN_MS;
+    showUpdateSpinner(panel);
+  } else {
+    state.showTimer = setTimeout(function () { showUpdateSpinner(panel); }, UPDATE_SPINNER_DELAY_MS);
+  }
 }
 
 function onUpdateEnd(panel) {
@@ -255,7 +293,7 @@ function trackAjaxUpdates() {
   if (typeof Wicket === "undefined" || !Wicket.Event) return;
   Wicket.Event.subscribe("/ajax/call/before", function (jqEvent, attributes) {
     var panel = findUpdatingPanel(attributes);
-    if (panel) onUpdateStart(panel);
+    if (panel) onUpdateStart(panel, isRequestedRefresh(attributes));
   });
   Wicket.Event.subscribe("/ajax/call/complete", function (jqEvent, attributes) {
     var panel = findUpdatingPanel(attributes);
