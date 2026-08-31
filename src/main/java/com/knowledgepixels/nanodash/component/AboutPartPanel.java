@@ -1,6 +1,5 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.Utils;
@@ -100,7 +99,11 @@ public class AboutPartPanel extends Panel {
         for (IRI partClass : partClasses) {
             vdParams.put("partclass", partClass.stringValue());
         }
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(QueryApiAccess.LIST_PART_VIEW_DISPLAYS, vdParams), new ViewDisplay(vdView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
+        // Take the query from the view itself (as the space/user/maintained-resource panels do)
+        // rather than from a constant here: a constant silently drifts from the view's
+        // gen:hasViewQuery, and the view's per-row actions map columns the view's own query
+        // version provides.
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
     }
 
 }
