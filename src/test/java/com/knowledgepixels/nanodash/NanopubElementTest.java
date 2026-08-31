@@ -10,6 +10,8 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.testsuite.NanopubTestSuite;
+import org.nanopub.testsuite.TestSuiteCategory;
 import org.nanopub.vocabulary.NPX;
 
 import java.io.File;
@@ -23,7 +25,17 @@ import static org.mockito.Mockito.mockStatic;
 
 class NanopubElementTest {
 
-    private final File np = new File("src/test/resources/np-grlc-query.trig");
+    /**
+     * The published "Get participation links" query. It lives in the nanopub test suite rather
+     * than in this repository, so that the fixture is shared with the other implementations
+     * instead of being copied into each of them (#620).
+     */
+    private static final String QUERY_CODE = "RA6T-YLqLnYd5XfnqR9PaGUjCzudvHdYjcG4GvOc7fdpA";
+
+    private final File np = NanopubTestSuite.getLatest()
+            .getByArtifactCode(QUERY_CODE, TestSuiteCategory.VALID)
+            .orElseThrow(() -> new IllegalStateException("Not in the nanopub test suite: " + QUERY_CODE))
+            .toFile();
 
     @Test
     void getWithURI() throws MalformedNanopubException, IOException {

@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.*;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.testsuite.NanopubTestSuite;
+import org.nanopub.testsuite.TestSuiteCategory;
+import org.nanopub.testsuite.TestSuiteEntry;
 import org.nanopub.vocabulary.KPXL_GRLC;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,6 +43,19 @@ class GrlcQueryTest {
      * parser rejects with nothing but a numeric character code to go on (#284).
      */
     private static final String SPARQL_WITH_NON_BREAKING_SPACE = "select ?thing where { ?thing ?p\u00A0?o }";
+
+    /**
+     * The published "Get participation links" query. It lives in the nanopub test suite rather
+     * than in this repository, so that the fixture is shared with the other implementations
+     * instead of being copied into each of them (#620). Its absence is a failure rather than a
+     * reason to skip: it would mean the entry has been renamed or removed.
+     */
+    private static Nanopub queryNanopub() throws MalformedNanopubException, IOException {
+        TestSuiteEntry entry = NanopubTestSuite.getLatest()
+                .getByArtifactCode(NANOPUB_ID, TestSuiteCategory.VALID)
+                .orElseThrow(() -> new IllegalStateException("Not in the nanopub test suite: " + NANOPUB_ID));
+        return new NanopubImpl(entry.toFile(), RDFFormat.TRIG);
+    }
 
     @AfterEach
     void tearDown() throws NoSuchFieldException, IllegalAccessException {
@@ -198,7 +213,7 @@ class GrlcQueryTest {
     @Test
     void getNanopub() throws MalformedNanopubException, IOException {
         GrlcQuery query = GrlcQuery.get(NANOPUB_URI);
-        Nanopub nanopub = new NanopubImpl(new File("src/test/resources/np-grlc-query.trig"), RDFFormat.TRIG);
+        Nanopub nanopub = queryNanopub();
         assertEquals(query.getNanopub(), nanopub);
     }
 
@@ -247,7 +262,7 @@ class GrlcQueryTest {
     void getSparql() throws MalformedNanopubException, IOException {
         GrlcQuery query = GrlcQuery.get(NANOPUB_URI);
         String sparql = query.getSparql();
-        Nanopub nanopub = new NanopubImpl(new File("src/test/resources/np-grlc-query.trig"), RDFFormat.TRIG);
+        Nanopub nanopub = queryNanopub();
         AtomicReference<String> sparqlFromNanopub = new AtomicReference<>();
         nanopub.getAssertion().forEach(st -> {
             if (st.getPredicate().equals(KPXL_GRLC.SPARQL)) {
