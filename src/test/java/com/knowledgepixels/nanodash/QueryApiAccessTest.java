@@ -69,4 +69,41 @@ class QueryApiAccessTest {
         assertEquals(queryName, result);
     }
 
+    // An identifier minted under a prefix carries no artifact code, so whether it is free has
+    // to be asked of what has already been published (#646).
+    @Test
+    void isUriIntroducedReportsAnIdentifierThatIsAlreadyTaken() {
+        ApiResponse response = new ApiResponse();
+        ApiResponseEntry entry = new ApiResponseEntry();
+        entry.add("np", "https://w3id.org/np/RAMVfH7NHhyXFkvbdYYBtimoivyFpQl6CrXgoKgmjGE6I");
+        response.getData().add(entry);
+
+        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(response);
+
+            assertTrue(QueryApiAccess.isUriIntroduced("https://w3id.org/spaces/example/bar"));
+        }
+    }
+
+    @Test
+    void isUriIntroducedReportsAnIdentifierThatIsFree() {
+        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(new ApiResponse());
+
+            assertFalse(QueryApiAccess.isUriIntroduced("https://w3id.org/spaces/example/unused"));
+        }
+    }
+
+    // A check that cannot be made is not evidence of a collision: an unreachable query
+    // service must not be what stops someone from publishing.
+    @Test
+    void isUriIntroducedAnswersFalseWhenTheQueryFails() {
+        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class)))
+                    .thenThrow(new APINotReachableException("no instance reachable"));
+
+            assertFalse(QueryApiAccess.isUriIntroduced("https://w3id.org/spaces/example/bar"));
+        }
+    }
+
 }
