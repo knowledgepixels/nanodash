@@ -71,6 +71,26 @@ function renderFriendlyDates(root) {
   });
 }
 
+/* The address of the page as it is worth sending to somebody else. Two things Wicket
+   puts there belong to the current visit only and are left out:
+   - the counter for the page instance it is serving, at the front of the query string
+     as a parameter with no value: ".../space?3&id=...". Any other valueless number
+     goes the same way; nanodash's own parameters all have names.
+   - the session id, which Wicket writes into the path as ";jsessionid=..." when the
+     visitor has cookies disabled: ".../space;jsessionid=79B384...?id=...". Sending
+     that on would hand the recipient a live session. */
+function shareableUrl() {
+  var url = window.location.href.split("#")[0];
+  var queryStart = url.indexOf("?");
+  var path = (queryStart === -1 ? url : url.slice(0, queryStart))
+      .replace(/;jsessionid=[^/]*/gi, "");
+  if (queryStart === -1) return path;
+  var params = url.slice(queryStart + 1).split("&").filter(function (param) {
+    return !/^[0-9]+$/.test(param);
+  });
+  return path + (params.length ? "?" + params.join("&") : "");
+}
+
 /* Section anchors — every view display of a page carries a fragment identifier
    (server-side, see ViewAnchors): on its wrapping .listview element where ViewList
    renders it, and on the panel itself (.view-section) on the pages that build their
@@ -98,7 +118,7 @@ function addSectionAnchors(root) {
       // The href already moves the browser to the section; additionally put the full
       // link on the clipboard, which is what one actually wants it for.
       if (!navigator.clipboard) return;
-      var url = window.location.href.split("#")[0] + "#" + section.id;
+      var url = shareableUrl() + "#" + section.id;
       navigator.clipboard.writeText(url).then(function () {
         showToast("Link to section copied to clipboard!");
       }, function () { /* clipboard denied: the plain link still works */ });
