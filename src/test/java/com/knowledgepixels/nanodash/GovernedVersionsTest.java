@@ -15,6 +15,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GovernedVersionsTest {
 
+    /**
+     * Fixtures normally belong in the nanopub test suite rather than in this repository (#620),
+     * but these two stay here: they are hand-built, unsigned, and carry placeholder artifact
+     * codes, because they exist to exercise Nanodash's own governance logic rather than to test
+     * whether an implementation reads nanopublications correctly. A suite for validating
+     * nanopublication implementations is not their home, and an unsigned nanopub with a made-up
+     * code has no business in its {@code valid/} folder.
+     */
     private static Nanopub load(String fileName) throws MalformedNanopubException, IOException {
         return new NanopubImpl(new File("src/test/resources/" + fileName), RDFFormat.TRIG);
     }
