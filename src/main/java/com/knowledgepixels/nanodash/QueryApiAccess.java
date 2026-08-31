@@ -305,18 +305,8 @@ public class QueryApiAccess {
     // ref-scoped query requires root_np; the IRI-keyed variant backs the users' view. See
     // docs/queries/list-view-displays{,-ref}.trig.
 
-    // Part view-displays listing (resource + partid + partclass): the owning resource's displays,
-    // each ?displayed_here-flagged for the specific part. RAMy6Nu supersedes RAPaHJiD (renames
-    // ?shown_here → ?displayed_here). RAFkUf3A (derived from RAMy6Nu) adds a ?position_label column
-    // (first 3 chars of the structural position) so the position cell shows e.g. "1.1" with the full
-    // literal on hover.
-    // RAs9S7c9 (supersedes RA2LG9c5) swaps the authority gate to the npa:hasGoverningSpaceRef gate
-    // keyed on materialized npa:hasRoleType (issue #510), preserving the ?position_label column.
-    // RAKHyaoB (supersedes RAs9S7c9) adds space-governed version resolution (gen:governedBy;
-    // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
-    // governing space resolves to the newest member+-signed version of its (kind, space)
-    // pair via a run-once governed sub-select, falling back to the pinned version.
-    public static final String LIST_PART_VIEW_DISPLAYS = "RAKHyaoBCpNdbGsdPLdc8lbxLb4KuLhnmU0V2-NcxHei0/list-part-view-displays";
+    // The part view-displays listing is not referenced here either: AboutPartPanel takes it
+    // from the part view nanopub's gen:hasViewQuery and passes resource + partid + partclass.
 
     // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
     // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state
