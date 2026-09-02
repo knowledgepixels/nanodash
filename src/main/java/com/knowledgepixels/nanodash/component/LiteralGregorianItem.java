@@ -266,6 +266,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
     private final String regex;
     private final GregorianModel model;
     private final List<FormComponent<String>> fields = new ArrayList<>();
+    private final FormComponent<String> yearField, monthField, dayField;
 
     /**
      * Constructs a LiteralGregorianItem with the specified ID, IRI, optional flag, and template
@@ -299,7 +300,18 @@ public class LiteralGregorianItem extends AbstractContextComponent {
             }
         }
 
-        TextField<String> yearField = new TextField<>("year", new PartModel(model, PartModel.Part.YEAR));
+        // Each part of a two-part value requires the other, but only in a request that carries
+        // that other one: its raw input decides, not its stored value. An Ajax update of one
+        // part alone is then stored rather than rejected for the absence of a part the user has
+        // not reached yet -- being rejected is what used to leave both parts unstored, so the
+        // value could never be completed -- while a submit carries both and reports a half one.
+        // The same idiom keeps a language-tagged literal from being published untagged.
+        yearField = new TextField<>("year", new PartModel(model, PartModel.Part.YEAR)) {
+            @Override
+            public boolean isRequired() {
+                return super.isRequired() || (type.hasMonth() && hasInput(monthField));
+            }
+        };
         // A number input gives the spinner and the numeric keypad; the pattern is what actually
         // decides, since the input is a text field again in browsers that ignore the type.
         yearField.add(new AttributeModifier("type", "number"));
@@ -309,43 +321,56 @@ public class LiteralGregorianItem extends AbstractContextComponent {
                 v.error(new ValidationError("A year is four or more digits, e.g. 2026"));
             }
         });
-        DropDownChoice<String> monthField = new DropDownChoice<>("month",
-                new PartModel(model, PartModel.Part.MONTH), monthChoices(), monthRenderer());
-        DropDownChoice<String> dayField = new DropDownChoice<>("day",
-                new PartModel(model, PartModel.Part.DAY), dayChoices());
+        monthField = new DropDownChoice<>("month",
+                new PartModel(model, PartModel.Part.MONTH), monthChoices(), monthRenderer()) {
+            @Override
+            public boolean isRequired() {
+                return super.isRequired()
+                        || (type.hasYear() && hasInput(yearField))
+                        || (type.hasDay() && hasInput(dayField));
+            }
+        };
+        dayField = new DropDownChoice<>("day",
+                new PartModel(model, PartModel.Part.DAY), dayChoices(), dayRenderer()) {
+            @Override
+            public boolean isRequired() {
+                return super.isRequired() || (type.hasMonth() && hasInput(monthField));
+            }
+        };
+        String label = template.getLabel(iri);
+        String of = (label == null) ? "" : " of '" + label + "'";
+        yearField.setLabel(Model.of("year" + of));
+        monthField.setLabel(Model.of("month" + of));
+        dayField.setLabel(Model.of("day" + of));
 
         addField(yearField, type.hasYear(), optional, template);
         addField(monthField, type.hasMonth(), optional, template);
         addField(dayField, type.hasDay(), optional, template);
 
-        if (regex != null && !fields.isEmpty()) {
-            // The template's own pattern applies to the assembled value, which is what ends up
-            // in the nanopublication, so it is checked once rather than per part.
-            fields.getFirst().add((IValidator<String>) v -> {
-                String assembled = model.getObject();
-                if (!assembled.isEmpty() && !assembled.matches(regex)) {
-                    v.error(new ValidationError("Value '" + assembled + "' doesn't match the pattern '" + regex + "'"));
+        // These judge the whole value rather than one part of it, so they go on every part: a
+        // pattern that only the month breaks has to be applied when the month is what changed.
+        // They read the value as the controls hold it now -- reading the stored value would
+        // judge the previous entry, so the first value rejected would be measured against the
+        // pattern from then on and no correction could ever pass.
+        if (regex != null) {
+            addValueCheck(v -> {
+                String candidate = candidateValue();
+                if (!candidate.isEmpty() && !candidate.matches(regex)) {
+                    v.error(new ValidationError("Value '" + candidate + "' doesn't match the pattern '" + regex + "'"));
                 }
             });
         }
-
-        if (type == GregorianType.G_YEAR_MONTH) {
-            addPartialityCheck(yearField, monthField, "a month");
-            addPartialityCheck(monthField, yearField, "a year");
-        }
         if (type == GregorianType.G_MONTH_DAY) {
-            addPartialityCheck(monthField, dayField, "a day");
-            addPartialityCheck(dayField, monthField, "a month");
             // February has 29 days at most, April 31 never: a day the month cannot have is not
             // a value of this datatype, and the dropdowns alone cannot rule it out.
-            dayField.add((IValidator<String>) v -> {
-                String month = monthField.getValue();
-                if (month == null || month.isEmpty()) return;
+            addValueCheck(v -> {
+                String month = partInput(monthField), day = partInput(dayField);
+                if (month.isEmpty() || day.isEmpty()) return;
                 try {
-                    MonthDay.of(Integer.parseInt(month), Integer.parseInt(v.getValue()));
+                    MonthDay.of(Integer.parseInt(month), Integer.parseInt(day));
                 } catch (DateTimeException ex) {
                     v.error(new ValidationError(Month.of(Integer.parseInt(month))
-                            .getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " has no day " + Integer.parseInt(v.getValue())));
+                            .getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " has no day " + Integer.parseInt(day)));
                 }
             });
         }
@@ -396,17 +421,47 @@ public class LiteralGregorianItem extends AbstractContextComponent {
     }
 
     /**
-     * Reports a value that names one part of a two-part datatype and not the other. Wicket
-     * skips validators on empty input, so the check has to sit on the part that was filled in
-     * and look at the one that was not.
+     * What a control holds right now: the input being validated where there is one, and the
+     * stored part otherwise. A value assembled from these reflects the entry being made rather
+     * than the one last accepted.
      */
-    private static void addPartialityCheck(FormComponent<String> filled, FormComponent<String> missing, String what) {
-        filled.add((IValidator<String>) v -> {
-            String other = missing.getValue();
-            if (other == null || other.isEmpty()) {
-                v.error(new ValidationError("Please also select " + what));
-            }
-        });
+    private static String partInput(FormComponent<String> field) {
+        if (!field.isVisible()) return "";
+        String value = field.getValue();
+        return (value == null) ? "" : value.trim();
+    }
+
+    /**
+     * Adds a check of the value as a whole to every part, so that it runs whichever part the
+     * user changed. Only the first part to report keeps its message: on a submit, where every
+     * part is validated, the same complaint would otherwise be made once per part.
+     */
+    private void addValueCheck(IValidator<String> check) {
+        for (FormComponent<String> field : fields) {
+            field.add((IValidator<String>) v -> {
+                if (fields.stream().anyMatch(FormComponent::hasErrorMessage)) return;
+                check.validate(v);
+            });
+        }
+    }
+
+    /**
+     * The value the controls hold right now, assembled as the datatype prescribes, or "" while
+     * a part is missing.
+     */
+    private String candidateValue() {
+        return type.assemble(partInput(yearField), partInput(monthField), partInput(dayField), model.zone);
+    }
+
+    /**
+     * Whether a part was submitted with something in it in this request. Reading the raw input
+     * rather than the value is what tells a submit, which carries every field, apart from an
+     * Ajax update of one field alone.
+     */
+    private static boolean hasInput(FormComponent<String> field) {
+        if (field == null) return false;
+        String raw = field.getInput();
+        return raw != null && !raw.isBlank();
     }
 
     private static List<String> monthChoices() {
@@ -422,16 +477,29 @@ public class LiteralGregorianItem extends AbstractContextComponent {
     }
 
     private static IChoiceRenderer<String> monthRenderer() {
+        return partRenderer(month -> Month.of(Integer.parseInt(month)).getDisplayName(TextStyle.FULL, Locale.ENGLISH));
+    }
+
+    private static IChoiceRenderer<String> dayRenderer() {
+        return partRenderer(day -> String.valueOf(Integer.parseInt(day)));
+    }
+
+    /**
+     * A renderer that submits the part itself rather than its position in the list. Wicket's
+     * default submits the index, which every reader of the field would then have to translate
+     * back -- and a reader that forgets to would see the day before the one that was picked.
+     */
+    private static IChoiceRenderer<String> partRenderer(SerializableFunction<String, String> label) {
         return new IChoiceRenderer<>() {
 
             @Override
-            public Object getDisplayValue(String month) {
-                return Month.of(Integer.parseInt(month)).getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+            public Object getDisplayValue(String part) {
+                return label.apply(part);
             }
 
             @Override
-            public String getIdValue(String month, int index) {
-                return month;
+            public String getIdValue(String part, int index) {
+                return part;
             }
 
             @Override
@@ -440,6 +508,13 @@ public class LiteralGregorianItem extends AbstractContextComponent {
             }
 
         };
+    }
+
+    /**
+     * A {@link java.util.function.Function} that survives page serialization, as everything a
+     * Wicket component holds on to has to.
+     */
+    private interface SerializableFunction<T, R> extends java.util.function.Function<T, R>, java.io.Serializable {
     }
 
     /**

@@ -45,7 +45,7 @@ class LiteralGregorianItemTest {
             "statements:1:statement:statement-group:0:statement:obj:value:day";
 
     /** Index of a month or day in its dropdown: the choices run from 01. */
-    private static final int MAY = 4, FEBRUARY = 1, DAY_17 = 16, DAY_30 = 29;
+    private static final int MAY = 4, FEBRUARY = 1, DECEMBER = 11, DAY_17 = 16, DAY_30 = 29;
 
     private WicketTester tester;
 
@@ -66,6 +66,10 @@ class LiteralGregorianItemTest {
      * cached by URI.
      */
     private static String registerTemplate(String npUri, IRI datatype, boolean momentIsOptional) throws Exception {
+        return registerTemplate(npUri, datatype, momentIsOptional, null);
+    }
+
+    private static String registerTemplate(String npUri, IRI datatype, boolean momentIsOptional, String regex) throws Exception {
         IRI st1 = vf.createIRI(npUri + "/st1");
         IRI st2 = vf.createIRI(npUri + "/st2");
         IRI thing = vf.createIRI(npUri + "/thing");
@@ -93,6 +97,7 @@ class LiteralGregorianItemTest {
         creator.addAssertionStatement(moment, RDF.TYPE, NTEMPLATE.LITERAL_PLACEHOLDER);
         creator.addAssertionStatement(moment, NTEMPLATE.HAS_DATATYPE, datatype);
         creator.addAssertionStatement(moment, RDFS.LABEL, vf.createLiteral("the moment"));
+        if (regex != null) creator.addAssertionStatement(moment, NTEMPLATE.HAS_REGEX, vf.createLiteral(regex));
         Nanopub np = creator.finalizeNanopub();
         TemplateData.get().registerTemplate(np);
         return npUri;
@@ -103,8 +108,12 @@ class LiteralGregorianItemTest {
     }
 
     private void startForm(String npUri, IRI datatype, boolean optional, PageParameters extraParams) throws Exception {
+        startForm(npUri, datatype, optional, extraParams, null);
+    }
+
+    private void startForm(String npUri, IRI datatype, boolean optional, PageParameters extraParams, String regex) throws Exception {
         PageParameters params = new PageParameters(extraParams)
-                .add("template", registerTemplate(npUri, datatype, optional));
+                .add("template", registerTemplate(npUri, datatype, optional, regex));
         tester.startComponentInPage(new PublishForm("panel", params, PublishPage.class, null));
     }
 
@@ -197,7 +206,7 @@ class LiteralGregorianItemTest {
         form.submit();
 
         assertEquals("", value(), "a year alone is not a gYearMonth");
-        assertErrorMessage("Please also select a month");
+        assertErrorMessage("'month of 'the moment'' is required");
     }
 
     @Test
@@ -302,6 +311,75 @@ class LiteralGregorianItemTest {
         tester.executeAjaxEvent(namePath, "change");
 
         assertEquals("2026", value(), "a change elsewhere on the form must not clear the year");
+        assertEquals("2026", tester.getComponentFromLastRenderedPage(yearPath).getDefaultModelObject());
+    }
+
+    @Test
+    void aValueRejectedByTheTemplatePatternDoesNotOutliveItsCorrection() throws Exception {
+        // A template may narrow a gYear further, e.g. to four digits exactly. The value the
+        // pattern judges has to be the one being entered, not the one entered before it.
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg15", XSD.GYEAR,
+                true, new PageParameters(), "[0-9]{4}");
+        String yearPath = "panel:form:" + YEAR_FIELD;
+
+        tester.newFormTester("panel:form").setValue(YEAR_FIELD, "46464");
+        tester.executeAjaxEvent(yearPath, "change");
+        assertEquals("", value(), "a value the pattern rejects is not stored");
+        assertErrorMessage("Value '46464' doesn't match the pattern");
+
+        tester.clearFeedbackMessages();
+        tester.newFormTester("panel:form").setValue(YEAR_FIELD, "2026");
+        tester.executeAjaxEvent(yearPath, "change");
+
+        assertEquals("2026", value(), "the corrected year has to be accepted");
+        List<FeedbackMessage> errors = tester.getFeedbackMessages(m -> m.getLevel() == FeedbackMessage.ERROR);
+        assertTrue(errors.stream().noneMatch(m -> m.getMessage().toString().contains("46464")),
+                "the rejected value must not still be the one judged, got " + errors);
+    }
+
+    @Test
+    void aPatternOverATwoPartValueJudgesBothPartsAsTheyStand() throws Exception {
+        // Only the first half of the year, so the month decides -- and the month is the part
+        // that is not being changed when the year is, and the other way round.
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg16", XSD.GYEARMONTH,
+                true, new PageParameters(), "[0-9]{4}-0[1-6]");
+        String yearPath = "panel:form:" + YEAR_FIELD;
+        String monthPath = "panel:form:" + MONTH_FIELD;
+
+        tester.newFormTester("panel:form").setValue(YEAR_FIELD, "2026");
+        tester.executeAjaxEvent(yearPath, "change");
+
+        tester.newFormTester("panel:form").select(MONTH_FIELD, DECEMBER);
+        tester.executeAjaxEvent(monthPath, "change");
+        assertEquals("", value(), "December is outside the pattern, so nothing is stored");
+        assertErrorMessage("Value '2026-12' doesn't match the pattern");
+
+        tester.clearFeedbackMessages();
+        tester.newFormTester("panel:form").select(MONTH_FIELD, MAY);
+        tester.executeAjaxEvent(monthPath, "change");
+
+        assertEquals("2026-05", value(), "the corrected month has to be accepted");
+    }
+
+    @Test
+    void eachPartIsStoredAsItIsEnteredRatherThanWaitingForTheOther() throws Exception {
+        // The way a browser sends it: one field per request. A part rejected for the absence of
+        // one the user has not reached yet would never be stored, and the value could then never
+        // be completed at all.
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg17", XSD.GYEARMONTH);
+        String yearPath = "panel:form:" + YEAR_FIELD;
+        String monthPath = "panel:form:" + MONTH_FIELD;
+
+        tester.newFormTester("panel:form").setValue(YEAR_FIELD, "2026");
+        tester.executeAjaxEvent(yearPath, "change");
+        assertEquals("", value(), "a year alone is not yet a gYearMonth");
+        assertTrue(tester.getFeedbackMessages(m -> m.getLevel() == FeedbackMessage.ERROR).isEmpty(),
+                "and is not an error while the month is still being reached for");
+
+        tester.newFormTester("panel:form").select(MONTH_FIELD, MAY);
+        tester.executeAjaxEvent(monthPath, "change");
+
+        assertEquals("2026-05", value(), "the year entered a request earlier has to still be there");
         assertEquals("2026", tester.getComponentFromLastRenderedPage(yearPath).getDefaultModelObject());
     }
 
