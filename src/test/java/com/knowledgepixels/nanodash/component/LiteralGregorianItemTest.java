@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.Component;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
@@ -20,10 +21,12 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.time.Year;
 import java.util.List;
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -381,6 +384,26 @@ class LiteralGregorianItemTest {
 
         assertEquals("2026-05", value(), "the year entered a request earlier has to still be there");
         assertEquals("2026", tester.getComponentFromLastRenderedPage(yearPath).getDefaultModelObject());
+    }
+
+    @Test
+    void anEmptyYearFieldStartsItsSpinnerAtTheCurrentYear() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg18", XSD.GYEAR);
+        Component yearField = tester.getComponentFromLastRenderedPage("panel:form:" + YEAR_FIELD);
+
+        assertFalse(yearField.getBehaviors(LiteralGregorianItem.CurrentYearOnFirstStep.class).isEmpty(),
+                "the year field should carry the stepping script");
+
+        String script = LiteralGregorianItem.CurrentYearOnFirstStep.script(yearField.getMarkupId(), Year.of(2026));
+        assertTrue(script.contains("document.getElementById('" + yearField.getMarkupId() + "')"),
+                "the script has to name this field: " + script);
+        assertTrue(script.contains("var currentYear = '2026'"),
+                "an empty field steps to the current year, not to 1");
+        assertTrue(script.contains("previous === ''"), "and only while it is empty");
+        assertTrue(script.contains("ArrowUp") && script.contains("ArrowDown"),
+                "either arrow starts it off");
+        assertTrue(script.contains("new Event('change'"),
+                "and the value has to reach the form, not just the field");
     }
 
     @Test

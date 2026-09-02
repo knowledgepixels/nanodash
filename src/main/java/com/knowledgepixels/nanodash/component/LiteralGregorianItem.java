@@ -8,6 +8,9 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -27,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.time.DateTimeException;
 import java.time.Month;
 import java.time.MonthDay;
+import java.time.Year;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
@@ -316,6 +320,8 @@ public class LiteralGregorianItem extends AbstractContextComponent {
         // decides, since the input is a text field again in browsers that ignore the type.
         yearField.add(new AttributeModifier("type", "number"));
         yearField.add(new AttributeModifier("placeholder", "YYYY"));
+        yearField.setOutputMarkupId(true);
+        yearField.add(new CurrentYearOnFirstStep());
         yearField.add((IValidator<String>) v -> {
             if (!v.getValue().matches("-?\\d{4,}")) {
                 v.error(new ValidationError("A year is four or more digits, e.g. 2026"));
@@ -429,6 +435,66 @@ public class LiteralGregorianItem extends AbstractContextComponent {
         if (!field.isVisible()) return "";
         String value = field.getValue();
         return (value == null) ? "" : value.trim();
+    }
+
+    /**
+     * Starts an empty year field at the current year when its spinner is first used. Stepping an
+     * empty number input lands on 1 or -1, which is a year nobody means and four keystrokes away
+     * from any they do; the year they are most likely to want is this one. Once the field holds
+     * something -- including the year just put there -- the browser's own stepping takes over,
+     * so the arrows go on counting up and down from wherever the value stands.
+     */
+    static class CurrentYearOnFirstStep extends Behavior {
+
+        private static final String SCRIPT = """
+                (function() {
+                  var input = document.getElementById('%s');
+                  if (!input || input.dataset.gregorianYearStep) return;
+                  input.dataset.gregorianYearStep = '1';
+                  var currentYear = '%s';
+                  var previous = input.value;
+                  function startAtCurrentYear() {
+                    input.value = currentYear;
+                    previous = currentYear;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                  }
+                  input.addEventListener('keydown', function(e) {
+                    if (previous === '' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                      e.preventDefault();
+                      startAtCurrentYear();
+                    }
+                  });
+                  input.addEventListener('input', function(e) {
+                    // Typing carries an inputType; using the spinner does not, which is what
+                    // tells a click on the arrows apart from a 1 the user meant to type.
+                    if (previous === '' && !e.inputType) {
+                      startAtCurrentYear();
+                    } else {
+                      previous = input.value;
+                    }
+                  });
+                  input.addEventListener('blur', function() { previous = input.value; });
+                })();
+                """;
+
+        /**
+         * The script for one field, so that what it says can be asserted on without a browser.
+         *
+         * @param markupId the field's markup id
+         * @param year     the year an empty field starts at
+         * @return the script
+         */
+        static String script(String markupId, Year year) {
+            return SCRIPT.formatted(markupId, year);
+        }
+
+        @Override
+        public void renderHead(Component component, IHeaderResponse response) {
+            super.renderHead(component, response);
+            response.render(OnDomReadyHeaderItem.forScript(script(component.getMarkupId(), Year.now())));
+        }
+
     }
 
     /**
