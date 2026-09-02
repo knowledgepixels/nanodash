@@ -106,7 +106,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.93.0</version>
+      <version>1.94.0</version>
     </dependency>
     <dependency>
       <groupId>io.github.openhtmltopdf</groupId>
