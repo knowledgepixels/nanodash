@@ -508,6 +508,39 @@ th {
   border-bottom: 1px solid #888;
 }
 
+/* Sort state of a result table's columns (issue #673). Wicket marks the header
+   cell with wicket_orderUp/wicket_orderDown/wicket_orderNone but ships no styling
+   for them, so ordering a column left no visible trace and it was easy to doubt
+   whether the click had done anything. The caret sits after the header label: solid
+   on the column the table is ordered by, and shown only on hover for the others, so
+   the header row stays quiet while still advertising that a column can be ordered.
+   The space is reserved either way, so nothing shifts as the caret appears. */
+.result-table th.wicket_orderUp > a::after,
+.result-table th.wicket_orderDown > a::after,
+.result-table th.wicket_orderNone > a::after {
+  font-size: 0.8em;
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+
+.result-table th.wicket_orderUp > a::after {
+  content: "\25B2";
+}
+
+.result-table th.wicket_orderDown > a::after {
+  content: "\25BC";
+}
+
+.result-table th.wicket_orderNone > a::after {
+  content: "\25B2";
+  color: #aaa;
+  visibility: hidden;
+}
+
+.result-table th.wicket_orderNone > a:hover::after {
+  visibility: visible;
+}
+
 tbody tr:nth-child(even) {
   /* Alpha-based so the zebra stripe darkens whatever is behind it (≈ #efefef
      on white), instead of looking brighter than darker backgrounds (e.g. on

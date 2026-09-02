@@ -254,7 +254,10 @@ public class QueryResultTable extends QueryResult {
         }
 
         public Column(String title, String dataKey, String key, String cssClass) {
-            super(new Model<String>(title), dataKey);
+            // Only a column with a header label is sortable: an empty header is nothing to
+            // click, and the actions column would otherwise offer to order the table by a
+            // property no row has, giving a round trip that changes nothing (issue #673).
+            super(new Model<String>(title), Strings.isEmpty(title) ? null : dataKey);
             this.key = key;
             this.dataKey = dataKey;
             this.cssClass = cssClass;
