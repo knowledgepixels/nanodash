@@ -1725,6 +1725,17 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
 }
 */
 
+/* The parts of an xsd:gYear/gMonth/... value: a year is four characters, not a full-width
+   text field, and a month or day dropdown needs only enough room for its longest name. */
+.gregorian-year {
+  width: 7em;
+}
+
+.gregorian-part {
+  min-width: 8em;
+  margin-left: 2px;
+}
+
 .pubinfosection .nanopub-pubinfo {
   display: none;
 }
