@@ -369,19 +369,27 @@ public class LiteralGregorianItem extends AbstractContextComponent {
         if (template.getLabel(iri) != null) {
             field.add(new AttributeModifier("title", template.getLabel(iri)));
         }
+        // Exactly one updating behavior per field. A second one -- KeepValueAfterRefreshBehavior,
+        // which every other item adds on top of its own -- runs updateModel() again in the same
+        // request, by which point the input it reads is empty, and writes that emptiness over
+        // the value this one just stored. A field whose entry had been rejected then ignored
+        // every correction (issue #670). The Ajax round-trip this behavior already makes is
+        // what keeps the value across a refresh, which is all the other one was there for.
         field.add(new OnChangeAjaxBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 for (Component c : context.getComponents()) {
                     if (c == field) continue;
-                    if (c.getDefaultModel() == field.getModel()) {
+                    // The parts of one value have models of their own, so components sharing
+                    // this placeholder are found by the value behind them, not by the model in
+                    // front of it.
+                    if (c.getDefaultModel() instanceof PartModel other && other.value == model) {
                         c.modelChanged();
                         target.add(c);
                     }
                 }
             }
         });
-        field.add(new ValueItem.KeepValueAfterRefreshBehavior());
         field.add(new InvalidityHighlighting());
         context.getComponents().add(field);
         fields.add(field);

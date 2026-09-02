@@ -232,6 +232,80 @@ class LiteralGregorianItemTest {
     }
 
     @Test
+    void aCorrectedYearIsPickedUpAfterTheError() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg11", XSD.GYEAR);
+        FormTester form = filledForm();
+        form.setValue(YEAR_FIELD, "26");
+        form.submit();
+        assertEquals("", value(), "the rejected year is not kept as a value");
+
+        FormTester corrected = filledForm();
+        corrected.setValue(YEAR_FIELD, "2026");
+        corrected.submit();
+
+        assertEquals("2026", value(), "the corrected year has to reach the value");
+    }
+
+    @Test
+    void aCorrectedYearIsPickedUpOverAjax() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg12", XSD.GYEAR);
+        String yearPath = "panel:form:" + YEAR_FIELD;
+
+        FormTester form = tester.newFormTester("panel:form");
+        form.setValue(YEAR_FIELD, "26");
+        tester.executeAjaxEvent(yearPath, "change");
+        assertEquals("", value(), "the rejected year is not kept as a value");
+
+        FormTester corrected = tester.newFormTester("panel:form");
+        corrected.setValue(YEAR_FIELD, "2026");
+        tester.executeAjaxEvent(yearPath, "change");
+
+        assertEquals("2026", value(), "the corrected year has to reach the value");
+        // The Ajax response re-renders only what the update asked for, so what the field will
+        // render next is asserted on its model rather than on this response.
+        assertEquals("2026", tester.getComponentFromLastRenderedPage(yearPath).getDefaultModelObject(),
+                "and has to be what the field holds afterwards");
+    }
+
+    @Test
+    void theTwoPartsSurvivePickingThemOneAtATime() throws Exception {
+        // Each Ajax update carries only the field that changed, so the part picked first has to
+        // survive the request that picks the second.
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg13", XSD.GMONTHDAY);
+        String monthPath = "panel:form:" + MONTH_FIELD;
+        String dayPath = "panel:form:" + DAY_FIELD;
+
+        tester.newFormTester("panel:form").select(MONTH_FIELD, MAY);
+        tester.executeAjaxEvent(monthPath, "change");
+        assertEquals("", value(), "a month alone is not yet a gMonthDay");
+
+        tester.newFormTester("panel:form").select(DAY_FIELD, DAY_17);
+        tester.executeAjaxEvent(dayPath, "change");
+
+        assertEquals("--05-17", value());
+    }
+
+    @Test
+    void aValueSurvivesAChangeToAnotherField() throws Exception {
+        // What KeepValueAfterRefreshBehavior was there for, and what this item's own updating
+        // behavior has to go on providing now that it no longer carries both.
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg14", XSD.GYEAR);
+        String yearPath = "panel:form:" + YEAR_FIELD;
+        String namePath = "panel:form:statements:0:statement:statement-group:0:statement:obj:value:textfield";
+
+        tester.newFormTester("panel:form").setValue(YEAR_FIELD, "2026");
+        tester.executeAjaxEvent(yearPath, "change");
+        assertEquals("2026", value());
+
+        FormTester other = tester.newFormTester("panel:form");
+        other.setValue("statements:0:statement:statement-group:0:statement:obj:value:textfield", "some name");
+        tester.executeAjaxEvent(namePath, "change");
+
+        assertEquals("2026", value(), "a change elsewhere on the form must not clear the year");
+        assertEquals("2026", tester.getComponentFromLastRenderedPage(yearPath).getDefaultModelObject());
+    }
+
+    @Test
     void anEmptyOptionalValueStaysEmpty() throws Exception {
         startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg10", XSD.GYEAR);
         filledForm().submit();
