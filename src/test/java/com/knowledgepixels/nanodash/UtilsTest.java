@@ -1074,4 +1074,46 @@ class UtilsTest {
         assertFalse(Utils.isDate("2026-01-30 12:00:00")); // missing T
     }
 
+    @Test
+    void compareValues_ordersNumbersByValue() {
+        assertTrue(Utils.compareValues("9", "10") < 0);
+        assertTrue(Utils.compareValues("10", "9") > 0);
+        assertTrue(Utils.compareValues("2", "10") < 0);
+        assertEquals(0, Utils.compareValues("42", "42"));
+        assertTrue(Utils.compareValues("007", "8") < 0);
+        assertTrue(Utils.compareValues("1.25", "1.5") < 0);
+        assertTrue(Utils.compareValues("-3", "2") < 0);
+        // Whitespace around a value is not part of it.
+        assertEquals(0, Utils.compareValues(" 7 ", "7"));
+    }
+
+    @Test
+    void compareValues_ordersNumbersInsideText() {
+        assertTrue(Utils.compareValues("Session #9", "Session #34") < 0);
+        assertTrue(Utils.compareValues("item2", "item10") < 0);
+        assertTrue(Utils.compareValues("v1.9.0", "v1.10.0") < 0);
+        assertTrue(Utils.compareValues("2026-09-02", "2026-09-10") < 0);
+    }
+
+    @Test
+    void compareValues_ordersTextIgnoringCase() {
+        assertTrue(Utils.compareValues("apple", "Banana") < 0);
+        assertTrue(Utils.compareValues("Banana", "apple") > 0);
+        assertEquals(0, Utils.compareValues("Apple", "apple"));
+        assertTrue(Utils.compareValues("apple", "applesauce") < 0);
+        assertTrue(Utils.compareValues("", "a") < 0);
+    }
+
+    @Test
+    void compareValues_isConsistentInBothDirections() {
+        List<String> values = List.of("10", "9", "Session #34", "Session #9", "", "apple", "1.5", "1.25");
+        for (String a : values) {
+            for (String b : values) {
+                assertEquals(Integer.signum(Utils.compareValues(a, b)),
+                        -Integer.signum(Utils.compareValues(b, a)),
+                        "asymmetric for '" + a + "' / '" + b + "'");
+            }
+        }
+    }
+
 }

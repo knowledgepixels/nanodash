@@ -206,6 +206,11 @@ var UPDATE_SPINNER_MAX_MS = 30000;
    about a tenth of a second, which is why the delay alone left them silent. */
 var REQUESTED_SPINNER_MIN_MS = 600;
 var updatingPanels = new Map();
+/* The panel each call in flight was started from, remembered by the id of the control that
+   triggered it. The control itself can be gone by the time the call completes — a table
+   re-renders its own header and paging links with fresh ids — and looking the panel up
+   again would then find nothing, leaving the spinner turning until the backstop. */
+var pendingCalls = new Map();
 
 function isVisible(el) {
   return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
@@ -225,6 +230,18 @@ function isRequestedRefresh(attributes) {
   if (!id || typeof id !== "string") return false;
   var el = document.getElementById(id);
   return !!(el && el.classList.contains("refresh-request"));
+}
+
+/* Whether an Ajax call is a table reordering a column header was clicked for. The rows
+   are already on the page and no query is made; the round trip only re-renders them in a
+   different order. Answering that with the "updating" spinner suggested data was being
+   fetched, and made a reordering look like a refresh (issue #673), so these calls stay
+   out of the indicator. Header sort links are the only Ajax triggers inside a <th>. */
+function isTableReordering(attributes) {
+  var id = attributes && attributes.c;
+  if (!id || typeof id !== "string") return false;
+  var el = document.getElementById(id);
+  return !!(el && el.closest("th"));
 }
 
 /* The view panel an Ajax call was triggered from, or null for calls that belong to no
@@ -312,11 +329,23 @@ function onUpdateEnd(panel) {
 function trackAjaxUpdates() {
   if (typeof Wicket === "undefined" || !Wicket.Event) return;
   Wicket.Event.subscribe("/ajax/call/before", function (jqEvent, attributes) {
+    if (isTableReordering(attributes)) return;
     var panel = findUpdatingPanel(attributes);
-    if (panel) onUpdateStart(panel, isRequestedRefresh(attributes));
+    if (!panel) return;
+    var id = attributes && attributes.c;
+    if (typeof id === "string") pendingCalls.set(id, panel);
+    onUpdateStart(panel, isRequestedRefresh(attributes));
   });
   Wicket.Event.subscribe("/ajax/call/complete", function (jqEvent, attributes) {
-    var panel = findUpdatingPanel(attributes);
+    if (isTableReordering(attributes)) return;
+    var id = attributes && attributes.c;
+    var panel = null;
+    if (typeof id === "string" && pendingCalls.has(id)) {
+      panel = pendingCalls.get(id);
+      pendingCalls.delete(id);
+    } else {
+      panel = findUpdatingPanel(attributes);
+    }
     if (panel) onUpdateEnd(panel);
   });
 }

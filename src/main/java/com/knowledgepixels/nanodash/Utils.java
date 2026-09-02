@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2Choice;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -1124,6 +1125,98 @@ public class Utils {
             return uri.substring(0, 30) + "..." + uri.substring(uri.length() - 30);
         }
         return uriLabel;
+    }
+
+    /**
+     * Compares two result-table values the way a reader expects a column to be ordered.
+     * Plain text order alone puts "10" before "9", because it never gets past the first
+     * digit (issue #673); this compares numbers by their value instead. Values that are
+     * numbers throughout are compared as numbers, and text with numbers in it run by run,
+     * so that "Session #9" comes before "Session #34" too. Anything else is ordered as
+     * text, ignoring case, as before.
+     *
+     * @param value1 the first value
+     * @param value2 the second value
+     * @return a negative number, zero or a positive number as the first value orders
+     * before, with, or after the second
+     */
+    public static int compareValues(String value1, String value2) {
+        String s1 = value1 == null ? "" : value1.trim();
+        String s2 = value2 == null ? "" : value2.trim();
+        BigDecimal n1 = asNumber(s1);
+        BigDecimal n2 = asNumber(s2);
+        if (n1 != null && n2 != null) {
+            // Whole values that are numbers are compared as such, which is the only way to
+            // get decimals right: run by run, "1.25" would come out below "1.5".
+            int c = n1.compareTo(n2);
+            return c != 0 ? c : s1.compareToIgnoreCase(s2);
+        }
+        return compareAlphanumerically(s1, s2);
+    }
+
+    // The value as a number, or null if it is not one throughout.
+    private static BigDecimal asNumber(String value) {
+        if (value.isEmpty()) return null;
+        try {
+            return new BigDecimal(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    // Text order, except that two runs of digits meeting at the same position are compared
+    // by their numeric value. Kept to plain character comparisons: this runs once per pair
+    // of rows compared, for every column sorted.
+    private static int compareAlphanumerically(String s1, String s2) {
+        int i1 = 0;
+        int i2 = 0;
+        while (i1 < s1.length() && i2 < s2.length()) {
+            char c1 = s1.charAt(i1);
+            char c2 = s2.charAt(i2);
+            if (isAsciiDigit(c1) && isAsciiDigit(c2)) {
+                int end1 = digitRunEnd(s1, i1);
+                int end2 = digitRunEnd(s2, i2);
+                // Leading zeros carry no value, so they are skipped before the two runs are
+                // compared; the shorter run is then the smaller number, and equally long
+                // runs compare digit by digit.
+                int start1 = skipZeros(s1, i1, end1);
+                int start2 = skipZeros(s2, i2, end2);
+                if (end1 - start1 != end2 - start2) return (end1 - start1) - (end2 - start2);
+                int c = s1.substring(start1, end1).compareTo(s2.substring(start2, end2));
+                if (c != 0) return c;
+                i1 = end1;
+                i2 = end2;
+            } else {
+                int c = Character.compare(fold(c1), fold(c2));
+                if (c != 0) return c;
+                i1++;
+                i2++;
+            }
+        }
+        // Whatever is left over of the longer value orders after the shorter one.
+        return (s1.length() - i1) - (s2.length() - i2);
+    }
+
+    private static boolean isAsciiDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private static int digitRunEnd(String s, int from) {
+        int i = from;
+        while (i < s.length() && isAsciiDigit(s.charAt(i))) i++;
+        return i;
+    }
+
+    // The first digit that carries value, keeping the last one so that "000" stays a digit.
+    private static int skipZeros(String s, int from, int end) {
+        int i = from;
+        while (i < end - 1 && s.charAt(i) == '0') i++;
+        return i;
+    }
+
+    // Case folded the same way String.compareToIgnoreCase does it.
+    private static char fold(char c) {
+        return Character.toLowerCase(Character.toUpperCase(c));
     }
 
     /**
