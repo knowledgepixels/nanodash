@@ -70,6 +70,14 @@ public class AgentChoiceItemTest {
      * initialized context for it.
      */
     private TemplateContext agentContext() throws Exception {
+        return agentContext(false);
+    }
+
+    /**
+     * Builds a one-statement template whose object is an agent placeholder, optionally also typed
+     * as an external URI placeholder, and returns an initialized context for it.
+     */
+    private TemplateContext agentContext(boolean external) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -82,6 +90,9 @@ public class AgentChoiceItemTest {
         creator.addAssertionStatement(st1, RDF.PREDICATE, vf.createIRI("http://example.com/hasAgent"));
         creator.addAssertionStatement(st1, RDF.OBJECT, AGENT);
         creator.addAssertionStatement(AGENT, RDF.TYPE, NTEMPLATE.AGENT_PLACEHOLDER);
+        if (external) {
+            creator.addAssertionStatement(AGENT, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
+        }
         creator.addAssertionStatement(AGENT, RDFS.LABEL, vf.createLiteral("agent"));
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
@@ -156,6 +167,33 @@ public class AgentChoiceItemTest {
     @Test
     void plainNameIsOfferedAsLocallyMintedIdentifier() throws Exception {
         assertTrue(suggestionsFor(agentContext(), "john-doe").contains("john-doe"));
+    }
+
+    /**
+     * An agent placeholder that is also an external URI placeholder refers to an agent that exists
+     * outside this nanopublication, so no name to be minted is offered for it (issue #676).
+     */
+    @Test
+    void externalAgentOffersNoPlainName() throws Exception {
+        assertFalse(suggestionsFor(agentContext(true), "john-doe").contains("john-doe"));
+    }
+
+    /**
+     * Only the minting is gone for an external agent placeholder: URIs and ORCIDs stay on offer.
+     */
+    @Test
+    void externalAgentOffersUriAndOrcid() throws Exception {
+        assertTrue(suggestionsFor(agentContext(true), "did:plc:z72i7hdynmk6r22z27h6tvur").contains("did:plc:z72i7hdynmk6r22z27h6tvur"));
+        assertTrue(suggestionsFor(agentContext(true), "0000-0002-1267-0234").contains("https://orcid.org/0000-0002-1267-0234"));
+    }
+
+    /**
+     * Nothing is minted for an external agent placeholder, so a bare word held for it is not
+     * marked as a local identifier either (issue #676).
+     */
+    @Test
+    void externalAgentNameIsNotShownAsMintedLocally() throws Exception {
+        assertEquals("john-doe", displayValueFor(agentContext(true), "john-doe"));
     }
 
     @Test

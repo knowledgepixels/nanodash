@@ -69,6 +69,15 @@ public class GuidedChoiceItemTest {
      * prefix (none if null), and returns an initialized context for it.
      */
     private TemplateContext guidedContext(String prefix) throws Exception {
+        return guidedContext(prefix, false);
+    }
+
+    /**
+     * Builds a one-statement template whose object is a guided choice placeholder with the given
+     * prefix (none if null), optionally also typed as an external URI placeholder, and returns an
+     * initialized context for it.
+     */
+    private TemplateContext guidedContext(String prefix, boolean external) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -81,6 +90,9 @@ public class GuidedChoiceItemTest {
         creator.addAssertionStatement(st1, RDF.PREDICATE, vf.createIRI("http://example.com/hasThing"));
         creator.addAssertionStatement(st1, RDF.OBJECT, THING);
         creator.addAssertionStatement(THING, RDF.TYPE, NTEMPLATE.GUIDED_CHOICE_PLACEHOLDER);
+        if (external) {
+            creator.addAssertionStatement(THING, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
+        }
         creator.addAssertionStatement(THING, RDFS.LABEL, vf.createLiteral("thing"));
         if (prefix != null) {
             creator.addAssertionStatement(THING, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
@@ -145,6 +157,32 @@ public class GuidedChoiceItemTest {
         TemplateContext context = guidedContext("https://example.org/");
         assertTrue(suggestionsFor(context, "john").contains("john"));
         assertEquals("john", fieldOf(context).getProvider().getDisplayValue("john"));
+    }
+
+    /**
+     * A guided choice that is also an external URI placeholder refers to something outside the
+     * nanopublication, so a name that would have to be minted for it is not on offer (issue #676).
+     */
+    @Test
+    void externalGuidedChoiceOffersNoPlainName() throws Exception {
+        assertFalse(suggestionsFor(guidedContext(null, true), "john").contains("john"));
+    }
+
+    /**
+     * A URI stays on offer for an external guided choice -- only the minting is gone.
+     */
+    @Test
+    void externalGuidedChoiceOffersUri() throws Exception {
+        assertTrue(suggestionsFor(guidedContext(null, true), "https://example.com/thing").contains("https://example.com/thing"));
+    }
+
+    /**
+     * Nothing is minted for an external guided choice, so a bare word held for it is not marked as
+     * a local identifier either (issue #676).
+     */
+    @Test
+    void externalGuidedChoiceIsNotShownAsMintedLocally() throws Exception {
+        assertEquals("john", fieldOf(guidedContext(null, true)).getProvider().getDisplayValue("john"));
     }
 
     /**

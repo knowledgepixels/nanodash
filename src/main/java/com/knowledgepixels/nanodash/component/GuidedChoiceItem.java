@@ -192,8 +192,9 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 // a resource that has no identifier yet can be entered as well (issue #652): it is
                 // minted under the prefix of the field, or under the namespace of the
                 // nanopublication when the field has none. It comes last, so that the suggestions
-                // the term matches keep the top of the list.
-                if (Utils.isPlainName(typedTerm) && !response.getResults().contains(typedTerm)) {
+                // the term matches keep the top of the list. An external URI placeholder refers to
+                // something outside this nanopublication, so it gets no such name (issue #676).
+                if (!template.isExternalUriPlaceholder(iri) && Utils.isPlainName(typedTerm) && !response.getResults().contains(typedTerm)) {
                     response.add(typedTerm);
                 }
             }
