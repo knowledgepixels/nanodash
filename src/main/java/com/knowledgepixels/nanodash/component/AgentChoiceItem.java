@@ -185,8 +185,9 @@ public class AgentChoiceItem extends AbstractContextComponent {
                 // Anything else the validator accepts is offered as a locally minted identifier
                 // (issue #652): typing "john-doe" mints it under the namespace of the
                 // nanopublication being published. It comes last, so that the known users the
-                // term matches keep the top of the list.
-                if (isLocalName(typedTerm) && !response.getResults().contains(typedTerm)) {
+                // term matches keep the top of the list. An external URI placeholder refers to an
+                // agent that exists outside this nanopublication, so it gets none (issue #676).
+                if (!template.isExternalUriPlaceholder(iri) && isLocalName(typedTerm) && !response.getResults().contains(typedTerm)) {
                     response.add(typedTerm);
                 }
             }

@@ -385,6 +385,9 @@ public class TemplateContext implements Serializable {
         // The same rule processValue applies: a plain name (no colon, hash or space) gets the
         // target namespace put in front of it. The colon also rules out anything that is a URI.
         if (value == null || !value.matches("[^:# ]+")) return false;
+        // An external URI placeholder points at something that exists outside this
+        // nanopublication, so there is nothing to mint for it (issue #676).
+        if (template.isExternalUriPlaceholder(iri)) return false;
         // A space-/namespace-dependent prefix mints the resource under the space or maintained
         // resource instead, so it is not a local identifier of this nanopublication.
         if (hasDynamicPrefix(iri)) return false;
