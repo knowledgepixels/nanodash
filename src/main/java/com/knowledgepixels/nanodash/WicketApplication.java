@@ -19,6 +19,7 @@ import com.knowledgepixels.nanodash.page.*;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import de.agilecoders.wicket.webjars.WicketWebjars;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -47,6 +48,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -65,7 +67,18 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
 
     private final List<NanopubPublishedListener> publishListeners = Collections.synchronizedList(new ArrayList<>());
 
-    private static String latestVersion = null;
+    private static volatile String latestVersion = null;
+
+    /**
+     * When the latest version may be asked for again. GitHub allows 60 unauthenticated requests
+     * an hour per address, and a developer restarting the app, or several instances behind one
+     * address, run through those: a failed lookup has to be remembered as such, or the home page
+     * asks again on every render and keeps the limit spent (issue #686). An hour is GitHub's own
+     * window; a rate-limited answer says when it resets, and that is used when it does.
+     */
+    private static volatile long nextVersionLookup = 0L;
+
+    private static final long VERSION_LOOKUP_RETRY_MS = 60 * 60 * 1000; // 1 hour
 
     @Override
     public void registerListener(NanopubPublishedListener listener) {
@@ -103,7 +116,11 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
             }
         }
         String v = getThisVersion();
-        String lv = getLatestVersion();
+        // Looked up here and now, so the banner below can say it. This is startup, before
+        // anything is served, which is the one place where waiting for it costs nobody
+        // anything; everywhere else reads whatever this left behind (issue #686).
+        if (claimVersionLookup()) lookUpLatestVersion();
+        String lv = latestVersion == null ? "unknown" : latestVersion;
         System.err.println("");
         System.err.println("----------------------------------------");
         System.err.println("               Nanodash");
@@ -286,16 +303,51 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
     }
 
     /**
-     * Retrieves the latest version of the application from the GitHub API.
+     * The latest publicly released version of Nanodash, as far as it is known here, and null
+     * while it is not.
+     * <p>
+     * Answers with what the last lookup left behind rather than making one: this is read while
+     * a page is being built (see {@link com.knowledgepixels.nanodash.page.HomePage}), and an
+     * unreachable or slow api.github.com must not be a slow home page. A lookup that is due is
+     * handed to the background, so what it finds is there for the next render. Not knowing the
+     * latest version is a perfectly ordinary state — it only means one line of the home page is
+     * left unsaid.
      *
-     * @return The latest version as a string.
+     * @return the latest released version, or null if it is not known
      */
     public static String getLatestVersion() {
-        if (latestVersion != null) return latestVersion;
+        if (latestVersion == null && claimVersionLookup()) {
+            NanodashThreadPool.submit(WicketApplication::lookUpLatestVersion);
+        }
+        return latestVersion;
+    }
+
+    /**
+     * Claims the right to make the next lookup, at most once per {@link #VERSION_LOOKUP_RETRY_MS}
+     * and only while the version is unknown. Claiming it also postpones the one after, so a
+     * lookup that fails is not immediately tried again (issue #686). Package-private for testing.
+     *
+     * @return true if the caller should make the lookup
+     */
+    static synchronized boolean claimVersionLookup() {
+        long now = System.currentTimeMillis();
+        if (latestVersion != null || now < nextVersionLookup) return false;
+        nextVersionLookup = now + VERSION_LOOKUP_RETRY_MS;
+        return true;
+    }
+
+    /**
+     * Asks GitHub for the releases and remembers the latest one. Failing is not an error worth a
+     * stack trace: the version check is there to tell the user that a newer version exists, and
+     * not reaching GitHub — a rate limit spent, no network — leaves that unsaid and nothing else
+     * undone (issue #686).
+     */
+    private static void lookUpLatestVersion() {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse resp = client.execute(new HttpGet(LATEST_RELEASE_URL));
             int c = resp.getStatusLine().getStatusCode();
             if (c < 200 || c >= 300) {
+                postponeUntilRateLimitReset(resp);
                 throw new HttpStatusException(c);
             }
 
@@ -310,9 +362,30 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 }
             }
         } catch (Exception ex) {
-            logger.error("Error in fetching latest version", ex);
+            logger.warn("Could not fetch the latest version from {}: {}", LATEST_RELEASE_URL, ex.toString());
         }
-        return latestVersion;
+    }
+
+    /**
+     * Waits out a spent rate limit for as long as the answer says it lasts, when it says so.
+     * {@code x-ratelimit-reset} is a Unix timestamp in seconds; anything else in that header, or
+     * a reset already in the past, leaves the standard interval in place. Package-private for
+     * testing.
+     *
+     * @param resp the answer that was refused
+     */
+    static synchronized void postponeUntilRateLimitReset(HttpResponse resp) {
+        Header header = resp.getFirstHeader("x-ratelimit-reset");
+        if (header == null || header.getValue() == null) return;
+        try {
+            long resetAt = Long.parseLong(header.getValue().trim()) * 1000L;
+            if (resetAt > nextVersionLookup) {
+                logger.info("Rate limit for {} is spent until {}", LATEST_RELEASE_URL, new Date(resetAt));
+                nextVersionLookup = resetAt;
+            }
+        } catch (NumberFormatException ex) {
+            // Not a timestamp: the standard interval stands.
+        }
     }
 
     /**

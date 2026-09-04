@@ -65,7 +65,11 @@ public class HomePage extends NanodashPage {
         if (NanodashPreferences.get().isOrcidLoginMode()) {
             add(new Label("warning", ""));
         } else if (v.endsWith("-SNAPSHOT")) {
-            add(new Label("warning", "You are running a temporary snapshot version of Nanodash (" + v + "). The latest public version is " + lv + "."));
+            // The latest public version is not always known — GitHub may not have answered yet,
+            // or at all (issue #686) — and "the latest public version is null" says nothing.
+            String warning = "You are running a temporary snapshot version of Nanodash (" + v + ").";
+            if (lv != null) warning += " The latest public version is " + lv + ".";
+            add(new Label("warning", warning));
         } else if (lv != null && !v.equals(lv)) {
             add(new Label("warning", "There is a new version available: " + lv + ". You are currently using " + v + ". " +
                                      "Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +
