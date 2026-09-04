@@ -1071,6 +1071,13 @@ public class Utils {
             if (t.equals(FIP.FAIR_SUPPORTING_RESOURCE_TO_BE_DEVELOPED)) {
                 continue;
             }
+            if (t.equals(NPX.PROTECTED_NANOPUB)) {
+                // Not a type of the content but a statement about where the nanopub may be
+                // stored, and shown as its own flag instead (see NanopubItem). As a type tag
+                // it would also link to a listing of all nanopubs of that type, which says
+                // nothing about them beyond that they are all protected.
+                continue;
+            }
             l.add(t);
         }
         return l;
