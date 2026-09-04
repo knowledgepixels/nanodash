@@ -211,6 +211,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
         textfield.add(new AttributeAppender("class", " wide"));
         textfield.add(new Validator(iri, template, "", context));
         context.getComponents().add(textfield);
+        lockIfNeeded(textfield, iri);
 
         tooltipDescription = new Label("description", new IModel<String>() {
 

@@ -34,6 +34,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -65,6 +66,7 @@ import org.wicketstuff.select2.Select2Choice;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * Form for publishing a nanopublication.
@@ -391,6 +393,7 @@ public class PublishForm extends Panel {
                 piParamIdMap.get(i).setParam(n, pageParams.get(k).toString());
             }
         }
+        applyLocks(pageParams, assertionContext, provenanceContext, piParamIdMap);
 
         final Nanopub improveNp;
         if (!pageParams.get("improve").isNull()) {
@@ -1148,6 +1151,69 @@ public class PublishForm extends Panel {
         TemplateContext context = new TemplateContext(contextType, templateId, componentId, targetNamespace);
         context.setNavigationContextId(navigationContextId);
         return context;
+    }
+
+    /**
+     * Applies the locks stated by the {@code locked} and {@code locked-statements} page
+     * parameters to the contexts they belong to (issue #678).
+     * <p>
+     * {@code locked} names the pre-filled values that cannot be changed, so that a link can hand
+     * the form a value the user is not meant to touch, such as the public key of an introduction.
+     * {@code locked-statements} names the statements whose repetitions are fixed, so that a link
+     * can also say that its pre-filled repetitions are the ones to publish: no adding, no
+     * removing.
+     * <p>
+     * Both take the names their target is known by, prefixed to say which template it belongs to:
+     * {@code param_} for the assertion template, {@code prparam_} for the provenance template and
+     * {@code piparamN_} for the Nth publication-info template. A name without a prefix belongs to
+     * the assertion template, which is what a link states in nearly all cases. Several names can
+     * be given as a comma-separated list, as repeated parameters, or both.
+     * <p>
+     * A value lock holds per repetition, as the name carries the repetition suffix of the field it
+     * refers to: {@code param_public-key} locks the first repetition and {@code param_public-key__1}
+     * the second, which is what lets a form pre-fill and lock the keys a user already has while
+     * leaving them free to add more. A statement lock is named either by the statement node
+     * ({@code st2}) or by a placeholder that occurs in that statement and no other
+     * ({@code public-key}).
+     */
+    static void applyLocks(PageParameters pageParams, TemplateContext assertionContext,
+            TemplateContext provenanceContext, Map<Integer, TemplateContext> piParamIdMap) {
+        forEachLockedName(pageParams, "locked", assertionContext, provenanceContext, piParamIdMap,
+                TemplateContext::setLocked);
+        forEachLockedName(pageParams, "locked-statements", assertionContext, provenanceContext, piParamIdMap,
+                TemplateContext::setStatementLocked);
+    }
+
+    /**
+     * Reads one lock parameter and hands each name it holds, stripped of its template prefix, to
+     * the context of that template.
+     */
+    private static void forEachLockedName(PageParameters pageParams, String paramName,
+            TemplateContext assertionContext, TemplateContext provenanceContext,
+            Map<Integer, TemplateContext> piParamIdMap, BiConsumer<TemplateContext, String> lock) {
+        for (StringValue lockedValue : pageParams.getValues(paramName)) {
+            if (lockedValue.isNull()) continue;
+            for (String k : lockedValue.toString().split(",")) {
+                k = k.trim();
+                if (k.isEmpty()) continue;
+                if (k.startsWith("prparam_")) {
+                    lock.accept(provenanceContext, k.substring(8));
+                } else if (k.matches("piparam[1-9][0-9]*_.*")) {
+                    Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
+                    if (!piParamIdMap.containsKey(i)) {
+                        logger.error("Locked name {} of the publication info template not found", i);
+                        continue;
+                    }
+                    lock.accept(piParamIdMap.get(i), k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1"));
+                } else if (k.startsWith("param_")) {
+                    lock.accept(assertionContext, k.substring(6));
+                } else {
+                    // Bare names refer to the assertion template, which is what a link locks in
+                    // nearly all cases.
+                    lock.accept(assertionContext, k);
+                }
+            }
+        }
     }
 
     /**

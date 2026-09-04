@@ -218,6 +218,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         textfield.add(new AttributeAppender("class", " wide"));
         textfield.add(new Validator(iri, template, prefix, context));
         context.getComponents().add(textfield);
+        lockIfNeeded(textfield, iri);
 
         tooltipDescription = new Label("description", new IModel<String>() {
 

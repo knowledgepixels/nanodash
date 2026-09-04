@@ -105,6 +105,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         });
         context.getComponentModels().put(iri, tc.getModel());
         context.getComponents().add(tc);
+        lockIfNeeded(tc, iri);
         tc.add(new ValueItem.KeepValueAfterRefreshBehavior());
         tc.add(new InvalidityHighlighting());
         add(tc);
@@ -180,6 +181,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         langChoice.add(new ValueItem.KeepValueAfterRefreshBehavior());
         langChoice.add(new LangTagValidator(possibleTags));
         context.getComponents().add(langChoice);
+        lockIfNeeded(langChoice, iri);
         add(langChoice);
     }
 

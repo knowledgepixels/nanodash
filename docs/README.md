@@ -20,6 +20,7 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 | [custom-domains](custom-domains.md) | 📋 Proposed | Serve a user's profile from their own domain |
 | [draft-with-ai](draft-with-ai.md) | 📋 Proposed | Server-side "Draft with AI" nanopub authoring |
 | [uri-schemes](uri-schemes.md) | ✅ Implemented | Accepts and renders `ipfs:`, `ipns:`, `did:` and `at:` URIs alongside `http(s)`, with configurable outbound resolvers and scheme-aware short labels ([#655](https://github.com/knowledgepixels/nanodash/issues/655)) |
+| [locked-prefilled-values](locked-prefilled-values.md) | ✅ Implemented | `locked=` states that a value pre-filled via URL args cannot be changed in the form (per field and per repetition, so pre-filled keys can be fixed while more can still be added); `locked-statements=` fixes the set of repetitions ([#678](https://github.com/knowledgepixels/nanodash/issues/678)) |
 | [claude-code-chat](claude-code-chat.md) | 🚧 In progress | Chat panel backed by the user's local Claude Code, acting on Nanodash via an MCP endpoint (Tier 2 of [#434](https://github.com/knowledgepixels/nanodash/issues/434)) |
 
 When a doc's status changes, update both its `**Status:**` line and the row here.

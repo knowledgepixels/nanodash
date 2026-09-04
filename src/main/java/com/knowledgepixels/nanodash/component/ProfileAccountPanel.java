@@ -65,6 +65,9 @@ public class ProfileAccountPanel extends Panel {
                     + "&param_key-declaration=" + Utils.urlEncode(shortKey)
                     + "&param_key-declaration-ref=" + Utils.urlEncode(shortKey)
                     + "&param_key-location=" + Utils.urlEncode(prefs.getWebsiteUrl())
+                    // The introduction is about this user and this key: an introduction declaring
+                    // anything else is wrong, so both values are shown but fixed (issue #678).
+                    + "&locked=" + Utils.urlEncode("param_user,param_public-key")
                     + "&context=" + Utils.urlEncode(userIriString)
                     + "&postpub-redirect-url=" + Utils.urlEncode(aboutUrl)
                     + "&link-message=" + Utils.urlEncode("Check the checkbox at the end of this page and press 'Publish' to "

@@ -236,6 +236,14 @@ Today an action carries a single `queryVar:templateParam` mapping that only sets
 `"derive_target:@derive-a local_pubkey:public-key__.1"` — the first drives
 visibility (conditional target), the second supplies the key.
 
+A third form was added later (issue #678): a `!` in front of the field name
+(`local_pubkey:!public-key__.1`) also **locks** the field, so the form shows the
+value the action filled in but does not let the user change it — for values an
+action *determines* rather than proposes, such as the local public key an
+introduction is to declare. It emits the `locked` page parameter alongside the
+`param_` one; see docs/locked-prefilled-values.md. It applies to `param_` targets
+only, as a raw `@` key is not a form field.
+
 ### Echo-as-column (no code)
 
 A query may `SELECT` a magic variable back out

@@ -1773,6 +1773,16 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   white-space: pre-wrap;
 }
 
+/* Pre-filled value that the link opening the form stated as locked (issue #678): shown with
+   its value, but not editable. */
+.locked-value,
+input.locked-value,
+textarea.locked-value {
+  background: #f2f2f2;
+  color: #555;
+  cursor: not-allowed;
+}
+
 .litlang {
   font-size: 9pt !important;
   color: #0006 !important;
