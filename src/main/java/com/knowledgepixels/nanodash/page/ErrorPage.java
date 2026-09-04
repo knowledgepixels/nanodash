@@ -9,9 +9,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,6 +30,8 @@ import java.util.Locale;
  * @see Kind
  */
 public class ErrorPage extends NanodashPage {
+
+    private static final Logger logger = LoggerFactory.getLogger(ErrorPage.class);
 
     /**
      * The mount path for the error page.
@@ -206,7 +211,7 @@ public class ErrorPage extends NanodashPage {
      */
     public ErrorPage(final PageParameters parameters) {
         super(parameters);
-        add(new TitleBar("titlebar", this));
+        addTitleBar();
 
         HttpServletRequest containerRequest = getContainerRequest();
         kind = resolveKind(parameters, containerRequest);
@@ -226,6 +231,24 @@ public class ErrorPage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("home-link", HomePage.class));
         add(new ExternalLink("report-link", getReportUrl(message, address, backUrl))
                 .setVisible(kind == Kind.MALFUNCTION));
+    }
+
+    /**
+     * Adds the title bar, or, if it cannot be built, an empty placeholder in its place.
+     * <p>
+     * This page is where the errors of all the other ones end up, so it is the one page that
+     * has to render whatever state the instance is in. The title bar draws on the session and
+     * the user data, and when those are what went wrong — an instance that cannot reach its
+     * services (issue #684) — a failure here would turn the message this page exists to show
+     * into another unhandled exception. A page without its title bar still says what happened.
+     */
+    private void addTitleBar() {
+        try {
+            add(new TitleBar("titlebar", this));
+        } catch (Exception ex) {
+            logger.error("Could not build the title bar of the error page", ex);
+            add(new EmptyPanel("titlebar"));
+        }
     }
 
     /**

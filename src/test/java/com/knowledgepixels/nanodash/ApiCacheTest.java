@@ -209,6 +209,27 @@ class ApiCacheTest {
     }
 
     @Test
+    @DisplayName("retrieveResponseIfAvailable should answer with null instead of throwing after three consecutive failures (issue #684)")
+    void retrieveResponseIfAvailable_answersWithNullAfterThreeFailures() throws Exception {
+        putFailed(3);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            // The callers of this hold the state whole pages are built from: a query that
+            // cannot be answered has to read as "nothing to show yet", not as a failed page.
+            assertNull(ApiCache.retrieveResponseIfAvailable(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseIfAvailable should hand back a cached response like retrieveResponseSync")
+    void retrieveResponseIfAvailable_returnsCachedResponse() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 0L);
+
+        assertSame(cached, ApiCache.retrieveResponseIfAvailable(mockQueryRef));
+    }
+
+    @Test
     @DisplayName("retrieveResponseSync should skip refresh when a refresh is already running for the same cache ID")
     void retrieveResponseSync_skipsRefreshWhenAlreadyRunning() throws Exception {
         ApiResponse cached = mock(ApiResponse.class);

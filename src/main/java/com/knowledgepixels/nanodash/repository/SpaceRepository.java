@@ -70,7 +70,7 @@ public class SpaceRepository {
     private volatile Snapshot snapshot = Snapshot.EMPTY;
 
     private Snapshot current() {
-        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SPACES_REF), false);
+        ApiResponse resp = ApiCache.retrieveResponseIfAvailable(new QueryRef(QueryApiAccess.GET_SPACES_REF));
         if (resp == null) {
             return snapshot;
         }
@@ -265,7 +265,7 @@ public class SpaceRepository {
             Map<String, Space> spacesById,
             Map<Space, Set<Space>> subspaceMap,
             Map<Space, Set<Space>> superspaceMap) {
-        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_SUB_SPACE_LINKS), false);
+        ApiResponse resp = ApiCache.retrieveResponseIfAvailable(new QueryRef(QueryApiAccess.GET_SUB_SPACE_LINKS));
         if (resp == null) return;
         for (ApiResponseEntry r : resp.getData()) {
             Space child = spacesById.get(r.get("child"));

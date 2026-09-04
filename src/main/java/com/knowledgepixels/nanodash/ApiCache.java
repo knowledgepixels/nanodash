@@ -304,6 +304,28 @@ public class ApiCache {
         ApiCachePersistence.storeEntry(cacheId, response, timeNow);
     }
 
+    /**
+     * The response for a query if it can be had, and null if it cannot — nothing cached yet,
+     * or a query the service could not answer.
+     * <p>
+     * For the callers that hold the state whole pages are built from, where a query that
+     * cannot be answered means "nothing to show yet" rather than an error to raise. They
+     * already treat a missing response that way; without this they would treat a failing one
+     * as fatal, and a cold instance whose query service is unavailable could then not build a
+     * page at all, its own error page included (issue #684).
+     *
+     * @param queryRef The query reference
+     * @return the response, or null if there is none to be had
+     */
+    public static ApiResponse retrieveResponseIfAvailable(QueryRef queryRef) {
+        try {
+            return retrieveResponseSync(queryRef, false);
+        } catch (Exception ex) {
+            logger.error("Could not retrieve {}: {}", queryRef.getAsUrlString(), ex.toString());
+            return null;
+        }
+    }
+
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();

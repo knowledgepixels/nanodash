@@ -13,6 +13,7 @@ import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
+import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.setting.IntroNanopub;
@@ -48,6 +49,8 @@ public class UserData implements Serializable {
     private final HashMap<IRI, ProfilePicture> profilePictures = new HashMap<>();
     private final HashMap<IRI, IRI> defaultLicense = new HashMap<>();
 
+    private boolean complete = true;
+
     /**
      * Constructor for UserData.
      * Initializes the user data by fetching nanopublications settings.
@@ -63,10 +66,20 @@ public class UserData implements Serializable {
         final NanodashPreferences pref = NanodashPreferences.get();
 
         // TODO Make nanopublication setting configurable:
-        NanopubSetting setting;
+        NanopubSetting setting = null;
         if (pref.getSettingUri() != null) {
-            setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri(), Utils.getRegistryHttpClient()));
-        } else {
+            try {
+                setting = new NanopubSetting(GetNanopub.get(pref.getSettingUri(), Utils.getRegistryHttpClient()));
+            } catch (Exception ex) {
+                // Retrieving it goes to the registry, which a cold instance may not be able to
+                // reach (issue #684); the local setting stands in until it answers.
+                logger.warn("Could not retrieve the configured nanopublication setting {}: {}", pref.getSettingUri(), ex.toString());
+                complete = false;
+            }
+        }
+        if (setting == null) {
+            // No fallback beyond this one, and its failure is a misconfiguration rather than a
+            // service that cannot answer, so it stays fatal.
             try {
                 setting = NanopubSetting.getLocalSetting();
             } catch (RDF4JException | MalformedNanopubException | IOException ex) {
@@ -74,11 +87,19 @@ public class UserData implements Serializable {
             }
         }
         String settingId = setting.getNanopub().getUri().stringValue();
-        if (setting.getUpdateStrategy().equals(NPX.UPDATES_BY_CREATOR)) {
-            settingId = QueryApiAccess.getLatestVersionId(settingId);
-            setting = new NanopubSetting(GetNanopub.get(settingId, Utils.getRegistryHttpClient()));
+        try {
+            if (setting.getUpdateStrategy().equals(NPX.UPDATES_BY_CREATOR)) {
+                settingId = QueryApiAccess.getLatestVersionId(settingId);
+                setting = new NanopubSetting(GetNanopub.get(settingId, Utils.getRegistryHttpClient()));
+            }
+            logger.info("Using nanopublication setting: {}", settingId);
+        } catch (Exception ex) {
+            // Resolving the latest version goes to the query service and the registry, so it
+            // fails on a cold instance whose services are unavailable. The setting itself is
+            // not read below, so the local one carries us until the services answer.
+            logger.warn("Could not resolve the latest version of the nanopublication setting {}: {}", settingId, ex.toString());
+            complete = false;
         }
-        logger.info("Using nanopublication setting: {}", settingId);
 
 //		// Get users that are listed directly in the authority index, and consider them approved:
 //		ByteArrayOutputStream out = new ByteArrayOutputStream(); // TODO use piped out-in stream here
@@ -118,16 +139,17 @@ public class UserData implements Serializable {
                 registerApproved(rai);
             }
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            logger.error("Could not load the approved users from the registry: {}", ex.toString());
+            complete = false;
         }
 
         logger.info("Loading user details...");
         // Get latest introductions for all users, including unapproved ones:
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_INTROS), forced).getData()) {
+        for (ApiResponseEntry entry : entriesOf(QueryApiAccess.GET_ALL_USER_INTROS, forced)) {
             register(entry);
         }
 
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_PROFILE_PICS), forced).getData()) {
+        for (ApiResponseEntry entry : entriesOf(QueryApiAccess.GET_ALL_USER_PROFILE_PICS, forced)) {
             // The value can be a link or SVG markup (issue #634), and nothing stops a user
             // from declaring something unusable as either — hence the null check rather
             // than a bare parse, which would abort the whole user-data load.
@@ -135,9 +157,44 @@ public class UserData implements Serializable {
             if (picture != null) profilePictures.put(Values.iri(entry.get("user")), picture);
         }
 
-        for (ApiResponseEntry entry : ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_ALL_USER_DEFAULT_LICENSE), forced).getData()) {
+        for (ApiResponseEntry entry : entriesOf(QueryApiAccess.GET_ALL_USER_DEFAULT_LICENSE, forced)) {
             defaultLicense.put(Values.iri(entry.get("user")), Values.iri(entry.get("license")));
         }
+    }
+
+    /**
+     * The entries of one of the user-detail queries, or none when the query service cannot
+     * answer, in which case the data is marked as {@link #isComplete() not complete}.
+     * <p>
+     * Nothing here is worth failing the whole load for. A cold instance whose query service is
+     * unavailable could not build user data at all, and since session construction needs it,
+     * that left the instance unable to serve any page, its own error page included (issue
+     * #684). What it can build is partial data — whoever the registry says is approved, and
+     * no introductions — which is a serviceable state to render from and is replaced as soon
+     * as the service answers.
+     */
+    private List<ApiResponseEntry> entriesOf(String queryId, boolean forced) {
+        try {
+            ApiResponse response = ApiCache.retrieveResponseSync(new QueryRef(queryId), forced);
+            if (response != null) return response.getData();
+            logger.warn("No response yet for {}; user data stays incomplete", queryId);
+        } catch (Exception ex) {
+            logger.error("Could not load {}: {}", queryId, ex.toString());
+        }
+        complete = false;
+        return Collections.emptyList();
+    }
+
+    /**
+     * Whether this user data could be built in full. It cannot when a service it is built from
+     * is unavailable (issue #684): what is here is then only as much as the services that did
+     * answer could tell, and the data is meant to be replaced by a complete load rather than
+     * kept for the usual refresh interval.
+     *
+     * @return true if every source answered
+     */
+    public boolean isComplete() {
+        return complete;
     }
 
     private IntroNanopub toIntroNanopub(IRI iri) {
