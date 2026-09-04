@@ -1443,10 +1443,9 @@ public class Utils {
     /**
      * Returns the URL of the main Nanopub Registry for this nanodash instance.
      * <p>
-     * If {@code NANODASH_MAIN_REGISTRY} is set and matches an entry in the library's
-     * discovered registry instance list, that URL is used. Otherwise the first entry
-     * of the library list is used. If the library list is empty, the env var value
-     * (or built-in default) is used unvalidated. The result is cached for the JVM lifetime.
+     * If {@code NANODASH_MAIN_REGISTRY} is set, that URL is used. Otherwise the first entry
+     * of the library's discovered registry instance list is used, or the built-in default if
+     * that list is empty. The result is cached for the JVM lifetime.
      *
      * @return Nanopub Registry URL (with trailing slash)
      */
@@ -1464,10 +1463,9 @@ public class Utils {
     /**
      * Returns the URL of the main Nanopub Query API for this nanodash instance.
      * <p>
-     * If {@code NANODASH_MAIN_QUERY} is set and matches an entry in the library's
-     * discovered query instance list, that URL is used. Otherwise the first entry
-     * of the library list is used. If the library list is empty, the env var value
-     * (or built-in default) is used unvalidated. The result is cached for the JVM lifetime.
+     * If {@code NANODASH_MAIN_QUERY} is set, that URL is used. Otherwise the first entry of the
+     * library's discovered query instance list is used, or the built-in default if that list is
+     * empty. The result is cached for the JVM lifetime.
      *
      * @return Nanopub Query URL (with trailing slash)
      */
@@ -1491,7 +1489,7 @@ public class Utils {
             logger.warn("Could not retrieve registry instance list from nanopub library: {}", ex.toString());
             instances = Collections.emptyList();
         }
-        return resolveMainUrl("NANODASH_MAIN_REGISTRY", envValue, instances, DEFAULT_MAIN_REGISTRY_URL);
+        return resolveMainUrl("NANODASH_MAIN_REGISTRY", envValue, instances, "NANOPUB_REGISTRY_INSTANCES", DEFAULT_MAIN_REGISTRY_URL);
     }
 
     private static String resolveMainQueryUrl() {
@@ -1506,21 +1504,28 @@ public class Utils {
             logger.warn("Could not retrieve query instance list from nanopub library: {}", ex.toString());
             instances = Collections.emptyList();
         }
-        return resolveMainUrl("NANODASH_MAIN_QUERY", envValue, instances, DEFAULT_MAIN_QUERY_URL);
+        return resolveMainUrl("NANODASH_MAIN_QUERY", envValue, instances, "NANOPUB_QUERY_INSTANCES", DEFAULT_MAIN_QUERY_URL);
     }
 
-    private static String resolveMainUrl(String envVarName, String envValue, List<String> instances, String builtInDefault) {
+    /**
+     * Resolves one main URL. An explicitly configured value always wins: an operator who names a
+     * service -- a private registry or query API, say -- must not have that overruled by a list
+     * discovered from the public ones (issue #680). The list is still consulted, but only to warn
+     * that the library will keep dispatching elsewhere unless it is pointed at the same service.
+     * Package-private for testing.
+     */
+    static String resolveMainUrl(String envVarName, String envValue, List<String> instances, String libraryVarName, String builtInDefault) {
         if (envValue != null) {
             if (containsNormalized(instances, envValue)) {
-                logger.info("Using main URL from {} (validated against library instance list): {}", envVarName, envValue);
-                return ensureTrailingSlash(envValue);
+                logger.info("Using main URL from {} (also in the library instance list): {}", envVarName, envValue);
+            } else if (instances.isEmpty()) {
+                logger.info("Using main URL from {}; library instance list is empty: {}", envVarName, envValue);
+            } else {
+                logger.warn("Using main URL from {}={}, but it is not in the library instance list {}; the library itself " +
+                        "(nanopub retrieval, query dispatch) keeps using that list, so set {} to the same service as well",
+                        envVarName, envValue, instances, libraryVarName);
             }
-            if (instances.isEmpty()) {
-                logger.warn("Library instance list is empty; using {} unvalidated: {}", envVarName, envValue);
-                return ensureTrailingSlash(envValue);
-            }
-            logger.warn("{}={} is not in the library instance list {}; falling back to first library instance", envVarName, envValue, instances);
-            return ensureTrailingSlash(instances.get(0));
+            return ensureTrailingSlash(envValue);
         }
         if (!instances.isEmpty()) {
             String first = instances.get(0);
