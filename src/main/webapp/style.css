@@ -1545,6 +1545,41 @@ select {
   white-space: nowrap;
 }
 
+.service-health-note {
+  padding: 6px 20px;
+  font-size: 13px;
+  text-align: center;
+  color: #7a4a00;
+  background-color: #fff4d6;
+  border-bottom: 1px solid #e0b055;
+}
+
+.restricted-marker {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: #7a4a00;
+  background-color: #ffe6b3;
+  border: 1px solid #e0b055;
+  border-radius: 3px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.protectedtag {
+  color: #7a4a00;
+  font-size: 12px;
+  padding: 2px 6px;
+  margin-right: 4px;
+  background-color: #ffe6b3;
+  border: 1px solid #e0b055;
+  border-radius: 3px;
+  white-space: nowrap;
+  cursor: help;
+}
+
 .positivetag {
   font-size: 14px;
   padding: 4px 10px;

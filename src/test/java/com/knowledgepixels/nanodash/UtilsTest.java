@@ -288,6 +288,20 @@ class UtilsTest {
     }
 
     @Test
+    void getTypesExcludesProtectedNanopubType() {
+        // npx:ProtectedNanopub is shown as its own flag in NanopubItem, not as a type tag.
+        Nanopub nanopub = mock(Nanopub.class);
+        MockedStatic<NanopubUtils> mockStatic = mockStatic(NanopubUtils.class);
+        IRI includedType = Values.iri("http://knowledgepixels.com/nanopubIri#ValidType");
+        mockStatic.when(() -> NanopubUtils.getTypes(nanopub)).thenReturn(Set.of(NPX.PROTECTED_NANOPUB, includedType));
+
+        List<IRI> result = Utils.getTypes(nanopub);
+
+        assertEquals(List.of(includedType), result);
+        mockStatic.close();
+    }
+
+    @Test
     void getTypesReturnsEmptyListForNoTypes() {
         Nanopub nanopub = mock(Nanopub.class);
         MockedStatic<NanopubUtils> mockStatic = mockStatic(NanopubUtils.class);

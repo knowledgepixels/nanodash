@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -16,6 +18,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.ServiceHealth;
+import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.HomePage;
@@ -49,6 +53,20 @@ public class TitleBar extends Panel {
         // Centered title-bar message: the post-publish confirmation and/or the
         // always-on "you haven't published an introduction yet" warning.
         add(new JustPublishedMessagePanel("justPublishedMessage", page.getPageParameters()));
+
+        // Restricted deployment: this instance talks to a local/private registry or query service,
+        // so what it shows is not (only) the public network, and protected nanopublications can be
+        // part of it. Shown on every page, as it is a property of the instance, not of a page.
+        Label restrictedMarker = new Label("restricted-marker", "🔒 restricted");
+        restrictedMarker.add(new AttributeModifier("title",
+                "This instance is connected to a local/private registry or query service. Its content is not " +
+                "(only) the public nanopublication network, and it can hold protected nanopublications."));
+        add(restrictedMarker.setVisible(ServiceMode.isRestricted()));
+
+        // Services that cannot answer: said once here, rather than left to each query-driven part
+        // of the page to report as its own "API call failed." (#681).
+        String serviceHealthNote = ServiceHealth.getNote();
+        add(new Label("service-health-note", serviceHealthNote).setVisible(serviceHealthNote != null));
 
         breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
         if (page.hasFullWidthContent()) {

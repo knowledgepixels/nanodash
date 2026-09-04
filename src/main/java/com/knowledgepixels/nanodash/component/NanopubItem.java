@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ListPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.*;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -127,6 +128,13 @@ public class NanopubItem extends Panel {
             } else {
                 header.add(new Label("action-menu", "").setVisible(false));
             }
+            // A protected nanopub lives only on local/private instances and is never part of the
+            // public network, which is worth showing next to its ID rather than leaving it to be
+            // spotted among the pubinfo statements.
+            Label protectedFlag = new Label("protected-flag", "🔒 protected");
+            protectedFlag.add(new AttributeModifier("title",
+                    "Protected nanopublication: only stored and served by local/private instances, not by the public network."));
+            header.add(protectedFlag.setVisible(n.isProtected()));
             header.add(new DataView<IRI>("typespan", new ListDataProvider<IRI>(Utils.getTypes(n.getNanopub()))) {
 
                 @Override
