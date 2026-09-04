@@ -641,6 +641,9 @@ public class PublishForm extends Panel {
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
+                    if (!areMintedIdsUnused()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
@@ -1048,6 +1051,11 @@ public class PublishForm extends Panel {
                     }
 
                     Nanopub np = createNanopub();
+                    // Checked here too: the preview page publishes the nanopublication it
+                    // was given, without coming back through this form.
+                    if (!areMintedIdsUnused()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
@@ -1246,6 +1254,7 @@ public class PublishForm extends Panel {
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
+        assertionContext.getPrefixMintedIris().clear();
         assertionContext.getRolePropertyPins().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
@@ -1402,6 +1411,50 @@ public class PublishForm extends Panel {
         }
         feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
         return false;
+    }
+
+    private boolean areMintedIdsUnused() {
+        IRI takenId = findTakenMintedId(assertionContext);
+        if (takenId == null) {
+            return true;
+        }
+        feedbackPanel.error("The identifier " + takenId.stringValue()
+                + " is already in use. Pick a different one, or use a template for describing"
+                + " an existing resource if that is what you mean to do.");
+        return false;
+    }
+
+    /**
+     * Returns the first identifier the given assertion context mints under a fixed prefix --
+     * the IRI of a new space, say -- that is already in use, or null if all of them are free.
+     * <p>
+     * An identifier minted under the new nanopublication's own namespace picks up its
+     * artifact code and is unique by construction; one minted under a prefix the template or
+     * the space supplies is not, so filling the same form with the same name twice yields the
+     * same IRI, and the second nanopublication silently extends the first one's resource
+     * instead of defining a new one. A nanopublication cannot be edited afterwards, so the
+     * collision is worth catching before publishing rather than after (#646).
+     * <p>
+     * Not every identifier is checked. An IRI the user typed out in full names an existing
+     * thing rather than minting one -- templates such as "Defining an open-ended Space with
+     * existing URI" exist precisely to do that -- and neither superseding nor overriding
+     * mints anything: keeping the source's identifier is the point of both.
+     *
+     * @param assertionContext the assertion context, after its values have been processed
+     * @return the first minted identifier that is already in use, or null if none is
+     */
+    public static IRI findTakenMintedId(TemplateContext assertionContext) {
+        FillMode fillMode = assertionContext.getFillMode();
+        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
+            return null;
+        }
+        for (IRI mintedIri : assertionContext.getPrefixMintedIris()) {
+            // Only identifiers the nanopublication declares as newly introduced resources: a
+            // prefixed field can just as well point at something that already exists.
+            if (!assertionContext.getIntroducedIris().contains(mintedIri)) continue;
+            if (QueryApiAccess.isUriIntroduced(mintedIri.stringValue())) return mintedIri;
+        }
+        return null;
     }
 
     /**

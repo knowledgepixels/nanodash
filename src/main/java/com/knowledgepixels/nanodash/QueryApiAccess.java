@@ -422,6 +422,32 @@ public class QueryApiAccess {
     }
 
     /**
+     * Checks whether the given IRI has already been used as the identifier of a resource,
+     * i.e. whether some nanopublication already introduces it.
+     * <p>
+     * This is the question an identifier that carries no artifact code raises: nothing makes
+     * it unique, so the same form filled with the same name twice yields the same IRI, and
+     * the second nanopublication silently attaches itself to the first one's resource (#646).
+     * The lookup runs against the meta repository, where {@code npx:introduces} is indexed.
+     * <p>
+     * A query service that cannot be reached answers false: a check that cannot be made is
+     * not evidence of a collision, and publishing should not depend on the query services
+     * being up.
+     *
+     * @param uri The IRI to check.
+     * @return True if a nanopublication introducing the IRI was found.
+     */
+    public static boolean isUriIntroduced(String uri) {
+        try {
+            ApiResponse r = get(new QueryRef(GET_INTRODUCING_NANOPUB, "thing", uri));
+            return r != null && !r.getData().isEmpty();
+        } catch (Exception ex) {
+            logger.error("Could not check whether IRI '{}' is already introduced", uri, ex);
+            return false;
+        }
+    }
+
+    /**
      * Extracts the query ID from a given query IRI.
      *
      * @param queryIri The query IRI.
