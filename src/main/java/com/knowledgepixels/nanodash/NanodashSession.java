@@ -76,7 +76,41 @@ public class NanodashSession extends WebSession {
         setLocale(Locale.US);
         httpSession = ((HttpServletRequest) request.getContainerRequest()).getSession();
         bind();
-        loadProfileInfo();
+        try {
+            loadProfileInfo();
+        } catch (Exception ex) {
+            // A session that cannot be constructed is not one failed page but no page at all:
+            // the error page needs a session of its own, so its construction fails the same
+            // way and the request ends in an unhandled exception (issue #684). Profile
+            // information that cannot be loaded leaves an anonymous session, which is a
+            // serviceable state, and the retry below picks it up once it can be had.
+            logger.error("Could not load the profile information for this session", ex);
+            profileInfoIncomplete = true;
+        }
+    }
+
+    /**
+     * Loads the profile information again when the last attempt had to make do with user data
+     * that was not fully loaded, and that data has since come in. Called at the start of each
+     * page render, so a session that came up during a service outage (issue #684) shows the
+     * user's introductions as soon as the service answers, instead of staying as it was for as
+     * long as the session lives.
+     */
+    public void refreshProfileInfoIfIncomplete() {
+        if (!profileInfoIncomplete) return;
+        try {
+            if (!User.getUserData().isComplete()) return;
+            logger.info("User data is complete again; reloading the profile information");
+            // Cleared first: the load only rebuilds the introductions when there are none
+            // held, and it sets the flag again if the data is incomplete after all.
+            profileInfoIncomplete = false;
+            introNps = null;
+            loadProfileInfo();
+        } catch (Exception ex) {
+            // Every page runs through here, so this must not be what fails one.
+            logger.error("Could not reload the profile information for this session", ex);
+            profileInfoIncomplete = true;
+        }
     }
 
     @Override
@@ -97,6 +131,10 @@ public class NanodashSession extends WebSession {
     private ConcurrentMap<IRI, IntroNanopub> introNps;
 //	private Boolean isOrcidLinked;
 //	private String orcidLinkError;
+
+    // Set when the profile information was built from user data that could not be loaded in
+    // full, so that it is built again once it can be (issue #684).
+    private boolean profileInfoIncomplete = false;
 
     private Integer localIntroCount = null;
     private IntroNanopub localIntro = null;
@@ -144,6 +182,9 @@ public class NanodashSession extends WebSession {
         }
         if (userIri != null && keyPair != null && introNps == null) {
             introNps = new ConcurrentHashMap<>(User.getIntroNanopubs(getPubkeyString()));
+            // Remember when this was built from user data that a service could not fully
+            // answer for, so that it is built again once it can be (issue #684).
+            profileInfoIncomplete = !User.getUserData().isComplete();
         }
 //		checkOrcidLink();
     }

@@ -57,7 +57,7 @@ public class MaintainedResourceRepository {
     private volatile Snapshot snapshot = Snapshot.EMPTY;
 
     private Snapshot current() {
-        ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES), false);
+        ApiResponse resp = ApiCache.retrieveResponseIfAvailable(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES));
         if (resp == null) {
             return snapshot;
         }

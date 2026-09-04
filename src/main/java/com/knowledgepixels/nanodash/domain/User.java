@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.domain;
 
+import com.knowledgepixels.nanodash.NanodashThreadPool;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.setting.IntroNanopub;
@@ -21,7 +22,12 @@ public class User {
     private static final Logger logger = LoggerFactory.getLogger(User.class);
     private static volatile UserData userData;
     private static final long REFRESH_INTERVAL = 60 * 1000; // 1 minute
+    // How long incomplete data is kept before another load is attempted. Short, because such
+    // data is a stand-in for what a service could not tell us and the instance should come
+    // right as soon as it can answer; not immediate, so an outage is not hammered.
+    private static final long INCOMPLETE_RETRY_INTERVAL = 30 * 1000; // 30 seconds
     private static transient long lastRefresh = 0L;
+    private static transient long lastIncompleteRetry = 0L;
 
     /**
      * Refreshes the user data by creating a new UserData instance.
@@ -31,7 +37,7 @@ public class User {
         synchronized (User.class) {
             if (userData == null || System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
-                userData = new UserData(true);
+                install(new UserData(true));
             }
         }
     }
@@ -42,16 +48,79 @@ public class User {
      * restart (issue #570) — instead of forcing the fetches like the periodic
      * {@link #refreshUsers()} cycle does, which would stall the first request (session
      * creation runs through here) on the network.
+     * <p>
+     * Data that could not be built in full — a service that could not answer (issue #684) —
+     * is kept and used, and another load is attempted in the background.
      */
     public static void ensureLoaded() {
         if (userData == null) {
             synchronized (User.class) {
                 if (userData == null) {
                     lastRefresh = System.currentTimeMillis();
-                    userData = new UserData(false);
+                    install(new UserData(false));
                 }
             }
         }
+        retryIfIncomplete();
+    }
+
+    /**
+     * Takes on the given user data, unless it would replace what we have with less. A load
+     * that a service could not answer for yields {@link UserData#isComplete() incomplete}
+     * data (issue #684): that is worth having when there is nothing at all — it is what lets
+     * a cold instance serve pages while its query service is unavailable — but never worth
+     * overwriting a full load with, as a passing outage would then empty out user data that
+     * was perfectly good.
+     */
+    private static void install(UserData newData) {
+        if (!shouldReplace(userData, newData)) {
+            logger.warn("Keeping the user data we have: the new load could not be completed");
+            return;
+        }
+        if (!newData.isComplete()) logger.warn("User data is incomplete; will retry");
+        userData = newData;
+    }
+
+    /**
+     * Whether a freshly built set of user data should take the place of what is held now:
+     * anything is better than nothing, and complete data is better than incomplete, but
+     * incomplete data never replaces complete data. Package-private for testing.
+     *
+     * @param current the data held now, or null if none
+     * @param loaded  the data just built
+     * @return true if the new data should be installed
+     */
+    static boolean shouldReplace(UserData current, UserData loaded) {
+        return current == null || !current.isComplete() || loaded.isComplete();
+    }
+
+    /**
+     * Attempts another load when what we hold is incomplete, at most every
+     * {@link #INCOMPLETE_RETRY_INTERVAL}. The attempt runs in the background: the callers of
+     * this are request threads serving pages from the partial data, and they must not wait on
+     * the very service that is failing to answer.
+     */
+    private static void retryIfIncomplete() {
+        UserData data = userData;
+        if (data == null || data.isComplete()) return;
+        synchronized (User.class) {
+            if (userData == null || userData.isComplete()) return;
+            long now = System.currentTimeMillis();
+            if (now - lastIncompleteRetry < INCOMPLETE_RETRY_INTERVAL) return;
+            lastIncompleteRetry = now;
+        }
+        NanodashThreadPool.submit(() -> {
+            logger.info("Retrying the incomplete user-data load...");
+            try {
+                UserData reloaded = new UserData(false);
+                synchronized (User.class) {
+                    lastRefresh = System.currentTimeMillis();
+                    install(reloaded);
+                }
+            } catch (Exception ex) {
+                logger.error("Retry of the incomplete user-data load failed", ex);
+            }
+        });
     }
 
     /**

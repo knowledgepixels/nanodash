@@ -79,7 +79,12 @@ public class JustPublishedMessagePanel extends Panel {
         // having a local key + ORCID, so users who cannot yet publish one (no
         // profile set up) are not nagged. A just-published introduction takes a
         // moment to register, so it is suppressed for 5 minutes after publishing. ---
-        boolean canPublishIntro = session.getUserIri() != null && session.getKeyPair() != null;
+        // Both notices below say something about the user's introductions, so neither can be
+        // said while the user data is only as much as a failing service could tell (issue
+        // #684): "you haven't published an introduction yet" would then be about what could
+        // not be loaded rather than about what the user has done.
+        boolean userDataKnown = User.getUserData().isComplete();
+        boolean canPublishIntro = userDataKnown && session.getUserIri() != null && session.getKeyPair() != null;
         boolean hasLocalIntro = session.getLocalIntroCount() > 0;
         boolean recentlyPublishedIntro = session.getTimeSinceLastIntroPublished() <= 5 * 60 * 1000;
         if (canPublishIntro && !hasLocalIntro && session.hasIntroPublished()) User.refreshUsers();

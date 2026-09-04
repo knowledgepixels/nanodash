@@ -64,6 +64,9 @@ public abstract class NanodashPage extends WebPage {
         super(parameters);
         markIfBrowserReload();
         ensureRefreshed();
+        // A session built while a service was unavailable holds no profile information
+        // (issue #684); this picks it up once the service answers.
+        NanodashSession.get().refreshProfileInfoIfIncomplete();
         add(new ClaudeChatPanel("claudechat", true) {
 
             @Override

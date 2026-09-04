@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.WicketApplication;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletResponse;
@@ -7,9 +8,11 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
 
 class ErrorPageTest {
 
@@ -39,6 +42,21 @@ class ErrorPageTest {
         tester.assertContains("Something went wrong here");
         assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, tester.getLastResponse().getStatus());
         assertTrue(renderedPage().contains("https://github.com/knowledgepixels/nanodash/issues/new"), renderedPage());
+    }
+
+    // This page is where the other pages' errors end up, so it has to render whatever state
+    // the instance is in — including one where the title bar itself cannot be built, which is
+    // what an instance that cannot reach its services ran into (#684).
+    @Test
+    void rendersEvenWhenTheTitleBarCannotBeBuilt() {
+        try (MockedStatic<ServiceMode> serviceMode = mockStatic(ServiceMode.class)) {
+            serviceMode.when(ServiceMode::isRestricted).thenThrow(new RuntimeException("no services"));
+
+            tester.startPage(ErrorPage.class, params(ErrorPage.Kind.REQUEST, "That identifier is not valid."));
+
+            tester.assertRenderedPage(ErrorPage.class);
+            tester.assertContains("That identifier is not valid.");
+        }
     }
 
     // Details about what went wrong are shown to the user, so that e.g. a mistyped
