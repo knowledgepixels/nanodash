@@ -38,6 +38,8 @@ public class TemplateContext implements Serializable {
     private final Template template;
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
+    private final Set<String> lockedParams = new HashSet<>();
+    private final Set<String> lockedStatements = new HashSet<>();
     private List<Component> components = new ArrayList<>();
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
@@ -140,6 +142,9 @@ public class TemplateContext implements Serializable {
                     String param = postfix + "__" + absPos;
                     if (i - corr == 0) param = postfix;
                     setParam(param, getParam(p));
+                    // A lock stated on the relative name has to follow the value to the
+                    // absolute name it ends up under, or it would never match a placeholder.
+                    if (isLocked(p)) setLocked(param);
                     finalRepetitionCount.put(si, i - corr);
                 } else {
                     break;
@@ -242,6 +247,111 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasParam(String name) {
         return params.containsKey(name);
+    }
+
+    /**
+     * Marks a parameter as locked: the form field it pre-fills is shown but cannot be edited
+     * (issue #678). Locking is per repetition, as the name carries the repetition suffix of the
+     * field it refers to ("key" locks the first repetition, "key__1" the second, and so on).
+     * Locking a value the user cannot see or reach would leave the form unfillable, so only
+     * parameters that actually carry a value can be locked.
+     *
+     * @param name the name of the parameter to lock
+     */
+    public void setLocked(String name) {
+        if (!hasParam(name)) {
+            logger.warn("Ignoring lock on parameter {}, which has no value in this context", name);
+            return;
+        }
+        lockedParams.add(name);
+    }
+
+    /**
+     * Checks whether the given parameter name is locked.
+     *
+     * @param name the name of the parameter
+     * @return true if the parameter is locked, false otherwise
+     */
+    public boolean isLocked(String name) {
+        return lockedParams.contains(name);
+    }
+
+    /**
+     * Checks whether the given placeholder is locked, i.e. pre-filled with a value the user is
+     * not allowed to change. The placeholder IRI carries the repetition suffix of its repetition
+     * group (see {@link StatementItem.RepetitionGroup}), so this holds per repetition: the second
+     * repetition of a locked placeholder is editable unless it was locked in its own right.
+     *
+     * @param iri the placeholder IRI, as handed to the form component
+     * @return true if the placeholder is locked, false otherwise
+     */
+    public boolean isLocked(IRI iri) {
+        if (iri == null) return false;
+        return isLocked(Utils.getUriPostfix(iri));
+    }
+
+    /**
+     * Moves the lock of one parameter to another, used when removing a repetition group shifts
+     * the values of the following groups up into its slot ({@link StatementItem.RepetitionGroup}
+     * shifts values through fixed placeholder slots rather than deleting one). The lock belongs
+     * to the pre-filled value, not to the slot, so it has to travel with the value: otherwise
+     * removing a locked repetition would leave the value that slides up into its place
+     * uneditable.
+     *
+     * @param fromName the parameter name the value is moving away from
+     * @param toName   the parameter name the value is moving to
+     */
+    public void moveLock(String fromName, String toName) {
+        if (lockedParams.remove(fromName)) {
+            lockedParams.add(toName);
+        } else {
+            lockedParams.remove(toName);
+        }
+    }
+
+    /**
+     * Removes the lock of the given parameter, if any.
+     *
+     * @param name the name of the parameter to unlock
+     */
+    public void clearLock(String name) {
+        lockedParams.remove(name);
+    }
+
+    /**
+     * Marks a statement as locked: the user cannot add or remove repetitions of it (issue #678).
+     * Unlike a locked value, which is a guardrail against accidental edits, this one holds:
+     * Wicket does not invoke a listener of a component that is not visible, so the hidden
+     * repetition buttons cannot be triggered from the browser either.
+     * <p>
+     * The name is resolved when the lock is queried rather than here, because the statements are
+     * only built later ({@link #initStatements()}): it matches either the name of the statement
+     * node itself ("st2") or the name of a placeholder used in that statement and no other
+     * ("public-key"), which is the name a link author is more likely to have at hand.
+     *
+     * @param name the name of the statement, or of a placeholder that identifies it
+     */
+    public void setStatementLocked(String name) {
+        lockedStatements.add(name);
+    }
+
+    /**
+     * Checks whether the given statement is locked, i.e. whether its repetitions are fixed.
+     *
+     * @param statementId the IRI of the statement node
+     * @return true if the statement is locked, false otherwise
+     */
+    public boolean isStatementLocked(IRI statementId) {
+        if (statementId == null || lockedStatements.isEmpty()) return false;
+        if (lockedStatements.contains(Utils.getUriPostfix(statementId))) return true;
+        // A placeholder used in a single statement names that statement unambiguously; one used
+        // in several is wide-scope and names none of them.
+        for (Map.Entry<IRI, StatementItem> e : narrowScopeMap.entrySet()) {
+            if (e.getValue() == null) continue;
+            if (!lockedStatements.contains(Utils.getUriPostfix(e.getKey()))) continue;
+            if (statementId.equals(e.getValue().getStatementId())) return true;
+        }
+        return false;
     }
 
     /**

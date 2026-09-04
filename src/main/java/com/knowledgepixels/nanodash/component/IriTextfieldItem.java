@@ -116,6 +116,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
         }
         textfield.add(new Validator(iri, template, prefixModel, context));
         context.getComponents().add(textfield);
+        lockIfNeeded(textfield, iri);
         if (template.getLabel(iri) != null) {
             textfield.add(new AttributeModifier("placeholder", template.getLabel(iri).replaceFirst(" - .*$", "")));
             textfield.setLabel(Model.of(template.getLabel(iri)));
@@ -214,6 +215,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
 
         });
         context.getComponents().add(prefixChoice);
+        lockIfNeeded(prefixChoice, iri);
         add(prefixChoice);
     }
 

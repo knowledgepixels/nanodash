@@ -88,6 +88,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
 
         context.getComponentModels().put(iri, zonedDateTimePicker.getModel());
         context.getComponents().add(zonedDateTimePicker);
+        lockIfNeeded(zonedDateTimePicker, iri);
         zonedDateTimePicker.add(new ValueItem.KeepValueAfterRefreshBehavior());
         zonedDateTimePicker.add(new InvalidityHighlighting());
 

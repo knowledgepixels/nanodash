@@ -146,6 +146,7 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
         choice.add(new ValueItem.KeepValueAfterRefreshBehavior());
         choice.add(new Validator());
         context.getComponents().add(choice);
+        lockIfNeeded(choice, iri);
 
         tooltipDescription = new Label("description", new IModel<String>() {
 
