@@ -141,6 +141,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
 
         Utils.initMainUrls();
         ServiceMode.init();
+        ServiceHealth.init();
 
         getMarkupSettings().setDefaultMarkupEncoding("UTF-8");
 

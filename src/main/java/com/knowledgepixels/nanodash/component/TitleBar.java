@@ -18,6 +18,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.ServiceHealth;
 import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
@@ -61,6 +62,11 @@ public class TitleBar extends Panel {
                 "This instance is connected to a local/private registry or query service. Its content is not " +
                 "(only) the public nanopublication network, and it can hold protected nanopublications."));
         add(restrictedMarker.setVisible(ServiceMode.isRestricted()));
+
+        // Services that cannot answer: said once here, rather than left to each query-driven part
+        // of the page to report as its own "API call failed." (#681).
+        String serviceHealthNote = ServiceHealth.getNote();
+        add(new Label("service-health-note", serviceHealthNote).setVisible(serviceHealthNote != null));
 
         breadcrumbPath = new WebMarkupContainer("breadcrumbpath");
         if (page.hasFullWidthContent()) {

@@ -1545,6 +1545,15 @@ select {
   white-space: nowrap;
 }
 
+.service-health-note {
+  padding: 6px 20px;
+  font-size: 13px;
+  text-align: center;
+  color: #7a4a00;
+  background-color: #fff4d6;
+  border-bottom: 1px solid #e0b055;
+}
+
 .restricted-marker {
   display: inline-block;
   vertical-align: middle;
