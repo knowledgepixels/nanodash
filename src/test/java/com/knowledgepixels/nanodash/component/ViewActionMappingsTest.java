@@ -106,4 +106,61 @@ class ViewActionMappingsTest {
         assertTrue(ViewActionMappings.applyEntryMappings(view, ACTION, mock(ApiResponseEntry.class), params));
     }
 
+
+    /**
+     * A "!" in front of the field name locks it: the action fills the value in and the form does
+     * not let the user change it (issue #678). Used for values an action determines rather than
+     * proposes, such as the local public key an introduction is to declare.
+     */
+    @Test
+    void lockMarkerFillsTheFieldAndLocksIt() {
+        View view = viewWith(List.of("col:!foo"), templateWhereRequired("foo"));
+        PageParameters params = new PageParameters();
+        assertTrue(ViewActionMappings.applyEntryMappings(view, ACTION, row("col", "v"), params));
+        assertEquals("v", params.get("param_foo").toString());
+        assertEquals("param_foo", params.get("locked").toString());
+    }
+
+    @Test
+    void severalLockedMappingsAccumulate() {
+        Template template = templateWhereRequired("foo", "bar", "baz");
+        View view = mock(View.class);
+        when(view.getTemplateQueryMappings(ACTION)).thenReturn(List.of("c1:!foo", "c2:bar", "c3:!baz"));
+        when(view.getTemplateForAction(ACTION)).thenReturn(template);
+        ApiResponseEntry e = mock(ApiResponseEntry.class);
+        when(e.get("c1")).thenReturn("v1");
+        when(e.get("c2")).thenReturn("v2");
+        when(e.get("c3")).thenReturn("v3");
+        PageParameters params = new PageParameters();
+        assertTrue(ViewActionMappings.applyEntryMappings(view, ACTION, e, params));
+        assertEquals(List.of("param_foo", "param_baz"),
+                params.getValues("locked").stream().map(Object::toString).toList());
+        assertEquals("v2", params.get("param_bar").toString());
+    }
+
+    /**
+     * The marker must not leak into the field name: an unlocked mapping of the same field is
+     * unaffected, and a locked field that is empty is judged required-or-not by its real name.
+     */
+    @Test
+    void lockMarkerIsStrippedFromTheFieldName() {
+        View view = viewWith(List.of("col:!foo"), templateWhereRequired("foo"));
+        PageParameters params = new PageParameters();
+        assertFalse(ViewActionMappings.applyEntryMappings(view, ACTION, row("col", ""), params));
+        assertTrue(params.get("param_foo").isNull());
+        assertTrue(params.get("locked").isNull());
+    }
+
+    /**
+     * Raw keys are fill-mode switches rather than form fields, so the marker does not apply to
+     * them and stays part of the key.
+     */
+    @Test
+    void lockMarkerDoesNotApplyToRawKeys() {
+        View view = viewWith(List.of("col:@derive-a"), templateWhereRequired());
+        PageParameters params = new PageParameters();
+        assertTrue(ViewActionMappings.applyEntryMappings(view, ACTION, row("col", "np123"), params));
+        assertTrue(params.get("locked").isNull());
+    }
+
 }

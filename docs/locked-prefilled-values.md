@@ -85,6 +85,29 @@ value already forces it to stay. Forcing an optional statement to stay *absent* 
 different feature — hiding the field rather than locking it — and is deliberately not
 part of this.
 
+## Locks stated by a view action
+
+A view's entry action fills form fields from the row it sits on, through its
+`col:field` query mappings (docs/magic-query-params.md). Writing the field as
+`!field` locks it as well:
+
+```
+local_pubkey:!public-key__.1
+```
+
+The action then fills the field and emits `locked=param_public-key__.1` with it. This
+is for values an action *determines* rather than proposes — the "append my local key to
+this introduction" action fills in the local public key, and a different key would make
+the introduction wrong. It applies to `param_` targets only: a raw `@` key is a
+fill-mode switch, not a form field.
+
+Note the relative repetition name (`__.1`, "one more than what the source had"), which
+the lock follows through the rewrite into an absolute name.
+
+**Deploy order:** a view nanopublication that starts using `!` should be published only
+once the deployment reads it, since an older version treats `!public-key__.1` as a field
+name of its own and silently fills nothing.
+
 ## What locking does *not* do
 
 - **It is not enforcement.** The lock lives in the URL, so anyone can edit the URL before

@@ -41,7 +41,11 @@ class ViewActionMappings {
      * <p>Each mapping is {@code "col:target"}: the row's value for result column
      * {@code col} is written to URL parameter {@code param_target}, or — when
      * {@code target} starts with {@code @} — to the raw URL key {@code target}
-     * (fill-mode keys such as {@code @derive-a} / {@code @supersede}). The button is
+     * (fill-mode keys such as {@code @derive-a} / {@code @supersede}). A {@code target}
+     * written as {@code !field} additionally locks the field, so the form shows the
+     * value the action filled in but does not let the user change it
+     * (docs/locked-prefilled-values.md); this is for values an action determines rather
+     * than proposes, such as the local public key an introduction is to declare. The button is
      * <b>hidden</b> (returns false) if any <i>required</i> mapped value is empty: a
      * raw key is always required; a {@code param_} target is required unless its
      * template placeholder is optional. Empty values for optional placeholders are
@@ -197,6 +201,11 @@ class ViewActionMappings {
             String target = mapping.substring(sep + 1);
             boolean rawKey = target.startsWith("@");
             String key = rawKey ? target.substring(1) : target;
+            // A "!" in front of the field name says that what the action fills in is not the
+            // user's to change (issue #678): the field is shown with the value but locked. Only
+            // meaningful for a template field, as a raw key is not a form field.
+            boolean locked = !rawKey && key.startsWith("!");
+            if (locked) key = key.substring(1);
             String value = row.get(col);
             if (value == null || value.isBlank()) {
                 // Empty: hide the action only if the target is required.
@@ -204,6 +213,7 @@ class ViewActionMappings {
                 continue;
             }
             params.set(rawKey ? key : "param_" + key, value);
+            if (locked) params.add("locked", "param_" + key);
         }
         return true;
     }
