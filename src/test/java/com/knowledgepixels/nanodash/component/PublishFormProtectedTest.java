@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.ProtectedNanopubs;
 import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.Utils;
@@ -71,6 +72,18 @@ class PublishFormProtectedTest {
     @BeforeEach
     void clearProbedModes() throws Exception {
         setRegistryIsLocal(null);
+    }
+
+    /**
+     * Gives the session a user, which the fixed "Creator" publication info element needs to
+     * produce a complete statement. Without it, whether the nanopublication can be built at all
+     * depends on there being an ORCID in the machine's ~/.nanopub -- true on a developer box,
+     * false on CI.
+     */
+    private static void setSessionUser() throws Exception {
+        Field f = NanodashSession.class.getDeclaredField("userIri");
+        f.setAccessible(true);
+        f.set(NanodashSession.get(), vf.createIRI("https://orcid.org/0000-0002-1267-0234"));
     }
 
     private static void setRegistryIsLocal(Boolean value) throws Exception {
@@ -202,6 +215,7 @@ class PublishFormProtectedTest {
     void theMarkerEndsUpInTheNanopublication() throws Exception {
         // The point of the whole option: what registries look at is this one triple.
         setRegistryIsLocal(true);
+        setSessionUser();
         envVars.set("NANODASH_PROTECTED_BY_DEFAULT", "true");
         PageParameters params = new PageParameters().add("template", PLAIN_TEMPLATE)
                 .add("param_thing", "https://example.org/thing")
@@ -214,6 +228,9 @@ class PublishFormProtectedTest {
         Nanopub np = (Nanopub) createNanopub.invoke(form);
 
         assertTrue(NanopubServerUtils.isProtectedNanopub(np), NanopubUtils.writeToString(np, RDFFormat.TRIG));
+        // The nanopublication really was built from the form's own elements, not an empty shell:
+        assertTrue(NanopubUtils.writeToString(np, RDFFormat.TRIG).contains("0000-0002-1267-0234"),
+                NanopubUtils.writeToString(np, RDFFormat.TRIG));
     }
 
     @Test
