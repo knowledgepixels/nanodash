@@ -17,12 +17,15 @@
       <div wicket:id="nanopub"></div>
 
       <form wicket:id="form">
-        <p>
+        <p wicket:id="protected-section" class="protected-option">
+          <input type="checkbox" wicket:id="protectedcheck" id="protectedcheck"/>
+          <label for="protectedcheck"><strong>&#128274; Protected nanopublication</strong></label>
+          <span wicket:id="protected-note" class="protected-note">This nanopublication will stay on the local instance this Nanodash is connected to.</span>
+        </p>
+
+        <p wicket:id="consent-section">
           <input type="checkbox" wicket:id="consentcheck" id="consentcheck"/>
-          <label for="consentcheck">
-            I understand that published data cannot be fully removed (only retracted or superseded by new versions), and
-            is publicly connected to my personal identifier.
-          </label>
+          <label for="consentcheck"><span wicket:id="consenttext">I understand that published data cannot be fully removed (only retracted or superseded by new versions), and is publicly connected to my personal identifier.</span></label>
         </p>
 
         <p class="center">
