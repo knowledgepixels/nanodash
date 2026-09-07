@@ -48,7 +48,6 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
-import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.services.ApiResponse;
@@ -704,7 +703,7 @@ public class PublishForm extends Panel {
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
-                    String npUrl = PublishNanopub.publish(signedNp);
+                    String npUrl = Utils.publishNanopub(signedNp);
                     logger.info("Nanopublication published: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
                 } catch (Exception ex) {

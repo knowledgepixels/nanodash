@@ -22,6 +22,22 @@ nanopublication itself as the subject, and `PublishNanopub.publish` then skips e
 registry that is not a local instance — refusing outright, without sending the content,
 when none is left.
 
+### Where it is sent
+
+`Utils.publishNanopub` addresses a protected nanopublication to `Utils.getMainRegistryUrl()`
+directly, instead of letting the library pick from its own list. That list comes from
+bootstrap plus discovered registries (or `NANOPUB_REGISTRY_INSTANCES`) and knows nothing
+about `NANODASH_MAIN_REGISTRY`, so on a deployment configured only the Nanodash way,
+publishing a protected nanopublication used to fail with "None of the available registries
+is a local instance" — while the local instance was sitting right there in the config.
+There is only one place a protected nanopublication can go, and Nanodash already checked
+that it reports itself as a local instance, so it is named directly.
+
+Everything else keeps going to the library's list, deliberately. Registries **pull** from
+their peers rather than pushing to them, so an openly published nanopublication sent only
+to a private registry would never reach the public network — the opposite of what
+publishing it unprotected means. The private registry picks it up again through peering.
+
 Two near-misses do **not** count, and both look right in a form:
 
 - `npx:hasNanopubType npx:ProtectedNanopub`, which is what the generic "Nanopublication

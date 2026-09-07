@@ -19,7 +19,6 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
-import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +81,7 @@ public class PreviewPage extends NanodashPage {
                         return;
                     }
 
-                    String npUrl = PublishNanopub.publish(signedNp);
+                    String npUrl = Utils.publishNanopub(signedNp);
                     logger.info("Nanopublication published from preview: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
                     NanodashSession.get().removePreviewNanopub(previewId);

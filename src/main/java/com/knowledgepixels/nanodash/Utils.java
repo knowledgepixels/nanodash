@@ -36,6 +36,7 @@ import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.extra.server.GetNanopub;
 import org.nanopub.extra.server.NanopubServerUtils;
+import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.NotEnoughAPIInstancesException;
 import org.nanopub.extra.services.QueryCall;
@@ -48,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2Choice;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -258,6 +260,33 @@ public class Utils {
     public static void cacheNanopub(Nanopub np) {
         String artifactCode = GetNanopub.getArtifactCode(np.getUri().stringValue()).toString();
         nanopubs.put(artifactCode, np);
+    }
+
+    /**
+     * Publishes a nanopublication, choosing where it goes.
+     * <p>
+     * A protected nanopublication has exactly one possible destination: the local instance this
+     * Nanodash is configured against, which has already been checked to report itself as one (see
+     * {@link ProtectedNanopubs#isOffered()}). Naming it directly means {@code NANODASH_MAIN_REGISTRY}
+     * is enough on such a deployment, instead of also needing {@code NANOPUB_REGISTRY_INSTANCES} to
+     * steer the library's own dispatch list (#671, #680).
+     * <p>
+     * Everything else goes to that list as before, and deliberately so: registries pull from their
+     * peers rather than pushing to them, so an openly published nanopublication sent only to a
+     * private registry would never reach the public network — the opposite of what publishing it
+     * unprotected means.
+     *
+     * @param signedNp the signed nanopublication to publish
+     * @return the URL the nanopublication was published at
+     * @throws IOException if publishing fails
+     */
+    public static String publishNanopub(Nanopub signedNp) throws IOException {
+        if (ProtectedNanopubs.isProtected(signedNp) && ProtectedNanopubs.isOffered()) {
+            String registryUrl = getMainRegistryUrl();
+            logger.info("Publishing protected nanopublication to the configured local instance: {}", registryUrl);
+            return PublishNanopub.publish(signedNp, registryUrl);
+        }
+        return PublishNanopub.publish(signedNp);
     }
 
     /**
