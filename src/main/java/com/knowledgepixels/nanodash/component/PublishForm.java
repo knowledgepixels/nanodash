@@ -48,9 +48,9 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
+import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
-import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -87,6 +87,15 @@ public class PublishForm extends Panel {
     private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
     private static final String INVALID_TEMPLATE_MESSAGE = "This form is based on an invalid template and cannot be published.";
+    private static final String CONSENT_TEXT =
+            "I understand that published data cannot be fully removed (only retracted or superseded " +
+            "by new versions), and is publicly connected to my personal identifier.";
+    // Where protected nanopublications are possible, the consent has to say which of the two it
+    // is about: it is the open publication that cannot be taken back (#671).
+    private static final String OPEN_CONSENT_TEXT =
+            "I understand that this will be openly published, that published data cannot be fully " +
+            "removed (only retracted or superseded by new versions), and that it will be publicly " +
+            "connected to my personal identifier.";
     // Page parameters that make the form supersede or override an existing nanopublication
     // ("fill" is the deprecated form of "supersede"):
     private static final String[] sourceParamKeys = new String[]{"supersede", "supersede-a", "override", "override-a", "fill"};
@@ -148,6 +157,19 @@ public class PublishForm extends Panel {
     private final Map<String, TemplateContext> pubInfoContextMap = new HashMap<>();
     private final List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
     private String targetNamespace;
+    // Protected nanopublications (#671). The context carrying the marker is present exactly when
+    // the nanopublication being created is to be protected; the checkbox next to the consent one
+    // adds and removes it. The reason is non-null when the user has no say (see
+    // ProtectedNanopubs.getForcedReason).
+    private TemplateContext protectedContext;
+    private String protectedForcedReason;
+    private String protectedTemplateId;
+    private boolean protectedTemplateMissing;
+    private Label protectedNoteLabel;
+    private Label consentTextLabel;
+    private CheckBox consentCheck;
+    private WebMarkupContainer consentSection;
+    private boolean publishingDisabled;
     // The space / maintained resource / user this form was reached under, which
     // space-/namespace-dependent template prefixes resolve against (see DynamicPrefix):
     private final String navigationContextId;
@@ -405,6 +427,35 @@ public class PublishForm extends Panel {
         // Propagate fill source (supersede/derive/improve) so contexts can resolve
         // the `local:nanopub`/`local:assertion` sentinels to the fill nanopub's URIs.
         Nanopub fillSource = fillNp != null ? fillNp : improveNp;
+
+        // Protected nanopublications (#671): the marker is added by an ordinary (but unlisted)
+        // pubinfo template, driven from the checkbox next to the consent one rather than from the
+        // "add element..." dropdown, which is behind "show more". A carried-over marker from a
+        // protected fill source has already put the context in the map above; that counts as on.
+        List<Template> formTemplates = new ArrayList<>();
+        formTemplates.add(assertionContext.getTemplate());
+        formTemplates.add(provenanceContext.getTemplate());
+        for (TemplateContext c : pubInfoContexts) formTemplates.add(c.getTemplate());
+        protectedForcedReason = ProtectedNanopubs.getForcedReason(fillSource, formTemplates);
+        protectedTemplateId = td.getLatestTemplateId(ProtectedNanopubs.TEMPLATE_ID);
+        protectedContext = pubInfoContextMap.get(protectedTemplateId);
+        if (protectedContext == null) {
+            protectedContext = pubInfoContextMap.get(ProtectedNanopubs.TEMPLATE_ID);
+        }
+        if (protectedContext != null && requiredPubInfoContexts.contains(protectedContext)) {
+            // The assertion template declares it in nt:hasRequiredPubinfoElement: this kind of
+            // content is always protected, whatever the deployment default says.
+            protectedForcedReason = "the template it is based on requires it";
+        }
+        if (protectedContext == null && (protectedForcedReason != null || ProtectedNanopubs.isOnByDefault())) {
+            protectedContext = newProtectedContext();
+        }
+        if (protectedContext != null && !requiredPubInfoContexts.contains(protectedContext)) {
+            // Turning protection off is what the checkbox is for; a second control for the same
+            // decision, hidden behind "show more", would only be a way to get it half-off.
+            requiredPubInfoContexts.add(protectedContext);
+        }
+
         if (fillSource != null) {
             assertionContext.setFillSource(fillSource);
             provenanceContext.setFillSource(fillSource);
@@ -586,6 +637,15 @@ public class PublishForm extends Panel {
         for (TemplateContext c : pubInfoContexts) {
             collectTemplateErrors("Publication info", c, templateErrors);
         }
+        if (protectedTemplateMissing) {
+            // The form was to start protected, and cannot. Without the marker the nanopublication
+            // would go to the public network, which is exactly what was to be prevented, and a
+            // silent downgrade to public is the one outcome that cannot be taken back.
+            templateErrors.add(new TemplateError("Publication info",
+                    "This nanopublication is to be protected, because " +
+                    (protectedForcedReason != null ? protectedForcedReason : "this deployment protects nanopublications by default") +
+                    ", but the template that marks it as such could not be loaded: " + protectedTemplateId));
+        }
         if (!templateErrors.isEmpty()) {
             add(new Label("template-error-intro", "This form is based on an invalid template and will not produce the nanopublication it describes:"));
         } else {
@@ -608,7 +668,7 @@ public class PublishForm extends Panel {
             c.finalizeStatements();
         }
 
-        final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
+        consentCheck = new CheckBox("consentcheck", new Model<>(false));
         consentCheck.add(new InvalidityHighlighting());
 
         form = new Form<Void>("form") {
@@ -632,7 +692,7 @@ public class PublishForm extends Panel {
                     return;
                 }
 
-                if (!Boolean.TRUE.equals(consentCheck.getModelObject())) {
+                if (!isConsentGiven()) {
                     feedbackPanel.error("You need to check the checkbox that you understand the consequences.");
                     return;
                 }
@@ -1020,11 +1080,61 @@ public class PublishForm extends Panel {
 
         // An invalid template cannot produce the nanopublication it describes, so there is
         // nothing to consent to, publish or preview; the reasons are listed above the form.
-        boolean publishingDisabled = !templateErrors.isEmpty();
+        publishingDisabled = !templateErrors.isEmpty();
 
-        WebMarkupContainer consentSection = new WebMarkupContainer("consent-section");
+        // The protected-nanopublication option (#671), next to the consent checkbox rather than
+        // among the publication info elements: those sit behind "show more", and where a
+        // nanopublication may be stored is not something to find by unfolding an advanced section.
+        WebMarkupContainer protectedSection = new WebMarkupContainer("protected-section");
+        protectedSection.setVisible((ProtectedNanopubs.isOffered() || protectedContext != null) && !publishingDisabled);
+        final CheckBox protectedCheck = new CheckBox("protectedcheck", new Model<>(protectedContext != null));
+        protectedCheck.setOutputMarkupId(true);
+        if (protectedForcedReason != null) {
+            // Wicket skips input processing for a disabled component, so the model keeps saying
+            // "protected" even though the browser submits nothing for the checkbox.
+            protectedCheck.setEnabled(false);
+        } else {
+            protectedCheck.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    setProtected(Boolean.TRUE.equals(protectedCheck.getModelObject()), target);
+                }
+
+            });
+        }
+        protectedSection.add(protectedCheck);
+        protectedNoteLabel = new Label("protected-note", (IModel<String>) this::getProtectedNote) {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                // Unprotected needs no note: the consent checkbox below says it will be openly
+                // published, which is the same statement.
+                setVisible(getProtectedNote() != null);
+            }
+
+        };
+        protectedNoteLabel.setOutputMarkupPlaceholderTag(true);
+        protectedSection.add(protectedNoteLabel);
+        form.add(protectedSection);
+
+        // Hidden while the protected checkbox stands in for it (#671), so that the user has one
+        // box to tick rather than two saying overlapping things.
+        consentSection = new WebMarkupContainer("consent-section");
+        consentSection.setOutputMarkupPlaceholderTag(true);
         consentSection.add(consentCheck);
-        consentSection.setVisible(!publishingDisabled);
+        consentTextLabel = new Label("consenttext", new IModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getConsentText();
+            }
+
+        });
+        consentTextLabel.setOutputMarkupId(true);
+        consentSection.add(consentTextLabel);
+        consentSection.setVisible(!publishingDisabled && protectedContext == null);
         form.add(consentSection);
 
         WebMarkupContainer buttonSection = new WebMarkupContainer("button-section");
@@ -1052,7 +1162,7 @@ public class PublishForm extends Panel {
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
-                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, Boolean.TRUE.equals(consentCheck.getModelObject()), getPage().getPageReference()));
+                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, isConsentGiven(), getPage().getPageReference()));
                     throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
                 } catch (RestartResponseException ex) {
                     throw ex;
@@ -1225,6 +1335,99 @@ public class PublishForm extends Panel {
         return t != null && t.isTransient();
     }
 
+    /**
+     * Turns protection of the nanopublication being created on or off (#671), by adding or
+     * removing the pubinfo context that carries the marker.
+     *
+     * @param on     whether the nanopublication is to be protected
+     * @param target the AJAX target to update the form with, may be null
+     */
+    private void setProtected(boolean on, AjaxRequestTarget target) {
+        TemplateContext created = null;
+        if (on && protectedContext == null) {
+            protectedContext = newProtectedContext();
+            if (protectedContext == null) {
+                feedbackPanel.error("The template that marks a nanopublication as protected could " +
+                        "not be loaded, so this nanopublication cannot be protected: " + protectedTemplateId);
+            } else {
+                protectedContext.initStatements();
+                requiredPubInfoContexts.add(protectedContext);
+                created = protectedContext;
+            }
+        } else if (!on && protectedContext != null) {
+            pubInfoContexts.remove(protectedContext);
+            pubInfoContextMap.remove(protectedContext.getTemplateId());
+            pubInfoContextMap.remove(protectedTemplateId);
+            requiredPubInfoContexts.remove(protectedContext);
+            protectedContext = null;
+        }
+        refreshPubInfo(target);
+        if (created != null) created.finalizeStatements();
+        consentSection.setVisible(!publishingDisabled && protectedContext == null);
+        if (target != null) {
+            target.add(protectedNoteLabel);
+            target.add(consentSection);
+        }
+    }
+
+    /**
+     * Returns the sentence below the protected-nanopublication checkbox, saying what the current
+     * setting means for where this nanopublication ends up.
+     *
+     * @return the note to show
+     */
+    private String getProtectedNote() {
+        if (protectedForcedReason != null) {
+            return "This nanopublication has to be protected, because " + protectedForcedReason + ".";
+        }
+        if (protectedContext != null) {
+            return ProtectedNanopubs.STAYS_LOCAL_NOTE;
+        }
+        // Nothing to say: the consent checkbox below states that this will be openly published.
+        return null;
+    }
+
+    /**
+     * Returns whether the user has confirmed that they understand what publishing means here.
+     * <p>
+     * The consent is about <em>open</em> publication: what cannot be taken back is putting the
+     * content on the public network under one's own identifier. A protected nanopublication does
+     * not go there, so there is nothing to consent to and no second checkbox — the protected one
+     * is then the only box on the form.
+     *
+     * @return true if publishing may go ahead
+     */
+    private boolean isConsentGiven() {
+        return protectedContext != null || Boolean.TRUE.equals(consentCheck.getModelObject());
+    }
+
+    /**
+     * Returns the text of the consent checkbox, which is only shown for a nanopublication that
+     * will be openly published. Also used by the preview page, which shows the same checkbox.
+     *
+     * @return the consent text to show
+     */
+    public static String getConsentText() {
+        return ProtectedNanopubs.isOffered() ? OPEN_CONSENT_TEXT : CONSENT_TEXT;
+    }
+
+    /**
+     * Creates the pubinfo context that marks the nanopublication as protected (#671), or returns
+     * null when its template cannot be loaded. The latter is recorded so that the form can refuse
+     * to publish when protection is not optional: publishing without the marker would put the
+     * content on the public network.
+     *
+     * @return the context, or null if the template is not available
+     */
+    private TemplateContext newProtectedContext() {
+        if (TemplateData.get().getTemplate(protectedTemplateId) == null) {
+            logger.error("Pubinfo template for protected nanopublications not available: {}", protectedTemplateId);
+            protectedTemplateMissing = true;
+            return null;
+        }
+        return createPubInfoContext(protectedTemplateId);
+    }
+
     private TemplateContext createPubInfoContext(String piTemplateId) {
         TemplateContext c;
         if (pubInfoContextMap.containsKey(piTemplateId)) {
@@ -1298,7 +1501,29 @@ public class PublishForm extends Panel {
         if (websiteUrl != null) {
             npCreator.addPubinfoStatement(NPX.WAS_CREATED_AT, vf.createIRI(websiteUrl));
         }
+        checkProtectedMarker(npCreator);
         return npCreator.finalizeNanopub();
+    }
+
+    /**
+     * Refuses to build a nanopublication that says it is protected in a way no registry acts on
+     * (#671). Registries look for {@code rdf:type npx:ProtectedNanopub} on the nanopublication
+     * itself, which only the template behind the protected checkbox produces. The generic
+     * "Nanopublication type" pubinfo element, for one, produces {@code npx:hasNanopubType
+     * npx:ProtectedNanopub} instead: it looks right in the form, and publishing it would send the
+     * content to the public network.
+     *
+     * @param npCreator the creator holding the statements about to be finalized
+     */
+    private void checkProtectedMarker(NanopubCreator npCreator) {
+        if (protectedContext != null) return;
+        for (Statement st : npCreator.getCurrentPubinfoStatements()) {
+            if (!st.getObject().equals(NPX.PROTECTED_NANOPUB)) continue;
+            throw new IllegalStateException("This nanopublication is marked as protected in a way that " +
+                    "registries do not recognize, so it would be published to the public network. Remove " +
+                    "the publication info element that states it" +
+                    (ProtectedNanopubs.isOffered() ? ", and use the protected checkbox instead." : "."));
+        }
     }
 
     private String getNanopubLabel(NanopubCreator npCreator) {

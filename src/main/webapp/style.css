@@ -1568,6 +1568,27 @@ select {
   cursor: help;
 }
 
+/* The protected-nanopublication option on the publish form, kept out of the advanced
+   publication info section because where a nanopublication may be stored is not an advanced
+   detail (#671). */
+.protected-option {
+  padding: 8px 12px;
+  background-color: #fff4d6;
+  border: 1px solid #e0b055;
+  border-radius: 3px;
+}
+
+.protected-option label {
+  color: #7a4a00;
+}
+
+.protected-note {
+  display: block;
+  margin-left: 22px;
+  font-size: 13px;
+  color: #7a4a00;
+}
+
 .protectedtag {
   color: #7a4a00;
   font-size: 12px;

@@ -28,6 +28,7 @@ import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NanopubElement;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.PostPublishRefresh;
+import com.knowledgepixels.nanodash.ProtectedNanopubs;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.NanopubItem;
@@ -138,8 +139,20 @@ public class PreviewPage extends NanodashPage {
         };
         add(form);
 
+        // The protected marker is part of the signed nanopublication and so cannot be taken back
+        // here: the checkbox is shown ticked and disabled, to say what this preview is (#671).
+        boolean isProtected = ProtectedNanopubs.isProtected(signedNp);
+        WebMarkupContainer protectedSection = new WebMarkupContainer("protected-section");
+        protectedSection.add(new CheckBox("protectedcheck", new Model<>(true)).setEnabled(false));
+        protectedSection.add(new Label("protected-note", ProtectedNanopubs.STAYS_LOCAL_NOTE));
+        protectedSection.setVisible(isProtected);
+        form.add(protectedSection);
+
+        // Consent is about open publication, so a protected nanopublication has nothing to
+        // consent to and no checkbox — the same rule as in the publish form.
+        WebMarkupContainer consentSection = new WebMarkupContainer("consent-section");
         CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(preview.isConsentChecked()));
-        consentCheck.setRequired(true);
+        consentCheck.setRequired(!isProtected);
         consentCheck.add(new IValidator<Boolean>() {
 
             @Override
@@ -150,7 +163,10 @@ public class PreviewPage extends NanodashPage {
             }
 
         });
-        form.add(consentCheck);
+        consentSection.add(consentCheck);
+        consentSection.add(new Label("consenttext", PublishForm.getConsentText()));
+        consentSection.setVisible(!isProtected);
+        form.add(consentSection);
 
         Button discardButton = new Button("discard-button") {
             @Override

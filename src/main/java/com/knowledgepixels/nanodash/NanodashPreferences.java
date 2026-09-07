@@ -61,6 +61,7 @@ public class NanodashPreferences implements Serializable {
     private boolean mcpRemoteEnabled = false;
     private String apiCacheFile;
     private String uriResolvers;
+    private boolean protectedByDefault = false;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -475,6 +476,36 @@ public class NanodashPreferences implements Serializable {
 
     public void setHomeResource(String homeResource) {
         this.homeResource = homeResource;
+    }
+
+    /**
+     * Whether new nanopublications are protected by default, i.e. whether this is a
+     * private-by-default deployment. Read from the {@code NANODASH_PROTECTED_BY_DEFAULT}
+     * environment variable or the preferences file.
+     * <p>
+     * This only sets where the publish form starts; the user can still turn protection off for
+     * an individual nanopublication (unless it is protected by force, see
+     * {@link ProtectedNanopubs}). It has no effect at all on a deployment whose registry is not
+     * a local instance, since such a registry has no way to store a protected nanopublication.
+     *
+     * @return true if the publish form should offer protection pre-selected
+     */
+    public boolean isProtectedByDefault() {
+        if ("true".equals(System.getenv("NANODASH_PROTECTED_BY_DEFAULT"))) {
+            logger.debug("Found environment variable NANODASH_PROTECTED_BY_DEFAULT with value: {}", true);
+            return true;
+        }
+        logger.debug("Environment variable NANODASH_PROTECTED_BY_DEFAULT not set, using default: {}", protectedByDefault);
+        return protectedByDefault;
+    }
+
+    /**
+     * Set whether new nanopublications are protected by default.
+     *
+     * @param protectedByDefault true for a private-by-default deployment
+     */
+    public void setProtectedByDefault(boolean protectedByDefault) {
+        this.protectedByDefault = protectedByDefault;
     }
 
 }
