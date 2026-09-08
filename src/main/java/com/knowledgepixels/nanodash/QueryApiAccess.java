@@ -243,8 +243,13 @@ public class QueryApiAccess {
     // materialized RoleInstantiation carries npa:trustStatus npa:seen, produced by the
     // PendingAccountState self-arm for observer-tier self-signups of introduced-but-unapproved
     // users — shows ⏳ in the headerless flag column (empty = approved-validated, ⏳ =
-    // pending-validated, ⚠️ = not validated at all).
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAt8PKQ21Ppsf3EZTH-Th749ZF8bjaniYc0jDqLt6ixXg/list-space-observers";
+    // pending-validated, ⚠️ = not validated at all). Latest (RANXPEIi, supersedes RAt8PKQ2) adds a
+    // member_label column so each agent shows by name: the canonical foaf:name mirrored into the
+    // current space state, falling back to the foaf:name asserted for that agent in the grant
+    // nanopub's pubinfo. Most role holders have no key introduction of their own, so without the
+    // fallback they rendered as bare ORCIDs; purely self-declared claims that carry no name
+    // anywhere still show their IRI.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RANXPEIihP6m2ozdLr6KTw4Jw9fKk6BxbI3sGVOuyYUzQ/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -275,8 +280,9 @@ public class QueryApiAccess {
     // Space itself (a competing root definition) is not offered for derivation; admin-tier
     // claims from such definitions pair with the built-in admin-assignment template instead
     // (the hasAdmin triple unifies), keeping the space-ref-conflict remedy.
-    // Source at docs/queries/list-space-non-approved-ref-v7.trig.
-    public static final String LIST_SPACE_NON_APPROVED_REF = "RAVsaIwAWFk9NekiVx-pGN6c1p-CK9ozishyvXcjUtTLc/list-space-non-approved";
+    // Source at docs/queries/list-space-non-approved-ref-v7.trig. v8 (RAoX3Htu, supersedes
+    // RAVsaIwA) adds a member_label column, sourced like the observers query above.
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RAoX3HtuHttjxGWkdPc9tzF11hNrTiD2fm3OcQgR7Wbxw/list-space-non-approved";
 
     // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
@@ -292,9 +298,11 @@ public class QueryApiAccess {
     // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
     // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
     // RoleAssignment-scoping workaround and the global RoleDeclaration matching that leaked observer-tier
-    // members into the Approved listing. See nanodash#498. Latest (RAJ15No3, supersedes RA7E54m5, adding the hidden revokeAgent action-mapping column; RA7E54m5 superseded RApyKS9D)
-    // drops the role-label coalesce to read schema:name only.
-    public static final String LIST_SPACE_MEMBERS_REF = "RAJ15No3ghODCXHgk71ix3ZHOWlrL_u6FhuIPffgkjA_Y/list-space-members";
+    // members into the Approved listing. See nanodash#498. RAJ15No3 (supersedes RA7E54m5, adding the hidden revokeAgent action-mapping column; RA7E54m5 superseded RApyKS9D)
+    // drops the role-label coalesce to read schema:name only. Latest (RA-90ZiE, supersedes RAJ15No3)
+    // adds a member_label column, sourced like the observers query above, and orders rows by tier and
+    // then by that display name.
+    public static final String LIST_SPACE_MEMBERS_REF = "RA-90ZiEE8OomcMz4np_IoQtsodQjyycUKfRPMDI67ju4/list-space-members";
     public static final String LIST_SPACE_ROLES_REF = "RAYy3dC-N0ps7va0vZ8vQiD9cbU5XNOxmbfvhrImx7UMU/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
