@@ -335,12 +335,24 @@ public class LiteralGregorianItem extends AbstractContextComponent {
                         || (type.hasYear() && hasInput(yearField))
                         || (type.hasDay() && hasInput(dayField));
             }
+
+            // The option standing in for no selection yet, in place of Wicket's "Choose One":
+            // two of these can sit side by side, and each should say which part it is waiting for.
+            @Override
+            protected String getNullKeyDisplayValue() {
+                return "choose month";
+            }
         };
         dayField = new DropDownChoice<>("day",
                 new PartModel(model, PartModel.Part.DAY), dayChoices(), dayRenderer()) {
             @Override
             public boolean isRequired() {
                 return super.isRequired() || (type.hasMonth() && hasInput(monthField));
+            }
+
+            @Override
+            protected String getNullKeyDisplayValue() {
+                return "choose day";
             }
         };
         String label = template.getLabel(iri);

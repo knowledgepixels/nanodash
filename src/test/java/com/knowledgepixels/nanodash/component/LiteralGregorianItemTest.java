@@ -202,6 +202,16 @@ class LiteralGregorianItemTest {
     }
 
     @Test
+    void anUnpickedDropdownSaysWhichPartItIsWaitingFor() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg19", XSD.GMONTHDAY);
+        String response = tester.getLastResponseAsString();
+
+        assertTrue(response.contains("choose month"), "the month dropdown names the month");
+        assertTrue(response.contains("choose day"), "the day dropdown names the day");
+        assertFalse(response.contains("Choose One"), "not Wicket's default, which says neither");
+    }
+
+    @Test
     void halfOfATwoPartValueIsReportedRatherThanPublished() throws Exception {
         startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Greg06", XSD.GYEARMONTH);
         FormTester form = filledForm();
