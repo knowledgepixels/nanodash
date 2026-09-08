@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
@@ -114,10 +115,25 @@ class ViewActionMappings {
                     params.set("param_" + partField, namespace + "<SET-SUFFIX>");
                 }
             }
-            String queryMapping = view.getTemplateQueryMapping(actionIri);
-            if (queryMapping != null && queryMapping.contains(":")) {
+            // Listing-driven mappings: the form re-runs this view's query and copies the
+            // mapped columns of every row into the template (see PublishForm.applyQueryValues).
+            List<String> queryMappings = view.getTemplateQueryMappings(actionIri);
+            if (!queryMappings.isEmpty()) {
                 params.set("values-from-query", queryRef.getAsUrlString());
-                params.set("values-from-query-mapping", queryMapping);
+                params.set("values-from-query-mapping", String.join(" ", queryMappings));
+            }
+            // Target-driven fill (issue #690): the form runs the action's own query against
+            // the target resource and copies its first row into the template, so a field
+            // can default to something known about the target — the event's start date for
+            // a presentation, say — with an empty listing being no obstacle. Bound to the
+            // page resource, so there is nothing to fill on a resource-less page.
+            GrlcQuery fillQuery = view.getFillQueryForAction(actionIri);
+            List<String> fillMappings = view.getFillQueryMappings(actionIri);
+            if (id != null && fillQuery != null && !fillMappings.isEmpty()) {
+                String fillTargetField = view.getFillQueryTargetFieldForAction(actionIri);
+                if (fillTargetField == null) fillTargetField = "resource";
+                params.set("fill-query", new QueryRef(fillQuery.getQueryId(), fillTargetField, id).getAsUrlString());
+                params.set("fill-query-mapping", String.join(" ", fillMappings));
             }
             params.set("refresh-upon-publish", queryRef.getAsUrlString());
             if (result.getPostPublishTab() != null) params.set("postpub-tab", result.getPostPublishTab());
@@ -195,25 +211,18 @@ class ViewActionMappings {
     static boolean applyEntryMappings(View view, IRI actionIri, ApiResponseEntry row, PageParameters params) {
         Template template = view.getTemplateForAction(actionIri);
         for (String mapping : view.getTemplateQueryMappings(actionIri)) {
-            int sep = mapping.indexOf(':');
-            if (sep < 0) continue;
-            String col = mapping.substring(0, sep);
-            String target = mapping.substring(sep + 1);
-            boolean rawKey = target.startsWith("@");
-            String key = rawKey ? target.substring(1) : target;
-            // A "!" in front of the field name says that what the action fills in is not the
-            // user's to change (issue #678): the field is shown with the value but locked. Only
-            // meaningful for a template field, as a raw key is not a form field.
-            boolean locked = !rawKey && key.startsWith("!");
-            if (locked) key = key.substring(1);
-            String value = row.get(col);
+            View.ActionMapping m = View.ActionMapping.parse(mapping);
+            if (m == null) continue;
+            String value = row.get(m.column());
             if (value == null || value.isBlank()) {
                 // Empty: hide the action only if the target is required.
-                if (rawKey || template == null || template.isRequiredField(key)) return false;
+                if (m.rawKey() || template == null || template.isRequiredField(m.key())) return false;
                 continue;
             }
-            params.set(rawKey ? key : "param_" + key, value);
-            if (locked) params.add("locked", "param_" + key);
+            params.set(m.rawKey() ? m.key() : "param_" + m.key(), value);
+            // A "!" in front of the field name says that what the action fills in is not the
+            // user's to change (issue #678): the field is shown with the value but locked.
+            if (m.locked()) params.add("locked", "param_" + m.key());
         }
         return true;
     }
