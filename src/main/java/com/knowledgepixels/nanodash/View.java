@@ -452,6 +452,12 @@ public class View implements Serializable {
     private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
     private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
     private Map<IRI, List<String>> actionTemplateQueryMappingsMap = new HashMap<>();
+    // The action's fill query (issue #690): run against the target when the form opens,
+    // kept apart from the listing-driven query mappings above, whose source columns the
+    // result builders hide — these columns belong to a different query altogether.
+    private Map<IRI, GrlcQuery> actionFillQueryMap = new HashMap<>();
+    private Map<IRI, List<String>> actionFillQueryMappingsMap = new HashMap<>();
+    private Map<IRI, String> actionFillQueryTargetFieldMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
     private boolean queryForm = false;
@@ -522,6 +528,20 @@ public class View implements Serializable {
                 if (!"void".equals(mapping)) {
                     actionTemplateQueryMappingsMap.computeIfAbsent((IRI) st.getSubject(), k -> new ArrayList<>()).add(mapping);
                 }
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY) && st.getObject() instanceof IRI objIri) {
+                GrlcQuery fillQuery = GrlcQuery.get(objIri.stringValue());
+                if (fillQuery == null) {
+                    logger.error("Fill query of action {} could not be loaded: {}", st.getSubject(), objIri);
+                } else {
+                    actionFillQueryMap.put((IRI) st.getSubject(), fillQuery);
+                }
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY_MAPPING)) {
+                String mapping = st.getObject().stringValue();
+                if (!"void".equals(mapping)) {
+                    actionFillQueryMappingsMap.computeIfAbsent((IRI) st.getSubject(), k -> new ArrayList<>()).add(mapping);
+                }
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY_TARGET_FIELD)) {
+                putUnlessVoid(actionFillQueryTargetFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
                 // Per-action visibility: gen:isVisibleTo on an action node restricts
                 // that action button to viewers holding the given role tier or
@@ -713,7 +733,8 @@ public class View implements Serializable {
      * — or, when {@code target} begins with {@code @}, to the raw URL parameter
      * {@code target} (without the {@code param_} prefix), used for fill-mode keys
      * such as {@code @derive-a} / {@code @supersede}. An entry action applies all
-     * of these per row; see docs/magic-query-params.md.
+     * of these per row; a result action passes them whole to the publish form, which
+     * applies them against every row of the view's query. See docs/magic-query-params.md.
      *
      * @param actionIri the action IRI
      * @return the list of mappings (never null; empty if none)
@@ -768,15 +789,81 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the first query mapping for an action, or null. Kept for result-action
-     * callers that pass a single {@code values-from-query-mapping}.
+     * Gets the fill query of an action (issue #690): a query run against the action's
+     * target resource when the form opens, whose first result row pre-fills form fields
+     * per {@link #getFillQueryMappings}. The target's IRI is bound to the placeholder
+     * named by {@link #getFillQueryTargetFieldForAction}.
      *
      * @param actionIri the action IRI
-     * @return the first mapping, or null
+     * @return the fill query, or null if the action declares none (or it failed to load)
      */
-    public String getTemplateQueryMapping(IRI actionIri) {
-        List<String> mappings = actionTemplateQueryMappingsMap.get(actionIri);
-        return (mappings == null || mappings.isEmpty()) ? null : mappings.get(0);
+    public GrlcQuery getFillQueryForAction(IRI actionIri) {
+        return actionFillQueryMap.get(actionIri);
+    }
+
+    /**
+     * Gets the fill-query mappings of an action, each {@code "col:field"} — result column
+     * {@code col} of the fill query to template field {@code field}, or {@code !field} to
+     * also lock the field. Same literal syntax as the query mappings
+     * ({@link #parseMappingLiteral}), but the columns are the <em>fill</em> query's, so
+     * these never count as {@link #getActionMappingSourceColumns}.
+     *
+     * @param actionIri the action IRI
+     * @return the mappings (never null; empty if none)
+     */
+    public List<String> getFillQueryMappings(IRI actionIri) {
+        List<String> result = new ArrayList<>();
+        for (String literal : actionFillQueryMappingsMap.getOrDefault(actionIri, Collections.emptyList())) {
+            result.addAll(parseMappingLiteral(literal));
+        }
+        return result;
+    }
+
+    /**
+     * Gets the fill-query placeholder the action's target IRI is bound to, or null for
+     * the default ({@code resource}).
+     *
+     * @param actionIri the action IRI
+     * @return the placeholder name, or null
+     */
+    public String getFillQueryTargetFieldForAction(IRI actionIri) {
+        return actionFillQueryTargetFieldMap.get(actionIri);
+    }
+
+    /**
+     * One parsed {@code "col:target"} action mapping: the value of result column
+     * {@code column} goes to {@code key} — a template field (written to
+     * {@code param_<key>}) unless {@code rawKey}, in which case {@code key} is a raw
+     * publish-URL key (the target began with {@code @}). {@code locked} says the target
+     * began with {@code !}: the field is filled and then locked
+     * (docs/locked-prefilled-values.md). Only meaningful for a field, so never set
+     * together with {@code rawKey}.
+     *
+     * @param column the result column the value is read from
+     * @param key    the template field or raw URL key, with its {@code @}/{@code !} marker stripped
+     * @param rawKey whether {@code key} is a raw URL key rather than a template field
+     * @param locked whether the field is to be locked after filling
+     */
+    public record ActionMapping(String column, String key, boolean rawKey, boolean locked) {
+
+        /**
+         * Parses one mapping. The split is on the <em>first</em> colon: neither a result
+         * column nor a field name may contain one.
+         *
+         * @param mapping the {@code "col:target"} mapping
+         * @return the parsed mapping, or null if it has no colon
+         */
+        public static ActionMapping parse(String mapping) {
+            int sep = mapping.indexOf(':');
+            if (sep < 0) return null;
+            String column = mapping.substring(0, sep);
+            String target = mapping.substring(sep + 1);
+            boolean rawKey = target.startsWith("@");
+            String key = rawKey ? target.substring(1) : target;
+            boolean locked = !rawKey && key.startsWith("!");
+            if (locked) key = key.substring(1);
+            return new ActionMapping(column, key, rawKey, locked);
+        }
     }
 
     /**

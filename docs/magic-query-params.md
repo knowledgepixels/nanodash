@@ -236,6 +236,16 @@ Today an action carries a single `queryVar:templateParam` mapping that only sets
 `"derive_target:@derive-a local_pubkey:public-key__.1"` — the first drives
 visibility (conditional target), the second supplies the key.
 
+A **result** action (the view-level "add…" button) passes the same literal whole to
+the publish form as `values-from-query-mapping`, and the form applies every mapping
+in it against every row of the view's query (`PublishForm.applyQueryValues`). Until
+issue #690 the result-action path passed only the raw first literal and the form
+split it on its *first* colon, so `"a:b c:d"` became a target of `"b c"` and filled
+nothing — every multi-mapping in `docs/queries/` was on an entry action, which is why
+nobody noticed. A raw `@key` target has no meaning on this path: those keys (the
+fill mode, the template) are read before any query runs, so only a link can carry
+them, as an entry action does.
+
 A third form was added later (issue #678): a `!` in front of the field name
 (`local_pubkey:!public-key__.1`) also **locks** the field, so the form shows the
 value the action filled in but does not let the user change it — for values an
@@ -249,6 +259,74 @@ only, as a raw `@` key is not a form field.
 A query may `SELECT` a magic variable back out
 (`(sample(?__LOCALPUBKEY_multi) AS ?local_pubkey)`) and feed it to an action via
 an ordinary mapping (e.g. derive's key parameter).
+
+### Pre-filling from the target: the action's fill query (issue #690)
+
+The listing-driven mapping above reads the view's **rows**. That is the wrong source
+for a *default*: a value the new entry should inherit from the resource whose page the
+button is on — the event's start date for a presentation, a location, a series, an
+organiser. With zero rows there is nothing to read from (and adding the first entry is
+exactly where a default helps most); with *n* rows the same value lands *n* times, as
+`startDate`, `startDate__1`, … on a field that is not repeatable.
+
+So a result action can carry its **own query, bound to the target**:
+
+```turtle
+sub:addAction a gen:ViewResultAction ;
+    rdfs:label "🎤 add presentation" ;
+    gen:hasActionTemplate <…/presentation-template> ;
+    gen:hasActionTemplateTargetField "event" ;
+    gen:hasActionFillQuery <…/get-event-defaults> ;
+    gen:hasActionFillQueryTargetField "event" ;          # optional, default "resource"
+    gen:hasActionFillQueryMapping "startDate:startDate location:location" .
+```
+
+- **`gen:hasActionFillQuery`** — a published query. When the button is rendered, the
+  target resource's IRI is bound to the query placeholder named by
+  **`gen:hasActionFillQueryTargetField`** (`resource` if absent) and the bound
+  reference travels to the publish page as `fill-query`.
+- **`gen:hasActionFillQueryMapping`** — the same whitespace-separated `col:field`
+  literal as the query mapping (`View.parseMappingLiteral`), travelling as
+  `fill-query-mapping`. `col:!field` fills *and locks* the field, exactly as for entry
+  actions (docs/locked-prefilled-values.md); `@key` targets are ignored here for the
+  reason given above.
+
+**When it runs.** On the publish page, in `PublishForm`, before the fields are built —
+not while the listing renders. The listing bakes only a URL, so per-row rendering
+stays free of queries and a cold cache cannot silently produce a button with no
+default. The query goes through `ApiCache.retrieveResponseSync(ref, false)`: a cold
+cache blocks inline once, a warm one serves at once with a background refresh, and
+the same target opened twice is one query. A query that fails costs the user the
+pre-fill, not the form.
+
+**Which row.** The **first** row only, with no `__i` suffixes
+(`PublishForm.applyFillQueryValues`): the query describes the target, and the fields
+being defaulted are single-valued. Zero rows is a natural no-op; a blank value is no
+default (the field is left as it was, and stays unlocked).
+
+**Precedence.** Fill query, then listing values, then explicit `param_` URL
+parameters — the most specific source wins. An action can carry both a fill query
+and a listing mapping.
+
+**Magic parameters** are bound at consumption, on the publishing user's own request
+(`MagicQueryParams.augment` in `PublishForm`), so a fill query may use `_LOCALPUBKEY`
+or `_CURRENTUSER` and get the person opening the form, not the person who rendered
+the listing that linked there.
+
+**Own map, own columns.** The fill mappings are kept apart from the query mappings in
+`View`: their `col` names belong to the fill query, so they never count as
+`getActionMappingSourceColumns` and are never hidden from the view's own table.
+
+**Provenance is the query's business.** A generic `<target> <p> ?v` over the whole
+store would let anyone's assertion become the default. The point of a *published*
+fill query is that its author scopes it — to the target's governing space, to a
+signing key, to whatever the case warrants — and that scope is reviewable and
+governable like any other query nanopub. Bear that in mind before reaching for `!`:
+a locked field is precisely the one the user cannot correct.
+
+The `ActionMapping` record in `View` is the one parser for `col:target` in all three
+places it is read (entry-action links, the listing fill, the fill query). It splits on
+the first colon; neither a result column nor a field name may contain one.
 
 ## Phase 3 design: the introductions view (concrete)
 

@@ -373,28 +373,19 @@ public class PublishForm extends Panel {
                 }
             }
         }
+        // Query-driven pre-fills, least specific first, so that a later source overrides an
+        // earlier one: the target-driven fill query (issue #690), then the listing-driven
+        // values, then the explicit param_ parameters below.
+        if (!pageParams.get("fill-query").isEmpty() && !pageParams.get("fill-query-mapping").isEmpty()) {
+            // Bound here, on the publishing user's own request, so a fill query may use the
+            // magic parameters (local key, current user) of whoever opens the form rather
+            // than of whoever rendered the listing that linked here.
+            QueryRef fillRef = MagicQueryParams.augment(QueryRef.parseString(pageParams.get("fill-query").toString()));
+            applyFillQueryValues(pageParams.get("fill-query-mapping").toString(), retrieveForPrefill(fillRef), assertionContext);
+        }
         if (!pageParams.get("values-from-query").isEmpty() && !pageParams.get("values-from-query-mapping").isEmpty()) {
-            String querySpec = pageParams.get("values-from-query").toString();
-
-            String mapping = pageParams.get("values-from-query-mapping").toString();
-            String mapsFrom, mapsTo;
-            if (mapping.contains(":")) {
-                mapsFrom = mapping.split(":")[0];
-                mapsTo = mapping.split(":")[1];
-            } else {
-                mapsFrom = mapping;
-                mapsTo = mapping;
-            }
-            ApiResponse resp = ApiCache.retrieveResponseSync(QueryRef.parseString(querySpec), false);
-            int i = 0;
-            for (ApiResponseEntry e : resp.getData()) {
-                String mapsToSuffix = "";
-                if (i > 0) {
-                    mapsToSuffix = "__" + i;
-                }
-                assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
-                i++;
-            }
+            QueryRef valuesRef = QueryRef.parseString(pageParams.get("values-from-query").toString());
+            applyQueryValues(pageParams.get("values-from-query-mapping").toString(), retrieveForPrefill(valuesRef), assertionContext);
         }
         for (String k : pageParams.getNamedKeys()) {
             if (k.startsWith("param_")) {
@@ -1285,6 +1276,92 @@ public class PublishForm extends Panel {
      * ({@code st2}) or by a placeholder that occurs in that statement and no other
      * ({@code public-key}).
      */
+    /**
+     * Runs a query whose result is to pre-fill the form. A pre-fill is a convenience, so a
+     * query that cannot be run (the API is down, or has failed on it repeatedly) costs the
+     * user the pre-fill and not the form.
+     *
+     * @param queryRef the query to run
+     * @return the response, or null if it could not be obtained
+     */
+    private static ApiResponse retrieveForPrefill(QueryRef queryRef) {
+        try {
+            return ApiCache.retrieveResponseSync(queryRef, false);
+        } catch (RuntimeException ex) {
+            logger.warn("Could not run {} to pre-fill the form: {}", queryRef.getAsUrlString(), ex.toString());
+            return null;
+        }
+    }
+
+    /**
+     * Parses one mapping as a form-side pre-fill understands it: {@code "col:field"} or
+     * {@code "col:!field"} (docs/magic-query-params.md). A bare {@code "name"} maps the column
+     * to the field of the same name, as the listing-driven fill has always allowed in a
+     * hand-written URL. A raw-key target ({@code "col:@key"}) has no meaning here: such keys
+     * (the fill mode, the template) are read before any query runs, so they can only come
+     * from the link itself, as an entry action passes them.
+     *
+     * @param mapping the mapping
+     * @return the parsed mapping, or null if it cannot apply at this point
+     */
+    private static View.ActionMapping parseFormMapping(String mapping) {
+        View.ActionMapping m = View.ActionMapping.parse(mapping);
+        if (m == null) return new View.ActionMapping(mapping, mapping, false, false);
+        if (m.rawKey()) {
+            logger.warn("Ignoring mapping {}: a raw key cannot be set from a query result at form time", mapping);
+            return null;
+        }
+        return m;
+    }
+
+    /**
+     * Listing-driven pre-fill: the mapped columns of <em>every</em> row go into the template,
+     * the rows after the first under the repetition suffixes {@code __1}, {@code __2}, ...
+     * This is what a result action's {@code gen:hasActionTemplateQueryMapping} does with the
+     * view's own query — it fills a repeatable field from the listing (one row per entry).
+     *
+     * @param mappingLiteral the whitespace-separated mappings
+     * @param response       the query response, or null for none
+     * @param context        the assertion context to fill
+     */
+    static void applyQueryValues(String mappingLiteral, ApiResponse response, TemplateContext context) {
+        if (response == null) return;
+        for (String mapping : View.parseMappingLiteral(mappingLiteral)) {
+            View.ActionMapping m = parseFormMapping(mapping);
+            if (m == null) continue;
+            int i = 0;
+            for (ApiResponseEntry row : response.getData()) {
+                String name = m.key() + (i > 0 ? "__" + i : "");
+                context.setParam(name, row.get(m.column()));
+                if (m.locked()) context.setLocked(name);
+                i++;
+            }
+        }
+    }
+
+    /**
+     * Target-driven pre-fill (issue #690): the mapped columns of the <em>first</em> row go
+     * into the template, and only the first, as these are defaults for single-valued fields
+     * — the fill query is bound to the target resource, and the row describes it. An empty
+     * or missing value is no default at all: the field is left as it was, and unlocked.
+     *
+     * @param mappingLiteral the whitespace-separated mappings
+     * @param response       the query response, or null for none
+     * @param context        the assertion context to fill
+     */
+    static void applyFillQueryValues(String mappingLiteral, ApiResponse response, TemplateContext context) {
+        if (response == null || response.getData().isEmpty()) return;
+        ApiResponseEntry row = response.getData().get(0);
+        for (String mapping : View.parseMappingLiteral(mappingLiteral)) {
+            View.ActionMapping m = parseFormMapping(mapping);
+            if (m == null) continue;
+            String value = row.get(m.column());
+            if (value == null || value.isBlank()) continue;
+            context.setParam(m.key(), value);
+            if (m.locked()) context.setLocked(m.key());
+        }
+    }
+
     static void applyLocks(PageParameters pageParams, TemplateContext assertionContext,
             TemplateContext provenanceContext, Map<Integer, TemplateContext> piParamIdMap) {
         forEachLockedName(pageParams, "locked", assertionContext, provenanceContext, piParamIdMap,

@@ -101,6 +101,16 @@ public class KPXL_TERMS {
     public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionTemplateTargetField");
     public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionTemplatePartField");
     public static final IRI HAS_ACTION_TEMPLATE_QUERY_MAPPING = VocabUtils.createIRI(NAMESPACE, "hasActionTemplateQueryMapping");
+    /**
+     * A query a view action runs against its target resource when its form opens, to pre-fill
+     * fields from what is known about that resource (issue #690). The target's IRI is bound
+     * to the query placeholder named by {@link #HAS_ACTION_FILL_QUERY_TARGET_FIELD}
+     * ({@code resource} by default); the first result row is mapped into form fields by
+     * {@link #HAS_ACTION_FILL_QUERY_MAPPING}. See docs/magic-query-params.md.
+     */
+    public static final IRI HAS_ACTION_FILL_QUERY = VocabUtils.createIRI(NAMESPACE, "hasActionFillQuery");
+    public static final IRI HAS_ACTION_FILL_QUERY_MAPPING = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryMapping");
+    public static final IRI HAS_ACTION_FILL_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryTargetField");
     public static final IRI HAS_PAGE_SIZE = VocabUtils.createIRI(NAMESPACE, "hasPageSize");
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
