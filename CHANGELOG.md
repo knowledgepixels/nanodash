@@ -1,3 +1,40 @@
+## [5.14.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.13.0...nanodash-5.14.0) (2026-09-08)
+
+### Features
+
+* **protected nanopubs:** flag them, and say when the services are restricted ([1fd9b94](https://github.com/knowledgepixels/nanodash/commit/1fd9b94d81a798d7bf025bda18ed7845787bd772)), closes [#671](https://github.com/knowledgepixels/nanodash/issues/671)
+* **publish:** let users of local instances publish protected nanopublications ([5195919](https://github.com/knowledgepixels/nanodash/commit/51959190b57f7f7e43ce76dce9cf43023b34d9c9)), closes [#671](https://github.com/knowledgepixels/nanodash/issues/671)
+* **template:** start an empty year field's spinner at the current year ([27b33d6](https://github.com/knowledgepixels/nanodash/commit/27b33d6d0d37926d30d9dd32c481a32558fd1bcb))
+* **template:** support xsd:gYear and its relatives as placeholder types ([dc0a3a8](https://github.com/knowledgepixels/nanodash/commit/dc0a3a8b3312b4afffdce657345f007a9d12632d)), closes [#670](https://github.com/knowledgepixels/nanodash/issues/670)
+* **title bar:** say when a service cannot answer, instead of failing part by part ([c1b0b1b](https://github.com/knowledgepixels/nanodash/commit/c1b0b1b0648e3ef7da9c216fa57f27a6aac8b460)), closes [#600](https://github.com/knowledgepixels/nanodash/issues/600) [#681](https://github.com/knowledgepixels/nanodash/issues/681)
+* **views:** pre-fill a result action's form from a fill query ([#690](https://github.com/knowledgepixels/nanodash/issues/690)) ([dcc1f69](https://github.com/knowledgepixels/nanodash/commit/dcc1f698da51224620e26d4a7c5f4a99760343f1))
+
+### Bug Fixes
+
+* **cold start:** serve pages when a service cannot answer ([667d43a](https://github.com/knowledgepixels/nanodash/commit/667d43a0a8e121bffa7375db610bce00a1590357)), closes [#681](https://github.com/knowledgepixels/nanodash/issues/681) [#684](https://github.com/knowledgepixels/nanodash/issues/684)
+* **config:** let an explicitly configured main registry/query URL win ([1e198f2](https://github.com/knowledgepixels/nanodash/commit/1e198f2440e340c758e2cfc7db3359db2298faa9)), closes [#680](https://github.com/knowledgepixels/nanodash/issues/680)
+* **publish:** send protected nanopublications to the configured local instance ([a2aca77](https://github.com/knowledgepixels/nanodash/commit/a2aca77cbfe02083e6557ebc3b8f5dcebdbcc11a))
+* **template:** judge a Gregorian value as it is being entered ([13d5476](https://github.com/knowledgepixels/nanodash/commit/13d5476f126f5f3ec0398f60b706c88803edb2b1))
+* **template:** keep a corrected Gregorian value after a rejected one ([980d971](https://github.com/knowledgepixels/nanodash/commit/980d97176aa4ef056d6d97899c158c44c7716d04))
+* **template:** name the part each Gregorian dropdown is waiting for ([97bd926](https://github.com/knowledgepixels/nanodash/commit/97bd92629412122f726545407a8c7f47caf34c83))
+* **version check:** remember a failed lookup and keep it off the render path ([881e0a0](https://github.com/knowledgepixels/nanodash/commit/881e0a0df37b5cbe71bff03057dcc0b5ab8ad4e1)), closes [#600](https://github.com/knowledgepixels/nanodash/issues/600) [#686](https://github.com/knowledgepixels/nanodash/issues/686)
+
+### Documentation
+
+* **optional-statements:** record end-to-end verification ([d79ec3f](https://github.com/knowledgepixels/nanodash/commit/d79ec3f7f30acbc6dfcc5b001661167f6e6c1333)), closes [#691](https://github.com/knowledgepixels/nanodash/issues/691)
+
+### Tests
+
+* **publish:** give the protected-marker test its own session user ([c74764d](https://github.com/knowledgepixels/nanodash/commit/c74764db90eafed349a0718b56694cd40222c119))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([80c8e02](https://github.com/knowledgepixels/nanodash/commit/80c8e02a212aabbc14761683bcc9a1ed2ab975b0))
+
+### Refactoring
+
+* **views:** route every result kind through addResultActions ([e2f4bc5](https://github.com/knowledgepixels/nanodash/commit/e2f4bc5ac87440989adb7af8d928a7d400bd41c4))
+
 ## [5.13.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.12.0...nanodash-5.13.0) (2026-09-04)
 
 ### Features
