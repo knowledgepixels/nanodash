@@ -1,18 +1,10 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
-import com.knowledgepixels.nanodash.SpaceMemberRole;
-import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
-import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
@@ -30,44 +22,6 @@ public class QueryResultSvgBuilder implements Serializable {
     private String id = null;
     private AbstractResourceWithProfile pageResource = null;
     private String refRoot = null;
-
-    private void addResultButtons(QueryResultSvg resultSvg) {
-        View view = viewDisplay.getView();
-        if (view == null) return;
-        for (IRI actionIri : view.getViewResultActionList()) {
-            // Per-action role gating (docs/role-specific-views.md): skip an action
-            // whose gen:isVisibleTo the viewer does not satisfy.
-            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), pageResource, refRoot)) continue;
-            Template t = view.getTemplateForAction(actionIri);
-            if (t == null) continue;
-            String targetField = view.getTemplateTargetFieldForAction(actionIri);
-            if (targetField == null) targetField = "resource";
-            String label = view.getLabelForAction(actionIri);
-            if (label == null) label = "action...";
-            if (!label.endsWith("...")) label += "...";
-            PageParameters params = new PageParameters().set("template", t.getId())
-                    .set("param_" + targetField, id)
-                    .set("context", contextId)
-                    .set("template-version", "latest");
-            if (id != null && contextId != null && !id.equals(contextId)) {
-                params.set("part", id);
-            }
-            String partField = view.getTemplatePartFieldForAction(actionIri);
-            if (partField != null) {
-                MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                if (r != null && r.getNamespace() != null) {
-                    params.set("param_" + partField, r.getNamespace() + "<SET-SUFFIX>");
-                }
-            }
-            String queryMapping = view.getTemplateQueryMapping(actionIri);
-            if (queryMapping != null && queryMapping.contains(":")) {
-                params.set("values-from-query", queryRef.getAsUrlString());
-                params.set("values-from-query-mapping", queryMapping);
-            }
-            params.set("refresh-upon-publish", queryRef.getAsUrlString());
-            resultSvg.addButton(label, PublishPage.class, params);
-        }
-    }
 
     private QueryResultSvgBuilder(String markupId, QueryRef queryRef, ViewDisplay viewDisplay) {
         this.markupId = markupId;
@@ -139,7 +93,7 @@ public class QueryResultSvgBuilder implements Serializable {
         QueryResultSvg resultSvg = new QueryResultSvg(markupId, queryRef, response, viewDisplay);
         resultSvg.setPageResource(pageResource);
         resultSvg.setContextId(contextId);
-        addResultButtons(resultSvg);
+        ViewActionMappings.addResultActions(resultSvg, viewDisplay, queryRef, id, contextId, pageResource, refRoot);
         return resultSvg;
     }
 
