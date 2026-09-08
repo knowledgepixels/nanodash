@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+</head>
+<body>
+
+<wicket:panel>
+  <span class="nowrap">
+    <input type="text" class="nanopub-textfield gregorian-year" size="6" wicket:id="year"/>
+    <select wicket:id="month" class="gregorian-part"></select>
+    <select wicket:id="day" class="gregorian-part"></select>
+  </span>
+  <span wicket:id="datatype" class="litdatatype">datatype</span>
+</wicket:panel>
+
+</body>
+
+</html>

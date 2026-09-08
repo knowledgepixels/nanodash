@@ -1814,6 +1814,21 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
 }
 */
 
+/* The parts of an xsd:gYear/gMonth/... value: a year is four characters, not a full-width
+   text field, and a month or day dropdown needs only enough room for its longest name -- so it
+   sizes to its widest option rather than to the 350px every other select gets. The height is
+   the one input[type=text] is given, which a select does not pick up on its own. */
+.gregorian-year {
+  width: 7em;
+}
+
+.gregorian-part {
+  width: auto;
+  min-width: 8em;
+  height: 28px;
+  margin-left: 2px;
+}
+
 .pubinfosection .nanopub-pubinfo {
   display: none;
 }
