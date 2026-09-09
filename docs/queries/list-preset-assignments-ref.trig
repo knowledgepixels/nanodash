@@ -1,8 +1,9 @@
 @prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
-@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub:  <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
 @prefix np: <http://www.nanopub.org/nschema#> .
 @prefix grlc: <https://w3id.org/kpxl/grlc/> .
 @prefix dct: <http://purl.org/dc/terms/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
 @prefix npx: <http://purl.org/nanopub/x/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -19,7 +20,7 @@ sub:Head {
 
 sub:assertion {
   sub:list-preset-assignments a grlc:grlc-query;
-    dct:description "Lists the presets assigned in a given space ref (space IRI + root definition). Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and reads the server-materialised npa:PresetAssignment rows scoped by npa:forSpaceRef from the trust-validated current space-state graph (only admin-authored assignments are materialised, so this is authorisation-scoped). Per (preset, resource) only the latest assignment by dct:created counts, and the preset is listed only when that latest row is still activated (npa:isActivated true) — a deactivation is a newer admin-authored row with npa:isActivated false. Columns match the IRI-keyed list-preset-assignments (preset, preset_label, deactivatePreset, added_by, date_added, np, np_label) so it drives the existing Preset assignments view unchanged. Ref-scoped variant: shows only that one ref's assignments rather than merging all refs claiming the IRI.";
+    dct:description "Lists the presets assigned in a given space ref (space IRI + root definition). Pass the ref's root nanopub (root_np); the query resolves the ref via npa:rootNanopub and reads the server-materialised npa:PresetAssignment rows scoped by npa:forSpaceRef from the trust-validated current space-state graph (only admin-authored assignments are materialised, so this is authorisation-scoped). An assignment is identified by the assigned preset's stable KIND (dct:isVersionOf) and the resource, mirroring view displays, which the client dedups by view kind (nanodash issue #607): among the assignments of one preset kind for one resource only the latest by dct:created counts, so assigning another version of the same preset replaces the earlier assignment instead of adding a second, competing row; a version declaring no kind keys on itself, and the preset listed is the version that assignment pinned. The preset is listed only when that latest row is still activated (npa:isActivated true) -- a deactivation is a newer admin-authored row with npa:isActivated false. The version column reports whether the assigned version is still current: version_label is what the cell shows (latest, or an up-arrow plus update available) and version carries the dates behind it as the hover tooltip -- that way round because the renderer displays a literal column's _label companion and puts the principal value in the tooltip. updatePreset holds the version the update action pre-fills. All three are derived from the newest non-invalidated version of the same kind, restricted to versions published by the same agent as the assigned version, so an unrelated agent cannot advertise a version of someone else's preset here. Presets never auto-update -- adopting the newer version stays an explicit, admin-signed act. Columns match the IRI-keyed list-preset-assignments (preset, preset_label, deactivatePreset, added_by, date_added, update_noheader, update_label, updatePreset, np, np_label) so it drives the existing Preset assignments view unchanged. Ref-scoped variant: shows only that one ref's assignments rather than merging all refs claiming the IRI.";
     dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
     rdfs:label "List preset assignments (ref-scoped)";
     grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
@@ -30,8 +31,12 @@ prefix npa: <http://purl.org/nanopub/admin/>
 prefix npx: <http://purl.org/nanopub/x/>
 prefix gen: <https://w3id.org/kpxl/gen/terms/>
 
-select ?preset (sample(?lbl) as ?preset_label) (str(?preset) as ?deactivatePreset)
-       (sample(?user) as ?added_by) (?date as ?date_added) ?np (\"^\" as ?np_label)
+select ?preset (sample(?lbl) as ?preset_label)
+       (sample(?detail) as ?version) (sample(?verdict) as ?version_label)
+       (str(?preset) as ?deactivatePreset)
+       (sample(?user) as ?added_by) (?date as ?date_added)
+       (sample(?updateTarget) as ?updatePreset)
+       ?np (\"^\" as ?np_label)
 where {
   values ?_root_np_multi_iri {}
   graph npa:spacesGraph { ?ref npa:rootNanopub ?_root_np_multi_iri . }
@@ -40,16 +45,69 @@ where {
     ?paRef a npa:PresetAssignment ; npa:forSpaceRef ?ref ; npa:ofPreset ?preset ; npa:forResource ?resource ;
            npa:isActivated ?activated ; npa:viaNanopub ?np ; dct:created ?date .
   }
+  # The assigned preset version: its label, its stable kind, its author and its date.
+  optional {
+    ?pnp npx:embeds ?preset ; np:hasAssertion ?pa .
+    optional { graph npa:graph { ?pnp npx:signedBy ?presetSigner } }
+    optional { graph npa:graph { ?pnp dct:created ?presetDate } }
+    graph ?pa {
+      optional { ?preset rdfs:label ?lbl }
+      optional { ?preset dct:isVersionOf ?presetKindOptional }
+    }
+  }
+  # Assignment identity is (preset KIND, resource) -- as for view displays, where the
+  # client dedups by view kind -- so assigning another version of the same preset
+  # replaces the earlier assignment instead of adding a second, competing one. A
+  # version that declares no kind keys on itself.
+  bind(coalesce(?presetKindOptional, ?preset) as ?presetKey)
   filter(?activated = true)
   filter not exists {
-    graph ?g { ?pa2 a npa:PresetAssignment ; npa:forSpaceRef ?ref ; npa:ofPreset ?preset ; npa:forResource ?resource ; dct:created ?date2 . }
-    filter(?date2 > ?date)
+    graph ?g { ?pa2 a npa:PresetAssignment ; npa:forSpaceRef ?ref ; npa:ofPreset ?preset2 ;
+                    npa:forResource ?resource ; npa:viaNanopub ?np2 ; dct:created ?date2 . }
+    optional {
+      ?pnp2 npx:embeds ?preset2 ; np:hasAssertion ?pa2Assertion .
+      graph ?pa2Assertion { ?preset2 dct:isVersionOf ?presetKind2 }
+    }
+    filter(coalesce(?presetKind2, ?preset2) = ?presetKey)
+    filter(?date2 > ?date || (?date2 = ?date && str(?np2) > str(?np)))
   }
+  # Newest version of the assigned preset's kind, restricted to versions published by
+  # the same agent as the assigned version, so an unrelated agent cannot advertise a
+  # version of someone else's preset here (issue #607). Presets never auto-update:
+  # this only surfaces the newer version and pre-fills the update action with it.
+  optional {
+    { select (?versionKind as ?presetKey) (?versionSigner as ?presetSigner)
+             (iri(strafter(max(concat(str(?vDate), \">\", str(?vPreset))), \">\")) as ?latestVersion)
+             (max(?vDate) as ?latestDate) where {
+        graph npa:graph {
+          ?vNp npx:hasNanopubType gen:Preset ;
+               npa:hasValidSignatureForPublicKeyHash ?vPubkey ;
+               dct:created ?vDate ;
+               npx:signedBy ?versionSigner ;
+               npx:embeds ?vPreset ;
+               np:hasAssertion ?vA .
+          filter not exists { ?vInv npx:invalidates ?vNp ; npa:hasValidSignatureForPublicKeyHash ?vPubkey . }
+        }
+        graph ?vA { ?vPreset a gen:Preset ; dct:isVersionOf ?versionKind . }
+      } group by ?versionKind ?versionSigner }
+  }
+  bind(bound(?latestVersion) && ?latestVersion != ?preset && ?latestDate > ?presetDate as ?hasUpdate)
+  # See the IRI-keyed twin: for a literal column with an \"x_label\" companion the LABEL
+  # is displayed and the principal value becomes the hover tooltip, so the short verdict
+  # is the label and the dates are the principal.
+  bind(if(?hasUpdate, \"⬆️ update available\", \"latest\") as ?rawVerdict)
+  bind(if(?hasUpdate,
+          concat(\"Assigned version of \", substr(str(?presetDate), 1, 10),
+                 \"; version of \", substr(str(?latestDate), 1, 10), \" is newer\"),
+          concat(\"Assigned version of \", substr(str(?presetDate), 1, 10))) as ?rawDetail)
+  bind(if(bound(?presetDate), ?rawVerdict, \"\") as ?verdict)
+  bind(if(bound(?presetDate), ?rawDetail, \"\") as ?detail)
+  bind(if(?hasUpdate, str(?latestVersion), \"\") as ?updateTarget)
   optional { graph npa:graph { ?np npx:signedBy ?user } }
-  optional { ?pnp npx:embeds ?preset ; np:hasAssertion ?pa . graph ?pa { ?preset rdfs:label ?lbl } }
 }
 group by ?preset ?date ?np
-order by desc(?date)""" .
+order by desc(?date)
+""" .
 }
 
 sub:provenance {
@@ -58,9 +116,14 @@ sub:provenance {
 
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-
-  this: dct:created "2026-06-19T08:01:45Z"^^xsd:dateTime;
+  
+  this: dct:created "2026-09-09T08:02:41Z"^^xsd:dateTime;
     dct:creator orcid:0000-0002-1267-0234;
     dct:license <https://creativecommons.org/licenses/by/4.0/>;
-    npx:embeds sub:list-preset-assignments .
+    npx:embeds sub:list-preset-assignments;
+    npx:supersedes <https://w3id.org/np/RArC6iR-Bwm8e1RP9PPClwJuzVEKJYX0agMZaQIc9Ln0s>;
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU>;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
 }
+
