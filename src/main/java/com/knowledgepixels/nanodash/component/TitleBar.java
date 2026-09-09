@@ -94,15 +94,15 @@ public class TitleBar extends Panel {
             breadcrumbLinks.setVisible(false);
         }
         breadcrumbPath.add(breadcrumbLinks);
-        // Back-to-context link: on pages without a breadcrumb of their own that are not
-        // a context resource's page, show "< XXX" pointing to the navigation context
-        // (or "< Home" if none), so the user can always get back to it.
+        // Back-to-context link: on pages without a breadcrumb of their own, show "< XXX"
+        // pointing to where the user came from — the resource part, the navigation
+        // context, or "< Home" if there is none — so they can always get back to it.
         WebMarkupContainer backContextContainer = new WebMarkupContainer("backcontext-container");
         boolean backCrumbVisible = false;
-        if (crumbParts.isEmpty() && !page.isContextPage()) {
+        if (crumbParts.isEmpty()) {
             NanodashPageRef backRef = createBackContextRef(page);
             if (backRef != null) {
-                backContextContainer.add(backRef.createComponent("backcontext", Utils.truncateLinkLabel(backRef.getLabel())));
+                backContextContainer.add(backRef.createComponent("backcontext", crumbLabel(backRef.getLabel())));
                 backCrumbVisible = true;
             }
         }
@@ -117,17 +117,31 @@ public class TitleBar extends Panel {
     }
 
     /**
-     * The target of the back-to-context link for the given page: the navigation context
-     * resource, the home page if no context is set, or an explore-page link if the
-     * context id cannot (yet) be resolved. Null when the link would point to the page
-     * itself.
+     * The target of the back-to-context link for the given page: the resource part the
+     * page was reached under, else the navigation context resource, the home page if no
+     * context is set, or an explore-page link if the context id cannot (yet) be
+     * resolved. Null when the link would point to the page itself.
      */
     private static NanodashPageRef createBackContextRef(NanodashPage page) {
-        String contextId = page.getContextId();
-        if (contextId == null) {
-            if (page instanceof HomePage) return null;
-            return new NanodashPageRef(HomePage.class, "Home");
+        String contextId;
+        if (page.isContextPage()) {
+            // A page showing a context resource is where the context leads, so it needs
+            // no back-link of its own — unless it was reached under a different context
+            // (from a part page, say), whose trail would otherwise end here (issue #697).
+            contextId = page.getIncomingContextId();
+            if (contextId == null || contextId.equals(page.getContextId())) return null;
+        } else {
+            contextId = page.getContextId();
+            if (contextId == null) {
+                if (page instanceof HomePage) return null;
+                return new NanodashPageRef(HomePage.class, "Home");
+            }
         }
+        // A resource part carried along names the page the user actually came from,
+        // which is more specific than the maintaining resource the context names.
+        String partId = page.getPartId();
+        NanodashPageRef partRef = NavigationContext.getPartPageRef(partId, page.getPartLabel(), contextId);
+        if (partRef != null && !pointsToSelf(partRef, page, partId)) return partRef;
         NanodashPageRef ref = NavigationContext.getPageRef(contextId);
         if (page instanceof HomePage && ref != null && HomePage.class.equals(ref.getPageClass())) return null;
         if (ref == null) {
@@ -135,10 +149,16 @@ public class TitleBar extends Panel {
             // forwards known resources to their own pages once the caches are warm.
             ref = new NanodashPageRef(ExplorePage.class, new PageParameters().set("id", contextId), Utils.getShortNameFromURI(contextId));
         }
-        if (ref.getPageClass().equals(page.getClass()) && contextId.equals(page.getPageParameters().get("id").toString(""))) {
-            return null;
-        }
+        if (pointsToSelf(ref, page, contextId)) return null;
         return ref;
+    }
+
+    /**
+     * Whether the given ref points at the page it would be shown on: same page class,
+     * same resource id.
+     */
+    private static boolean pointsToSelf(NanodashPageRef ref, NanodashPage page, String id) {
+        return ref.getPageClass().equals(page.getClass()) && id.equals(page.getPageParameters().get("id").toString(""));
     }
 
     /**
@@ -191,12 +211,28 @@ public class TitleBar extends Panel {
             // so each path level renders as one concise crumb — e.g.
             // "FIP.38.T.8 | FAIR Implementation Profile Training Session 8" → "FIP.38.T.8",
             // "3PFF: the Three Point FAIRification Framework" → "3PFF".
-            List<String> segments = splitLabel(label);
-            if (!segments.isEmpty()) {
-                parts.add(new CrumbPart(pathRefs[i], truncateLabel(segments.get(0))));
+            String crumbLabel = crumbLabel(label);
+            if (crumbLabel != null) {
+                parts.add(new CrumbPart(pathRefs[i], crumbLabel));
             }
         }
         return parts;
+    }
+
+    /**
+     * The text to show for a single crumb: only the leading segment of the label — the
+     * part before the first list/title separator — truncated to the shared crumb length.
+     * Applied to the back-link as well as to path crumbs, so "&lt;" and "&gt;" shorten a
+     * label the same way (e.g. "More Than Data: Making Knowledge Graphs Work Together for
+     * Actionable Insights" renders as "More Than Data" either way).
+     *
+     * @param label the ref's full label, or null
+     * @return the crumb text, or null if there is nothing to show
+     */
+    static String crumbLabel(String label) {
+        if (label == null) return null;
+        List<String> segments = splitLabel(label);
+        return segments.isEmpty() ? null : truncateLabel(segments.get(0));
     }
 
     /**

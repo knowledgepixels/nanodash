@@ -119,6 +119,7 @@ public class QueryResultList extends QueryResult {
                             String userLabel = entry.get(key + "_label");
                             String displayLabel = userLabel != null && !userLabel.isBlank() ? userLabel : User.getShortDisplayName(userIri);
                             String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            userUrl += linkNavParams(userUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),
@@ -126,7 +127,8 @@ public class QueryResultList extends QueryResult {
                         } else if (key.endsWith("template_iri")) {
                             String templateLabel = entry.get(key + "_label");
                             String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
-                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest" + templateLinkContextParam();
+                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
+                            templateUrl += linkNavParams(templateUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
@@ -134,7 +136,8 @@ public class QueryResultList extends QueryResult {
                         } else if (key.endsWith("query_iri")) {
                             String queryLabel = entry.get(key + "_label");
                             String displayLabel = queryLabel != null && !queryLabel.isBlank() ? queryLabel : entryValue;
-                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue) + templateLinkContextParam();
+                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            queryUrl += linkNavParams(queryUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(queryUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new Label("component", linkHtml).setEscapeModelStrings(false));
                         } else if (key.endsWith("_multi_iri")) {

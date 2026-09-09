@@ -374,7 +374,8 @@ public class QueryResultTable extends QueryResult {
                         if (label == null || label.isBlank()) {
                             label = truncateLabel(value);
                         }
-                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
+                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
+                        templateUrl += linkNavParams(templateUrl);
                         String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
                         cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
                     } else if (isPublishLink(value)) {

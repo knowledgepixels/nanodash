@@ -32,6 +32,10 @@ import java.util.Set;
  * under, carried across pages as the {@code context} URL parameter. It determines where
  * the user is forwarded to after publishing a nanopub and where the title bar's
  * back-link points on pages that are not themselves a context resource's page.
+ * <p>
+ * A resource part is not a context resource of its own but can still be where the user
+ * came from, so it travels next to the context as the {@code part} parameter, and the
+ * back-link prefers it over the maintaining resource the context names (issue #697).
  */
 public class NavigationContext {
 
@@ -44,6 +48,20 @@ public class NavigationContext {
     public static final String CONTEXT_PARAM = "context";
 
     /**
+     * Name of the page parameter holding the resource part a page was reached under
+     * (issue #697). A part is not a context resource of its own — the {@code context}
+     * parameter next to it names the maintaining resource the part belongs to — so it
+     * travels as a second parameter, and only ever together with that context.
+     */
+    public static final String PART_PARAM = "part";
+
+    /**
+     * Name of the page parameter holding the label of {@link #PART_PARAM}, so the
+     * back-link can name the part without resolving it over the network.
+     */
+    public static final String PART_LABEL_PARAM = "part-label";
+
+    /**
      * Reads the navigation context id from the given page parameters.
      *
      * @param params the page parameters
@@ -53,6 +71,30 @@ public class NavigationContext {
         if (params == null) return null;
         String contextId = params.get(CONTEXT_PARAM).toString("");
         return contextId.isEmpty() ? null : contextId;
+    }
+
+    /**
+     * Reads the resource part id from the given page parameters.
+     *
+     * @param params the page parameters
+     * @return the part resource id, or null if not set
+     */
+    public static String getPartId(PageParameters params) {
+        if (params == null) return null;
+        String partId = params.get(PART_PARAM).toString("");
+        return partId.isEmpty() ? null : partId;
+    }
+
+    /**
+     * Reads the label of the resource part from the given page parameters.
+     *
+     * @param params the page parameters
+     * @return the part label, or null if not set
+     */
+    public static String getPartLabel(PageParameters params) {
+        if (params == null) return null;
+        String label = params.get(PART_LABEL_PARAM).toString("");
+        return label.isEmpty() ? null : label;
     }
 
     /**
@@ -113,6 +155,25 @@ public class NavigationContext {
     }
 
     /**
+     * A page reference (link target + label) for a resource part reached under the
+     * given context. A part page cannot resolve itself without its maintaining
+     * resource, so the ref carries the context along (issue #697).
+     *
+     * @param partId    the part resource id
+     * @param partLabel the part's label, or null to fall back to its short name
+     * @param contextId the context resource id the part belongs to
+     * @return the page reference, or null if part or context is missing
+     */
+    public static NanodashPageRef getPartPageRef(String partId, String partLabel, String contextId) {
+        if (partId == null || partId.isEmpty() || contextId == null || contextId.isEmpty()) return null;
+        PageParameters params = new PageParameters().set("id", partId).set(CONTEXT_PARAM, contextId);
+        boolean hasLabel = partLabel != null && !partLabel.isBlank();
+        if (hasLabel) params.set("label", partLabel);
+        return new NanodashPageRef(ResourcePartPage.class, params,
+                hasLabel ? partLabel : Utils.getShortNameFromURI(partId));
+    }
+
+    /**
      * Sets the given context id on the parameters, unless it is null or a context is
      * already set (call sites that know the context resource remain authoritative).
      *
@@ -128,10 +189,36 @@ public class NavigationContext {
     }
 
     /**
-     * A behavior that fills in the page's navigation context on a
-     * {@link BookmarkablePageLink} that doesn't carry one yet. Useful where the context
-     * id isn't at hand when the link is built (e.g. nanopub cards); runs at configure
-     * time, when the component is attached to its page.
+     * Sets the given part on the parameters, so the target page's back-link points at
+     * the part the user came from rather than at the maintaining resource (issue #697).
+     * A part is only meaningful under its own context, so nothing is set unless the
+     * parameters carry exactly that context; links to the part itself, and parameters
+     * that already name a part, are left alone.
+     *
+     * @param params        the page parameters to extend
+     * @param partId        the part resource id, or null for a no-op
+     * @param partLabel     the part's label, or null to carry none
+     * @param partContextId the context the part belongs to
+     * @return the same page parameters, for chaining
+     */
+    public static PageParameters withPart(PageParameters params, String partId, String partLabel, String partContextId) {
+        if (partId == null || partId.isEmpty() || partContextId == null || partContextId.isEmpty()) return params;
+        if (!partContextId.equals(params.get(CONTEXT_PARAM).toString(""))) return params;
+        String targetId = params.get("id").toString("");
+        // Nothing to point back to on a link to the part itself, and a link up to the
+        // maintaining resource leaves the part behind rather than carrying it along.
+        if (partId.equals(targetId) || partContextId.equals(targetId)) return params;
+        if (!params.get(PART_PARAM).isEmpty()) return params;
+        params.set(PART_PARAM, partId);
+        if (partLabel != null && !partLabel.isBlank()) params.set(PART_LABEL_PARAM, partLabel);
+        return params;
+    }
+
+    /**
+     * A behavior that fills in the page's navigation context, and the resource part it
+     * was reached under, on a {@link BookmarkablePageLink} that doesn't carry them yet.
+     * Useful where the context id isn't at hand when the link is built (e.g. nanopub
+     * cards); runs at configure time, when the component is attached to its page.
      *
      * @return the context-fallback behavior
      */
@@ -142,6 +229,7 @@ public class NavigationContext {
                 if (component instanceof BookmarkablePageLink<?> link && component.getPage() instanceof NanodashPage page
                         && link.getPageParameters() != null) {
                     withContext(link.getPageParameters(), page.getContextId());
+                    withPart(link.getPageParameters(), page.getPartId(), page.getPartLabel(), page.getIncomingContextId());
                 }
             }
         };
@@ -152,6 +240,9 @@ public class NavigationContext {
      * URL string (e.g. from {@link com.knowledgepixels.nanodash.component.NanodashLink#getPageUrl(String)})
      * rather than page parameters, where {@link #pageContextFallback()} cannot apply.
      * Only internal page URLs (starting with "/") that don't carry a context yet are touched.
+     * The resource part the page was reached under is appended along with it, under the
+     * same rule as {@link #withPart(PageParameters, String, String, String)}: only where
+     * the context we just appended is the part's own (issue #697).
      *
      * @return the context-fallback behavior
      */
@@ -164,7 +255,17 @@ public class NavigationContext {
                 if (contextId == null) return;
                 String href = tag.getAttribute("href");
                 if (href == null || !href.startsWith("/") || href.contains(CONTEXT_PARAM + "=")) return;
-                tag.put("href", href + (href.contains("?") ? "&" : "?") + CONTEXT_PARAM + "=" + Utils.urlEncode(contextId));
+                href += (href.contains("?") ? "&" : "?") + CONTEXT_PARAM + "=" + Utils.urlEncode(contextId);
+                String partId = page.getPartId();
+                if (partId != null && contextId.equals(page.getIncomingContextId())
+                        && !href.contains(PART_PARAM + "=") && !href.contains(Utils.urlEncode(partId))) {
+                    href += "&" + PART_PARAM + "=" + Utils.urlEncode(partId);
+                    String partLabel = page.getPartLabel();
+                    if (partLabel != null && !partLabel.isBlank()) {
+                        href += "&" + PART_LABEL_PARAM + "=" + Utils.urlEncode(partLabel);
+                    }
+                }
+                tag.put("href", href);
             }
         };
     }
