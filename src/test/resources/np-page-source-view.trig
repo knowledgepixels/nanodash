@@ -1,0 +1,74 @@
+@prefix this: <https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPS1> .
+@prefix sub: <https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPS1/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+# A tabular view of one nanopub's content, with actions that map page sources: values the
+# page supplies rather than a result row. The override action opens the nanopub the view is
+# showing; the mixed action combines a page source with an ordinary column mapping; the
+# entry action does the same per row.
+sub:assertion {
+  sub:view a gen:ResourceView, gen:TabularView;
+    rdfs:label "presentation-details-view";
+    dct:title "Presentation Details";
+    gen:hasViewQuery <https://w3id.org/np/RAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq/get-presentation-details>;
+    gen:hasViewQueryTargetField "resource";
+    gen:hasViewAction sub:overrideAction, sub:mixedAction, sub:entryOverrideAction, sub:resultOverrideAction,
+      sub:templatelessAction, sub:noTemplateAtAllAction .
+
+  sub:overrideAction a gen:ViewResultAction;
+    rdfs:label "♻️ override";
+    gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
+    gen:hasActionTemplateTargetField "void";
+    gen:hasActionTemplatePartField "void";
+    gen:hasActionTemplateQueryMapping "@sourceNp:@override @sourceNpTemplate:@template" .
+
+  sub:mixedAction a gen:ViewResultAction;
+    rdfs:label "derive";
+    gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
+    gen:hasActionTemplateQueryMapping "@sourceNp:@derive-a series:series" .
+
+  sub:resultOverrideAction a gen:ViewResultAction;
+    rdfs:label "♻️ override result";
+    gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
+    gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template" .
+
+  # No gen:hasActionTemplate: the template comes from the result. Older Nanodash versions
+  # skip this action instead of offering a button that would open an empty form.
+  sub:templatelessAction a gen:ViewResultAction;
+    rdfs:label "♻️ override templateless";
+    gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template" .
+
+  # Neither a declared template nor one from the data: nothing to open.
+  sub:noTemplateAtAllAction a gen:ViewResultAction;
+    rdfs:label "broken";
+    gen:hasActionTemplateQueryMapping "@result.override_target:@override" .
+
+  sub:entryOverrideAction a gen:ViewEntryAction;
+    rdfs:label "♻️ override entry";
+    gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
+    gen:hasActionTemplateQueryMapping "@sourceNp:@override" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  this: dct:created "2026-09-09T09:00:00.000Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    npx:embeds sub:view .
+}

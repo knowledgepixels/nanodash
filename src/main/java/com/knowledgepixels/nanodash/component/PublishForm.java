@@ -724,6 +724,14 @@ public class PublishForm extends Panel {
                             && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
                     }
+                    // On a part page, the nanopub the page shows is resolved before any view
+                    // runs, so a publication that introduces the part is invisible until that
+                    // lookup is re-run — the view queries are all keyed on the old one (#622).
+                    String partRefresh = PostPublishRefresh.partDefinitionRefreshTarget(
+                            signedNp, pageParams.get("part").toString(""), contextId);
+                    if (partRefresh != null) {
+                        WicketApplication.get().notifyNanopubPublished(signedNp, partRefresh, 5 * 1000);
+                    }
                     if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {
                         // Forward to the context resource's page, or home if no context; always throws.
                         NavigationContext.redirectAfterPublish(signedNp, pageParams);
@@ -1299,7 +1307,8 @@ public class PublishForm extends Panel {
      * to the field of the same name, as the listing-driven fill has always allowed in a
      * hand-written URL. A raw-key target ({@code "col:@key"}) has no meaning here: such keys
      * (the fill mode, the template) are read before any query runs, so they can only come
-     * from the link itself, as an entry action passes them.
+     * from the link itself, as an entry action passes them. Neither has a page source
+     * ({@code "@source:target"}), which is resolved where the link is built.
      *
      * @param mapping the mapping
      * @return the parsed mapping, or null if it cannot apply at this point
@@ -1309,6 +1318,12 @@ public class PublishForm extends Panel {
         if (m == null) return new View.ActionMapping(mapping, mapping, false, false);
         if (m.rawKey()) {
             logger.warn("Ignoring mapping {}: a raw key cannot be set from a query result at form time", mapping);
+            return null;
+        }
+        if (m.pageSource()) {
+            // A page source is resolved where the action link is built, against the page the
+            // view is on; the form has no page to read it from.
+            logger.warn("Ignoring mapping {}: a page source cannot be resolved at form time", mapping);
             return null;
         }
         return m;

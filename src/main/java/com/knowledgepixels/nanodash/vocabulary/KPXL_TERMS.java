@@ -210,4 +210,12 @@ public class KPXL_TERMS {
      */
     public static final IRI IS_VISIBLE_TO = VocabUtils.createIRI(NAMESPACE, "isVisibleTo");
 
+    /**
+     * Declared on a space: the lowest role tier whose members' nanopublications count as
+     * definitions of the space's parts. The object is one of the tier IRIs
+     * ({@link #MEMBER_ROLE} and friends), as with {@link #IS_VISIBLE_TO}. Absent means what
+     * Nanodash has always done: every role-holder of the space, observers included.
+     */
+    public static final IRI HAS_PART_DEFINITION_TIER = VocabUtils.createIRI(NAMESPACE, "hasPartDefinitionTier");
+
 }

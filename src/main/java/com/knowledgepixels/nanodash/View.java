@@ -774,6 +774,12 @@ public class View implements Serializable {
      * the result builders skip them when rendering visible columns. A column that
      * happens to be both a display column and a mapping source would also be hidden;
      * map a duplicated/aliased column instead if you need to show one.
+     * <p>
+     * Page sources ({@code @}-prefixed) are not result columns at all, so they are left
+     * out — except {@code @result.<column>}, which names one: it is the column's single
+     * view-wide value, so the column is action data like any other mapping source and is
+     * hidden the same way. That is what lets a query return a column purely for an action
+     * (an aliased {@code (?np as ?override_target)}, say) without it showing up in the table.
      *
      * @return the set of mapping-source column names (never null)
      */
@@ -781,12 +787,24 @@ public class View implements Serializable {
         Set<String> columns = new HashSet<>();
         for (IRI actionIri : actionTemplateQueryMappingsMap.keySet()) {
             for (String mapping : getTemplateQueryMappings(actionIri)) {
-                int idx = mapping.indexOf(':');
-                if (idx > 0) columns.add(mapping.substring(0, idx));
+                ActionMapping m = ActionMapping.parse(mapping);
+                if (m == null) continue;
+                if (!m.pageSource()) {
+                    columns.add(m.column());
+                } else if (m.column().startsWith(RESULT_SOURCE_PREFIX)) {
+                    columns.add(m.column().substring(RESULT_SOURCE_PREFIX.length()));
+                }
             }
         }
         return columns;
     }
+
+    /**
+     * Prefix of the page source that names a result column ({@code @result.<column>}); see
+     * {@link com.knowledgepixels.nanodash.component.ViewActionMappings#RESULT_PREFIX}, which
+     * resolves it.
+     */
+    private static final String RESULT_SOURCE_PREFIX = "@result.";
 
     /**
      * Gets the fill query of an action (issue #690): a query run against the action's
@@ -838,8 +856,14 @@ public class View implements Serializable {
      * began with {@code !}: the field is filled and then locked
      * (docs/locked-prefilled-values.md). Only meaningful for a field, so never set
      * together with {@code rawKey}.
+     * <p>
+     * A {@code column} that itself begins with {@code @} names a <em>page source</em>
+     * rather than a result column: a value the page supplies, resolved by the action-link
+     * builder instead of read from a row (see
+     * {@link com.knowledgepixels.nanodash.component.ViewActionMappings} and
+     * docs/magic-query-params.md).
      *
-     * @param column the result column the value is read from
+     * @param column the result column the value is read from, or an {@code @}-prefixed page source
      * @param key    the template field or raw URL key, with its {@code @}/{@code !} marker stripped
      * @param rawKey whether {@code key} is a raw URL key rather than a template field
      * @param locked whether the field is to be locked after filling
@@ -853,6 +877,17 @@ public class View implements Serializable {
          * @param mapping the {@code "col:target"} mapping
          * @return the parsed mapping, or null if it has no colon
          */
+        /**
+         * Whether {@link #column} names a page source (it begins with {@code @}) rather
+         * than a result column: its value comes from the page the view is shown on, not
+         * from a row.
+         *
+         * @return true if this mapping reads from a page source
+         */
+        public boolean pageSource() {
+            return column.startsWith("@");
+        }
+
         public static ActionMapping parse(String mapping) {
             int sep = mapping.indexOf(':');
             if (sep < 0) return null;

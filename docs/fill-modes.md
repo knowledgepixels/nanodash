@@ -152,6 +152,9 @@ external root value was migrated from the source.
 - **`component/PublishForm.java`** — `FillMode` enum; maps the URL params to a
   mode (§ lines ~137–176); attaches the `npx:supersedes` / `prov:wasDerivedFrom`
   pubinfo template; skips default-license seeding for all fill-from modes.
+- **`component/ViewActionMappings.java`** — a view action can open a fill mode from
+  the page it is shown on: mapping the `@sourceNp` page source to `@override` makes the
+  action reopen the nanopub the view is showing. See docs/magic-query-params.md.
 - **`template/ValueFiller.java`** — copies the source graph and rewrites URIs;
   `transform(Value)` keeps introduced IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints
   them otherwise.

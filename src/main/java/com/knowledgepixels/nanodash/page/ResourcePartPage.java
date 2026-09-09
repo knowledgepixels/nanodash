@@ -2,13 +2,12 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
@@ -123,19 +122,7 @@ public class ResourcePartPage extends NanodashPage {
             }
         }
 
-        QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", id);
-        if (resourceWithProfile.getSpace() != null) {
-            for (IRI userIri : resourceWithProfile.getSpace().getUsers()) {
-                for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
-                    getDefQuery.getParams().put("pubkey", pubkey);
-                }
-            }
-        } else {
-            for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true)) {
-                getDefQuery.getParams().put("pubkey", pubkey);
-            }
-        }
-
+        QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(id, contextId, resourceWithProfile);
         ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
         if (getDefResp != null && !getDefResp.getData().isEmpty()) {
             nanopubId = getDefResp.getData().iterator().next().get("np");
