@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.export.DocumentModel.Block;
 import com.knowledgepixels.nanodash.export.DocumentModel.HtmlBlock;
 import com.knowledgepixels.nanodash.export.DocumentModel.Inline;
+import com.knowledgepixels.nanodash.DiscussionThread;
 import com.knowledgepixels.nanodash.export.DocumentModel.ListBlock;
 import com.knowledgepixels.nanodash.export.DocumentModel.Paragraph;
 import com.knowledgepixels.nanodash.export.DocumentModel.Section;
@@ -148,6 +149,8 @@ public final class DocumentModelBuilder {
                 return new Section(heading, null, buildParagraphBlocks(response));
             } else if (KPXL_TERMS.NANOPUB_SET_VIEW.equals(viewType)) {
                 return new Section(heading, null, List.of(buildNanopubList(response)));
+            } else if (KPXL_TERMS.THREAD_VIEW.equals(viewType)) {
+                return new Section(heading, null, List.of(buildThread(response)));
             } else {
                 return new Section(heading, null, List.of(Paragraph.of("(view type not supported in document export)")));
             }
@@ -274,6 +277,35 @@ public final class DocumentModelBuilder {
             }
         }
         return new ListBlock(items);
+    }
+
+    /**
+     * Builds a list block from a thread view.
+     */
+    static ListBlock buildThread(ApiResponse response) {
+        List<List<Inline>> items = new ArrayList<>();
+        for (DiscussionThread.Node root : DiscussionThread.of(response).getRoots()) {
+            appendThreadItems(root, 0, items);
+        }
+        return new ListBlock(items);
+    }
+
+    private static void appendThreadItems(DiscussionThread.Node node, int depth, List<List<Inline>> items) {
+        List<Inline> item = new ArrayList<>();
+        StringBuilder prefix = new StringBuilder();
+        prefix.append("    ".repeat(depth));
+        prefix.append(node.getRelation().getBadge(node.getParentRelation())).append(": ");
+        item.add(new Inline(prefix.toString(), null));
+        item.add(new Inline(node.getLabel(), node.getId()));
+        StringBuilder meta = new StringBuilder();
+        String author = node.getUserLabel() != null ? node.getUserLabel() : node.getUserIri();
+        if (author != null) meta.append(" — ").append(author);
+        if (node.getDate() != null) meta.append(author == null ? " — " : ", ").append(node.getDate());
+        if (meta.length() > 0) item.add(new Inline(meta.toString(), null));
+        items.add(item);
+        for (DiscussionThread.Node child : node.getChildren()) {
+            appendThreadItems(child, depth + 1, items);
+        }
     }
 
     /**

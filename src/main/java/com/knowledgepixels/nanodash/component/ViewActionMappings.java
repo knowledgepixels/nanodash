@@ -1,5 +1,17 @@
 package com.knowledgepixels.nanodash.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
+
+import com.knowledgepixels.nanodash.DiscussionThread;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
@@ -13,17 +25,6 @@ import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.template.Template;
-import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
-import org.nanopub.extra.services.ApiResponseEntry;
-import org.nanopub.extra.services.QueryRef;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Applies a view entry action's per-row query mappings and decides whether the
  * action's button should render for that row. See docs/magic-query-params.md
@@ -36,63 +37,85 @@ class ViewActionMappings {
     }
 
     /**
-     * Writes the action's mapped values into the link parameters and returns whether
-     * the button should be shown for this row.
+     * Writes the action's mapped values into the link parameters and returns
+     * whether the button should be shown for this row.
      *
-     * <p>Each mapping is {@code "col:target"}: the row's value for result column
+     * <p>
+     * Each mapping is {@code "col:target"}: the row's value for result column
      * {@code col} is written to URL parameter {@code param_target}, or — when
      * {@code target} starts with {@code @} — to the raw URL key {@code target}
-     * (fill-mode keys such as {@code @derive-a} / {@code @supersede}). A {@code target}
-     * written as {@code !field} additionally locks the field, so the form shows the
-     * value the action filled in but does not let the user change it
-     * (docs/locked-prefilled-values.md); this is for values an action determines rather
-     * than proposes, such as the local public key an introduction is to declare. The button is
-     * <b>hidden</b> (returns false) if any <i>required</i> mapped value is empty: a
-     * raw key is always required; a {@code param_} target is required unless its
-     * template placeholder is optional. Empty values for optional placeholders are
-     * simply skipped (button kept).</p>
+     * (fill-mode keys such as {@code @derive-a} / {@code @supersede}). A
+     * {@code target} written as {@code !field} additionally locks the field, so
+     * the form shows the value the action filled in but does not let the user
+     * change it (docs/locked-prefilled-values.md); this is for values an action
+     * determines rather than proposes, such as the local public key an
+     * introduction is to declare. The button is
+     * <b>hidden</b> (returns false) if any <i>required</i> mapped value is
+     * empty: a raw key is always required; a {@code param_} target is required
+     * unless its template placeholder is optional. Empty values for optional
+     * placeholders are simply skipped (button kept).</p>
      *
-     * @param view      the view declaring the action
+     * @param view the view declaring the action
      * @param actionIri the action node IRI
-     * @param row       the result row
-     * @param params    the link parameters to populate
+     * @param row the result row
+     * @param params the link parameters to populate
      * @return true if the action button should be rendered for this row
      */
     /**
-     * Adds a button to the result component for each result action declared by the view,
-     * linking to the action's template on the publish page. Resource-context parameters
-     * (the target field, the context, the part, and the part field) are only set when the
-     * corresponding id/contextId is available, so this also works on resource-less pages
-     * such as the general Spaces page or the standalone view-results page.
+     * Adds a button to the result component for each result action declared by
+     * the view, linking to the action's template on the publish page.
+     * Resource-context parameters (the target field, the context, the part, and
+     * the part field) are only set when the corresponding id/contextId is
+     * available, so this also works on resource-less pages such as the general
+     * Spaces page or the standalone view-results page.
      *
-     * @param result              the result component to add the action buttons to
-     * @param viewDisplay         the view display whose view declares the actions
-     * @param queryRef            the query reference backing the component (used for refresh and query mapping)
-     * @param id                  the resource id, or null if there is no specific resource in context
-     * @param contextId           the context id, or null if there is no context
-     * @param resourceWithProfile the resource whose page the component is on, or null
-     * @param refRoot             the pinned ref's root nanopub, or null
+     * @param result the result component to add the action buttons to
+     * @param viewDisplay the view display whose view declares the actions
+     * @param queryRef the query reference backing the component (used for
+     * refresh and query mapping)
+     * @param id the resource id, or null if there is no specific resource in
+     * context
+     * @param contextId the context id, or null if there is no context
+     * @param resourceWithProfile the resource whose page the component is on,
+     * or null
+     * @param refRoot the pinned ref's root nanopub, or null
      */
     static void addResultActions(QueryResult result, ViewDisplay viewDisplay, QueryRef queryRef, String id, String contextId, AbstractResourceWithProfile resourceWithProfile, String refRoot) {
         View view = viewDisplay.getView();
-        if (view == null) return;
+        if (view == null) {
+            return;
+        }
         for (IRI actionIri : view.getViewResultActionList()) {
             // Per-action role gating (docs/role-specific-views.md): skip an action
             // whose gen:isVisibleTo the current viewer does not satisfy. Additive —
             // actions without gen:isVisibleTo are unaffected. Gated against the pinned
             // ref's authority on a ?root=-pinned page. See docs/space-ref-identity.md.
-            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) {
+                continue;
+            }
             Template t = view.getTemplateForAction(actionIri);
-            if (t == null) continue;
+            if (t == null) {
+                continue;
+            }
             String targetField = view.getTemplateTargetFieldForAction(actionIri);
-            if (targetField == null) targetField = "resource";
+            if (targetField == null) {
+                targetField = "resource";
+            }
             String label = view.getLabelForAction(actionIri);
-            if (label == null) label = "action...";
-            if (!label.endsWith("...")) label += "...";
+            if (label == null) {
+                label = "action...";
+            }
+            if (!label.endsWith("...")) {
+                label += "...";
+            }
             PageParameters params = new PageParameters().set("template", t.getId())
                     .set("template-version", "latest");
-            if (id != null) params.set("param_" + targetField, id);
-            if (contextId != null) params.set("context", contextId);
+            if (id != null) {
+                params.set("param_" + targetField, id);
+            }
+            if (contextId != null) {
+                params.set("context", contextId);
+            }
             if (id != null && contextId != null && !id.equals(contextId)) {
                 params.set("part", id);
             }
@@ -131,47 +154,68 @@ class ViewActionMappings {
             List<String> fillMappings = view.getFillQueryMappings(actionIri);
             if (id != null && fillQuery != null && !fillMappings.isEmpty()) {
                 String fillTargetField = view.getFillQueryTargetFieldForAction(actionIri);
-                if (fillTargetField == null) fillTargetField = "resource";
+                if (fillTargetField == null) {
+                    fillTargetField = "resource";
+                }
                 params.set("fill-query", new QueryRef(fillQuery.getQueryId(), fillTargetField, id).getAsUrlString());
                 params.set("fill-query-mapping", String.join(" ", fillMappings));
             }
             params.set("refresh-upon-publish", queryRef.getAsUrlString());
-            if (result.getPostPublishTab() != null) params.set("postpub-tab", result.getPostPublishTab());
+            if (result.getPostPublishTab() != null) {
+                params.set("postpub-tab", result.getPostPublishTab());
+            }
             result.addButton(label, PublishPage.class, params);
         }
     }
 
     /**
-     * Builds the entry-action links of a view for one result row: one publish-page link
-     * per {@code gen:ViewEntryAction} the viewer is entitled to and whose query mappings
-     * are satisfied by the row (see {@link #applyEntryMappings}). Each link uses the
-     * markup id {@code "link"}, ready for an {@link com.knowledgepixels.nanodash.component.menu.EntryActionMenu}.
+     * Builds the entry-action links of a view for one result row: one
+     * publish-page link per {@code gen:ViewEntryAction} the viewer is entitled
+     * to and whose query mappings are satisfied by the row (see
+     * {@link #applyEntryMappings}). Each link uses the markup id
+     * {@code "link"}, ready for an
+     * {@link com.knowledgepixels.nanodash.component.menu.EntryActionMenu}.
      *
-     * @param view                the view declaring the actions, or null for none
-     * @param row                 the result row the actions apply to
-     * @param queryRef            the query reference backing the component (used for refresh and query mapping)
-     * @param entitlementResource the resource the viewer's entitlement is checked against, or null
-     * @param contextId           the context id, or null if there is no context
-     * @param partId              the part id when shown on a part page, or null
-     * @param refRoot             the pinned ref's root nanopub, or null
-     * @param postPublishTab      the tab to return to after publishing, or null for the default
+     * @param view the view declaring the actions, or null for none
+     * @param row the result row the actions apply to
+     * @param queryRef the query reference backing the component (used for
+     * refresh and query mapping)
+     * @param entitlementResource the resource the viewer's entitlement is
+     * checked against, or null
+     * @param contextId the context id, or null if there is no context
+     * @param partId the part id when shown on a part page, or null
+     * @param refRoot the pinned ref's root nanopub, or null
+     * @param postPublishTab the tab to return to after publishing, or null for
+     * the default
      * @return the entry-action links for this row (never null)
      */
     static List<AbstractLink> buildEntryActionLinks(View view, ApiResponseEntry row, QueryRef queryRef,
             AbstractResourceWithProfile entitlementResource, String contextId, String partId, String refRoot, String postPublishTab) {
         List<AbstractLink> links = new ArrayList<>();
-        if (view == null) return links;
+        if (view == null) {
+            return links;
+        }
         for (IRI actionIri : view.getViewEntryActionList()) {
             // Per-action role gating (docs/role-specific-views.md): skip an action
             // whose gen:isVisibleTo the viewer does not satisfy.
-            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), entitlementResource, refRoot)) continue;
+            if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), entitlementResource, refRoot)) {
+                continue;
+            }
             Template t = view.getTemplateForAction(actionIri);
-            if (t == null) continue;
+            if (t == null) {
+                continue;
+            }
             String targetField = view.getTemplateTargetFieldForAction(actionIri);
-            if (targetField == null) targetField = "resource";
+            if (targetField == null) {
+                targetField = "resource";
+            }
             String label = view.getLabelForAction(actionIri);
-            if (label == null) label = "action...";
-            if (!label.endsWith("...")) label += "...";
+            if (label == null) {
+                label = "action...";
+            }
+            if (!label.endsWith("...")) {
+                label += "...";
+            }
             PageParameters params = new PageParameters().set("template", t.getId())
                     .set("param_" + targetField, contextId)
                     .set("context", contextId)
@@ -194,7 +238,9 @@ class ViewActionMappings {
                 continue;
             }
             params.set("refresh-upon-publish", queryRef.getAsUrlString());
-            if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
+            if (postPublishTab != null) {
+                params.set("postpub-tab", postPublishTab);
+            }
             AbstractLink button = new BookmarkablePageLink<NanodashPage>("link", PublishPage.class, params);
             // A label that starts with a leading symbol/emoji renders that as the entry icon.
             String iconBody = Utils.menuEntryIconBodyHtml(label);
@@ -208,21 +254,69 @@ class ViewActionMappings {
         return links;
     }
 
+    /**
+     * The publish-form parameters for responding to one node of a thread view.
+     *
+     * @param view the view declaring the action
+     * @param actionIri the action node IRI
+     * @param node the thread node being responded to
+     * @param queryRef the query reference backing the thread (refreshed after
+     * publishing)
+     * @param contextId the context id, or null if there is no context
+     * @param partId the part id when shown on a part page, or null
+     * @param postPublishTab the tab to return to after publishing, or null for
+     * the default
+     * @return the parameters, or null if the action's mappings rule it out for
+     * this node
+     */
+    static PageParameters buildResponseActionParams(View view, IRI actionIri, DiscussionThread.Node node,
+            QueryRef queryRef, String contextId, String partId, String postPublishTab) {
+        Template t = view.getTemplateForAction(actionIri);
+        if (t == null) {
+            return null;
+        }
+        String targetField = view.getTemplateTargetFieldForAction(actionIri);
+        PageParameters params = new PageParameters().set("template", t.getId())
+                .set("template-version", "latest");
+        if (contextId != null) {
+            params.set("context", contextId);
+        }
+        if (partId != null && contextId != null && !partId.equals(contextId)) {
+            params.set("part", partId);
+        }
+        if (!applyEntryMappings(view, actionIri, node.getRow(), params)) {
+            return null;
+        }
+        if (targetField != null) {
+            params.set("param_" + targetField, node.getId());
+        }
+        params.set("refresh-upon-publish", queryRef.getAsUrlString());
+        if (postPublishTab != null) {
+            params.set("postpub-tab", postPublishTab);
+        }
+        return params;
+    }
+
     static boolean applyEntryMappings(View view, IRI actionIri, ApiResponseEntry row, PageParameters params) {
         Template template = view.getTemplateForAction(actionIri);
         for (String mapping : view.getTemplateQueryMappings(actionIri)) {
             View.ActionMapping m = View.ActionMapping.parse(mapping);
-            if (m == null) continue;
+            if (m == null) {
+                continue;
+            }
             String value = row.get(m.column());
             if (value == null || value.isBlank()) {
                 // Empty: hide the action only if the target is required.
-                if (m.rawKey() || template == null || template.isRequiredField(m.key())) return false;
+                if (m.rawKey() || template == null || template.isRequiredField(m.key())) {
+                    return false;
+                }
                 continue;
             }
             params.set(m.rawKey() ? m.key() : "param_" + m.key(), value);
-            // A "!" in front of the field name says that what the action fills in is not the
             // user's to change (issue #678): the field is shown with the value but locked.
-            if (m.locked()) params.add("locked", "param_" + m.key());
+            if (m.locked()) {
+                params.add("locked", "param_" + m.key());
+            }
         }
         return true;
     }

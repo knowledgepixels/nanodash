@@ -114,6 +114,8 @@ public class KPXL_TERMS {
     public static final IRI HAS_ACTION_FILL_QUERY_MAPPING = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryMapping");
     public static final IRI HAS_ACTION_FILL_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryTargetField");
     public static final IRI HAS_PAGE_SIZE = VocabUtils.createIRI(NAMESPACE, "hasPageSize");
+
+    public static final IRI HAS_RESPONSE_RELATION = VocabUtils.createIRI(NAMESPACE, "hasResponseRelation");
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
     public static final IRI IS_DISPLAY_FOR = VocabUtils.createIRI(NAMESPACE, "isDisplayFor");

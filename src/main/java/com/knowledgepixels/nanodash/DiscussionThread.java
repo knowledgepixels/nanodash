@@ -26,11 +26,11 @@ public class DiscussionThread implements Serializable {
     /**
      * The result column naming the response itself.
      */
-    public static final String COL_RESPONSE = "response";
+    public static final String COL_RESPONSE = "reply";
     /**
      * The result column naming what a response responds to; empty for a root.
      */
-    public static final String COL_RESPONDS_TO = "responds_to";
+    public static final String COL_RESPONDS_TO = "in_reply_to";
     /**
      * The result column naming how a response relates to what it responds to.
      */
@@ -38,15 +38,15 @@ public class DiscussionThread implements Serializable {
     /**
      * The result column carrying the response's text.
      */
-    public static final String COL_LABEL = "response_label";
+    public static final String COL_LABEL = "reply_label";
     /**
      * The result column naming the response's author.
      */
-    public static final String COL_USER = "user_iri";
+    public static final String COL_USER = "by";
     /**
      * The result column carrying the author's display name.
      */
-    public static final String COL_USER_LABEL = "user_iri_label";
+    public static final String COL_USER_LABEL = "by_label";
     /**
      * The result column carrying the response's date.
      */
@@ -185,15 +185,34 @@ public class DiscussionThread implements Serializable {
         private final String id;
         private final ApiResponseEntry row;
         private final Relation relation;
+        private final String relationLabel;
         private final List<Node> children = new ArrayList<>();
         private Node parent;
         private int descendantCount = 0;
         private int depthBelow = 0;
 
-        private Node(String id, ApiResponseEntry row, Relation relation) {
+        private Node(String id, ApiResponseEntry row, Relation relation, String relationLabel) {
             this.id = id;
             this.row = row;
             this.relation = relation;
+            this.relationLabel = relationLabel;
+        }
+
+        /**
+         * The badge this response carries: the relation it stands in, and below the first
+         * level what it responds to as well ("disputes this dispute").
+         *
+         * @return the badge text
+         */
+        public String getBadge() {
+            if (relation == Relation.RESPONDS && relationLabel != null) {
+                Relation parent = getParentRelation();
+                if (parent == null || parent == Relation.STATEMENT || parent == Relation.RESPONDS) {
+                    return relationLabel;
+                }
+                return relationLabel + " this " + parent.getNoun();
+            }
+            return relation.getBadge(getParentRelation());
         }
 
         /**
@@ -251,7 +270,10 @@ public class DiscussionThread implements Serializable {
          */
         public String getLabel() {
             String label = value(COL_LABEL);
-            return (label == null || label.isBlank()) ? id : label;
+            if (label == null || label.isBlank()) {
+                return id;
+            }
+            return label.replaceFirst("^(?:[\u00b7\u2022]\\s*)+", "");
         }
 
         /**
@@ -347,16 +369,17 @@ public class DiscussionThread implements Serializable {
                 continue;
             }
             String parentId = row.get(COL_RESPONDS_TO);
-            Relation relation = Relation.parse(row.get(COL_RELATION));
+            String rawRelation = row.get(COL_RELATION);
+            Relation relation = Relation.parse(rawRelation);
             if (parentId == null || parentId.isBlank() || parentId.equals(id)) {
                 parentId = null;
                 if (relation == null) {
                     relation = Relation.STATEMENT;
                 }
             } else if (relation == null) {
-                relation = Relation.RESPONDS;
+                relation = Relation.REPLIES;
             }
-            byId.put(id, new Node(id, row, relation));
+            byId.put(id, new Node(id, row, relation, humanizeRelation(rawRelation)));
             if (parentId != null) {
                 parentIds.put(id, parentId);
             }
@@ -385,6 +408,26 @@ public class DiscussionThread implements Serializable {
             measure(root);
         }
         return new DiscussionThread(roots, byId.size(), people.size());
+    }
+
+    /**
+     * The word a query used for a relation, as a badge reads it: the local name of an IRI,
+     * with the camel case vocabularies write it in turned back into words ({@code agreesWith}
+     * becomes "agrees with").
+     *
+     * @param value the raw relation value, possibly null
+     * @return the readable word, or null where the query named no relation
+     */
+    private static String humanizeRelation(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String name = value.trim();
+        int cut = Math.max(name.lastIndexOf('/'), name.lastIndexOf('#'));
+        if (cut >= 0 && cut < name.length() - 1) {
+            name = name.substring(cut + 1);
+        }
+        return name.replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ").toLowerCase(Locale.ENGLISH);
     }
 
     private static boolean createsCycle(Node node, Node candidateParent) {
