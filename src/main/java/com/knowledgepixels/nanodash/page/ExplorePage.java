@@ -232,18 +232,7 @@ public class ExplorePage extends NanodashPage {
             // the same way ResourcePartPage does.
             Nanopub termNp = np;
             if (termNp == null && contextResource != null) {
-                QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", tempRef);
-                if (contextResource.getSpace() != null) {
-                    for (IRI userIri : contextResource.getSpace().getUsers()) {
-                        for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
-                            getDefQuery.getParams().put("pubkey", pubkey);
-                        }
-                    }
-                } else {
-                    for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true)) {
-                        getDefQuery.getParams().put("pubkey", pubkey);
-                    }
-                }
+                QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(tempRef, contextId, contextResource);
                 ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
                 if (getDefResp != null && !getDefResp.getData().isEmpty()) {
                     termNp = Utils.getAsNanopub(getDefResp.getData().iterator().next().get("np"));

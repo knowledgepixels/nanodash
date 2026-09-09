@@ -129,6 +129,40 @@ This is **additive**: an action without `gen:isVisibleTo` renders exactly as
 before. It composes with — does not replace — the existing `ButtonList` routing
 (see next).
 
+## The same ladder, for whose *content* counts: `gen:hasPartDefinitionTier`
+
+`gen:isVisibleTo` decides who is shown an action. A space can use the same tier
+vocabulary to decide something else: **whose nanopublications count as definitions
+of its parts**.
+
+A part page does not read the nanopub it shows from a view. It resolves it first —
+`ResourcePartPage` → `ViewDataFetcher.partDefinitionQueryRef` → the published
+`get-term-definitions` query, with the approved public keys of the owning space's
+members — and then hands it to every view as their `…Np` parameter, besides taking
+the page's own title and `rdf:type`s from it. Historically that key list was *every*
+role-holder of the space, observers included, with the newest definition winning.
+
+A space can now narrow it, in its root definition (which an admin signs):
+
+```turtle
+<https://w3id.org/spaces/example> gen:hasPartDefinitionTier gen:MemberRole .
+```
+
+Read by `Space.getPartDefinitionTierRank()` off the space's own root nanopub — no
+materialization needed, Nanodash already holds it — and applied in
+`ViewDataFetcher.partDefinitionPubkeys`, the single list behind the part page, its
+About tab (the Info view) and term resolution in the explore view, so those three
+cannot disagree about which nanopublication defines a part. **Absent means the
+original rule**: every role-holder counts, so no existing space changes behaviour.
+
+Note what this does *not* reach: a view whose query resolves the nanopub itself
+rather than taking the `…Np` parameter states its own rule in its own SPARQL (see
+`get-presentation-details`, which takes the newest candidate signed by a member of
+the space). Where both exist they should agree — a space declaring the member tier
+and a view resolving to the member tier — but they are two declarations, because a
+query can only read what nanopub-query materializes into the spaces state, and this
+one lives in the space's root definition.
+
 ## Relationship to today's `ButtonList` routing
 
 Existing action visibility is coarse and wired by resource *type*, not declared:

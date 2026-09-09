@@ -21,6 +21,9 @@ import java.util.Set;
  * view-display query and rebuilds the entire page structure around the view. That is the
  * right thing only for the publications that actually change the structure: which views a
  * resource shows, and who may see them.
+ * <p>
+ * A part page has one more thing to invalidate: the lookup that decides which nanopub the
+ * page shows in the first place — see {@link #partDefinitionRefreshTarget}.
  */
 public class PostPublishRefresh {
 
@@ -97,6 +100,32 @@ public class PostPublishRefresh {
             if (rolePredicates.contains(predicate)) return true;
         }
         return false;
+    }
+
+    /**
+     * The part-definition lookup a publication invalidates, or null when it invalidates none.
+     * <p>
+     * A part page does not read the nanopub it shows from any of the view queries: it
+     * resolves it first, through {@link ViewDataFetcher#partDefinitionQueryRef} (the newest
+     * definition of the term among the members' keys), and then hands that nanopub to every
+     * view as their {@code …Np} parameter. A publication that introduces the part being
+     * viewed — an override of its definition, say (docs/fill-modes.md) — is a new, newer
+     * definition, so it changes the answer to that lookup. Re-running the view queries
+     * cannot show it: they are all keyed on the nanopub the lookup returned before. The
+     * lookup itself is what has to be cleared.
+     *
+     * @param np        the just-published nanopub
+     * @param partId    the {@code part} page parameter, i.e. the part being viewed, or empty
+     * @param contextId the id of the context resource whose page is being returned to
+     * @return the query ref to invalidate, as a refresh target, or null
+     */
+    public static String partDefinitionRefreshTarget(Nanopub np, String partId, String contextId) {
+        if (np == null || partId == null || partId.isEmpty()) return null;
+        if (contextId == null || contextId.isEmpty() || partId.equals(contextId)) return null;
+        if (!NanopubUtils.getIntroducedIriIds(np).contains(partId)) return null;
+        AbstractResourceWithProfile resource = AbstractResourceWithProfile.get(contextId);
+        if (resource == null) return null;
+        return ViewDataFetcher.partDefinitionQueryRef(partId, contextId, resource).getAsUrlString();
     }
 
     /**

@@ -254,6 +254,88 @@ introduction is to declare. It emits the `locked` page parameter alongside the
 `param_` one; see docs/locked-prefilled-values.md. It applies to `param_` targets
 only, as a raw `@` key is not a form field.
 
+### Page sources: `@sourceNp` / `@sourceNpTemplate`
+
+The mappings above all read a result **row**, which a *result* action does not have —
+it is a button for the view as a whole. The way for such an action to carry a value of
+the view's own is a **page source**: a mapping whose left-hand side begins with `@` and
+names something the page supplies rather than a column.
+
+| Source | Resolves to |
+| --- | --- |
+| `@result.<column>` | the value `<column>` holds in the view's **own result** — one value for the whole view, so the column must hold the same one in every row |
+| `@sourceNp` | the nanopub the view's query is bound to: the `<queryField>Np` parameter the page filled in (`ViewList`), i.e. the nanopub the *page* resolved |
+| `@sourceNpTemplate` | the `nt:wasCreatedFromTemplate` of that nanopub |
+
+The case this exists for is an **override action on a view of one nanopub's content**
+(docs/fill-modes.md): the button has to name the nanopub to override, and a result action
+has no row to read it from.
+
+**Prefer `@result.`**, and let the query decide. A view whose query resolves the nanopub
+itself — rather than taking the page's `…Np` parameter — can return it as a column, and the
+action then acts on exactly what the panel is showing. That also puts the rule for *which*
+nanopub counts into the view's own query, i.e. into RDF, per view, next to the
+`gen:isVisibleTo` that says who may act on it (`get-presentation-details` does this: newest
+candidate signed by a member-tier member of the space). `@sourceNp` remains for views that
+do take the page's nanopub.
+
+```turtle
+sub:overrideAction a gen:ViewResultAction;
+  # The icon is the bare U+267B, without the U+FE0F variation selector: that keeps it a
+  # text-presentation glyph, drawn monochrome in the menu's own colour, rather than a colour
+  # emoji that ignores it.
+  rdfs:label "♻ override...";
+  gen:hasActionTemplate <…a fallback template…>;
+  gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template";
+  gen:isVisibleTo gen:MemberRole .
+```
+
+Mapping the template to `@template` matters whenever a view shows nanopubs made with more
+than one template (a presentation *and* a poster, say): the form then opens the template
+that actually made the source, rather than the action's declared one, which stays as the
+fallback. `template-version=latest` still resolves it forward.
+
+Notes:
+
+- **Resolved where the link is built** (`ViewActionMappings`), for result and entry
+  actions alike — never at form time, so a page source is dropped from
+  `values-from-query-mapping` exactly as a raw `@key` target is.
+- **Always required.** An unresolvable page source hides the action, like an empty raw
+  key: the page was meant to supply it, and a button built on a value that is not there
+  would open a form on nothing. This is also what hides the action when the page has no
+  nanopub at all — `ViewList` writes the sentinel `"x:"` there, which counts as absent.
+- **No target field is passed** when an action maps a fill-mode key (`@override`,
+  `@supersede`, `@derive-a`, …): the form takes every field from the source nanopub, so
+  the page's own resource on top could only overwrite a filled field of that name.
+- **A column that varies from row to row hides the action.** It is then a property of a
+  row, not of the view — which is what an entry action is for, mapping the row's column
+  directly. (For the same reason `@result.` resolves to nothing on an entry action.)
+- **`@result.` columns are hidden from the table** like any other mapping source
+  (`View#getActionMappingSourceColumns`), so a query can return a column purely to feed an
+  action — the established idiom being an aliased `(?np as ?override_target)`. The other
+  page sources name no column, so there is nothing of theirs to hide.
+- A view whose query is *not* keyed on a nanopub has no `@sourceNp` to give (and a
+  header view has no query at all), so an action needing it does not render there.
+
+#### Publishing such a view before the code that reads it
+
+A page source means nothing to an older Nanodash, which would render the button with no
+`override=` and open an *empty* form. Two properties of the vocabulary make a view carrying
+one safe to publish ahead of its release:
+
+- **Leave `gen:hasActionTemplate` off** and let `@…:@template` supply it. A missing template
+  is the one condition under which every version skips an action, so older instances show no
+  button at all, while this one takes the template from the mapping. (An action with neither
+  is skipped everywhere — there is no form to open.) Note that `gen:hasActionTemplate` is a
+  *required* statement of the view-creation template up to
+  `RAnMcenHc46myXb_Yp-dPu62pywUIsqYJ5oJvSgV38XiQ`, so leaving it off needs the version that
+  makes it optional.
+- **Name the columns feeding the action `…_label`.** Every renderer, old and new, skips a
+  column whose name ends in `_label` / `_label_multi` (it is read only as another column's
+  companion), so action-only columns stay out of the table on instances that don't yet know
+  they are mapping sources. `get-presentation-details` uses `override_target_label` /
+  `override_template_label` for exactly this reason.
+
 ### Echo-as-column (no code)
 
 A query may `SELECT` a magic variable back out

@@ -18,7 +18,9 @@ import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -158,6 +160,60 @@ public final class ViewDataFetcher {
     }
 
     /**
+     * The lookup a part page resolves the nanopub it shows through: the definitions of the
+     * part's term, restricted to the approved keys of the owning resource's members (or of
+     * the owning user), newest first. The one query behind both {@link #resolvePartNanopubId}
+     * and {@link com.knowledgepixels.nanodash.page.ResourcePartPage}, so the two cannot drift
+     * apart — and the entry to invalidate when a new definition is published
+     * ({@link PostPublishRefresh#partDefinitionRefreshTarget}).
+     *
+     * @param partId    the part IRI
+     * @param contextId the context resource IRI
+     * @param resource  the resolved context resource
+     * @return the query reference
+     */
+    public static QueryRef partDefinitionQueryRef(String partId, String contextId, AbstractResourceWithProfile resource) {
+        QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", partId);
+        for (String pubkey : partDefinitionPubkeys(contextId, resource)) {
+            getDefQuery.getParams().put("pubkey", pubkey);
+        }
+        return getDefQuery;
+    }
+
+    /**
+     * The approved public keys whose nanopublications count as definitions of the given
+     * resource's parts: those of the owning space's members, or of the owning user when the
+     * context is a user page.
+     * <p>
+     * Which members count is the space's own decision: a space declaring
+     * {@code gen:hasPartDefinitionTier} in its root definition (see
+     * {@link Space#getPartDefinitionTierRank}) restricts this to that tier and above, so that
+     * "who may describe what this space contains" is stated by the space rather than fixed
+     * here. Undeclared spaces keep the original rule — every role-holder, observers included.
+     * <p>
+     * The one list behind the part page, its About tab and term resolution in the explore
+     * view, so those cannot disagree about which nanopublication defines a part.
+     *
+     * @param contextId the context resource IRI
+     * @param resource  the resolved context resource
+     * @return the public key hashes (possibly empty)
+     */
+    public static List<String> partDefinitionPubkeys(String contextId, AbstractResourceWithProfile resource) {
+        List<String> pubkeys = new ArrayList<>();
+        Space space = resource.getSpace();
+        if (space != null) {
+            int minTier = space.getPartDefinitionTierRank();
+            for (IRI userIri : space.getUsers()) {
+                if (space.userTier(userIri) < minTier) continue;
+                pubkeys.addAll(User.getUserData().getPubkeyHashes(userIri, true));
+            }
+        } else {
+            pubkeys.addAll(User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true));
+        }
+        return pubkeys;
+    }
+
+    /**
      * Looks up the nanopub ID for a part's term definition (mirrors ResourcePartPage logic).
      *
      * @param partId    the part IRI
@@ -166,19 +222,7 @@ public final class ViewDataFetcher {
      * @return the nanopub ID, or null
      */
     public static String resolvePartNanopubId(String partId, String contextId, AbstractResourceWithProfile resource) {
-        QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", partId);
-        if (resource.getSpace() != null) {
-            for (IRI userIri : resource.getSpace().getUsers()) {
-                for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
-                    getDefQuery.getParams().put("pubkey", pubkey);
-                }
-            }
-        } else {
-            for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true)) {
-                getDefQuery.getParams().put("pubkey", pubkey);
-            }
-        }
-        ApiResponse resp = ApiCache.retrieveResponseSync(getDefQuery, false);
+        ApiResponse resp = ApiCache.retrieveResponseSync(partDefinitionQueryRef(partId, contextId, resource), false);
         if (resp != null && !resp.getData().isEmpty()) {
             return resp.getData().iterator().next().get("np");
         }

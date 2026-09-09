@@ -97,6 +97,17 @@ public abstract class QueryResult extends Panel {
     }
 
     /**
+     * The results this view is showing. Available to the action-link builder, which runs
+     * after the response has arrived, so a view-level action can take a value from the rows
+     * (see {@link com.knowledgepixels.nanodash.component.ViewActionMappings}).
+     *
+     * @return the API response
+     */
+    public ApiResponse getApiResponse() {
+        return response;
+    }
+
+    /**
      * The version of the view definition this view display is showing, as the id to hand to
      * {@link View#refreshLatestVersion(String)} when checking for a newer one.
      *

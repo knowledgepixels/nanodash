@@ -33,6 +33,9 @@ public class Space extends AbstractResourceWithProfile {
 
     private String label, rootNanopubId, type;
     private Nanopub rootNanopub = null;
+    // The lowest role tier whose definitions count for this space's parts, as declared in
+    // its root definition (gen:hasPartDefinitionTier); null = no restriction.
+    private IRI partDefinitionTier = null;
     // Space-ref identity (space IRI + root-definition NPID). Populated only by the
     // ref-aware get-spaces query (v3); null/empty with the pre-v3 query. See
     // docs/space-ref-identity.md. refRootId = the representative ref's root nanopub;
@@ -142,6 +145,7 @@ public class Space extends AbstractResourceWithProfile {
             altIds.clear();
             rootAdmins.clear();
             declaredTypes.clear();
+            partDefinitionTier = null;
             description = null;
             startDate = null;
             endDate = null;
@@ -621,6 +625,23 @@ public class Space extends AbstractResourceWithProfile {
         return altIds;
     }
 
+    /**
+     * The lowest role tier whose members' nanopublications count as definitions of this
+     * space's parts, as the rank {@link SpaceMemberRole#tierRank} gives it. Declared in the
+     * space's root definition with {@code gen:hasPartDefinitionTier} — which an admin signs,
+     * so the space itself says who may describe what it contains. Undeclared spaces keep
+     * Nanodash's original rule, every role-holder counting, which is
+     * {@link SpaceMemberRole#EVERYONE_RANK}: no filtering.
+     * <p>
+     * Read from the representative ref's root definition, like the rest of
+     * {@code readCoreData}; a {@code ?root=}-pinned page does not scope this.
+     *
+     * @return the minimum tier rank, or the "everyone" floor when none is declared
+     */
+    public int getPartDefinitionTierRank() {
+        return SpaceMemberRole.tierRank(partDefinitionTier);
+    }
+
     @Override
     public void forceRefresh(long waitMillis) {
         super.forceRefresh(waitMillis);
@@ -849,6 +870,8 @@ public class Space extends AbstractResourceWithProfile {
                     if (!rootAdmins.contains(obj)) rootAdmins.add(obj);
                 } else if (st.getPredicate().equals(NTEMPLATE.HAS_DEFAULT_PROVENANCE) && st.getObject() instanceof IRI obj) {
                     defaultProvenance = obj;
+                } else if (st.getPredicate().equals(KPXL_TERMS.HAS_PART_DEFINITION_TIER) && st.getObject() instanceof IRI obj) {
+                    partDefinitionTier = obj;
                 }
             }
         }
