@@ -119,7 +119,13 @@ public class QueryApiAccess {
     // themselves. Display-only: the pending class is distinct from npa:AccountState, so the
     // admin/maintainer arm and the governed-version resolution keep requiring approved
     // accounts. Validated byte-identical to RAWlJqJ5 across approved resources.
-    public static final String GET_VIEW_DISPLAYS = "RA3ekD-2utY7P0ZgAHSr4HRwugzNnYhxJbkeI-3EfYfww/get-view-displays";
+    // RAwkiytr (supersedes RA3ekD-2) adds ?presetKind to the preset branch (issue #607): the
+    // assigned preset's stable kind (dct:isVersionOf, falling back to the version IRI), so the
+    // client keeps only the newest assignment per (preset kind, resource) -- the identity view
+    // displays already have via view kind. Purely additive; every other column is unchanged
+    // (validated identical across standalone, preset, governed, self-page and maintained-resource
+    // cases).
+    public static final String GET_VIEW_DISPLAYS = "RAwkiytrR_PaBVqUjfUtoTEBAVwNWq7QxHJbAshQ1dD9g/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
@@ -147,7 +153,9 @@ public class QueryApiAccess {
     // RAkIkmSi (supersedes RAXdRFNL): endpoint rebased onto repo/full (5 SERVICE -> 2, see
     // GET_VIEW_DISPLAYS above); in particular the per-referenced-view pin lookups are now
     // local joins instead of one federated round-trip per view under a nested-loop join.
-    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAkIkmSiwDT-bgYZhGtknPhpkHsJcx0Q3nP0u8OyO_fZ4/get-view-displays-unresolved";
+    // RAt7dfZO (supersedes RAkIkmSi) adds the same ?presetKind column as GET_VIEW_DISPLAYS
+    // (issue #607); no other change.
+    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAt7dfZOYAqtuR_7o0Q1ogzLtnvuvmzMRfnzOT_nq8r6I/get-view-displays-unresolved";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
@@ -323,7 +331,15 @@ public class QueryApiAccess {
     // admin-authored row). Column-identical to the IRI-keyed list-preset-assignments, so it drives
     // the existing Preset assignments view unchanged. Used by AboutSpacePanel with an IRI-keyed
     // fallback when the ref root is unknown. Source at docs/queries/list-preset-assignments-ref.trig.
-    public static final String LIST_PRESET_ASSIGNMENTS_REF = "RAeLNbudAq68NdqfIL3mtT2YeLnIHZ5T52Qwl_rJzMJJk/list-preset-assignments";
+    // RArC6iR- (supersedes RA3zdn0g, itself the head this constant had been left behind by)
+    // keys an assignment on the preset's stable kind rather than the pinned version, and adds the
+    // version columns behind the view's "update to latest version" action (issue #607).
+    // RArXnUQf (supersedes RArC6iR-) replaces the earlier blank-header notice with a proper
+    // "version" column: version_label is the displayed verdict ("latest" / "⬆️ update available")
+    // and version the dates behind it, since the renderer shows a literal column's _label
+    // companion and puts the principal value in the tooltip. Column-compatible with the IRI-keyed
+    // variant, which the view supplies for non-space pages.
+    public static final String LIST_PRESET_ASSIGNMENTS_REF = "RArXnUQf2dQguqlteWMwKVWxIpnk5xzF4ppAokGkpuOn8/list-preset-assignments";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 

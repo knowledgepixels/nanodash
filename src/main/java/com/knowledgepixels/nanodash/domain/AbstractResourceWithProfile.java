@@ -567,6 +567,13 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         // it also covers space-governed pins); the older resolved heads return ?view
         // already latest-resolved server-side, so it is passed through as-is.
         boolean viewsPreResolved = !QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED.equals(ref.getQueryId());
+        // A preset assignment is identified by the preset's stable kind and the resource
+        // (issue #607), just as a view display is by view kind and resource. The rows come
+        // newest first, so the first assignment nanopub seen for a preset kind is the one
+        // that counts; rows from any older assignment of the same kind are dropped, and a
+        // view that a newer preset version no longer carries goes away with them. Queries
+        // that don't return the column (an older head) leave every row in place.
+        Map<String, String> winningPresetNp = new HashMap<>();
         for (ApiResponseEntry r : response.getData()) {
             try {
                 String view = r.get("view");
@@ -575,6 +582,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     list.add(ViewDisplay.get(display, viewsPreResolved ? view : null));
                 } else {
                     if (view == null || view.isEmpty()) continue;
+                    String presetKind = r.get("presetKind");
+                    if (presetKind != null && !presetKind.isEmpty()) {
+                        String np = r.get("np");
+                        String winner = winningPresetNp.computeIfAbsent(presetKind, k -> np);
+                        if (winner != null && !winner.equals(np)) continue;
+                    }
                     boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
                     boolean deactivated = KPXL_TERMS.DEACTIVATED_PRESET_ASSIGNMENT.stringValue().equals(r.get("displayMode"));
                     ViewDisplay vd = ViewDisplay.forPresetView(id, view, topLevel, deactivated, !viewsPreResolved);
