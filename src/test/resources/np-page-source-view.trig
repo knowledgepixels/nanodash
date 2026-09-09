@@ -30,7 +30,7 @@ sub:assertion {
       sub:templatelessAction, sub:noTemplateAtAllAction .
 
   sub:overrideAction a gen:ViewResultAction;
-    rdfs:label "♻️ override";
+    rdfs:label "♻ override";
     gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
     gen:hasActionTemplateTargetField "void";
     gen:hasActionTemplatePartField "void";
@@ -42,14 +42,14 @@ sub:assertion {
     gen:hasActionTemplateQueryMapping "@sourceNp:@derive-a series:series" .
 
   sub:resultOverrideAction a gen:ViewResultAction;
-    rdfs:label "♻️ override result";
+    rdfs:label "♻ override result";
     gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
     gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template" .
 
   # No gen:hasActionTemplate: the template comes from the result. Older Nanodash versions
   # skip this action instead of offering a button that would open an empty form.
   sub:templatelessAction a gen:ViewResultAction;
-    rdfs:label "♻️ override templateless";
+    rdfs:label "♻ override templateless";
     gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template" .
 
   # Neither a declared template nor one from the data: nothing to open.
@@ -58,7 +58,7 @@ sub:assertion {
     gen:hasActionTemplateQueryMapping "@result.override_target:@override" .
 
   sub:entryOverrideAction a gen:ViewEntryAction;
-    rdfs:label "♻️ override entry";
+    rdfs:label "♻ override entry";
     gen:hasActionTemplate <https://w3id.org/np/RAttttttttttttttttttttttttttttttttttttttttttt>;
     gen:hasActionTemplateQueryMapping "@sourceNp:@override" .
 }

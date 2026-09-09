@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 /**
  * Page sources in action mappings: a mapping whose source begins with {@code @} takes its
  * value from the page the view is on rather than from a result row. The case this exists
- * for is the {@code ♻️ override...} action of a view showing one nanopub's content, which
+ * for is the {@code ♻ override...} action of a view showing one nanopub's content, which
  * has to name that nanopub — a result action has no row to read it from.
  */
 class ViewActionMappingsPageSourceTest {
@@ -144,7 +144,7 @@ class ViewActionMappingsPageSourceTest {
              MockedStatic<TemplateData> td = mockStatic(TemplateData.class)) {
             QueryResult result = resultActions(utils, grlc, td, SOURCE_NP, SOURCE_TEMPLATE);
 
-            PageParameters override = paramsOf(result, "♻️ override...");
+            PageParameters override = paramsOf(result, "♻ override...");
             assertNotNull(override);
             assertEquals(SOURCE_NP, override.get("override").toString());
             // The source's own template wins over the action's declared fallback, and stays
@@ -165,7 +165,7 @@ class ViewActionMappingsPageSourceTest {
              MockedStatic<TemplateData> td = mockStatic(TemplateData.class)) {
             QueryResult result = resultActions(utils, grlc, td, SOURCE_NP, SOURCE_TEMPLATE);
 
-            assertTrue(paramsOf(result, "♻️ override...").get("param_resource").isNull());
+            assertTrue(paramsOf(result, "♻ override...").get("param_resource").isNull());
             assertTrue(paramsOf(result, "derive...").get("param_resource").isNull());
         }
     }
@@ -177,7 +177,7 @@ class ViewActionMappingsPageSourceTest {
              MockedStatic<TemplateData> td = mockStatic(TemplateData.class)) {
             QueryResult result = resultActions(utils, grlc, td, null, SOURCE_TEMPLATE);
 
-            assertNull(paramsOf(result, "♻️ override..."));
+            assertNull(paramsOf(result, "♻ override..."));
             assertNull(paramsOf(result, "derive..."));
         }
     }
@@ -190,7 +190,7 @@ class ViewActionMappingsPageSourceTest {
              MockedStatic<TemplateData> td = mockStatic(TemplateData.class)) {
             QueryResult result = resultActions(utils, grlc, td, "x:", SOURCE_TEMPLATE);
 
-            assertNull(paramsOf(result, "♻️ override..."));
+            assertNull(paramsOf(result, "♻ override..."));
         }
     }
 
@@ -205,7 +205,7 @@ class ViewActionMappingsPageSourceTest {
              MockedStatic<TemplateData> td = mockStatic(TemplateData.class)) {
             QueryResult result = resultActions(utils, grlc, td, SOURCE_NP, null);
 
-            assertNull(paramsOf(result, "♻️ override..."));
+            assertNull(paramsOf(result, "♻ override..."));
             assertNotNull(paramsOf(result, "derive..."));
         }
     }
@@ -272,12 +272,12 @@ class ViewActionMappingsPageSourceTest {
             QueryResult result = resultActions(utils, grlc, td, null, null,
                     rows(SOURCE_NP, SOURCE_TEMPLATE, SOURCE_NP, SOURCE_TEMPLATE));
 
-            PageParameters override = paramsOf(result, "♻️ override result...");
+            PageParameters override = paramsOf(result, "♻ override result...");
             assertNotNull(override);
             assertEquals(SOURCE_NP, override.get("override").toString());
             assertEquals(SOURCE_TEMPLATE, override.get("template").toString());
             // It needs nothing from the page: the page-source action is gone here, this one is not.
-            assertNull(paramsOf(result, "♻️ override..."));
+            assertNull(paramsOf(result, "♻ override..."));
         }
     }
 
@@ -293,7 +293,7 @@ class ViewActionMappingsPageSourceTest {
             QueryResult result = resultActions(utils, grlc, td, null, null,
                     rows(SOURCE_NP, SOURCE_TEMPLATE, SOURCE_NP + "x", SOURCE_TEMPLATE));
 
-            assertNull(paramsOf(result, "♻️ override result..."));
+            assertNull(paramsOf(result, "♻ override result..."));
         }
     }
 
@@ -304,7 +304,7 @@ class ViewActionMappingsPageSourceTest {
              MockedStatic<TemplateData> td = mockStatic(TemplateData.class)) {
             QueryResult result = resultActions(utils, grlc, td, null, null, new ApiResponse());
 
-            assertNull(paramsOf(result, "♻️ override result..."));
+            assertNull(paramsOf(result, "♻ override result..."));
         }
     }
 
@@ -337,7 +337,7 @@ class ViewActionMappingsPageSourceTest {
             QueryResult result = resultActions(utils, grlc, td, null, null,
                     rows(SOURCE_NP, SOURCE_TEMPLATE));
 
-            PageParameters params = paramsOf(result, "♻️ override templateless...");
+            PageParameters params = paramsOf(result, "♻ override templateless...");
             assertNotNull(params);
             assertEquals(SOURCE_TEMPLATE, params.get("template").toString());
             assertEquals(SOURCE_NP, params.get("override").toString());

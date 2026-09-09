@@ -281,7 +281,10 @@ do take the page's nanopub.
 
 ```turtle
 sub:overrideAction a gen:ViewResultAction;
-  rdfs:label "♻️ override...";
+  # The icon is the bare U+267B, without the U+FE0F variation selector: that keeps it a
+  # text-presentation glyph, drawn monochrome in the menu's own colour, rather than a colour
+  # emoji that ignores it.
+  rdfs:label "♻ override...";
   gen:hasActionTemplate <…a fallback template…>;
   gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template";
   gen:isVisibleTo gen:MemberRole .
