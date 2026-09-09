@@ -58,9 +58,32 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
+     * This page's own resource is the part links out of it should point back to
+     * (issue #697), not the maintaining resource the {@code context} param names.
+     */
+    @Override
+    public String getPartId() {
+        return getPageParameters().get("id").toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPartLabel() {
+        return partLabel;
+    }
+
+    /**
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
     private AbstractResourceWithProfile resourceWithProfile;
+
+    /**
+     * The part's label as resolved for the title, handed to links out of this page so
+     * their back-link can name the part.
+     */
+    private String partLabel;
 
     /**
      * If the {@code id} in the given parameters falls under a namespace declared by a
@@ -135,6 +158,8 @@ public class ResourcePartPage extends NanodashPage {
 //        if (getDefResp == null || getDefResp.getData().isEmpty()) {
 //            throw new RestartResponseException(ExplorePage.class, parameters);
 //        }
+
+        partLabel = label;
 
         List<NanodashPageRef> breadCrumb;
         if (resourceWithProfile.getSpace() != null) {

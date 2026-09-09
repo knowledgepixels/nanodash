@@ -98,4 +98,24 @@ class TitleBarTest {
         assertEquals(List.of("Knowledge Pixels", "Incubator"),
                 crumbLabels("Knowledge Pixels", "Knowledge Pixels Incubator"));
     }
+
+    @Test
+    void backLinkLabelIsShortenedLikeAPathCrumb() {
+        // The "<" back-link and a ">" path crumb shorten a label the same way.
+        String title = "More Than Data: Making Knowledge Graphs Work Together for Actionable Insights";
+        assertEquals("More Than Data", TitleBar.crumbLabel(title));
+        assertEquals(List.of("More Than Data"), crumbLabels(title));
+        assertEquals("FIP.38.T.8", TitleBar.crumbLabel("FIP.38.T.8 | FAIR Implementation Profile Training Session 8"));
+    }
+
+    @Test
+    void backLinkLabelWithoutSeparatorIsOnlyTruncated() {
+        String plain = "Knowledge Pixels";
+        assertEquals(plain, TitleBar.crumbLabel(plain));
+        String tooLong = "Knowledge Graphs and Their Many Uses Across Rather A Lot Of Different Domains";
+        assertEquals(TitleBar.truncateLabel(tooLong), TitleBar.crumbLabel(tooLong));
+        assertNull(TitleBar.crumbLabel(null));
+        assertNull(TitleBar.crumbLabel("   "));
+    }
+
 }

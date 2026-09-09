@@ -189,6 +189,44 @@ public abstract class NanodashPage extends WebPage {
     }
 
     /**
+     * The navigation context this page was reached under, as opposed to the one it
+     * hands on: the plain {@code context} parameter, without the override pages showing
+     * a context resource apply to {@link #getContextId()}. Tells a context page where
+     * the user came from, so the trail there is not lost (issue #697).
+     *
+     * @return the incoming context resource id, or null if none
+     */
+    public String getIncomingContextId() {
+        return NavigationContext.getContextId(getPageParameters());
+    }
+
+    /**
+     * The resource part this page was reached under (or is itself), carried along as the
+     * {@code part} parameter. A part is not a context resource of its own, so it travels
+     * next to {@link #getIncomingContextId()}, which names the maintaining resource it
+     * belongs to (issue #697).
+     *
+     * @return the part resource id, or null if the page was not reached from a part
+     */
+    public String getPartId() {
+        // Stepping up to the resource that maintains the part lands on that resource's
+        // own page; from there on the part is behind the user, not where they came from,
+        // so it stops travelling here.
+        if (isContextPage() && getContextId() != null && getContextId().equals(getIncomingContextId())) return null;
+        return NavigationContext.getPartId(getPageParameters());
+    }
+
+    /**
+     * The label of {@link #getPartId()}, carried along so a back-link can name the part
+     * without resolving it over the network.
+     *
+     * @return the part label, or null if none is known
+     */
+    public String getPartLabel() {
+        return NavigationContext.getPartLabel(getPageParameters());
+    }
+
+    /**
      * Whether this page shows a context resource itself (space, user, maintained
      * resource, or resource part). Such pages have their own breadcrumb or tab strip and
      * don't get the title bar's back-to-context link.

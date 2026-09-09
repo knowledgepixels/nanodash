@@ -84,7 +84,7 @@ public class QueryResultSvg extends QueryResult {
                 }
                 item.add(header);
                 String svg = item.getModelObject().get("svg");
-                item.add(new Label("content", svg == null ? null : withContextInHtmlLinks(Utils.sanitizeSvg(svg))).setEscapeModelStrings(false));
+                item.add(new Label("content", svg == null ? null : withNavParamsInHtmlLinks(Utils.sanitizeSvg(svg))).setEscapeModelStrings(false));
             }
         });
         container.add(new Label("no-records", "(nothing found)").setVisible(response.getData().isEmpty()));
