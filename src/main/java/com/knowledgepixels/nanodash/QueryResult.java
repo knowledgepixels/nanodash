@@ -300,6 +300,26 @@ public abstract class QueryResult extends Panel {
     }
 
     /**
+     * A page reference for a result row's own resource part, reached from this view: the
+     * part page of the given IRI under this view's navigation context, carrying the given
+     * label as the page title where the part declares none, plus the part this page was
+     * reached under so the target's back-link can name it (issue #697). Only usable at
+     * render time (needs the page).
+     *
+     * @param partId the row's resource IRI
+     * @param label  the label to show for it, or null to fall back to its short name
+     * @return the page reference, or null when no navigation context is known (a part
+     * page cannot resolve a part without its maintaining resource)
+     */
+    protected NanodashPageRef partPageRef(String partId, String label) {
+        String ctx = renderContextId();
+        NanodashPageRef ref = NavigationContext.getPartPageRef(partId, label, ctx);
+        if (ref == null) return null;
+        NavigationContext.withPart(ref.getParameters(), renderPartId(), renderPartLabel(), ctx);
+        return ref;
+    }
+
+    /**
      * The navigation parameters to append to a hand-built app-internal link in a result
      * cell: the {@code &context=...} suffix, plus the resource part the page was reached
      * under where that applies (issue #697). Empty string when no context is set. Only

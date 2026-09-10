@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.FilteredQueryResultDataProvider;
+import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.QueryResultDataProvider;
@@ -94,19 +95,41 @@ public class QueryResultPlainParagraph extends QueryResult {
             protected void populateItem(ListItem<ApiResponseEntry> item) {
                 String title = item.getModelObject().get("title");
                 boolean hasTitle = title != null && !title.isBlank();
+                // A row whose query names the paragraph's own IRI (a "paragraph" column)
+                // gets a way to its part page (issue #701): the heading becomes a link and
+                // the row menu gains an "open" entry. The body stays prose, never a link.
+                // Without a navigation context there is no part page to link to, so the
+                // heading stays plain.
+                String paragraphId = item.getModelObject().get("paragraph");
+                NanodashPageRef partRef = paragraphId != null && Utils.isUriValue(paragraphId)
+                        ? partPageRef(paragraphId, hasTitle ? title : null) : null;
                 // For a title-less paragraph (e.g. a space description) hide the
                 // empty heading and float the source link into the corner (via
                 // the "no-title" class) so the header takes no vertical line.
                 WebMarkupContainer header = new WebMarkupContainer("header");
                 if (!hasTitle) header.add(new AttributeAppender("class", " no-title"));
-                header.add(new Label("title", title).setVisible(hasTitle));
-                // The view's entry actions, followed by the former "^" source link as a
+                WebMarkupContainer heading = new WebMarkupContainer("heading");
+                heading.setVisible(hasTitle);
+                heading.add(new Label("title", title).setVisible(partRef == null));
+                if (partRef == null) {
+                    heading.add(new WebMarkupContainer("title-link").setVisible(false));
+                } else {
+                    heading.add(partRef.createComponent("title-link", title));
+                }
+                header.add(heading);
+                // The view's entry actions, followed by the "open" entry to the row's own
+                // part page where there is one, and the former "^" source link as a
                 // "source" entry, bundled into a per-paragraph dropdown as in the other
                 // view types.
                 List<AbstractLink> links = ViewActionMappings.buildEntryActionLinks(viewDisplay.getView(),
                         item.getModelObject(), queryRef,
                         resourceWithProfile != null ? resourceWithProfile : pageResource,
                         contextId, partId, refRoot, postPublishTab);
+                if (partRef != null) {
+                    BookmarkablePageLink<Void> openLink = new BookmarkablePageLink<>("link", partRef.getPageClass(), partRef.getParameters());
+                    openLink.setBody(Model.of("<span class=\"actionmenu-icon\">📄</span>open")).setEscapeModelStrings(false);
+                    links.add(openLink);
+                }
                 String npId = item.getModelObject().get("np");
                 if (npId != null && !npId.isBlank()) {
                     BookmarkablePageLink<Void> sourceLink = new BookmarkablePageLink<>("link", ExplorePage.class,
