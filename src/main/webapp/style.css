@@ -2880,16 +2880,37 @@ div.navigator .goto a[disabled] {
   margin-left: 0;
 }
 
+/* Paragraph sections: extra room before a heading, a regular paragraph gap after
+   it. The content is a div (not a p) because paragraph HTML carries its own <p>
+   elements, which cannot nest inside a p and used to leave stray empty paragraphs
+   with uneven gaps. */
 .paragraph-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 1.8em;
   margin-bottom: 0;
 }
 
-.paragraph-header + p {
-  margin-top: 8px;
+.paragraph-block:first-child .paragraph-header {
+  margin-top: 1.25em;
+}
+
+/* A regular paragraph gap (1em) below the heading text. The heading row itself
+   runs about 4px below the text, because the row menu's chevron button is taller
+   than the heading's line box, so the margin is set from the row's edge accordingly. */
+.paragraph-header + .paragraph-content {
+  margin-top: 12px;
+}
+
+/* Inner paragraphs keep their own 1em gaps between each other; the block's
+   outer margins come from the header and the content container instead. */
+.paragraph-content > :first-child {
+  margin-top: 0;
+}
+
+.paragraph-content > :last-child {
+  margin-bottom: 0;
 }
 
 /* Title-less paragraph: float the source link to the top-right corner so it
@@ -2899,7 +2920,7 @@ div.navigator .goto a[disabled] {
   margin: 0 0 0 12px;
 }
 
-.paragraph-header.no-title + p {
+.paragraph-header.no-title + .paragraph-content {
   margin-top: 8px;
 }
 

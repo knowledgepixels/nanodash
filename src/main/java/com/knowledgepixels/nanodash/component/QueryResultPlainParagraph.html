@@ -16,12 +16,12 @@
     <span wicket:id="buttons" class="buttons"></span>
   </div>
   <div wicket:id="paragraphs-container">
-    <div wicket:id="paragraphs">
+    <div wicket:id="paragraphs" class="paragraph-block">
       <div wicket:id="header" class="paragraph-header">
-        <h5 wicket:id="title">[title]</h5>
+        <h5 wicket:id="heading"><span wicket:id="title">[title]</span><a wicket:id="title-link" class="paragraph-title-link"><span wicket:id="title-link-label">[title]</span></a></h5>
         <span class="buttons"><span wicket:id="pnp"></span></span>
       </div>
-      <p wicket:id="content" class="paragraph-content">[content]</p>
+      <div wicket:id="content" class="paragraph-content">[content]</div>
     </div>
     <p wicket:id="no-records" class="no-records-note">(nothing found)</p>
   </div>

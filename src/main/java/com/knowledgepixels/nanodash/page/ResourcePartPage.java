@@ -102,6 +102,15 @@ public class ResourcePartPage extends NanodashPage {
         }
     }
 
+    /**
+     * Whether the given predicate is schema.org's {@code title}, in either of its
+     * spellings.
+     */
+    static boolean isSchemaTitle(IRI predicate) {
+        String p = predicate.stringValue();
+        return p.equals("http://schema.org/title") || p.equals("https://schema.org/title");
+    }
+
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
 
@@ -128,16 +137,26 @@ public class ResourcePartPage extends NanodashPage {
             nanopubId = getDefResp.getData().iterator().next().get("np");
 
             Nanopub nanopub = Utils.getAsNanopub(nanopubId);
+            boolean hasRdfsLabel = false;
+            String schemaTitle = null;
             for (Statement st : nanopub.getAssertion()) {
                 if (!st.getSubject().stringValue().equals(id)) {
                     continue;
                 }
                 if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
+                    hasRdfsLabel = true;
+                } else if (isSchemaTitle(st.getPredicate())) {
+                    schemaTitle = st.getObject().stringValue();
                 }
                 if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
                     classes.add(objIri);
                 }
+            }
+            // Parts declared with a title rather than a label (paragraphs, say) are still
+            // named after it instead of after their IRI's last segment (issue #701).
+            if (!hasRdfsLabel && schemaTitle != null && !schemaTitle.isBlank()) {
+                label = schemaTitle;
             }
         } else {
             nanopubId = null;
