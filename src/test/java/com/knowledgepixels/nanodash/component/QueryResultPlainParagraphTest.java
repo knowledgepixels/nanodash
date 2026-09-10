@@ -85,8 +85,7 @@ class QueryResultPlainParagraphTest {
     @Test
     void bodyIsNotALink() {
         String html = render(rows(true), CONTEXT);
-        assertTrue(html.contains("<p wicket:id=\"content\" class=\"paragraph-content\"><p>Some prose about placeholders.</p></p>")
-                || html.contains("class=\"paragraph-content\"><p>Some prose about placeholders.</p></p>"), html);
+        assertTrue(html.contains("<div class=\"paragraph-content\"><p>Some prose about placeholders.</p></div>"), html);
     }
 
     @Test
