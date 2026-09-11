@@ -2551,9 +2551,16 @@ span.internal {
    Filled and shown by collapseNanopubAssertion() in nanodash.js. */
 .hidden-statements {
   display: none;
-  margin: 8px 3px 2px 3px;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 54px;
+  padding-right: 60px;
   color: #666;
   font-size: 10pt;
+}
+
+.hidden-statements.shown {
+  display: flex;
 }
 
 .hidden-statements a {

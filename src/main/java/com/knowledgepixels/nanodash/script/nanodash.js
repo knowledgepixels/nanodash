@@ -568,7 +568,8 @@ var COLLAPSED_STATEMENT_COUNT = 6;
 function expandAssertion(el) {
   const assertion = $(el).closest('.nanopub-assertion');
   assertion.find('.nanopub-statement, .nanopub-group, hr').show();
-  assertion.find('.hidden-statements').hide();
+  assertion.find('.hidden-statements').removeClass('shown');
+  assertion.find('.expand').first().hide();
   assertion.find('.collapse').first().show();
   adjustValueWidths();
 }
@@ -616,6 +617,7 @@ function collapseNanopubAssertion(el) {
     }
     if (isStatement) shown = shown + 1;
   });
+  assertion.find(".expand").first().show();
   showHiddenStatementsNote(assertion, hidden);
 }
 
@@ -630,12 +632,12 @@ function showHiddenStatementsNote(assertion, hiddenCount) {
   const note = assertion.find(".hidden-statements").first();
   if (note.length === 0) return;
   if (hiddenCount < 1) {
-    note.hide();
+    note.removeClass("shown");
     return;
   }
   note.find(".hidden-statements-count").text(
       hiddenCount === 1 ? "1 statement hidden" : hiddenCount + " statements hidden");
-  note.show();
+  note.addClass("shown");
 }
 
 function showMore(el) {
