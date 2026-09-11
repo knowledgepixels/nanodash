@@ -195,11 +195,15 @@ public class QueryApiAccess {
     // matches admins on npa:forSpaceRef, so multi-ref spaces don't merge admin keys across
     // refs. Published independently. Source at docs/queries/get-space-admin-pubkey-hashes-ref.trig.
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES_REF = "RAO8KDdS4_Z0-R1qCSKqWcewg0WUSaiQDh_p1N1Bg-zic/get-space-admin-pubkey-hashes";
-    public static final String GET_SPACE_ROLES = "RAKJFw-xIQ2r_aSKT4-6Pm3JkeqlWC_wmypfpA1JWPJl8/get-space-roles";
+    // 2026-09-11: the six role-listing queries below (get-space-roles, get-space-roles-ref, list-space-observers-ref,
+    // list-space-non-approved-ref, list-space-members-ref, list-space-roles-ref) were superseded to read the role name via
+    // schema:name in BOTH schemes (http://schema.org/ and https://schema.org/): nanopub-java >= 1.93.0 blacklists the
+    // http form, so new roles carry https://schema.org/name and showed up as a bare "role" in the About tab.
+    public static final String GET_SPACE_ROLES = "RAr9zGmPYtJwRK2m0pOwGrhsfhS7i3bqog27mILED6wjc/get-space-roles";
     // Ref-scoped roles (Stage 2): takes the ref's root nanopub (root_np), matches
     // RoleAssignments on npa:forSpaceRef, so multi-ref spaces don't merge role sets across
     // refs. Published independently. Source at docs/queries/get-space-roles-ref.trig.
-    public static final String GET_SPACE_ROLES_REF = "RAqUWUfmEmzxpkeuXek7oEiVSnwjuzRfV8kRe7pQSpe4c/get-space-roles";
+    public static final String GET_SPACE_ROLES_REF = "RATwohQqQwgra4nu0CYEmJCpc-Xo1xz2xb1IVc544D28U/get-space-roles";
     public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
     // Ref-scoped members (Stage 2): takes the ref's root nanopub (root_np), resolves the
     // ref + its space IRI, and returns ALL non-admin RoleInstantiations naming that IRI
@@ -257,7 +261,7 @@ public class QueryApiAccess {
     // nanopub's pubinfo. Most role holders have no key introduction of their own, so without the
     // fallback they rendered as bare ORCIDs; purely self-declared claims that carry no name
     // anywhere still show their IRI.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RANXPEIihP6m2ozdLr6KTw4Jw9fKk6BxbI3sGVOuyYUzQ/list-space-observers";
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAy7MVefpFPFBhxDBh5sFzw6S5H-gCH5yJ2dENH1ackKI/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
@@ -290,7 +294,7 @@ public class QueryApiAccess {
     // (the hasAdmin triple unifies), keeping the space-ref-conflict remedy.
     // Source at docs/queries/list-space-non-approved-ref-v7.trig. v8 (RAoX3Htu, supersedes
     // RAVsaIwA) adds a member_label column, sourced like the observers query above.
-    public static final String LIST_SPACE_NON_APPROVED_REF = "RAoX3HtuHttjxGWkdPc9tzF11hNrTiD2fm3OcQgR7Wbxw/list-space-non-approved";
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RA8r_O22FL53frfrmudFKMB-g7S-H0HU78O7uDiOx4WZ4/list-space-non-approved";
 
     // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
@@ -310,8 +314,8 @@ public class QueryApiAccess {
     // drops the role-label coalesce to read schema:name only. Latest (RA-90ZiE, supersedes RAJ15No3)
     // adds a member_label column, sourced like the observers query above, and orders rows by tier and
     // then by that display name.
-    public static final String LIST_SPACE_MEMBERS_REF = "RA-90ZiEE8OomcMz4np_IoQtsodQjyycUKfRPMDI67ju4/list-space-members";
-    public static final String LIST_SPACE_ROLES_REF = "RAYy3dC-N0ps7va0vZ8vQiD9cbU5XNOxmbfvhrImx7UMU/list-space-roles";
+    public static final String LIST_SPACE_MEMBERS_REF = "RAroCpts3CpuUpSsuPpccRbyKkwkOvVNQSjoY0ZYAVvBg/list-space-members";
+    public static final String LIST_SPACE_ROLES_REF = "RAYOsITlBsY5vmlPmZuMnsJQvwIss9DfjdWW0VjgLkMjE/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
 
