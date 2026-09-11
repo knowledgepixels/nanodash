@@ -1,3 +1,28 @@
+## [5.15.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.14.0...nanodash-5.15.0) (2026-09-11)
+
+### Features
+
+* **pages:** describe pages to search engines and link previews ([3f257e2](https://github.com/knowledgepixels/nanodash/commit/3f257e26edded6cb8d65b34fb658a06febe0c4cb)), closes [#704](https://github.com/knowledgepixels/nanodash/issues/704)
+* **presets:** key preset assignments on the preset kind and offer an update action ([a64e46d](https://github.com/knowledgepixels/nanodash/commit/a64e46d9f8ab29a3c5ca0d4db67287f91bd83d48)), closes [#607](https://github.com/knowledgepixels/nanodash/issues/607)
+* **spaces:** show member names instead of bare ORCIDs in space user listings ([c43c019](https://github.com/knowledgepixels/nanodash/commit/c43c0191a4849a01ba2c55dc78df8d351359faf8))
+* **views:** let a paragraph link to its own part page ([776513a](https://github.com/knowledgepixels/nanodash/commit/776513a9b14de1ac6ee1b74030d5b27c37685bc0)), closes [#701](https://github.com/knowledgepixels/nanodash/issues/701) [#697](https://github.com/knowledgepixels/nanodash/issues/697) [#701](https://github.com/knowledgepixels/nanodash/issues/701)
+* **views:** let a view decide what its actions act on ([3299e51](https://github.com/knowledgepixels/nanodash/commit/3299e5102713a2bb5f67e54636184c6a8228801d))
+
+### Bug Fixes
+
+* **cache:** let closing the entry store stop the writers in it ([da0b5de](https://github.com/knowledgepixels/nanodash/commit/da0b5dee5d725c6e7a083780238cfbd2d5c949b3)), closes [#668](https://github.com/knowledgepixels/nanodash/issues/668)
+* **navigation:** carry the resource part across links out of a part page ([40e9258](https://github.com/knowledgepixels/nanodash/commit/40e9258e024bc86ad55bf1001adf688d9090ef80)), closes [#697](https://github.com/knowledgepixels/nanodash/issues/697)
+* read role schema:name in both schema.org schemes in role listings ([67c5390](https://github.com/knowledgepixels/nanodash/commit/67c539052dc90cc677b457c75ab1d27fe447bb4d))
+* **views:** even out the spacing around paragraph headings ([912e9ca](https://github.com/knowledgepixels/nanodash/commit/912e9cada04fb5ad252f3a035e5fe5615adb3f8a))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([e8ddcae](https://github.com/knowledgepixels/nanodash/commit/e8ddcae57907fac7f77374288eccd96607ac5905))
+
+### Style improvements
+
+* **views:** use the bare recycling glyph for the override action icon ([4de08d5](https://github.com/knowledgepixels/nanodash/commit/4de08d52e972ac4abab2a5b4b98972d2e609051b))
+
 ## [5.14.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.13.0...nanodash-5.14.0) (2026-09-08)
 
 ### Features
