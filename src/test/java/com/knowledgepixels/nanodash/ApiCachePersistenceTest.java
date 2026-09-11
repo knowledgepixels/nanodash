@@ -13,12 +13,20 @@ import org.nanopub.extra.services.QueryRef;
 import com.google.common.cache.Cache;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;
@@ -30,6 +38,8 @@ class ApiCachePersistenceTest {
 
     private static final String RESPONSE_ID = "RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-latest-nanopubs-from-pubkeys";
     private static final String MAP_ID = "RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-some-map";
+
+    private static final Duration QUIESCENCE_TIMEOUT = Duration.ofSeconds(5);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -49,9 +59,15 @@ class ApiCachePersistenceTest {
         ApiCachePersistence.initEntryStore(null);
     }
 
+    /**
+     * Closes the entry store and lets the background tasks finish before JUnit deletes the
+     * temp directory, so that a refresh submitted elsewhere in the suite cannot write into
+     * it mid-deletion (issue #668).
+     */
     @AfterEach
     void tearDown() {
         ApiCachePersistence.initEntryStore(null);
+        NanodashThreadPool.awaitQuiescence(QUIESCENCE_TIMEOUT);
     }
 
     private void resetMap(String fieldName) throws Exception {
@@ -354,6 +370,64 @@ class ApiCachePersistenceTest {
         ApiCachePersistence.PersistedEntry mapEntry = ApiCachePersistence.loadEntry(MAP_ID);
         assertNotNull(mapEntry);
         assertEquals(map, mapEntry.value);
+    }
+
+    /**
+     * A background refresh that is already writing keeps the store open: closing it waits
+     * for that write instead of leaving it to land in a directory the caller believes is
+     * finished with (issue #668).
+     */
+    @Test
+    @DisplayName("closing the entry store should wait for a write already under way")
+    void closingEntryStoreWaitsForWriteUnderWay() throws Exception {
+        File storeDir = initEntryStore();
+        BlockingValue.startedWriting = new CountDownLatch(1);
+        BlockingValue.mayFinishWriting = new CountDownLatch(1);
+        Thread writer = new Thread(() -> ApiCachePersistence.storeEntry(RESPONSE_ID, new BlockingValue(), 1000L));
+        writer.start();
+        assertTrue(BlockingValue.startedWriting.await(5, TimeUnit.SECONDS), "the write should have started");
+
+        AtomicBoolean closed = new AtomicBoolean(false);
+        Thread closer = new Thread(() -> {
+            ApiCachePersistence.initEntryStore(null);
+            closed.set(true);
+        });
+        closer.start();
+        Thread.sleep(200);
+        assertFalse(closed.get(), "closing the store should not return while a write is under way");
+
+        BlockingValue.mayFinishWriting.countDown();
+        closer.join(5000);
+        writer.join(5000);
+        assertTrue(closed.get(), "closing the store should return once the write is done");
+
+        ApiCachePersistence.storeEntry(MAP_ID, makeResponse("after-close"), 2000L);
+        assertEquals(1, storeDir.listFiles().length, "nothing should be written once the store is closed");
+    }
+
+    /**
+     * A value whose serialization blocks until released, so that a test can hold a write
+     * open inside the entry store.
+     */
+    static class BlockingValue implements Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        static CountDownLatch startedWriting;
+        static CountDownLatch mayFinishWriting;
+
+        @Serial
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            out.defaultWriteObject();
+            startedWriting.countDown();
+            try {
+                mayFinishWriting.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
     }
 
 }

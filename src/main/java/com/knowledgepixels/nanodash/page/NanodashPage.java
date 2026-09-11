@@ -12,12 +12,14 @@ import com.knowledgepixels.nanodash.chat.RemoteAgentService;
 import com.knowledgepixels.nanodash.component.ClaudeChatPanel;
 import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
+import org.apache.wicket.markup.head.MetaDataHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -47,6 +49,18 @@ public abstract class NanodashPage extends WebPage {
     private long state = 0L;
 
     private static JavaScriptResourceReference nanodashJs = new JavaScriptResourceReference(WicketApplication.class, "script/nanodash.js");
+
+    private static final String SITE_NAME = "Nanodash";
+
+    private static final String SITE_META_DESCRIPTION =
+            "Nanodash is a web client to browse and publish nanopublications: small, "
+            + "self-contained and citable units of scientific knowledge.";
+
+    private static final String PAGE_TITLE_ID = "pagetitle";
+
+    private static final int MAX_META_DESCRIPTION_LENGTH = 300;
+
+    private String metaDescription = SITE_META_DESCRIPTION;
 
     /**
      * Returns the mount path for this page.
@@ -308,6 +322,85 @@ public abstract class NanodashPage extends WebPage {
     }
 
     /**
+     * The description search engines and link previews show for this page, which is the
+     * one describing Nanodash itself until a page sets its own.
+     *
+     * @return the description
+     */
+    protected String getMetaDescription() {
+        return metaDescription;
+    }
+
+    /**
+     * Gives this page a description of its own subject, replacing the one describing
+     * Nanodash itself. Pages call this from their constructor, so that the description is
+     * in place before the head is rendered.
+     *
+     * @param description the description; blank leaves the site description in place, and
+     *                    one longer than a search result snippet can show is cut short
+     */
+    protected void setMetaDescription(String description) {
+        if (description == null || description.isBlank()) return;
+        String oneLine = description.strip().replaceAll("\\s+", " ");
+        metaDescription = oneLine.length() <= MAX_META_DESCRIPTION_LENGTH
+                ? oneLine
+                : oneLine.substring(0, MAX_META_DESCRIPTION_LENGTH).stripTrailing() + "\u2026";
+    }
+
+    /**
+     * The title link previews show for this page, taken from the page's own title label
+     * where it has one and falling back to the site name where the title is fixed markup.
+     *
+     * @return the title
+     */
+    protected String getMetaTitle() {
+        Component pageTitle = get(PAGE_TITLE_ID);
+        if (pageTitle == null) return SITE_NAME;
+        Object title = pageTitle.getDefaultModelObject();
+        return title == null ? SITE_NAME : title.toString();
+    }
+
+    /**
+     * Renders the description, canonical URL, Open Graph and Twitter card tags that
+     * search engines and link previews read (issue #704).
+     * <p>
+     * The URL comes from {@link Utils#absolutePageUrl}, so it carries the configured
+     * website address rather than how a reverse proxy reached this container, and never
+     * the visitor's {@code ;jsessionid}.
+     *
+     * @param response the header response to render into
+     */
+    private void renderPageMetadata(IHeaderResponse response) {
+        String title = getMetaTitle();
+        String description = getMetaDescription();
+        String url = Utils.absolutePageUrl(getClass(), getPageParameters());
+        response.render(MetaDataHeaderItem.forMetaTag("description", description));
+        response.render(MetaDataHeaderItem.forLinkTag("canonical", url));
+        response.render(propertyMetaTag("og:type", "website"));
+        response.render(propertyMetaTag("og:site_name", SITE_NAME));
+        response.render(propertyMetaTag("og:title", title));
+        response.render(propertyMetaTag("og:description", description));
+        response.render(propertyMetaTag("og:url", url));
+        response.render(MetaDataHeaderItem.forMetaTag("twitter:card", "summary"));
+        response.render(MetaDataHeaderItem.forMetaTag("twitter:title", title));
+        response.render(MetaDataHeaderItem.forMetaTag("twitter:description", description));
+    }
+
+    /**
+     * A meta tag keyed by {@code property} instead of {@code name}, as Open Graph
+     * requires.
+     *
+     * @param property the property name
+     * @param content  the property value
+     * @return the header item
+     */
+    private static MetaDataHeaderItem propertyMetaTag(String property, String content) {
+        return new MetaDataHeaderItem(MetaDataHeaderItem.META_TAG)
+                .addTagAttribute("property", property)
+                .addTagAttribute("content", content);
+    }
+
+    /**
      * {@inheritDoc}
      * <p>
      * Renders the head section of the page, including JavaScript references.
@@ -315,6 +408,7 @@ public abstract class NanodashPage extends WebPage {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
+        renderPageMetadata(response);
         response.render(CssHeaderItem.forUrl(getStyleSheetUrl()));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));

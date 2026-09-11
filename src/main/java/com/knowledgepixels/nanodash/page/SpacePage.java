@@ -109,6 +109,7 @@ public class SpacePage extends NanodashPage {
         }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
+        setMetaDescription(spaceMetaDescription(space));
         // Optional profile picture, right of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the space declares none.
@@ -288,6 +289,19 @@ public class SpacePage extends NanodashPage {
     protected void onDetach() {
         spaceModel.detach();
         super.onDetach();
+    }
+
+    /**
+     * The description a space page gives search engines and link previews: the space's own
+     * description where it has one, and what the page shows otherwise.
+     *
+     * @param space the space this page shows
+     * @return the description
+     */
+    private static String spaceMetaDescription(Space space) {
+        String description = space.getDescription();
+        if (description != null && !description.isBlank()) return description;
+        return "The " + space.getLabel() + " space on Nanodash, with its nanopublications, members and views.";
     }
 
     /**
