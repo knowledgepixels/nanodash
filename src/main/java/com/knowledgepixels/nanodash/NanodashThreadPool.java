@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash;
 
+import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,6 +17,7 @@ public class NanodashThreadPool {
     private static final int CORE_POOL_SIZE = 16;
     private static final int MAX_POOL_SIZE = 64;
     private static final long KEEP_ALIVE_SECONDS = 60;
+    private static final long QUIESCENCE_POLL_INTERVAL_MS = 20;
 
     private static final ThreadPoolExecutor POOL = new ThreadPoolExecutor(
             CORE_POOL_SIZE,
@@ -50,6 +52,33 @@ public class NanodashThreadPool {
      */
     public static <T> Future<T> submit(Callable<T> task) {
         return POOL.submit(task);
+    }
+
+    /**
+     * Waits until no submitted task is running or waiting to run any more, or until the
+     * timeout lapses.
+     * <p>
+     * For a test that tears down something its background tasks write into: a refresh
+     * submitted by an earlier test sleeps before it writes, so it can still be on its way
+     * while the next test cleans up (issue #668). Unlike a shutdown, this leaves the pool
+     * usable.
+     *
+     * @param timeout how long to wait at most
+     * @return true once the pool is idle, false if the timeout lapsed first or the wait
+     *         was interrupted
+     */
+    public static boolean awaitQuiescence(Duration timeout) {
+        long deadline = System.nanoTime() + timeout.toNanos();
+        while (POOL.getActiveCount() > 0 || !POOL.getQueue().isEmpty()) {
+            if (System.nanoTime() - deadline >= 0) return false;
+            try {
+                Thread.sleep(QUIESCENCE_POLL_INTERVAL_MS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return true;
     }
 
 }
