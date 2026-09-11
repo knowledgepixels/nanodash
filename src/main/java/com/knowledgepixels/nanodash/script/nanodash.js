@@ -553,46 +553,89 @@ function collapsePubinfo(el) {
   $($(el).parent().find('.expand')[0]).show();
 }
 
+/**
+ * An assertion of this many statements or more is shown collapsed, down to
+ * COLLAPSED_STATEMENT_COUNT statements plus a note saying how many are hidden.
+ */
+var COLLAPSE_THRESHOLD = 10;
+var COLLAPSED_STATEMENT_COUNT = 6;
+
+/**
+ * Shows all of a collapsed assertion's statements.
+ *
+ * @param el an element inside the assertion, typically the note's expand link
+ */
 function expandAssertion(el) {
-  $(el).closest('.nanopub-assertion').find('.nanopub-statement, .nanopub-group, hr').each(function () {
-    $(this).show();
-  });
-  $(el).hide();
-  $($(el).parent().find('.collapse')[0]).show();
-  $(el).parent().find(".nanopub-graph").each(function () {
-    updateNanopubGraph(this);
-  });
+  const assertion = $(el).closest('.nanopub-assertion');
+  assertion.find('.nanopub-statement, .nanopub-group, hr').show();
+  assertion.find('.hidden-statements').hide();
+  assertion.find('.collapse').first().show();
+  adjustValueWidths();
 }
 
+/**
+ * Collapses an expanded assertion back to its first statements and its note.
+ *
+ * @param el an element inside the assertion, typically the collapse button
+ */
 function collapseAssertion(el) {
-  collapseNanopubAssertion($(el).closest('.nanopub-view'));
-  $(el).hide();
-  $($(el).parent().find('.expand')[0]).show();
+  const assertion = $(el).closest('.nanopub-assertion');
+  assertion.find('.collapse').first().hide();
+  collapseNanopubAssertion(assertion.closest('.nanopub-view'));
+  adjustValueWidths();
 }
 
+/**
+ * Collapses the long assertions of every nanopublication on the page.
+ */
 function collapseNanopubAssertions() {
   $(".nanopub-view").each(function () {
     collapseNanopubAssertion($(this));
   });
 }
 
+/**
+ * Collapses one nanopublication's assertion when it has enough statements for the
+ * shortening to be worth it, and tells the reader how many it is holding back.
+ *
+ * @param el the nanopublication view holding the assertion
+ */
 function collapseNanopubAssertion(el) {
-  a = $(el).find(".nanopub-assertion")[0];
-  n = $(a).find(".nanopub-statement").length;
-  $
-  if (n < 10) return;
-  $($(a).find(".expand")[0]).show();
-  c = 0;
-  $(a).find(".nanopub-statement, .nanopub-group, hr").each(function () {
-    if (c > 5) {
-      $(this).hide();
-    } else {
+  const assertion = $(el).find(".nanopub-assertion").first();
+  if (assertion.length === 0) return;
+  if (assertion.find(".nanopub-statement").length < COLLAPSE_THRESHOLD) return;
+  let shown = 0;
+  let hidden = 0;
+  assertion.find(".nanopub-statement, .nanopub-group, hr").each(function () {
+    const isStatement = $(this).hasClass("nanopub-statement");
+    if (shown < COLLAPSED_STATEMENT_COUNT) {
       $(this).show();
+    } else {
+      $(this).hide();
+      if (isStatement) hidden = hidden + 1;
     }
-    if ($(this).hasClass("nanopub-statement")) {
-      c = c + 1;
-    }
+    if (isStatement) shown = shown + 1;
   });
+  showHiddenStatementsNote(assertion, hidden);
+}
+
+/**
+ * Says at the bottom of the assertion how many statements the collapse is holding
+ * back, so that a shortened assertion does not read as the whole of it.
+ *
+ * @param assertion   the assertion element, as a jQuery object
+ * @param hiddenCount how many statements are hidden; none leaves the note off
+ */
+function showHiddenStatementsNote(assertion, hiddenCount) {
+  const note = assertion.find(".hidden-statements").first();
+  if (note.length === 0) return;
+  if (hiddenCount < 1) {
+    note.hide();
+    return;
+  }
+  note.find(".hidden-statements-count").text(
+      hiddenCount === 1 ? "1 statement hidden" : hiddenCount + " statements hidden");
+  note.show();
 }
 
 function showMore(el) {

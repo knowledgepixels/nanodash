@@ -2546,6 +2546,21 @@ span.internal {
   background-image: url("images/down-arrow.svg");
 }
 
+/* Note at the bottom of a collapsed assertion, saying how many statements the
+   collapse is holding back, so a shortened assertion does not read as all of it.
+   Filled and shown by collapseNanopubAssertion() in nanodash.js. */
+.hidden-statements {
+  display: none;
+  margin: 8px 3px 2px 3px;
+  color: #666;
+  font-size: 10pt;
+}
+
+.hidden-statements a {
+  color: #0B73DA;
+  cursor: pointer;
+}
+
 .listcomponent {
   position: relative;
 }
@@ -3282,6 +3297,16 @@ a.source:hover {
 
 .mode-advanced .advanced {
   display: revert !important;
+}
+
+/* An advanced statement the mode toggle has revealed keeps a light rule down its
+   left edge, so that it stays recognizable as one of the statements that are
+   normally out of the way. The negative margin offsets the border and padding, so
+   the marked statement lines up with the others (issue #702). */
+body.mode-advanced .nanopub-graph .advanced {
+  border-left: 2px solid #DDE4EC;
+  margin-left: -10px;
+  padding-left: 8px;
 }
 
 .mode-toggle-button {
