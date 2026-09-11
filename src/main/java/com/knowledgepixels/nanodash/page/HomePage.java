@@ -31,6 +31,8 @@ public class HomePage extends NanodashPage {
      */
     public static final String MOUNT_PATH = "/";
 
+    private static final String PAGE_TITLE = "Nanodash — browse and publish nanopublications";
+
     /**
      * {@inheritDoc}
      */
@@ -59,6 +61,7 @@ public class HomePage extends NanodashPage {
         super(parameters);
 
         add(new TitleBar("titlebar", this));
+        add(new Label("pagetitle", PAGE_TITLE));
         final NanodashSession session = NanodashSession.get();
         String v = WicketApplication.getThisVersion();
         String lv = WicketApplication.getLatestVersion();
