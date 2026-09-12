@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MaintainedResourceRepository {
 
@@ -56,6 +57,14 @@ public class MaintainedResourceRepository {
     private volatile ApiResponse cachedFor;
     private volatile Snapshot snapshot = Snapshot.EMPTY;
 
+    // Every resource a snapshot ever held, by id. The query API is a set of instances
+    // with independently built indexes, so an answer that is short of a resource -- or
+    // of all of them -- is a normal kind of failure rather than news that the resource
+    // is gone. Letting such an answer make a resource disappear is what had the home
+    // page reporting its own configuration as broken (issue #623), so callers that must
+    // not fail over a momentarily missing resource ask findLastKnownById() instead.
+    private final Map<String, MaintainedResource> lastKnownById = new ConcurrentHashMap<>();
+
     private Snapshot current() {
         ApiResponse resp = ApiCache.retrieveResponseIfAvailable(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES));
         if (resp == null) {
@@ -78,6 +87,7 @@ public class MaintainedResourceRepository {
             }
             snapshot = built;
             cachedFor = resp;
+            lastKnownById.putAll(built.resourcesById);
             return built;
         }
     }
@@ -129,6 +139,13 @@ public class MaintainedResourceRepository {
             // ready" so current() doesn't memoise this empty result.
             return null;
         }
+        if (byId.isEmpty() && !snapshot.resourcesById.isEmpty()) {
+            // An instance that has been shown maintained resources does not suddenly
+            // have none: an answer carrying nothing at all is the query API failing to
+            // answer, not the resources being gone. Keep what we have — latching this
+            // would also let removeStale() below wipe every resource instance.
+            return null;
+        }
         MaintainedResourceFactory.removeStale(byId.keySet());
         return new Snapshot(byId, byNamespace, bySpace);
     }
@@ -174,19 +191,43 @@ public class MaintainedResourceRepository {
     }
 
     /**
-     * Whether a complete resource snapshot has been built at least once, i.e. the
-     * spaces-repo response was fetched and at least one row's space resolved (so
-     * {@link #build} latched a real snapshot rather than bailing out). Until this is
-     * true, {@link #findById} can return null simply because the data is still cold
-     * (cache refresh in flight, or a racing {@link SpaceRepository} load), not
-     * because the id is genuinely unknown. Callers can use this to distinguish a
-     * transient "not loaded yet" from a real "not found".
+     * Like {@link #findById(String)}, but falls back to the resource as it was last
+     * known when the current snapshot has no entry for the id. For the callers that must
+     * keep working across an answer that came back short (issue #623) — above all the
+     * home page, which would otherwise declare its configured resource missing — rather
+     * than for the many callers that ask merely whether an IRI <em>is</em> a maintained
+     * resource; those want {@link #findById(String)} and its strict answer.
      *
-     * @return true once a full snapshot has been built and latched
+     * @param id The id of the resource.
+     * @return The resource, from the current snapshot or from before it, or null if no
+     *         answer ever carried this id.
      */
-    public boolean isReady() {
-        current();
-        return cachedFor != null;
+    public MaintainedResource findLastKnownById(String id) {
+        MaintainedResource resource = findById(id);
+        if (resource != null) return resource;
+        return lastKnownById.get(id);
+    }
+
+    /**
+     * Whether the given id can be taken to be genuinely unknown, i.e. a null from
+     * {@link #findLastKnownById(String)} is final rather than a matter of waiting. Three
+     * things have to hold: a snapshot has been latched at all (the response was fetched
+     * and {@link #build} kept it), that snapshot holds resources, and neither it nor any
+     * earlier answer carried this id. Short of that, an unresolved id means the data is
+     * missing — a cold cache, a racing {@link SpaceRepository}, or an answer short of
+     * every resource — and not that the id is wrong. What lets the home page tell a
+     * misconfigured home resource from an instance that has not been told about its
+     * resources yet (issue #623).
+     *
+     * @param id The id to ask about.
+     * @return true if the id is known not to be a maintained resource
+     */
+    public boolean isAbsent(String id) {
+        Snapshot current = current();
+        return cachedFor != null
+                && !current.resourcesById.isEmpty()
+                && !current.resourcesById.containsKey(id)
+                && !lastKnownById.containsKey(id);
     }
 
     /**
