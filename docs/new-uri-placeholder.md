@@ -38,13 +38,23 @@ declaration of intent rather than something Nanodash infers:
 - **Untagged** — never checked. It publishes exactly as before even if the IRI already exists.
   This is deliberate: a field can perfectly well point at a resource that exists, and most do.
 
-Two cases are exempt even when tagged:
+Two things are exempt even when tagged:
 
 - **Identifiers under the nanopublication's own namespace.** The value at check time still
   carries the `~~~ARTIFACTCODE~~~` marker rather than the IRI that ends up published, and the
   artifact code makes it unique anyway.
-- **Superseding and overriding.** Keeping the source's identifier is the point of both modes
-  (see [fill-modes](fill-modes.md)), so finding it in use is expected, not a collision.
+- **The identifiers a superseded or overridden source already carries.** A new version keeps
+  the resource it is a version of (see [fill-modes](fill-modes.md)), so finding that one in use
+  is the expected answer, not a collision.
+
+Note the shape of that second rule: it exempts the *identifier*, not the fill mode. Nothing
+re-mints a prefix-minted identifier for a new version — there is no artifact code in it to
+change — so editing the name while superseding defines a resource the source never had, and it
+can collide like any other. An identifier under the nanopublication's own namespace does change
+with the new artifact code, but those are excluded by the rule above and never reach the check.
+
+With no source to compare against, nothing is checked at all, so a fill Nanodash does not
+recognise leaves publishing exactly as it was.
 
 A query service that cannot be reached answers "not taken". A check that cannot be made is not
 evidence of a collision, and publishing should not depend on the query services being up.

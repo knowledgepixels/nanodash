@@ -16,6 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
@@ -217,10 +218,41 @@ class NewUriPlaceholderTest {
         }
     }
 
-    // Superseding and overriding keep the source's identifier on purpose (docs/fill-modes.md),
-    // so the identifier being in use is exactly what is expected there.
+    // A new version carries the source's resource over (docs/fill-modes.md), so finding that
+    // identifier in use is the expected answer rather than a collision.
     @Test
-    void supersedingKeepsTheIdentifierWithoutAsking() throws Exception {
+    void supersedingKeepsTheSourcesIdentifierWithoutAsking() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        context.setFillMode(FillMode.SUPERSEDE);
+        context.setFillSource(sourceUsing(SPACE_PREFIX + "example/bar"));
+        context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
+        context.processValue(SPACE_FIELD);
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            assertNull(PublishForm.findTakenNewUri(context));
+            q.verifyNoInteractions();
+        }
+    }
+
+    // Nothing re-mints a prefix-minted identifier for the new version, so editing the name
+    // while superseding defines a resource the source never had, which can collide like any
+    // other. Exempting the whole fill mode used to let this through unchecked.
+    @Test
+    void supersedingUnderANewNameIsCheckedLikeAnyOther() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        context.setFillMode(FillMode.SUPERSEDE);
+        context.setFillSource(sourceUsing(SPACE_PREFIX + "example/bar"));
+        context.getComponentModels().put(SPACE_FIELD, Model.of("example/renamed"));
+        IRI renamed = (IRI) context.processValue(SPACE_FIELD);
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            q.when(() -> QueryApiAccess.isUriIntroduced(renamed.stringValue())).thenReturn(true);
+            assertEquals(renamed, PublishForm.findTakenNewUri(context));
+        }
+    }
+
+    // With no source to compare against there is nothing to say whether the identifier is the
+    // one being carried over, so publishing is left exactly as it was.
+    @Test
+    void supersedingWithoutAKnownSourceAsksNothing() throws Exception {
         TemplateContext context = spaceTemplateContext();
         context.setFillMode(FillMode.SUPERSEDE);
         context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
@@ -229,6 +261,19 @@ class NewUriPlaceholderTest {
             assertNull(PublishForm.findTakenNewUri(context));
             q.verifyNoInteractions();
         }
+    }
+
+    /**
+     * Builds the nanopublication a supersede would be filled from: one that already describes
+     * the resource under the given identifier.
+     */
+    private Nanopub sourceUsing(String resourceIri) throws Exception {
+        NanopubCreator creator = new NanopubCreator("https://w3id.org/np/RASourceVersion0123456789-_AbCdEfGhIjKlMnOpQ");
+        IRI resource = vf.createIRI(resourceIri);
+        creator.addAssertionStatement(resource, RDF.TYPE, vf.createIRI("https://w3id.org/kpxl/gen/terms/Space"));
+        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
+        return creator.finalizeNanopub();
     }
 
 }

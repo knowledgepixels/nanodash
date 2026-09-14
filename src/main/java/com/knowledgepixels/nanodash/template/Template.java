@@ -35,8 +35,8 @@ public class Template implements Serializable {
      */
     public static final String DEFAULT_TARGET_NAMESPACE = "https://w3id.org/np/";
 
-    // TODO Move this to the other ntemplate vocabulary terms in nanopub-java (added there in
-    // Nanopublication/nanopub-java#156; drop it once that release is picked up):
+    // TODO Move these to the other ntemplate vocabulary terms in nanopub-java (both added
+    // there in Nanopublication/nanopub-java#156; drop them once that release is picked up):
     /**
      * Type of a template whose filled content applies only to the specific nanopublication
      * it was published with, and is not carried over when that nanopublication is

@@ -45,6 +45,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
@@ -1753,21 +1754,49 @@ public class PublishForm extends Panel {
      * <p>
      * Only a placeholder the template tags with {@link com.knowledgepixels.nanodash.template.Template#NEW_URI_PLACEHOLDER} is
      * checked; everything else publishes as before, whether or not its IRI already exists.
-     * Superseding and overriding are exempt even then, since keeping the source's identifier
-     * is the point of both.
+     * <p>
+     * Superseding and overriding exempt the identifiers the source already carries, since a new
+     * version keeps the resource it is a version of, and finding that one in use is the expected
+     * answer rather than a collision. They are not exempt wholesale: a prefix-minted identifier
+     * carries no artifact code, so nothing re-mints it for the new version, and editing the name
+     * while superseding defines a genuinely new resource that can collide like any other. (An
+     * identifier minted under the nanopublication's own namespace does change with the new
+     * artifact code, but those never reach here -- see TemplateContext#recordIfNewUri.) With no
+     * source to compare against, nothing is checked, so an unrecognised fill leaves publishing
+     * exactly as it was.
      *
      * @param assertionContext the assertion context, after its values have been processed
      * @return the first identifier for a new resource that is already in use, or null if none is
      */
     public static IRI findTakenNewUri(TemplateContext assertionContext) {
         FillMode fillMode = assertionContext.getFillMode();
+        Nanopub source = null;
         if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
-            return null;
+            source = assertionContext.getReferenceNanopub();
+            if (source == null) return null;
         }
         for (IRI newUri : assertionContext.getNewUriIris()) {
+            if (source != null && isUsedIn(source, newUri)) continue;
             if (QueryApiAccess.isUriIntroduced(newUri.stringValue())) return newUri;
         }
         return null;
+    }
+
+    /**
+     * Tells whether the given nanopublication already mentions the given IRI, which is how a
+     * superseding version says it is carrying the source's resource over rather than naming a
+     * new one. Every graph counts: the resource appears as a subject in the assertion and again
+     * under {@code npx:introduces} in the publication info.
+     *
+     * @param nanopub the nanopublication to look in
+     * @param iri     the identifier to look for
+     * @return true if the nanopublication uses the identifier
+     */
+    private static boolean isUsedIn(Nanopub nanopub, IRI iri) {
+        for (Statement st : NanopubUtils.getStatements(nanopub)) {
+            if (iri.equals(st.getSubject()) || iri.equals(st.getObject())) return true;
+        }
+        return false;
     }
 
     /**
