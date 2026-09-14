@@ -22,9 +22,12 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,6 +76,7 @@ public class UserPage extends NanodashPage {
         if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         final String userIriString = parameters.get("id").toString();
         userIri = Utils.vf.createIRI(userIriString);
+        redirectIfRdfRequested(new RdfSource("user", userIriString, null, List.of()));
 
         for (String pk : User.getPubkeyhashes(userIri, null)) {
             pubkeyHashes += " " + pk;
@@ -236,6 +240,20 @@ public class UserPage extends NanodashPage {
                 });
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A user is declared by their approved introduction nanopublications.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        List<Nanopub> declarations = new ArrayList<>();
+        for (IntroNanopub intro : User.getIntroNanopubs(userIri)) {
+            if (User.isApproved(intro) && intro.getNanopub() != null) declarations.add(intro.getNanopub());
+        }
+        return new RdfSource("user", userIri.stringValue(), null, declarations);
     }
 
     /**

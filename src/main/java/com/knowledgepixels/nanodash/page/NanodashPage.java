@@ -20,11 +20,13 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.head.MetaDataHeaderItem;
+import org.apache.wicket.markup.head.StringHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.http.WebRequest;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.slf4j.Logger;
@@ -361,6 +363,64 @@ public abstract class NanodashPage extends WebPage {
     }
 
     /**
+     * What this page offers as RDF (issue #710). Pages about a resource that the download
+     * page can serve override this; the default is nothing, which leaves the page HTML-only.
+     *
+     * @return the RDF source, or null for a page without one
+     */
+    protected RdfSource getRdfSource() {
+        return null;
+    }
+
+    /**
+     * Answers a client that asked for RDF in its {@code Accept} header with a 303 to the
+     * download page in the matching format, and lets everyone else have the HTML (issue
+     * #710). Pages call this from their constructor as soon as they know their resource,
+     * before building anything, so that a machine client gets its redirect without the
+     * page's own work being done first. Either way the response is marked as varying on
+     * the {@code Accept} header, so that caches keep the two apart.
+     *
+     * @param source what to serve; its declarations are not needed here and may be empty
+     * @throws RedirectToUrlException when the client asked for RDF
+     */
+    protected void redirectIfRdfRequested(RdfSource source) {
+        if (getResponse() instanceof WebResponse webResponse) {
+            webResponse.setHeader("Vary", "Accept");
+        }
+        String accept = getRequest() instanceof WebRequest webRequest ? webRequest.getHeader("Accept") : null;
+        RdfNegotiation.Variant variant = RdfNegotiation.negotiate(accept);
+        if (variant == null) return;
+        String url = source.downloadUrl(variant);
+        logger.info("RDF requested as {} for {} {}; redirecting to {}", variant.mediaType(), source.type(), source.id(), url);
+        throw new RedirectToUrlException(url, 303);
+    }
+
+    /**
+     * Renders what lets HTML-reading tools find this page's RDF (issue #710): one
+     * alternate link per download format, and the declaring assertions as an embedded
+     * JSON-LD block. Nothing is rendered for a page without an RDF source.
+     *
+     * @param response the header response to render into
+     */
+    private void renderRdfLinks(IHeaderResponse response) {
+        RdfSource source = getRdfSource();
+        if (source == null) return;
+        for (RdfNegotiation.Variant variant : RdfNegotiation.VARIANTS) {
+            response.render(MetaDataHeaderItem.forLinkTag("alternate", source.downloadUrl(variant))
+                    .addTagAttribute("type", variant.mediaType()));
+        }
+        String jsonLd;
+        try {
+            jsonLd = source.toEmbeddedJsonLd(source.downloadUrl(RdfNegotiation.VARIANTS.get(0)));
+        } catch (Exception ex) {
+            logger.warn("Could not embed the JSON-LD for {} {}: {}", source.type(), source.id(), ex.getMessage());
+            return;
+        }
+        if (jsonLd == null) return;
+        response.render(StringHeaderItem.forString("<script type=\"application/ld+json\">\n" + jsonLd + "\n</script>\n"));
+    }
+
+    /**
      * Renders the description, canonical URL, Open Graph and Twitter card tags that
      * search engines and link previews read (issue #704).
      * <p>
@@ -409,6 +469,7 @@ public abstract class NanodashPage extends WebPage {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
         renderPageMetadata(response);
+        renderRdfLinks(response);
         response.render(CssHeaderItem.forUrl(getStyleSheetUrl()));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
