@@ -73,13 +73,13 @@ public class LiteralTextfieldLangItemTest {
         creator.addAssertionStatement(st1, RDF.OBJECT, COMMENT);
         creator.addAssertionStatement(COMMENT, RDF.TYPE, NTEMPLATE.LITERAL_PLACEHOLDER);
         if (selectable) {
-            creator.addAssertionStatement(COMMENT, RDF.TYPE, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+            creator.addAssertionStatement(COMMENT, RDF.TYPE, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         }
         if (defaultTag != null) {
             creator.addAssertionStatement(COMMENT, NTEMPLATE.HAS_LANGUAGE_TAG, vf.createLiteral(defaultTag));
         }
         for (String tag : possibleTags) {
-            creator.addAssertionStatement(COMMENT, Template.POSSIBLE_LANGUAGE_TAG, vf.createLiteral(tag));
+            creator.addAssertionStatement(COMMENT, NTEMPLATE.POSSIBLE_LANGUAGE_TAG, vf.createLiteral(tag));
         }
         creator.addAssertionStatement(COMMENT, RDFS.LABEL, vf.createLiteral("comment"));
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());

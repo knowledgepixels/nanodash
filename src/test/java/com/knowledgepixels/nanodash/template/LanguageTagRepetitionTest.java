@@ -67,7 +67,7 @@ public class LanguageTagRepetitionTest {
         creator.addAssertionStatement(ST1, RDF.PREDICATE, RDFS.COMMENT);
         creator.addAssertionStatement(ST1, RDF.OBJECT, COMMENT);
         creator.addAssertionStatement(COMMENT, RDF.TYPE, NTEMPLATE.LITERAL_PLACEHOLDER);
-        creator.addAssertionStatement(COMMENT, RDF.TYPE, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        creator.addAssertionStatement(COMMENT, RDF.TYPE, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         creator.addAssertionStatement(COMMENT, RDFS.LABEL, vf.createLiteral("comment"));
         Template template = new Template(creator.finalizeNanopub());
 
