@@ -44,7 +44,7 @@ public class TemplateContext implements Serializable {
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
-    private Set<IRI> prefixMintedIris = new LinkedHashSet<>();
+    private Set<IRI> newUriIris = new LinkedHashSet<>();
     private Map<IRI, IRI> rolePropertyPins = new LinkedHashMap<>();
     private List<StatementItem> statementItems;
     private Set<IRI> iriSet = new HashSet<>();
@@ -535,20 +535,22 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * Returns the IRIs this context minted by putting a name the user typed under a prefix
-     * the template or the navigation context supplied, rather than under the namespace of
-     * the nanopublication being created.
+     * Returns the IRIs this context formed for placeholders the template marks as naming a
+     * resource that does not exist yet ({@link Template#NEW_URI_PLACEHOLDER}).
      * <p>
-     * Such an IRI carries no artifact code, so nothing makes it unique: two people filling
-     * the same form with the same name arrive at the same identifier. That is what makes it
-     * worth checking against what has already been published, and the reason this set is
-     * kept apart from {@link #getIntroducedIris()} (see #646). An IRI the user typed out in
-     * full is not in here: naming an existing thing is not minting one.
+     * Such an identifier carries no artifact code, so nothing makes it unique: two people
+     * filling the same form with the same name arrive at the same IRI, and the second
+     * nanopublication silently extends the first one's resource. The publish form checks
+     * these against what has already been published (see #646).
+     * <p>
+     * Only the tag puts an IRI in here. How the value was formed makes no difference -- typed
+     * out in full, or a name placed under a prefix -- because whether a value names something
+     * new is the template author's call, not something to infer from the shape of the form.
      *
-     * @return a set of IRIs minted under a prefix, in the order they were processed
+     * @return a set of IRIs for new resources, in the order they were processed
      */
-    public Set<IRI> getPrefixMintedIris() {
-        return prefixMintedIris;
+    public Set<IRI> getNewUriIris() {
+        return newUriIris;
     }
 
     /**
@@ -647,7 +649,7 @@ public class TemplateContext implements Serializable {
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     if (Utils.isUriValue(v)) {
                         processedValue = vf.createIRI(v);
-                        recordIfMintedUnderPrefix(iri, (IRI) processedValue, prefix);
+                        recordIfNewUri(iri, (IRI) processedValue);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
                     }
@@ -681,7 +683,7 @@ public class TemplateContext implements Serializable {
                 if (!unresolvedPrefix) {
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     processedValue = vf.createIRI(v);
-                    recordIfMintedUnderPrefix(iri, (IRI) processedValue, prefix);
+                    recordIfNewUri(iri, (IRI) processedValue);
                 }
             }
         } else if (template.isIntroducedResource(iri)
@@ -772,29 +774,22 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * Records an IRI that was formed by appending what the user typed to a prefix, so that
-     * the publish form can check it against the identifiers already in use (#646).
+     * Records an IRI formed for a placeholder the template marks as naming a resource that
+     * does not exist yet, so that the publish form can check it against the identifiers
+     * already in use (#646).
      * <p>
-     * Three kinds of IRI are deliberately left out:
-     * <ul>
-     * <li>one the user typed out in full, which names a thing rather than minting one;</li>
-     * <li>one minted under the new nanopublication's own namespace, whose artifact code is
-     * substituted at signing time and makes it unique by construction;</li>
-     * <li>one built by an auto-escaping placeholder, where the IRI is derived from the text
-     * itself. AIDA sentences are the case in point: two people writing the same sentence are
-     * <em>meant</em> to arrive at the same IRI, so an existing one is agreement, not a
-     * collision.</li>
-     * </ul>
+     * An untagged placeholder records nothing and is never checked, whatever its value looks
+     * like. An IRI still sitting under the nanopublication's own namespace is left out as
+     * well: its artifact code is substituted at signing time, which both makes it unique and
+     * means the value seen here is not the one that gets published.
      *
      * @param placeholder the placeholder the value was entered into
-     * @param mintedIri   the IRI that was just formed
-     * @param prefix      the prefix it was formed under, empty if there was none
+     * @param iri         the IRI that was just formed
      */
-    private void recordIfMintedUnderPrefix(IRI placeholder, IRI mintedIri, String prefix) {
-        if (prefix == null || prefix.isEmpty()) return;
-        if (mintedIri.stringValue().startsWith(targetNamespace)) return;
-        if (template.isAutoEscapePlaceholder(placeholder)) return;
-        prefixMintedIris.add(mintedIri);
+    private void recordIfNewUri(IRI placeholder, IRI iri) {
+        if (!template.isNewUriPlaceholder(placeholder)) return;
+        if (iri.stringValue().startsWith(targetNamespace)) return;
+        newUriIris.add(iri);
     }
 
     /**

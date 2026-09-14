@@ -44,6 +44,18 @@ public class Template implements Serializable {
      */
     public static final IRI TRANSIENT_TEMPLATE = vf.createIRI("https://w3id.org/np/o/ntemplate/TransientTemplate");
 
+    /**
+     * Type marking a URI placeholder whose value names a resource that does not exist yet,
+     * applied alongside the placeholder's own type. The publish form refuses to publish when
+     * such an identifier is already in use (#646).
+     * <p>
+     * This is the template author's statement of intent, and the only thing that turns the
+     * check on: nothing is checked for an untagged placeholder, however its value is formed.
+     * It says more than {@link org.nanopub.vocabulary.NTEMPLATE#INTRODUCED_RESOURCE}, which a
+     * template also attaches when the user supplies the IRI of a thing that already exists.
+     */
+    public static final IRI NEW_URI_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/NewUriPlaceholder");
+
     private final Nanopub nanopub;
     private String label;
     private String description;
@@ -582,10 +594,22 @@ public class Template implements Serializable {
     }
 
     /**
-     * Checks if the IRI is an auto-escape URI placeholder.
+     * Checks if the IRI is a placeholder for a URI that does not exist yet, i.e. one the
+     * template marks with {@link #NEW_URI_PLACEHOLDER}.
      *
      * @param iri the IRI to check.
-     * @return true if the IRI is an auto-escape URI placeholder, false otherwise.
+     * @return true if the IRI is a new-URI placeholder, false otherwise.
+     */
+    public boolean isNewUriPlaceholder(IRI iri) {
+        iri = transform(iri);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NEW_URI_PLACEHOLDER);
+    }
+
+    /**
+     * Checks if the IRI is an auto-escape URI placeholder.
+     *
+     * @param iri the IRI to check
+     * @return true if it is an auto-escape placeholder
      */
     public boolean isAutoEscapePlaceholder(IRI iri) {
         iri = transform(iri);

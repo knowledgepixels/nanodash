@@ -29,33 +29,31 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
- * An identifier minted under a prefix the template supplies carries no artifact code, so
- * nothing makes it unique and the publish form has to check it against the identifiers
- * already in use (#646). {@link TemplateContext#getPrefixMintedIris()} is what tells those
- * apart from the identifiers that need no checking: one the user typed out in full (naming an
- * existing thing rather than minting a new one), one minted under the new nanopublication's
- * own namespace (unique by construction), and one derived from the text itself (meant to be
- * arrived at more than once).
+ * An identifier for a resource that does not exist yet carries no artifact code, so nothing
+ * makes it unique and the publish form has to check it against the identifiers already in use
+ * (#646). Which values those are is the template author's call, declared by tagging the
+ * placeholder with {@link Template#NEW_URI_PLACEHOLDER}: a tagged placeholder is checked
+ * however its value was formed, and an untagged one is never checked, even when its IRI is
+ * built from a prefix and already exists.
  */
-class PrefixMintedIdTest {
+class NewUriPlaceholderTest {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static final String NP_URI = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE";
     private static final String TARGET_NAMESPACE = "https://w3id.org/np/~~~ARTIFACTCODE~~~/";
     private static final String SPACE_PREFIX = "https://w3id.org/spaces/";
-    private static final String AIDA_PREFIX = "http://purl.org/aida/";
+    private static final String TOPIC_PREFIX = "https://w3id.org/topics/";
 
-    // As in "Defining an open-ended Space (with root definition)": an introduced resource
-    // named below a fixed prefix.
+    // As in "Defining an open-ended Space (with root definition)": a new resource named below
+    // a fixed prefix, tagged so that the identifier gets checked.
     private static final IRI SPACE_FIELD = vf.createIRI(NP_URI + "/space");
-    // As in "Introducing a user": an introduced resource the user types out in full.
-    private static final IRI AGENT_FIELD = vf.createIRI(NP_URI + "/agent");
-    // An introduced resource minted under the nanopublication itself.
+    // Tagged, but with no prefix: the user types the identifier of the new resource in full.
+    private static final IRI FULL_IRI_FIELD = vf.createIRI(NP_URI + "/fullIri");
+    // Prefixed and introduced, but untagged: nothing is checked for it.
+    private static final IRI TOPIC_FIELD = vf.createIRI(NP_URI + "/topic");
+    // Tagged but minted under the nanopublication itself, which the artifact code makes unique.
     private static final IRI LOCAL_FIELD = vf.createIRI(NP_URI + "/local");
-    // As in the AIDA sentence templates: an introduced resource whose IRI is derived from
-    // the text itself.
-    private static final IRI AIDA_FIELD = vf.createIRI(NP_URI + "/aida");
 
     private MockedStatic<TemplateData> templateDataMockedStatic;
 
@@ -71,7 +69,7 @@ class PrefixMintedIdTest {
     }
 
     /**
-     * Builds a template that introduces four resources, one per way of arriving at an IRI.
+     * Builds a template with one placeholder per combination of tag and prefix that matters.
      */
     private TemplateContext spaceTemplateContext() throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
@@ -79,42 +77,48 @@ class PrefixMintedIdTest {
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
         IRI templateNode = creator.getAssertionUri();
         IRI stSpace = vf.createIRI(NP_URI + "/st1");
-        IRI stAgent = vf.createIRI(NP_URI + "/st2");
-        IRI stLocal = vf.createIRI(NP_URI + "/st3");
-        IRI stAida = vf.createIRI(NP_URI + "/st4");
+        IRI stFullIri = vf.createIRI(NP_URI + "/st2");
+        IRI stTopic = vf.createIRI(NP_URI + "/st3");
+        IRI stLocal = vf.createIRI(NP_URI + "/st4");
         creator.addAssertionStatement(templateNode, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
         creator.addAssertionStatement(templateNode, RDFS.LABEL, vf.createLiteral("Defining a space"));
         creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, stSpace);
-        creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, stAgent);
+        creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, stFullIri);
+        creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, stTopic);
         creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, stLocal);
-        creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, stAida);
         creator.addAssertionStatement(stSpace, RDF.SUBJECT, SPACE_FIELD);
         creator.addAssertionStatement(stSpace, RDF.PREDICATE, RDF.TYPE);
         creator.addAssertionStatement(stSpace, RDF.OBJECT, vf.createIRI("https://w3id.org/kpxl/gen/terms/Space"));
-        creator.addAssertionStatement(stAgent, RDF.SUBJECT, SPACE_FIELD);
-        creator.addAssertionStatement(stAgent, RDF.PREDICATE, vf.createIRI("https://w3id.org/kpxl/gen/terms/hasAdmin"));
-        creator.addAssertionStatement(stAgent, RDF.OBJECT, AGENT_FIELD);
+        creator.addAssertionStatement(stFullIri, RDF.SUBJECT, SPACE_FIELD);
+        creator.addAssertionStatement(stFullIri, RDF.PREDICATE, RDFS.SEEALSO);
+        creator.addAssertionStatement(stFullIri, RDF.OBJECT, FULL_IRI_FIELD);
+        creator.addAssertionStatement(stTopic, RDF.SUBJECT, SPACE_FIELD);
+        creator.addAssertionStatement(stTopic, RDF.PREDICATE, RDFS.COMMENT);
+        creator.addAssertionStatement(stTopic, RDF.OBJECT, TOPIC_FIELD);
         creator.addAssertionStatement(stLocal, RDF.SUBJECT, SPACE_FIELD);
-        creator.addAssertionStatement(stLocal, RDF.PREDICATE, RDFS.SEEALSO);
+        creator.addAssertionStatement(stLocal, RDF.PREDICATE, RDFS.ISDEFINEDBY);
         creator.addAssertionStatement(stLocal, RDF.OBJECT, LOCAL_FIELD);
-        creator.addAssertionStatement(stAida, RDF.SUBJECT, SPACE_FIELD);
-        creator.addAssertionStatement(stAida, RDF.PREDICATE, RDFS.COMMENT);
-        creator.addAssertionStatement(stAida, RDF.OBJECT, AIDA_FIELD);
+
         creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
         creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
+        creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
         creator.addAssertionStatement(SPACE_FIELD, NTEMPLATE.HAS_PREFIX, vf.createLiteral(SPACE_PREFIX));
         creator.addAssertionStatement(SPACE_FIELD, RDFS.LABEL, vf.createLiteral("Space identifier"));
-        creator.addAssertionStatement(AGENT_FIELD, RDF.TYPE, NTEMPLATE.AGENT_PLACEHOLDER);
-        creator.addAssertionStatement(AGENT_FIELD, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
-        creator.addAssertionStatement(AGENT_FIELD, RDFS.LABEL, vf.createLiteral("an admin of the space"));
+
+        creator.addAssertionStatement(FULL_IRI_FIELD, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
+        creator.addAssertionStatement(FULL_IRI_FIELD, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
+        creator.addAssertionStatement(FULL_IRI_FIELD, RDFS.LABEL, vf.createLiteral("identifier of the new record"));
+
+        creator.addAssertionStatement(TOPIC_FIELD, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
+        creator.addAssertionStatement(TOPIC_FIELD, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
+        creator.addAssertionStatement(TOPIC_FIELD, NTEMPLATE.HAS_PREFIX, vf.createLiteral(TOPIC_PREFIX));
+        creator.addAssertionStatement(TOPIC_FIELD, RDFS.LABEL, vf.createLiteral("the topic"));
+
         creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, NTEMPLATE.URI_PLACEHOLDER);
         creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, NTEMPLATE.LOCAL_RESOURCE);
-        creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
+        creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
         creator.addAssertionStatement(LOCAL_FIELD, RDFS.LABEL, vf.createLiteral("short id of the record"));
-        creator.addAssertionStatement(AIDA_FIELD, RDF.TYPE, NTEMPLATE.AUTO_ESCAPE_URI_PLACEHOLDER);
-        creator.addAssertionStatement(AIDA_FIELD, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
-        creator.addAssertionStatement(AIDA_FIELD, NTEMPLATE.HAS_PREFIX, vf.createLiteral(AIDA_PREFIX));
-        creator.addAssertionStatement(AIDA_FIELD, RDFS.LABEL, vf.createLiteral("the AIDA sentence"));
+
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
         TemplateData templateDataMock = mock(TemplateData.class);
@@ -129,67 +133,51 @@ class PrefixMintedIdTest {
     // The headline case: the user types "my-space" and the template's prefix turns it into a
     // full IRI that nothing else guarantees to be free.
     @Test
-    void aNameTypedBelowAPrefixIsMinted() throws Exception {
+    void aTaggedNameBelowAPrefixIsChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
         context.getComponentModels().put(SPACE_FIELD, Model.of("my-space"));
         Value processed = context.processValue(SPACE_FIELD);
         assertEquals(SPACE_PREFIX + "my-space", processed.stringValue());
-        assertTrue(context.getPrefixMintedIris().contains(processed),
-                "an IRI formed from the template's prefix has to be checked for collisions");
-        assertTrue(context.getIntroducedIris().contains(processed));
+        assertTrue(context.getNewUriIris().contains(processed),
+                "a tagged placeholder has to be checked for collisions");
     }
 
-    // "Defining an open-ended Space with existing URI" exists precisely so that an existing
-    // IRI can be used, so a fully typed-out IRI is a reference, not a mint.
+    // The tag says the value names something new, so how the IRI was arrived at is beside the
+    // point: a typed-out IRI is checked exactly like a prefixed one.
     @Test
-    void anIriTypedOutInFullIsNotMinted() throws Exception {
+    void aTaggedIriTypedOutInFullIsChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(SPACE_FIELD, Model.of("https://example.org/spaces/existing"));
-        Value processed = context.processValue(SPACE_FIELD);
-        assertEquals("https://example.org/spaces/existing", processed.stringValue());
-        assertFalse(context.getPrefixMintedIris().contains(processed),
-                "naming an existing resource is not minting a new identifier");
-        assertTrue(context.getIntroducedIris().contains(processed));
+        context.getComponentModels().put(FULL_IRI_FIELD, Model.of("https://example.org/records/new-one"));
+        Value processed = context.processValue(FULL_IRI_FIELD);
+        assertEquals("https://example.org/records/new-one", processed.stringValue());
+        assertTrue(context.getNewUriIris().contains(processed),
+                "the tag decides, not whether a prefix was used");
     }
 
-    // The user-introduction case: the ORCID is an introduced resource that is meant to be
-    // introduced again whenever a new key is declared, so it must not be checked.
+    // The point of making this opt-in: every template that does not ask for the check keeps
+    // publishing as before, prefix or no prefix, existing identifier or not.
     @Test
-    void anAgentIriWithoutAPrefixIsNotMinted() throws Exception {
+    void anUntaggedPlaceholderIsNeverChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(AGENT_FIELD, Model.of("https://orcid.org/0000-0002-1267-0234"));
-        Value processed = context.processValue(AGENT_FIELD);
-        assertEquals("https://orcid.org/0000-0002-1267-0234", processed.stringValue());
-        assertFalse(context.getPrefixMintedIris().contains(processed),
-                "a placeholder without a prefix mints nothing");
-        assertTrue(context.getIntroducedIris().contains(processed));
+        context.getComponentModels().put(TOPIC_FIELD, Model.of("cats"));
+        Value processed = context.processValue(TOPIC_FIELD);
+        assertEquals(TOPIC_PREFIX + "cats", processed.stringValue());
+        assertFalse(context.getNewUriIris().contains(processed),
+                "an untagged placeholder is left alone even when its IRI is built from a prefix");
+        assertTrue(context.getIntroducedIris().contains(processed),
+                "being an introduced resource is not by itself a reason to check");
     }
 
-    // An AIDA sentence IRI is the sentence itself: two people writing the same sentence are
-    // meant to arrive at the same IRI, so finding it already published is agreement rather
-    // than a collision.
+    // A local resource picks up this nanopublication's artifact code at signing time, so the
+    // value seen here is not the one that gets published and there is nothing to look up.
     @Test
-    void anAutoEscapedIriIsNotMinted() throws Exception {
-        TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(AIDA_FIELD, Model.of("The cat sat on the mat."));
-        Value processed = context.processValue(AIDA_FIELD);
-        assertEquals(AIDA_PREFIX + "The+cat+sat+on+the+mat.", processed.stringValue());
-        assertFalse(context.getPrefixMintedIris().contains(processed),
-                "an IRI derived from the text itself is meant to be arrived at more than once");
-        assertTrue(context.getIntroducedIris().contains(processed));
-    }
-
-    // A local resource picks up this nanopublication's artifact code at signing time, which
-    // is what makes it unique; there is nothing to check.
-    @Test
-    void aResourceMintedUnderTheNanopubIsNotChecked() throws Exception {
+    void aTaggedResourceMintedUnderTheNanopubIsNotChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
         context.getComponentModels().put(LOCAL_FIELD, Model.of("record"));
         Value processed = context.processValue(LOCAL_FIELD);
         assertEquals(TARGET_NAMESPACE + "record", processed.stringValue());
-        assertFalse(context.getPrefixMintedIris().contains(processed),
+        assertFalse(context.getNewUriIris().contains(processed),
                 "an identifier carrying the nanopublication's artifact code is unique by construction");
-        assertTrue(context.getIntroducedIris().contains(processed));
     }
 
     // What the publish form does with all of the above: refuse the publication and name the
@@ -198,10 +186,10 @@ class PrefixMintedIdTest {
     void aTakenIdentifierIsReported() throws Exception {
         TemplateContext context = spaceTemplateContext();
         context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
-        IRI minted = (IRI) context.processValue(SPACE_FIELD);
+        IRI newUri = (IRI) context.processValue(SPACE_FIELD);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
-            q.when(() -> QueryApiAccess.isUriIntroduced(minted.stringValue())).thenReturn(true);
-            assertEquals(minted, PublishForm.findTakenMintedId(context));
+            q.when(() -> QueryApiAccess.isUriIntroduced(newUri.stringValue())).thenReturn(true);
+            assertEquals(newUri, PublishForm.findTakenNewUri(context));
         }
     }
 
@@ -212,7 +200,20 @@ class PrefixMintedIdTest {
         context.processValue(SPACE_FIELD);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
             q.when(() -> QueryApiAccess.isUriIntroduced(anyString())).thenReturn(false);
-            assertNull(PublishForm.findTakenMintedId(context));
+            assertNull(PublishForm.findTakenNewUri(context));
+        }
+    }
+
+    // An untagged placeholder must not even reach the query service: the check is off for it,
+    // not merely tolerant of what it finds.
+    @Test
+    void anUntaggedPlaceholderIsNotLookedUpAtAll() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        context.getComponentModels().put(TOPIC_FIELD, Model.of("cats"));
+        context.processValue(TOPIC_FIELD);
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            assertNull(PublishForm.findTakenNewUri(context));
+            q.verifyNoInteractions();
         }
     }
 
@@ -225,7 +226,7 @@ class PrefixMintedIdTest {
         context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
         context.processValue(SPACE_FIELD);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
-            assertNull(PublishForm.findTakenMintedId(context));
+            assertNull(PublishForm.findTakenNewUri(context));
             q.verifyNoInteractions();
         }
     }
