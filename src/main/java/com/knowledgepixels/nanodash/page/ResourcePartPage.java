@@ -74,9 +74,27 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
+     * The nanopublication defining the part declares it; a part without one has nothing
+     * to embed, but its download still lists what the views show about it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        Nanopub definition = Utils.getAsNanopub(definitionNanopubId);
+        List<Nanopub> declarations = definition == null ? List.of() : List.of(definition);
+        return new RdfSource("part", getPartId(), getPageParameters().get("context").toString(), declarations);
+    }
+
+    /**
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
     private AbstractResourceWithProfile resourceWithProfile;
+
+    /**
+     * The nanopublication defining this part, or null when none is known.
+     */
+    private String definitionNanopubId;
 
     /**
      * The part's label as resolved for the title, handed to links out of this page so
@@ -130,6 +148,7 @@ public class ResourcePartPage extends NanodashPage {
                 throw new IllegalArgumentException("Not a resource, space, or user: " + contextId);
             }
         }
+        redirectIfRdfRequested(new RdfSource("part", id, contextId, List.of()));
 
         QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(id, contextId, resourceWithProfile);
         ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
@@ -161,6 +180,7 @@ public class ResourcePartPage extends NanodashPage {
         } else {
             nanopubId = null;
         }
+        definitionNanopubId = nanopubId;
 //        if (getDefResp == null || getDefResp.getData().isEmpty()) {
 //            throw new RestartResponseException(ExplorePage.class, parameters);
 //        }

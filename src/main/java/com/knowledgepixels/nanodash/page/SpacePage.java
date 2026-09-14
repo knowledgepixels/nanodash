@@ -24,6 +24,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +80,7 @@ public class SpacePage extends NanodashPage {
 
         Space space = resolveSpace(parameters);
         spaceId = space.getId();
+        redirectIfRdfRequested(new RdfSource("space", spaceId, null, List.of()));
         spaceModel = new LoadableDetachableModel<Space>() {
             @Override
             protected Space load() {
@@ -302,6 +304,18 @@ public class SpacePage extends NanodashPage {
         String description = space.getDescription();
         if (description != null && !description.isBlank()) return description;
         return "The " + space.getLabel() + " space on Nanodash, with its nanopublications, members and views.";
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The space's root nanopublication declares it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        Space space = spaceModel.getObject();
+        List<Nanopub> declarations = space != null && space.getNanopub() != null ? List.of(space.getNanopub()) : List.of();
+        return new RdfSource("space", spaceId, null, declarations);
     }
 
     /**

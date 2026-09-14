@@ -23,6 +23,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
+import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +74,7 @@ public class MaintainedResourcePage extends NanodashPage {
 
         MaintainedResource resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
         resourceId = resource.getId();
+        redirectIfRdfRequested(new RdfSource("resource", resourceId, null, List.of()));
         resourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
@@ -205,6 +207,18 @@ public class MaintainedResourcePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The resource's declaring nanopublication describes it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        MaintainedResource resource = resourceModel.getObject();
+        List<Nanopub> declarations = resource != null && resource.getNanopub() != null ? List.of(resource.getNanopub()) : List.of();
+        return new RdfSource("resource", resourceId, null, declarations);
     }
 
     /**
