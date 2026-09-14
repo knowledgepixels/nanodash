@@ -35,19 +35,8 @@ public class Template implements Serializable {
      */
     public static final String DEFAULT_TARGET_NAMESPACE = "https://w3id.org/np/";
 
-    // TODO Move these to the other ntemplate vocabulary terms in nanopub-java:
-    private static final IRI ADVANCED_STATEMENT = vf.createIRI("https://w3id.org/np/o/ntemplate/AdvancedStatement");
-
-    /**
-     * Type of a literal placeholder whose language tag is selected by the user at fill time.
-     */
-    public static final IRI LANGUAGE_TAGGED_LITERAL_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/LanguageTaggedLiteralPlaceholder");
-
-    /**
-     * Predicate restricting the language tags offered by a language-tag picker.
-     */
-    public static final IRI POSSIBLE_LANGUAGE_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleLanguageTag");
-
+    // TODO Move this to the other ntemplate vocabulary terms in nanopub-java (added there in
+    // Nanopublication/nanopub-java#156; drop it once that release is picked up):
     /**
      * Type of a template whose filled content applies only to the specific nanopublication
      * it was published with, and is not carried over when that nanopublication is
@@ -612,7 +601,7 @@ public class Template implements Serializable {
     public boolean isLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && (typeMap.get(iri).contains(NTEMPLATE.LITERAL_PLACEHOLDER) || typeMap.get(iri).contains(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)
-                || typeMap.get(iri).contains(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER));
+                || typeMap.get(iri).contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER));
     }
 
     /**
@@ -623,7 +612,7 @@ public class Template implements Serializable {
      */
     public boolean isLanguageTagSelectable(IRI iri) {
         iri = transform(iri);
-        return typeMap.containsKey(iri) && typeMap.get(iri).contains(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
     }
 
     /**
@@ -744,7 +733,7 @@ public class Template implements Serializable {
             if (t.equals(NTEMPLATE.AGENT_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)) return true;
-            if (t.equals(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER)) return true;
+            if (t.equals(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.SEQUENCE_ELEMENT_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER)) return true;
         }
@@ -809,7 +798,7 @@ public class Template implements Serializable {
      * @return true if the IRI is an advanced statement, false otherwise.
      */
     public boolean isAdvancedStatement(IRI iri) {
-        return typeMap.containsKey(iri) && typeMap.get(iri).contains(ADVANCED_STATEMENT);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.ADVANCED_STATEMENT);
     }
 
     /**
@@ -1020,7 +1009,7 @@ public class Template implements Serializable {
     // picker wins so the placeholder keeps rendering as a text field.
     private void checkLanguageTagPlaceholders() {
         for (Map.Entry<IRI, List<IRI>> e : typeMap.entrySet()) {
-            if (e.getValue().contains(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER) && datatypeMap.containsKey(e.getKey())) {
+            if (e.getValue().contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER) && datatypeMap.containsKey(e.getKey())) {
                 logger.warn("Ignoring datatype {} on language-tag-selectable placeholder {}", datatypeMap.get(e.getKey()), e.getKey());
                 datatypeMap.remove(e.getKey());
             }
@@ -1150,7 +1139,7 @@ public class Template implements Serializable {
                 datatypeMap.put(subj, objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
                 languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
-            } else if (pred.equals(POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
+            } else if (pred.equals(NTEMPLATE.POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
                 possibleLanguageTagMap.computeIfAbsent(subj, k -> new ArrayList<>()).add(Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(NTEMPLATE.HAS_PREFIX) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
@@ -1354,7 +1343,7 @@ public class Template implements Serializable {
                 datatypeMap.put(subj, objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
                 languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
-            } else if (pred.equals(POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
+            } else if (pred.equals(NTEMPLATE.POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
                 possibleLanguageTagMap.computeIfAbsent(subj, k -> new ArrayList<>()).add(Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(NTEMPLATE.HAS_PREFIX) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);

@@ -54,7 +54,7 @@ public class LanguageTagTemplateTest {
 
     @Test
     void selectablePlaceholderParses() throws Exception {
-        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         Template t = new Template(creator.finalizeNanopub());
         assertTrue(t.isLanguageTagSelectable(COMMENT_PLACEHOLDER));
         assertTrue(t.isLiteralPlaceholder(COMMENT_PLACEHOLDER));
@@ -64,9 +64,9 @@ public class LanguageTagTemplateTest {
 
     @Test
     void possibleLanguageTagsAreNormalized() throws Exception {
-        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
-        creator.addAssertionStatement(COMMENT_PLACEHOLDER, Template.POSSIBLE_LANGUAGE_TAG, vf.createLiteral("en"));
-        creator.addAssertionStatement(COMMENT_PLACEHOLDER, Template.POSSIBLE_LANGUAGE_TAG, vf.createLiteral("DE-de"));
+        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        creator.addAssertionStatement(COMMENT_PLACEHOLDER, NTEMPLATE.POSSIBLE_LANGUAGE_TAG, vf.createLiteral("en"));
+        creator.addAssertionStatement(COMMENT_PLACEHOLDER, NTEMPLATE.POSSIBLE_LANGUAGE_TAG, vf.createLiteral("DE-de"));
         Template t = new Template(creator.finalizeNanopub());
         List<String> tags = t.getPossibleLanguageTags(COMMENT_PLACEHOLDER);
         assertEquals(2, tags.size());
@@ -76,7 +76,7 @@ public class LanguageTagTemplateTest {
 
     @Test
     void defaultLanguageTagParses() throws Exception {
-        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         creator.addAssertionStatement(COMMENT_PLACEHOLDER, NTEMPLATE.HAS_LANGUAGE_TAG, vf.createLiteral("en"));
         Template t = new Template(creator.finalizeNanopub());
         assertEquals("en", t.getLanguageTag(COMMENT_PLACEHOLDER));
@@ -94,7 +94,7 @@ public class LanguageTagTemplateTest {
 
     @Test
     void selectableTypeAloneIsLiteralPlaceholder() throws Exception {
-        NanopubCreator creator = newCreator(Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        NanopubCreator creator = newCreator(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         Template t = new Template(creator.finalizeNanopub());
         assertTrue(t.isLiteralPlaceholder(COMMENT_PLACEHOLDER));
         assertTrue(t.isPlaceholder(COMMENT_PLACEHOLDER));
@@ -103,7 +103,7 @@ public class LanguageTagTemplateTest {
 
     @Test
     void conflictingDatatypeIsDropped() throws Exception {
-        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         creator.addAssertionStatement(COMMENT_PLACEHOLDER, NTEMPLATE.HAS_DATATYPE, XSD.DATE);
         Template t = new Template(creator.finalizeNanopub());
         assertNull(t.getDatatype(COMMENT_PLACEHOLDER));
@@ -119,8 +119,8 @@ public class LanguageTagTemplateTest {
 
     @Test
     void repetitionSuffixedLookupWorks() throws Exception {
-        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
-        creator.addAssertionStatement(COMMENT_PLACEHOLDER, Template.POSSIBLE_LANGUAGE_TAG, vf.createLiteral("en"));
+        NanopubCreator creator = newCreator(NTEMPLATE.LITERAL_PLACEHOLDER, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        creator.addAssertionStatement(COMMENT_PLACEHOLDER, NTEMPLATE.POSSIBLE_LANGUAGE_TAG, vf.createLiteral("en"));
         Template t = new Template(creator.finalizeNanopub());
         IRI suffixed = vf.createIRI(COMMENT_PLACEHOLDER.stringValue() + "__1");
         assertTrue(t.isLanguageTagSelectable(suffixed));

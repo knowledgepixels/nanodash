@@ -81,7 +81,7 @@ public class LanguageTagPublishTest {
         creator.addAssertionStatement(ST1, RDF.OBJECT, COMMENT);
         creator.addAssertionStatement(COMMENT, RDF.TYPE, NTEMPLATE.LITERAL_PLACEHOLDER);
         if (selectable) {
-            creator.addAssertionStatement(COMMENT, RDF.TYPE, Template.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+            creator.addAssertionStatement(COMMENT, RDF.TYPE, NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
         }
         if (fixedOrDefaultTag != null) {
             creator.addAssertionStatement(COMMENT, NTEMPLATE.HAS_LANGUAGE_TAG, vf.createLiteral(fixedOrDefaultTag));
