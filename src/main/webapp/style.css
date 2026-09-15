@@ -2892,8 +2892,15 @@ div.navigator .goto a[disabled] {
   margin-bottom: 0;
 }
 
-.paragraph-block:first-child .paragraph-header {
+.paragraph-block:first-child .paragraph-header:not(.no-title) {
   margin-top: 1.25em;
+}
+
+/* Each block contains its own floats, so the row menu of a title-less paragraph
+   (floated, see below) never spills into the next block and shoves that block's
+   menu leftward out of line. */
+.paragraph-block {
+  display: flow-root;
 }
 
 /* A regular paragraph gap (1em) below the heading text. The heading row itself
@@ -2913,11 +2920,12 @@ div.navigator .goto a[disabled] {
   margin-bottom: 0;
 }
 
-/* Title-less paragraph: float the source link to the top-right corner so it
-   doesn't occupy its own line; the content flows up beside it. */
+/* Title-less paragraph: float the row menu to the top-right corner so it
+   doesn't occupy its own line; the content flows up beside it. The top margin
+   matches the content's below, so the menu rides the first text line. */
 .paragraph-header.no-title {
   float: right;
-  margin: 0 0 0 12px;
+  margin: 8px 0 0 12px;
 }
 
 .paragraph-header.no-title + .paragraph-content {
