@@ -34,6 +34,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Set<IRI> appliesToClasses = new HashSet<>();
     private Set<IRI> appliesToNamespaces = new HashSet<>();
     private IRI resource;
+    private boolean presetDerived = false;
 
     /**
      * Constructor for ViewDisplay with only a View. This is used for temporary view displays used in profiles as defaults.
@@ -120,6 +121,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         this.id = null;
         this.nanopub = view.getNanopub();
         this.view = view;
+        this.presetDerived = true;
         if (topLevel) {
             // gen:hasTopLevelView: pin to the resource's own page (top level).
             this.appliesTo.add(resourceId);
@@ -231,6 +233,17 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
 
     public IRI getViewIri() {
         return viewIri;
+    }
+
+    /**
+     * Whether this display comes from a preset assignment rather than from a view-display
+     * nanopub of its own (see {@link #forPresetView}). Such a display has no nanopub to edit,
+     * but it can still be deactivated for the resource like a standalone one.
+     *
+     * @return true if derived from a preset assignment
+     */
+    public boolean isPresetDerived() {
+        return presetDerived;
     }
 
     public IRI getViewKindIri() {
