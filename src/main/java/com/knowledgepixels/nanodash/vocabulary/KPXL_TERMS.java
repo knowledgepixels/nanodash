@@ -29,6 +29,10 @@ public class KPXL_TERMS {
      * optional {@code title} column as its heading). Unlike the other display types,
      * the query computes the visual itself — e.g. a diagram laid out in SPARQL from
      * the underlying data.
+     *
+     * <p>A CONSTRUCT query may instead describe the figure as RDF in the OntoSVG
+     * vocabulary, which is serialized to markup before the same sanitization and
+     * rendering (issue #592); see {@link com.knowledgepixels.nanodash.OntoSvg}.
      */
     public static final IRI SVG_VIEW = VocabUtils.createIRI(NAMESPACE, "SvgView");
 
