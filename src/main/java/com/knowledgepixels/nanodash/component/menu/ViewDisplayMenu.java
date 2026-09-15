@@ -157,11 +157,16 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                     + "&template-version=latest"
                     + "&context=" + Utils.urlEncode(pageResourceId);
         }
-        // "edit"/"deactivate view display" only make sense for an actual view-display
-        // assignment (one with a resolved view IRI). Built-in views rendered directly —
-        // e.g. a space's About-tab meta-views (roles/members/presets/view-displays) — have
-        // no view-display nanopub, so these options are hidden for them.
+        // "edit view display" only makes sense for an actual view-display nanopub (one with
+        // a resolved view IRI). Built-in views rendered directly — e.g. a space's About-tab
+        // meta-views (roles/members/presets/view-displays) — have no view-display nanopub,
+        // and neither do views supplied by a preset assignment, so it is hidden for those.
         boolean isViewDisplay = viewDisplay.getViewIri() != null;
+        // "deactivate view display" additionally covers preset-supplied views: a deactivation
+        // nanopub for the view's kind takes precedence over the preset (latest-wins per kind
+        // in AbstractResourceWithProfile.filterViewDisplays), so it works without a display
+        // nanopub of its own.
+        boolean isDeactivatable = isViewDisplay || viewDisplay.isPresetDerived();
         // Label (with its leading icon) comes from the markup body, so no label arg here.
         ExternalLink adjustLink = new ExternalLink("adjust", adjustUrl);
         adjustLink.setVisible(showAdjust && isViewDisplay);
@@ -175,7 +180,7 @@ public class ViewDisplayMenu extends BaseDisplayMenu {
                         .set("param_view", viewDisplay.getViewIri() != null ? viewDisplay.getViewIri().stringValue() : viewDisplay.getView().getId())
                         .set("context", pageResourceId)
                         .set("refresh-upon-publish", pageResourceId));
-        deactivateLink.setVisible(showAdjust && isViewDisplay);
+        deactivateLink.setVisible(showAdjust && isDeactivatable);
         addEntry("deactivate", deactivateLink);
 
         boolean showAddToOwn = session.getUserIri() != null
