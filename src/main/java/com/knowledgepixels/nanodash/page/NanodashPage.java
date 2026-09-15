@@ -373,6 +373,20 @@ public abstract class NanodashPage extends WebPage {
     }
 
     /**
+     * The IRI this page should be cited as, or null where it should not be cited as anything.
+     * <p>
+     * A page returns one only when it <em>is</em> that resource's own page -- the one its IRI
+     * resolves to. A page that merely links to a nanopublication is not announcing itself as
+     * that nanopublication, and a listing that links to many is announcing itself as none of
+     * them (issue #716).
+     *
+     * @return the IRI to be cited as, or null
+     */
+    protected String getCiteAsIri() {
+        return null;
+    }
+
+    /**
      * Answers a client that asked for RDF in its {@code Accept} header with a 303 to the
      * download page in the matching format, and lets everyone else have the HTML (issue
      * #710). Pages call this from their constructor as soon as they know their resource,
@@ -418,6 +432,31 @@ public abstract class NanodashPage extends WebPage {
         }
         if (jsonLd == null) return;
         response.render(StringHeaderItem.forString("<script type=\"application/ld+json\">\n" + jsonLd + "\n</script>\n"));
+    }
+
+    // The vocabulary the cite-as relation is a term of, scoped to the one link that uses it:
+    // with it in scope every token of that link's rel resolves against it, which is why the
+    // link carries the relation and nothing else (issues #633, #716).
+    private static final String LINK_RELATIONS_VOCAB = "https://www.w3.org/ns/iana/link-relations/relation#";
+
+    /**
+     * Renders the {@code cite-as} link (<a href="https://datatracker.ietf.org/doc/html/rfc8574">RFC
+     * 8574</a>) that says which IRI this page is to be cited as, for pages that are a resource's
+     * own page. Annotation tools read it to anchor to the resource rather than to whichever URL
+     * the reader arrived by (issue #633).
+     * <p>
+     * The {@code vocab} attribute lets an RDFa parser resolve the relation, as dokieli's does.
+     * Rendered into the head rather than onto the visible IRI link: a {@code rel} is a list of
+     * tokens and the visible link already carries {@code noopener noreferrer}, which the vocab
+     * would turn into link-relation triples of their own.
+     *
+     * @param response the header response to render into
+     */
+    private void renderCiteAs(IHeaderResponse response) {
+        String citeAsIri = getCiteAsIri();
+        if (citeAsIri == null || citeAsIri.isBlank()) return;
+        response.render(MetaDataHeaderItem.forLinkTag("cite-as", citeAsIri)
+                .addTagAttribute("vocab", LINK_RELATIONS_VOCAB));
     }
 
     /**
@@ -470,6 +509,7 @@ public abstract class NanodashPage extends WebPage {
         super.renderHead(response);
         renderPageMetadata(response);
         renderRdfLinks(response);
+        renderCiteAs(response);
         response.render(CssHeaderItem.forUrl(getStyleSheetUrl()));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
