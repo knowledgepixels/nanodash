@@ -19,7 +19,6 @@ import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
-import org.apache.wicket.markup.head.MetaDataHeaderItem;
 import org.apache.wicket.markup.head.StringHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
@@ -29,12 +28,17 @@ import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
+import org.apache.wicket.util.string.Strings;
+import org.owasp.html.Encoding;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 /**
  * Abstract base class for Nanodash pages.
@@ -63,6 +67,12 @@ public abstract class NanodashPage extends WebPage {
     private static final int MAX_META_DESCRIPTION_LENGTH = 300;
 
     private String metaDescription = SITE_META_DESCRIPTION;
+
+    private static final PolicyFactory TEXT_ONLY_POLICY = new HtmlPolicyBuilder().toFactory();
+
+    private static final Pattern BLOCK_BOUNDARY = Pattern.compile(
+            "</?(?:p|div|br|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|section|article)\\b[^>]*>",
+            Pattern.CASE_INSENSITIVE);
 
     /**
      * Returns the mount path for this page.
@@ -342,11 +352,38 @@ public abstract class NanodashPage extends WebPage {
      *                    one longer than a search result snippet can show is cut short
      */
     protected void setMetaDescription(String description) {
-        if (description == null || description.isBlank()) return;
-        String oneLine = description.strip().replaceAll("\\s+", " ");
-        metaDescription = oneLine.length() <= MAX_META_DESCRIPTION_LENGTH
+        String text = toMetaDescription(description);
+        if (text != null) metaDescription = text;
+    }
+
+    /**
+     * Turns a description into the text a meta description holds: descriptions are often
+     * HTML, which search results and link previews show verbatim, so its markup is dropped
+     * and its entities decoded; the rest is put on one line and cut short where it is
+     * longer than a search result snippet can show.
+     *
+     * @param description the description, as plain text or HTML
+     * @return the meta description, or null if nothing is left of the description
+     */
+    static String toMetaDescription(String description) {
+        if (description == null) return null;
+        String oneLine = toPlainText(description).strip().replaceAll("\\s+", " ");
+        if (oneLine.isEmpty()) return null;
+        return oneLine.length() <= MAX_META_DESCRIPTION_LENGTH
                 ? oneLine
                 : oneLine.substring(0, MAX_META_DESCRIPTION_LENGTH).stripTrailing() + "\u2026";
+    }
+
+    /**
+     * The text of an HTML fragment, with block-level boundaries kept as spaces so that
+     * paragraphs and list items do not run into each other.
+     *
+     * @param html the HTML fragment, or plain text
+     * @return the text, with markup removed and entities decoded
+     */
+    static String toPlainText(String html) {
+        String spaced = BLOCK_BOUNDARY.matcher(html).replaceAll(" ");
+        return Encoding.decodeHtml(TEXT_ONLY_POLICY.sanitize(spaced));
     }
 
     /**
@@ -406,8 +443,7 @@ public abstract class NanodashPage extends WebPage {
         RdfSource source = getRdfSource();
         if (source == null) return;
         for (RdfNegotiation.Variant variant : RdfNegotiation.VARIANTS) {
-            response.render(MetaDataHeaderItem.forLinkTag("alternate", source.downloadUrl(variant))
-                    .addTagAttribute("type", variant.mediaType()));
+            response.render(headTag("link", "rel", "alternate", "href", source.downloadUrl(variant), "type", variant.mediaType()));
         }
         String jsonLd;
         try {
@@ -434,30 +470,48 @@ public abstract class NanodashPage extends WebPage {
         String title = getMetaTitle();
         String description = getMetaDescription();
         String url = Utils.absolutePageUrl(getClass(), getPageParameters());
-        response.render(MetaDataHeaderItem.forMetaTag("description", description));
-        response.render(MetaDataHeaderItem.forLinkTag("canonical", url));
-        response.render(propertyMetaTag("og:type", "website"));
-        response.render(propertyMetaTag("og:site_name", SITE_NAME));
-        response.render(propertyMetaTag("og:title", title));
-        response.render(propertyMetaTag("og:description", description));
-        response.render(propertyMetaTag("og:url", url));
-        response.render(MetaDataHeaderItem.forMetaTag("twitter:card", "summary"));
-        response.render(MetaDataHeaderItem.forMetaTag("twitter:title", title));
-        response.render(MetaDataHeaderItem.forMetaTag("twitter:description", description));
+        response.render(headTag("meta", "name", "description", "content", description));
+        response.render(headTag("link", "rel", "canonical", "href", url));
+        response.render(headTag("meta", "property", "og:type", "content", "website"));
+        response.render(headTag("meta", "property", "og:site_name", "content", SITE_NAME));
+        response.render(headTag("meta", "property", "og:title", "content", title));
+        response.render(headTag("meta", "property", "og:description", "content", description));
+        response.render(headTag("meta", "property", "og:url", "content", url));
+        response.render(headTag("meta", "name", "twitter:card", "content", "summary"));
+        response.render(headTag("meta", "name", "twitter:title", "content", title));
+        response.render(headTag("meta", "name", "twitter:description", "content", description));
     }
 
     /**
-     * A meta tag keyed by {@code property} instead of {@code name}, as Open Graph
-     * requires.
+     * A {@code meta} or {@code link} tag for the head, with every attribute value escaped
+     * for HTML. Wicket's {@code MetaDataHeaderItem} only backslash-escapes double quotes,
+     * which HTML does not honour, so a value taken from a nanopublication (a space's
+     * description, say) could end the attribute and put markup of its own into the page.
      *
-     * @param property the property name
-     * @param content  the property value
+     * @param tagName    the tag, {@code meta} or {@code link}
+     * @param attributes attribute names and values, alternating
      * @return the header item
+     * @throws IllegalArgumentException if a name is given without a value
      */
-    private static MetaDataHeaderItem propertyMetaTag(String property, String content) {
-        return new MetaDataHeaderItem(MetaDataHeaderItem.META_TAG)
-                .addTagAttribute("property", property)
-                .addTagAttribute("content", content);
+    static StringHeaderItem headTag(String tagName, String... attributes) {
+        if (attributes.length % 2 != 0) {
+            throw new IllegalArgumentException("Attribute names and values must come in pairs");
+        }
+        StringBuilder tag = new StringBuilder("<").append(tagName);
+        for (int i = 0; i < attributes.length; i += 2) {
+            tag.append(' ').append(attributes[i]).append("=\"").append(escapeAttribute(attributes[i + 1])).append('"');
+        }
+        return StringHeaderItem.forString(tag.append(" />\n").toString());
+    }
+
+    /**
+     * Escapes a value for a double- or single-quoted HTML attribute.
+     *
+     * @param value the value, or null for an empty one
+     * @return the escaped value
+     */
+    static String escapeAttribute(String value) {
+        return value == null ? "" : Strings.escapeMarkup(value).toString();
     }
 
     /**
