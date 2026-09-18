@@ -94,7 +94,20 @@ public class ExplorePage extends NanodashPage {
         return MOUNT_PATH;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String getCiteAsIri() {
+        return citeAsIri;
+    }
+
     private Nanopub publishedNanopub = null;
+
+    // Set when the explored id resolves to a nanopublication, i.e. when this is that
+    // nanopublication's own page. Only then does the page announce what to cite it as; a page
+    // about a term that merely mentions nanopublications announces nothing (issue #716).
+    private String citeAsIri = null;
 
     /**
      * Constructor for ExplorePage.
@@ -196,6 +209,7 @@ public class ExplorePage extends NanodashPage {
         boolean isNanopubId = (np != null);
         if (isNanopubId) {
             tempRef = np.getUri().stringValue();
+            citeAsIri = tempRef;
         }
         if (!isNanopubId && tempRef.matches("^(.*[^A-Za-z0-9-_])?RA[A-Za-z0-9-_]{43}[^A-Za-z0-9-_].*$")) {
             np = Utils.getAsNanopub(tempRef.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$2"));
