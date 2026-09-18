@@ -45,6 +45,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
@@ -691,6 +692,9 @@ public class PublishForm extends Panel {
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
+                    if (!areNewUrisUnused()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
@@ -1156,6 +1160,11 @@ public class PublishForm extends Panel {
                     }
 
                     Nanopub np = createNanopub();
+                    // Checked here too: the preview page publishes the nanopublication it
+                    // was given, without coming back through this form.
+                    if (!areNewUrisUnused()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
@@ -1540,6 +1549,7 @@ public class PublishForm extends Panel {
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
+        assertionContext.getNewUriIris().clear();
         assertionContext.getRolePropertyPins().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
@@ -1717,6 +1727,75 @@ public class PublishForm extends Panel {
             return true;
         }
         feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
+        return false;
+    }
+
+    private boolean areNewUrisUnused() {
+        IRI takenId = findTakenNewUri(assertionContext);
+        if (takenId == null) {
+            return true;
+        }
+        feedbackPanel.error("The identifier " + takenId.stringValue()
+                + " is already in use. Pick a different one, or use a template for describing"
+                + " an existing resource if that is what you mean to do.");
+        return false;
+    }
+
+    /**
+     * Returns the first identifier the given assertion context forms for a placeholder the
+     * template marks as naming a resource that does not exist yet -- the IRI of a new space,
+     * say -- that is already in use, or null if all of them are free.
+     * <p>
+     * Such an identifier carries no artifact code, so nothing makes it unique: filling the
+     * same form with the same name twice yields the same IRI, and the second nanopublication
+     * silently extends the first one's resource instead of defining a new one. A
+     * nanopublication cannot be edited afterwards, so the collision is worth catching before
+     * publishing rather than after (#646).
+     * <p>
+     * Only a placeholder the template tags with {@link com.knowledgepixels.nanodash.template.Template#NEW_URI_PLACEHOLDER} is
+     * checked; everything else publishes as before, whether or not its IRI already exists.
+     * <p>
+     * Superseding and overriding exempt the identifiers the source already carries, since a new
+     * version keeps the resource it is a version of, and finding that one in use is the expected
+     * answer rather than a collision. They are not exempt wholesale: a prefix-minted identifier
+     * carries no artifact code, so nothing re-mints it for the new version, and editing the name
+     * while superseding defines a genuinely new resource that can collide like any other. (An
+     * identifier minted under the nanopublication's own namespace does change with the new
+     * artifact code, but those never reach here -- see TemplateContext#recordIfNewUri.) With no
+     * source to compare against, nothing is checked, so an unrecognised fill leaves publishing
+     * exactly as it was.
+     *
+     * @param assertionContext the assertion context, after its values have been processed
+     * @return the first identifier for a new resource that is already in use, or null if none is
+     */
+    public static IRI findTakenNewUri(TemplateContext assertionContext) {
+        FillMode fillMode = assertionContext.getFillMode();
+        Nanopub source = null;
+        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
+            source = assertionContext.getReferenceNanopub();
+            if (source == null) return null;
+        }
+        for (IRI newUri : assertionContext.getNewUriIris()) {
+            if (source != null && isUsedIn(source, newUri)) continue;
+            if (QueryApiAccess.isUriIntroduced(newUri.stringValue())) return newUri;
+        }
+        return null;
+    }
+
+    /**
+     * Tells whether the given nanopublication already mentions the given IRI, which is how a
+     * superseding version says it is carrying the source's resource over rather than naming a
+     * new one. Every graph counts: the resource appears as a subject in the assertion and again
+     * under {@code npx:introduces} in the publication info.
+     *
+     * @param nanopub the nanopublication to look in
+     * @param iri     the identifier to look for
+     * @return true if the nanopublication uses the identifier
+     */
+    private static boolean isUsedIn(Nanopub nanopub, IRI iri) {
+        for (Statement st : NanopubUtils.getStatements(nanopub)) {
+            if (iri.equals(st.getSubject()) || iri.equals(st.getObject())) return true;
+        }
         return false;
     }
 
