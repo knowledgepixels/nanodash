@@ -1,10 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.OntoSvg;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.eclipse.rdf4j.model.Model;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
@@ -83,10 +86,47 @@ public class QueryResultSvgBuilder implements Serializable {
      * @return the QueryResultSvg component
      */
     public Component build() {
-        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildSvg);
+        Component comp = isConstructQuery() ? buildFromRdfResult() : buildFromTabularResult();
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
+    }
+
+    // A CONSTRUCT view query describes the figure in RDF instead of returning its markup
+    // in an svg column (issue #592). A query that cannot be loaded is left to the tabular
+    // path, which reports the failure the same way it always has.
+    private boolean isConstructQuery() {
+        try {
+            return GrlcQuery.get(queryRef).isConstructQuery();
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private Component buildFromTabularResult() {
+        ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
+        return ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildSvg);
+    }
+
+    private Component buildFromRdfResult() {
+        Model model = ApiCache.retrieveRdfModelAsync(queryRef);
+        if (model != null) return buildSvg(markupId, asFigureRows(model));
+        return new RdfResultComponent(markupId, queryRef) {
+            @Override
+            public Component getRdfResultComponent(String id, Model loadedModel) {
+                return buildSvg(id, asFigureRows(loadedModel));
+            }
+        };
+    }
+
+    // The serialized figures are handed on as the svg column the view already renders, so
+    // that headings, actions, sanitization and the empty state stay in one place.
+    private static ApiResponse asFigureRows(Model model) {
+        ApiResponse response = new ApiResponse();
+        response.setHeader(new String[]{"svg"});
+        for (String figure : OntoSvg.toSvgMarkup(model)) {
+            response.add(new String[]{figure});
+        }
+        return response;
     }
 
     private QueryResultSvg buildSvg(String markupId, ApiResponse response) {
