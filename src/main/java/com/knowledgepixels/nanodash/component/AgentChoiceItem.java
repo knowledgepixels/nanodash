@@ -10,6 +10,7 @@ import com.knowledgepixels.nanodash.page.ProfilePage;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -46,10 +47,29 @@ public class AgentChoiceItem extends AbstractContextComponent {
     private static final Logger logger = LoggerFactory.getLogger(AgentChoiceItem.class);
 
     private String getChoiceLabel(String choiceId) {
-        IRI iri = vf.createIRI(choiceId);
+        IRI iri;
+        try {
+            iri = vf.createIRI(choiceId);
+        } catch (IllegalArgumentException ex) {
+            // A manually entered local name (issue #652) isn't a URI yet -- it is minted under
+            // the namespace of the nanopublication at publication time -- so there is no agent
+            // to look up, and the name itself is the best label we have.
+            return choiceId;
+        }
         String name = User.getName(iri);
         if (name != null) return name;
         return choiceId;
+    }
+
+    /**
+     * Whether a manually entered term can be minted as a local identifier: a plain name that is
+     * not an ORCID, which is offered as the ORCID URI instead (issue #652).
+     *
+     * @param term the term typed into the field
+     * @return true if the term can be offered as a locally minted identifier
+     */
+    private static boolean isLocalName(String term) {
+        return Utils.isPlainName(term) && !term.matches(ProfilePage.ORCID_PATTERN);
     }
 
     /**
@@ -86,8 +106,14 @@ public class AgentChoiceItem extends AbstractContextComponent {
             @Override
             public String getDisplayValue(String choiceId) {
                 if (choiceId == null || choiceId.isEmpty()) return "";
+                // A manually entered name is not an identifier yet, so it is shown as the local
+                // URI it will be minted into rather than as a bare word (issue #652).
+                if (context.isToBeMinted(iri, choiceId)) return Utils.getToBeMintedLabel(choiceId);
                 String label = getChoiceLabel(choiceId);
-                if (label == null || label.isBlank()) {
+                // No name to show for an agent that isn't a known user -- a manually entered URI
+                // (issue #652) -- and repeating the value as its own label would only render it
+                // twice.
+                if (label == null || label.isBlank() || label.equals(choiceId)) {
                     return choiceId;
                 }
                 return label + " (" + choiceId + ")";
@@ -115,7 +141,10 @@ public class AgentChoiceItem extends AbstractContextComponent {
                     }
                     return;
                 }
-                if (term.startsWith("https://") || term.startsWith("http://")) {
+                // Any URI in an allowed scheme can be entered manually, not just http(s) ones
+                // (issue #652).
+                final String typedTerm = term;
+                if (Utils.isUriValue(term)) {
                     response.add(term);
                 } else if (term.matches(ProfilePage.ORCID_PATTERN)) {
                     response.add("https://orcid.org/" + term);
@@ -152,6 +181,15 @@ public class AgentChoiceItem extends AbstractContextComponent {
                         response.add(iri.stringValue());
                     }
                 }
+
+                // Anything else the validator accepts is offered as a locally minted identifier
+                // (issue #652): typing "john-doe" mints it under the namespace of the
+                // nanopublication being published. It comes last, so that the known users the
+                // term matches keep the top of the list. An external URI placeholder refers to an
+                // agent that exists outside this nanopublication, so it gets none (issue #676).
+                if (!template.isExternalUriPlaceholder(iri) && isLocalName(typedTerm) && !response.getResults().contains(typedTerm)) {
+                    response.add(typedTerm);
+                }
             }
 
             @Override
@@ -164,7 +202,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
         textfield.getSettings().getAjax(true).setDelay(500);
         textfield.getSettings().setCloseOnSelect(true);
         String placeholder = template.getLabel(iri);
-        if (placeholder == null) placeholder = "select user or paste ORCID/URL";
+        if (placeholder == null) placeholder = "select user or type name/ORCID/URI";
         textfield.getSettings().setPlaceholder(placeholder);
         Utils.setSelect2ChoiceMinimalEscapeMarkup(textfield);
         textfield.getSettings().setAllowClear(true);
@@ -173,6 +211,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
         textfield.add(new AttributeAppender("class", " wide"));
         textfield.add(new Validator(iri, template, "", context));
         context.getComponents().add(textfield);
+        lockIfNeeded(textfield, iri);
 
         tooltipDescription = new Label("description", new IModel<String>() {
 
@@ -203,14 +242,16 @@ public class AgentChoiceItem extends AbstractContextComponent {
                     try {
                         selectedIri = vf.createIRI(selectedValue);
                     } catch (IllegalArgumentException e) {
-                        selectedIri = NanodashSession.get().getUserIri();
+                        // A locally minted name (issue #652) identifies somebody other than the
+                        // logged-in user, so it gets the generic icon rather than their picture.
+                        selectedIri = null;
                     }
                 } else {
                     selectedIri = NanodashSession.get().getUserIri();
                 }
-                IRI profilePicIri = (selectedIri != null) ? User.getProfilePicture(selectedIri) : null;
-                if (profilePicIri != null) {
-                    tag.put("src", profilePicIri.stringValue());
+                ProfilePicture profilePicture = (selectedIri != null) ? User.getProfilePicture(selectedIri) : null;
+                if (profilePicture != null) {
+                    tag.put("src", profilePicture.getSrc());
                 } else if (selectedIri != null && IndividualAgent.isSoftware(selectedIri)) {
                     tag.put("src", urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString());
                 } else {

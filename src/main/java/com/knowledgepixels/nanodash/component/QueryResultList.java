@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
@@ -106,10 +107,10 @@ public class QueryResultList extends QueryResult {
                     if (entryValue != null && !entryValue.isBlank()) {
                         if (key.endsWith("user_iri")) {
                             IRI userIri = Utils.vf.createIRI(entryValue);
-                            IRI profilePicIri = User.getProfilePicture(userIri);
+                            ProfilePicture profilePicture = User.getProfilePicture(userIri);
                             String imgSrc;
-                            if (profilePicIri != null) {
-                                imgSrc = Strings.escapeMarkup(profilePicIri.stringValue()).toString();
+                            if (profilePicture != null) {
+                                imgSrc = Strings.escapeMarkup(profilePicture.getSrc()).toString();
                             } else if (IndividualAgent.isSoftware(userIri)) {
                                 imgSrc = RequestCycle.get().urlFor(new ContextRelativeResourceReference("images/bot-icon.svg", false), null).toString();
                             } else {
@@ -118,6 +119,7 @@ public class QueryResultList extends QueryResult {
                             String userLabel = entry.get(key + "_label");
                             String displayLabel = userLabel != null && !userLabel.isBlank() ? userLabel : User.getShortDisplayName(userIri);
                             String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            userUrl += linkNavParams(userUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),
@@ -125,7 +127,8 @@ public class QueryResultList extends QueryResult {
                         } else if (key.endsWith("template_iri")) {
                             String templateLabel = entry.get(key + "_label");
                             String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
-                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest" + templateLinkContextParam();
+                            String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
+                            templateUrl += linkNavParams(templateUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<span class=\"form-icon\"></span>").setEscapeModelStrings(false),
@@ -133,7 +136,8 @@ public class QueryResultList extends QueryResult {
                         } else if (key.endsWith("query_iri")) {
                             String queryLabel = entry.get(key + "_label");
                             String displayLabel = queryLabel != null && !queryLabel.isBlank() ? queryLabel : entryValue;
-                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue) + templateLinkContextParam();
+                            String queryUrl = QueryPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
+                            queryUrl += linkNavParams(queryUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(queryUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new Label("component", linkHtml).setEscapeModelStrings(false));
                         } else if (key.endsWith("_multi_iri")) {
@@ -165,7 +169,9 @@ public class QueryResultList extends QueryResult {
                             for (int i = 0; i < parts.length; i++) {
                                 String part = parts[i];
                                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
-                                if (part.matches("https?://.+")) {
+                                if (isPublishLink(part)) {
+                                    multiComponents.add(new Label("component", publishButtonHtml(part, label)).setEscapeModelStrings(false));
+                                } else if (Utils.isUriValue(part)) {
                                     if (label != null && label.equals(part)) {
                                         label = null;
                                     }
@@ -179,7 +185,7 @@ public class QueryResultList extends QueryResult {
                                         String display = label != null ? label : unescaped;
                                         boolean isHtml = Utils.looksLikeHtml(display);
                                         if (isHtml) {
-                                            display = withContextInHtmlLinks(Utils.sanitizeHtml(display));
+                                            display = cellHtml(display);
                                         }
                                         multiComponents.add(new Label("component", display).setEscapeModelStrings(!isHtml));
                                     }
@@ -203,7 +209,11 @@ public class QueryResultList extends QueryResult {
                                 }
                             }
                             components.add(new ComponentSequence("component", ", ", multiComponents));
-                        } else if (entryValue.matches("https?://.+")) {
+                        } else if (isPublishLink(entryValue)) {
+                            // A ready-made link to the publish form: an action the view offers,
+                            // shown as a button rather than as a link to content.
+                            components.add(new Label("component", publishButtonHtml(entryValue, entry.get(key + "_label"))).setEscapeModelStrings(false));
+                        } else if (Utils.isUriValue(entryValue)) {
                             String entryLabel = entry.get(key + "_label");
                             if ("^".equals(entryLabel)) {
                                 // Folded into the per-row actions dropdown appended below.
@@ -220,7 +230,7 @@ public class QueryResultList extends QueryResult {
                             } else {
                                 String display = hasLabel ? entryLabel : entryValue;
                                 if (Utils.looksLikeHtml(display)) {
-                                    display = withContextInHtmlLinks(Utils.sanitizeHtml(display));
+                                    display = cellHtml(display);
                                 } else if (hasLabel) {
                                     display = Strings.escapeMarkup(display).toString();
                                 }

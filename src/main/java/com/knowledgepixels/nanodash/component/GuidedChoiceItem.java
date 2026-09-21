@@ -76,7 +76,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
     private String getChoiceLabel(String choiceId) {
         Template template = context.getTemplate();
         String label = null;
-        if (choiceId.matches("https?://.+") && template.getLabel(vf.createIRI(choiceId)) != null) {
+        if (Utils.isUriValue(choiceId) && template.getLabel(vf.createIRI(choiceId)) != null) {
             label = template.getLabel(vf.createIRI(choiceId));
         } else if (labelMap.containsKey(choiceId)) {
             label = labelMap.get(choiceId);
@@ -126,7 +126,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             prefixLabelComp = new Label("prefix", "");
             prefixLabelComp.setVisible(false);
         } else {
-            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !prefixLabel.matches("https?://.*")) {
+            if (!prefixLabel.isEmpty() && parentId.equals("subj") && !Utils.isUriValue(prefixLabel)) {
                 // Capitalize first letter of label if at subject position:
                 prefixLabel = prefixLabel.substring(0, 1).toUpperCase() + prefixLabel.substring(1);
             }
@@ -144,6 +144,9 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             @Override
             public String getDisplayValue(String choiceId) {
                 if (choiceId == null || choiceId.isEmpty()) return "";
+                // A value that has no identifier yet is shown as the local URI it will be minted
+                // into rather than as a bare word (issue #652).
+                if (context.isToBeMinted(iri, choiceId)) return Utils.getToBeMintedLabel(choiceId);
                 String label = getChoiceLabel(choiceId);
                 if (label == null || label.isBlank()) {
                     return choiceId;
@@ -167,7 +170,8 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                     response.addAll(possibleValues);
                     return;
                 }
-                if (term.startsWith("https://") || term.startsWith("http://")) {
+                final String typedTerm = term;
+                if (Utils.isUriValue(term)) {
                     if (prefix == null || term.startsWith(prefix)) {
                         response.add(term);
                     }
@@ -182,6 +186,16 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 }
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
                     if (!alreadyAddedMap.containsKey(v)) response.add(v);
+                }
+
+                // A guided choice only suggests values, it doesn't limit them, so a plain name for
+                // a resource that has no identifier yet can be entered as well (issue #652): it is
+                // minted under the prefix of the field, or under the namespace of the
+                // nanopublication when the field has none. It comes last, so that the suggestions
+                // the term matches keep the top of the list. An external URI placeholder refers to
+                // something outside this nanopublication, so it gets no such name (issue #676).
+                if (!template.isExternalUriPlaceholder(iri) && Utils.isPlainName(typedTerm) && !response.getResults().contains(typedTerm)) {
+                    response.add(typedTerm);
                 }
             }
 
@@ -204,6 +218,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         textfield.add(new AttributeAppender("class", " wide"));
         textfield.add(new Validator(iri, template, prefix, context));
         context.getComponents().add(textfield);
+        lockIfNeeded(textfield, iri);
 
         tooltipDescription = new Label("description", new IModel<String>() {
 

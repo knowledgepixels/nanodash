@@ -6,6 +6,8 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.LazyContentPanel;
 import com.knowledgepixels.nanodash.component.ResultComponent;
+import com.knowledgepixels.nanodash.component.PageTitleMenu;
+import com.knowledgepixels.nanodash.component.RefreshingStructurePanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -28,6 +30,8 @@ public class HomePage extends NanodashPage {
      * The mount path for this page.
      */
     public static final String MOUNT_PATH = "/";
+
+    private static final String PAGE_TITLE = "Nanodash — browse and publish nanopublications";
 
     /**
      * {@inheritDoc}
@@ -57,13 +61,18 @@ public class HomePage extends NanodashPage {
         super(parameters);
 
         add(new TitleBar("titlebar", this));
+        add(new Label("pagetitle", PAGE_TITLE));
         final NanodashSession session = NanodashSession.get();
         String v = WicketApplication.getThisVersion();
         String lv = WicketApplication.getLatestVersion();
         if (NanodashPreferences.get().isOrcidLoginMode()) {
             add(new Label("warning", ""));
         } else if (v.endsWith("-SNAPSHOT")) {
-            add(new Label("warning", "You are running a temporary snapshot version of Nanodash (" + v + "). The latest public version is " + lv + "."));
+            // The latest public version is not always known — GitHub may not have answered yet,
+            // or at all (issue #686) — and "the latest public version is null" says nothing.
+            String warning = "You are running a temporary snapshot version of Nanodash (" + v + ").";
+            if (lv != null) warning += " The latest public version is " + lv + ".";
+            add(new Label("warning", warning));
         } else if (lv != null && !v.equals(lv)) {
             add(new Label("warning", "There is a new version available: " + lv + ". You are currently using " + v + ". " +
                                      "Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +
@@ -90,18 +99,24 @@ public class HomePage extends NanodashPage {
         setOutputMarkupId(true);
 
         final String homeResourceId = NanodashPreferences.get().getHomeResource();
-        final MaintainedResource homeResource = MaintainedResourceRepository.get().findById(homeResourceId);
+        // The last resource this id ever resolved to, not merely the one the newest
+        // answer carries: the home page is the one page that must survive a query answer
+        // coming back short of it (issue #623).
+        final MaintainedResource homeResource = MaintainedResourceRepository.get().findLastKnownById(homeResourceId);
+
+        // Added before the branching below, which returns early on several paths.
+        add(PageTitleMenu.forResource("titlemenu", homeResource));
 
         // Rendered only for a genuine misconfiguration (see below): the resource
-        // repository is warm but the configured id is not a known maintained resource.
+        // repository knows maintained resources, and the configured id is none of them.
         final String notFoundHtml = "<div class=\"row-section\"><div class=\"col-12\"><p class=\"negative\">" +
                 "Configured home resource <code>" + Strings.escapeMarkup(homeResourceId) + "</code> could not be found. " +
                 "Set the <code>NANODASH_HOME_RESOURCE</code> environment variable to a valid maintained-resource IRI." +
                 "</p></div></div>";
 
-        if (homeResource == null && MaintainedResourceRepository.get().isReady()) {
-            // The repository has a full snapshot, yet the configured id isn't in it:
-            // a real misconfiguration, not a cold-cache race.
+        if (homeResource == null && MaintainedResourceRepository.get().isAbsent(homeResourceId)) {
+            // The repository holds resources and this id is none of them, nor was it ever:
+            // a real misconfiguration, not a cold cache or an answer that came back short.
             add(new Label("views", notFoundHtml).setEscapeModelStrings(false));
             return;
         }
@@ -109,26 +124,28 @@ public class HomePage extends NanodashPage {
         if (homeResource != null) {
             homeResource.triggerDataUpdate();
             if (homeResource.isDataInitialized()) {
-                ViewList viewList = new ViewList("views", homeResource);
-                viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", this));
-                add(viewList);
+                add(RefreshingStructurePanel.of("views", homeResource, markupId -> {
+                    ViewList viewList = new ViewList(markupId, homeResource);
+                    viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
+                    return viewList;
+                }));
                 return;
             }
         }
 
         // Either the resource exists but its data isn't initialized yet, or the
-        // repository itself is still cold so findById is transiently null (cache
-        // refresh in flight / racing spaces load). Lazy-load and poll until the data
-        // resolves, rather than declaring a hard "not found" on a transient null. If
-        // the repository warms up without the configured id, the misconfig notice is
-        // shown then.
+        // repository has nothing for the id yet (cache refresh in flight / racing spaces
+        // load / an answer carrying no resources at all). Lazy-load and poll until the
+        // data resolves, rather than declaring a hard "not found" on a transient null. If
+        // the repository ends up holding resources without the configured id among them,
+        // the misconfig notice is shown then.
         // Resolve the repository singleton inside the anonymous classes rather than
         // capturing it: MaintainedResourceRepository is not Serializable, and a
         // captured reference makes the whole page fail to serialize to the page store.
         final IModel<MaintainedResource> homeResourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
-                return MaintainedResourceRepository.get().findById(homeResourceId);
+                return MaintainedResourceRepository.get().findLastKnownById(homeResourceId);
             }
         };
 
@@ -147,9 +164,10 @@ public class HomePage extends NanodashPage {
                 MaintainedResource r = homeResourceModel.getObject();
                 // isDataInitialized() also kicks off the (idempotent) data load.
                 if (r != null) return r.isDataInitialized();
-                // Resource still unresolved: keep polling while the repository is cold,
-                // and stop (to show the misconfig notice) only once it is warm.
-                return MaintainedResourceRepository.get().isReady();
+                // Resource still unresolved: keep polling, and stop (to show the
+                // misconfig notice) only once the id is known to be no resource of this
+                // instance rather than one the answers keep leaving out.
+                return MaintainedResourceRepository.get().isAbsent(homeResourceId);
             }
 
             @Override

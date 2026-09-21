@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Builds a {@link DocumentModel} from a resource's view displays and their query
@@ -359,7 +357,7 @@ public final class DocumentModelBuilder {
             for (int i = 0; i < parts.length; i++) {
                 String part = parts[i];
                 String label = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
-                if (part.matches("https?://.+")) {
+                if (Utils.isUriValue(part)) {
                     if (label == null || label.equals(part)) {
                         label = Utils.getShortNameFromURI(part);
                     }
@@ -379,7 +377,7 @@ public final class DocumentModelBuilder {
                 String display = hasLabel ? Utils.unescapeMultiValue(labels[i]) : Utils.unescapeMultiValue(parts[i]);
                 appendSeparated(inlines, new Inline(plainText(display), null));
             }
-        } else if (value.matches("https?://.+")) {
+        } else if (Utils.isUriValue(value)) {
             String label = entry.get(key + "_label");
             if (label == null || label.isBlank() || label.equals(value)) {
                 label = Utils.getShortNameFromURI(value);
@@ -412,28 +410,15 @@ public final class DocumentModelBuilder {
     }
 
     /**
-     * Strips tags from an HTML fragment and unescapes the named and numeric
-     * entities (the sanitizer emits quotes etc. as numeric entities like
-     * {@code &#34;}).
+     * Reduces an HTML fragment to plain text; see {@link Utils#htmlToPlainText(String)},
+     * which the document export shares with label creation.
      *
      * @param html the HTML fragment
      * @return the plain text
      */
     static String htmlToPlainText(String html) {
-        String text = html.replaceAll("<[^>]*>", " ");
-        text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
-                .replace("&nbsp;", " ");
-        text = NUMERIC_ENTITY.matcher(text).replaceAll(m -> {
-            int codePoint = m.group(1) != null
-                    ? Integer.parseInt(m.group(1))
-                    : Integer.parseInt(m.group(2), 16);
-            return Matcher.quoteReplacement(new String(Character.toChars(codePoint)));
-        });
-        text = text.replace("&amp;", "&");
-        return text.replaceAll("\\s+", " ").trim();
+        return Utils.htmlToPlainText(html);
     }
-
-    private static final Pattern NUMERIC_ENTITY = Pattern.compile("&#(?:([0-9]{1,7})|[xX]([0-9a-fA-F]{1,6}));");
 
     private static String orEmpty(String s) {
         return s == null ? "" : s;

@@ -70,7 +70,7 @@ public class RestrictedChoice implements Serializable {
             if (context.getTemplate().isLocalResource(placeholderIri)) {
                 // Full URIs are not local, except artifact-code wildcard IRIs, which mint
                 // a new resource per publication just like local short IDs do.
-                if (s.matches("https?://.+") && !s.contains("~~ARTIFACTCODE~~")) continue;
+                if (Utils.isUriValue(s) && !s.contains("~~ARTIFACTCODE~~")) continue;
             }
             possibleValuesList.add(s);
         }

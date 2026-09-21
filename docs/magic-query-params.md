@@ -236,11 +236,179 @@ Today an action carries a single `queryVar:templateParam` mapping that only sets
 `"derive_target:@derive-a local_pubkey:public-key__.1"` — the first drives
 visibility (conditional target), the second supplies the key.
 
+A **result** action (the view-level "add…" button) passes the same literal whole to
+the publish form as `values-from-query-mapping`, and the form applies every mapping
+in it against every row of the view's query (`PublishForm.applyQueryValues`). Until
+issue #690 the result-action path passed only the raw first literal and the form
+split it on its *first* colon, so `"a:b c:d"` became a target of `"b c"` and filled
+nothing — every multi-mapping in `docs/queries/` was on an entry action, which is why
+nobody noticed. A raw `@key` target has no meaning on this path: those keys (the
+fill mode, the template) are read before any query runs, so only a link can carry
+them, as an entry action does.
+
+A third form was added later (issue #678): a `!` in front of the field name
+(`local_pubkey:!public-key__.1`) also **locks** the field, so the form shows the
+value the action filled in but does not let the user change it — for values an
+action *determines* rather than proposes, such as the local public key an
+introduction is to declare. It emits the `locked` page parameter alongside the
+`param_` one; see docs/locked-prefilled-values.md. It applies to `param_` targets
+only, as a raw `@` key is not a form field.
+
+### Page sources: `@sourceNp` / `@sourceNpTemplate`
+
+The mappings above all read a result **row**, which a *result* action does not have —
+it is a button for the view as a whole. The way for such an action to carry a value of
+the view's own is a **page source**: a mapping whose left-hand side begins with `@` and
+names something the page supplies rather than a column.
+
+| Source | Resolves to |
+| --- | --- |
+| `@result.<column>` | the value `<column>` holds in the view's **own result** — one value for the whole view, so the column must hold the same one in every row |
+| `@sourceNp` | the nanopub the view's query is bound to: the `<queryField>Np` parameter the page filled in (`ViewList`), i.e. the nanopub the *page* resolved |
+| `@sourceNpTemplate` | the `nt:wasCreatedFromTemplate` of that nanopub |
+
+The case this exists for is an **override action on a view of one nanopub's content**
+(docs/fill-modes.md): the button has to name the nanopub to override, and a result action
+has no row to read it from.
+
+**Prefer `@result.`**, and let the query decide. A view whose query resolves the nanopub
+itself — rather than taking the page's `…Np` parameter — can return it as a column, and the
+action then acts on exactly what the panel is showing. That also puts the rule for *which*
+nanopub counts into the view's own query, i.e. into RDF, per view, next to the
+`gen:isVisibleTo` that says who may act on it (`get-presentation-details` does this: newest
+candidate signed by a member-tier member of the space). `@sourceNp` remains for views that
+do take the page's nanopub.
+
+```turtle
+sub:overrideAction a gen:ViewResultAction;
+  # The icon is the bare U+267B, without the U+FE0F variation selector: that keeps it a
+  # text-presentation glyph, drawn monochrome in the menu's own colour, rather than a colour
+  # emoji that ignores it.
+  rdfs:label "♻ override...";
+  gen:hasActionTemplate <…a fallback template…>;
+  gen:hasActionTemplateQueryMapping "@result.override_target:@override @result.override_template:@template";
+  gen:isVisibleTo gen:MemberRole .
+```
+
+Mapping the template to `@template` matters whenever a view shows nanopubs made with more
+than one template (a presentation *and* a poster, say): the form then opens the template
+that actually made the source, rather than the action's declared one, which stays as the
+fallback. `template-version=latest` still resolves it forward.
+
+Notes:
+
+- **Resolved where the link is built** (`ViewActionMappings`), for result and entry
+  actions alike — never at form time, so a page source is dropped from
+  `values-from-query-mapping` exactly as a raw `@key` target is.
+- **Always required.** An unresolvable page source hides the action, like an empty raw
+  key: the page was meant to supply it, and a button built on a value that is not there
+  would open a form on nothing. This is also what hides the action when the page has no
+  nanopub at all — `ViewList` writes the sentinel `"x:"` there, which counts as absent.
+- **No target field is passed** when an action maps a fill-mode key (`@override`,
+  `@supersede`, `@derive-a`, …): the form takes every field from the source nanopub, so
+  the page's own resource on top could only overwrite a filled field of that name.
+- **A column that varies from row to row hides the action.** It is then a property of a
+  row, not of the view — which is what an entry action is for, mapping the row's column
+  directly. (For the same reason `@result.` resolves to nothing on an entry action.)
+- **`@result.` columns are hidden from the table** like any other mapping source
+  (`View#getActionMappingSourceColumns`), so a query can return a column purely to feed an
+  action — the established idiom being an aliased `(?np as ?override_target)`. The other
+  page sources name no column, so there is nothing of theirs to hide.
+- A view whose query is *not* keyed on a nanopub has no `@sourceNp` to give (and a
+  header view has no query at all), so an action needing it does not render there.
+
+#### Publishing such a view before the code that reads it
+
+A page source means nothing to an older Nanodash, which would render the button with no
+`override=` and open an *empty* form. Two properties of the vocabulary make a view carrying
+one safe to publish ahead of its release:
+
+- **Leave `gen:hasActionTemplate` off** and let `@…:@template` supply it. A missing template
+  is the one condition under which every version skips an action, so older instances show no
+  button at all, while this one takes the template from the mapping. (An action with neither
+  is skipped everywhere — there is no form to open.) Note that `gen:hasActionTemplate` is a
+  *required* statement of the view-creation template up to
+  `RAnMcenHc46myXb_Yp-dPu62pywUIsqYJ5oJvSgV38XiQ`, so leaving it off needs the version that
+  makes it optional.
+- **Name the columns feeding the action `…_label`.** Every renderer, old and new, skips a
+  column whose name ends in `_label` / `_label_multi` (it is read only as another column's
+  companion), so action-only columns stay out of the table on instances that don't yet know
+  they are mapping sources. `get-presentation-details` uses `override_target_label` /
+  `override_template_label` for exactly this reason.
+
 ### Echo-as-column (no code)
 
 A query may `SELECT` a magic variable back out
 (`(sample(?__LOCALPUBKEY_multi) AS ?local_pubkey)`) and feed it to an action via
 an ordinary mapping (e.g. derive's key parameter).
+
+### Pre-filling from the target: the action's fill query (issue #690)
+
+The listing-driven mapping above reads the view's **rows**. That is the wrong source
+for a *default*: a value the new entry should inherit from the resource whose page the
+button is on — the event's start date for a presentation, a location, a series, an
+organiser. With zero rows there is nothing to read from (and adding the first entry is
+exactly where a default helps most); with *n* rows the same value lands *n* times, as
+`startDate`, `startDate__1`, … on a field that is not repeatable.
+
+So a result action can carry its **own query, bound to the target**:
+
+```turtle
+sub:addAction a gen:ViewResultAction ;
+    rdfs:label "🎤 add presentation" ;
+    gen:hasActionTemplate <…/presentation-template> ;
+    gen:hasActionTemplateTargetField "event" ;
+    gen:hasActionFillQuery <…/get-event-defaults> ;
+    gen:hasActionFillQueryTargetField "event" ;          # optional, default "resource"
+    gen:hasActionFillQueryMapping "startDate:startDate location:location" .
+```
+
+- **`gen:hasActionFillQuery`** — a published query. When the button is rendered, the
+  target resource's IRI is bound to the query placeholder named by
+  **`gen:hasActionFillQueryTargetField`** (`resource` if absent) and the bound
+  reference travels to the publish page as `fill-query`.
+- **`gen:hasActionFillQueryMapping`** — the same whitespace-separated `col:field`
+  literal as the query mapping (`View.parseMappingLiteral`), travelling as
+  `fill-query-mapping`. `col:!field` fills *and locks* the field, exactly as for entry
+  actions (docs/locked-prefilled-values.md); `@key` targets are ignored here for the
+  reason given above.
+
+**When it runs.** On the publish page, in `PublishForm`, before the fields are built —
+not while the listing renders. The listing bakes only a URL, so per-row rendering
+stays free of queries and a cold cache cannot silently produce a button with no
+default. The query goes through `ApiCache.retrieveResponseSync(ref, false)`: a cold
+cache blocks inline once, a warm one serves at once with a background refresh, and
+the same target opened twice is one query. A query that fails costs the user the
+pre-fill, not the form.
+
+**Which row.** The **first** row only, with no `__i` suffixes
+(`PublishForm.applyFillQueryValues`): the query describes the target, and the fields
+being defaulted are single-valued. Zero rows is a natural no-op; a blank value is no
+default (the field is left as it was, and stays unlocked).
+
+**Precedence.** Fill query, then listing values, then explicit `param_` URL
+parameters — the most specific source wins. An action can carry both a fill query
+and a listing mapping.
+
+**Magic parameters** are bound at consumption, on the publishing user's own request
+(`MagicQueryParams.augment` in `PublishForm`), so a fill query may use `_LOCALPUBKEY`
+or `_CURRENTUSER` and get the person opening the form, not the person who rendered
+the listing that linked there.
+
+**Own map, own columns.** The fill mappings are kept apart from the query mappings in
+`View`: their `col` names belong to the fill query, so they never count as
+`getActionMappingSourceColumns` and are never hidden from the view's own table.
+
+**Provenance is the query's business.** A generic `<target> <p> ?v` over the whole
+store would let anyone's assertion become the default. The point of a *published*
+fill query is that its author scopes it — to the target's governing space, to a
+signing key, to whatever the case warrants — and that scope is reviewable and
+governable like any other query nanopub. Bear that in mind before reaching for `!`:
+a locked field is precisely the one the user cannot correct.
+
+The `ActionMapping` record in `View` is the one parser for `col:target` in all three
+places it is read (entry-action links, the listing fill, the fill query). It splits on
+the first colon; neither a result column nor a field name may contain one.
 
 ## Phase 3 design: the introductions view (concrete)
 

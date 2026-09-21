@@ -92,10 +92,18 @@ sub:assignment a gen:PresetAssignment ;
 ```
 
 The crucial design point — copied directly from view displays — is that **the
-assignment is identified by the `(preset, resource)` pair, not by the
+assignment is identified by the `(preset kind, resource)` pair, not by the
 nanopublication's URI.** The `sub:assignment` node is a fresh local resource
 minted in each nanopub; what ties two nanopubs together is that they describe an
 assignment of the *same* preset for the *same* resource.
+
+The key is the preset's stable **kind** (`dct:isVersionOf`), not the pinned
+version the assignment references — exactly as a view display's identity is
+`(view kind, resource)` and not the view version it points at. So assigning
+another version of the same preset *replaces* the earlier assignment rather than
+adding a second, competing one (see [Updating to a newer preset
+version](#updating-to-a-newer-preset-version)). A preset version that declares no
+kind keys on itself.
 
 ### Activation and cross-user deactivation
 
@@ -182,7 +190,7 @@ implementation can largely follow the existing code paths:
 | `gen:DeactivatedViewDisplay`           | `gen:DeactivatedPresetAssignment`        |
 | `gen:isDisplayOfView`                  | `gen:isAssignmentOfPreset`               |
 | `gen:isDisplayFor`                     | `gen:isAssignmentFor`                    |
-| identity by `(view, resource)`         | identity by `(preset, resource)`         |
+| identity by `(view kind, resource)`    | identity by `(preset kind, resource)`    |
 | "Displaying a view for a resource"     | "Assigning a preset to a resource"       |
 | "Deactivating a view display ..."      | (covered by the deactivated type toggle) |
 
@@ -211,16 +219,94 @@ These were open during design; the implementation has since settled them.
   `appliesToInstancesOf` / `appliesToNamespace`. See `Preset` (`topLevelViews`
   vs `views`) and `ViewDisplay.forPresetView(…, topLevel, …)`.
 - **Deactivation:** an assignment is deactivated by publishing a
-  `gen:DeactivatedPresetAssignment` for the same `(preset, resource)` pair
+  `gen:DeactivatedPresetAssignment` for the same `(preset kind, resource)` pair
   (latest-wins among authorized agents), so a different agent can deactivate one
   they did not create — mirroring view-display deactivation. The preset-assignments
   view exposes a per-row deactivate action; `PresetAssignment.isActive()` reads the
   type. (No separate "deactivating" template was needed.)
-- **Assignment target granularity:** assignments reference a preset (version)
-  node, and resolution follows the supersedes chain to the latest version —
-  exactly as views do (`PresetAssignment.getPreset()` → `Preset.get()` →
-  `getLatestVersionId`). The version-independent `presetKind` (`dct:isVersionOf`)
-  is captured too (`Preset.getPresetKindIri()`).
+- **Assignment target granularity:** an assignment *references* a concrete preset
+  version and that pin is what takes effect — a preset never auto-updates, which
+  matters because presets carry roles. Assignment *identity*, though, is by preset
+  kind (see above), so a newer version is adopted by assigning it, and the older
+  assignment then loses on publication time.
+
+## Updating to a newer preset version
+
+Presets deliberately do not follow their kind forward on their own: the views and
+especially the **roles** a resource picks up stay exactly the ones its admins
+signed off on. Adopting a newer version is therefore an explicit act, and the
+"🪟 Assigned presets" table on the About page makes it a one-click one
+([issue #607](https://github.com/knowledgepixels/nanodash/issues/607)):
+
+- The listing queries (`list-preset-assignments` and its ref-scoped twin) look up
+  the newest non-invalidated version of the assigned preset's kind and report the
+  verdict in a **`version` column**: `version_label` holds what the cell displays
+  ("latest" or "⬆️ update available") and `version` the dates behind it. That way
+  round because `QueryResultTable` displays a literal column's `_label` companion and
+  puts the principal value in the hover tooltip — not the other way round. The newer
+  version itself goes in `updatePreset`, which the action mapping hides from the table.
+- Candidate versions are restricted to those published by the **same agent** as
+  the assigned version, so an unrelated agent cannot advertise a version of
+  someone else's preset in a space's About page.
+- The views carry an "⬆️ update to latest version" entry action, gated to
+  maintainers and above, that opens the page's own assignment template pre-filled
+  with the newer version (`updatePreset:preset`). Publishing it makes the newer
+  assignment the latest for that `(preset kind, resource)` pair; nothing needs to
+  be deactivated first. Rows with no newer version carry an empty `updatePreset`,
+  which hides the button for them.
+
+### Who may assign, update and deactivate
+
+The tiers differ by resource type, because the query service does:
+
+- **Spaces: admins only.** `AuthorityResolver`'s ref-scoped assignment mirror and its
+  preset-role attachment both require the publisher to hold `gen:hasAdmin` on the
+  target ref, so a maintainer's assignment is never stamped into the space state and
+  never reaches the space's "Assigned presets" table. The space view's three actions
+  are therefore gated `gen:isVisibleTo gen:AdminRole`, matching what the server will
+  honour — offering them to maintainers produced a publish whose views took effect
+  while the listing and the roles ignored it.
+- **Maintained resources and their parts: maintainers and above.** Those pages run the
+  IRI-keyed listing, which accepts admins and maintainers alike, and preset-derived
+  roles are not materialized for non-space targets at all
+  (`presetAttachmentValidationUpdate` resolves no `?targetRef` and inserts nothing), so
+  views are the only effect and they accept maintainers too.
+- **User pages: the user themselves.** The owner counts as the sole admin of their own
+  page and no one else holds a tier there, so the distinction does not arise.
+
+Widening spaces to maintainers would mean a maintainer can attach role definitions to a
+space by assigning a preset — the escalation surface presets are deliberately careful
+about — so the narrower gate is the default, and changing it is a server-side decision
+before it is a view-side one.
+
+### What the query service already does — and where it still differs
+
+Worth knowing, because it is not symmetric: **roles are already resolved by kind
+server-side.** `AuthorityResolver.presetAttachmentValidationUpdate` maps an
+assignment's preset reference to its `npa:presetKind` and then draws the roles from
+the *latest live declaration of that kind* (steps 5–5c; see
+`doc/design-preset-role-materialization.md`, "a superseded preset version's roles
+never leak"). So the roles a resource picks up follow the newest preset version on
+their own, whichever version an assignment pins — it is the **views** that stay
+pinned, which is what makes the update action necessary in the first place.
+
+What is still keyed on the pinned `(preset version, resource)` pair server-side is
+**which assignment counts** — the latest-wins/anti-hijack filter in that same update
+(step 7) and `presetDeactivationCheckWhere`. That is consistent with the update
+action (assigning a newer version leaves the roles resolving to that version anyway),
+but it diverges on **deactivation** while two versions of one kind are assigned:
+Nanodash treats the newest row for the kind as decisive and drops the preset
+entirely, whereas the materializer only sees that one *version's* assignment
+switched off and keeps the role attachments alive through the older version's
+assignment. Aligning it means keying those two filters on the kind as well — a
+contained nanopub-query change; both blocks already have `?kind` in scope or one
+join away.
+
+Note also that "deactivate the old version and activate the new one in a single
+nanopublication" is not an option: `SpacesExtractor.extractPresetAssignment` reads
+only the first `gen:isAssignmentOfPreset` triple and emits one row keyed by the
+nanopub's artifact code, so a second assignment node in the same nanopub is
+silently ignored.
 
 ## Example nanopubs
 

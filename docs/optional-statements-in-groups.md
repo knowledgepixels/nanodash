@@ -1,7 +1,8 @@
 # Optional statements inside statement groups
 
-**Status:** implemented (template parsing, publish path, form UI, fill/unification);
-end-to-end verification on a live instance with a published test template still pending.
+**Status:** ✅ implemented and verified end-to-end (template parsing, publish path,
+form UI, fill/unification). Verified in production on 2026-09-07 by the view-creation
+template — see [First production use](#first-production-use) below.
 
 ## Goal
 
@@ -226,7 +227,67 @@ Suggested order — each step compiles and passes tests on its own:
    fixture confirming no infinite loop.
 5. **End-to-end:** publish a test template with a mixed group (e.g. the
    class/label/optional-comment shape above), fill → publish → reopen → update
-   round-trip on the dev instance.
+   round-trip on the dev instance. — done, on the real view-creation template rather
+   than a throwaway; see [First production use](#first-production-use).
 6. **Later, out of band:** revisit the SHACL mapping so `sh:minCount 0` properties can
    live inside groups; consider surfacing member-level optionality in the template
    creation template once the feature is proven.
+
+## First production use
+
+The **view-creation template** ("Declaring a resource view") is the first template to
+use member-level optionality, published 2026-09-07 as
+[`RAJ2Ssnt…`](https://w3id.org/np/RAJ2SsntOHN7leMyEXoyBoUp6l2sd-VAPCpPrHVQa2QVM),
+superseding `RA7j_m2ml…`. See
+[#691](https://github.com/knowledgepixels/nanodash/issues/691).
+
+Its action group is the hardest shape this feature supports — grouped **and**
+group-level optional **and** repeatable, with a placeholder (`sub:action`) shared by six
+of its eight members:
+
+```turtle
+sub:st50 a nt:GroupedStatement, nt:OptionalStatement, nt:RepeatableStatement;
+    nt:hasStatement sub:st51, sub:st51b, sub:st52, sub:st53,
+                    sub:st53b, sub:st53c, sub:st54, sub:st55 .
+```
+
+Three members (`st53`, `st53b`, `st53c` — the action's target field, part field and
+query mapping) became `nt:OptionalStatement`. They had previously been *required* fields
+carrying a `"void"` string sentinel, which is what the feature exists to replace.
+
+### What the round-trip confirmed
+
+Checked against a re-signed baseline of the pre-change template:
+
+- Exactly those three members flip; the statement set is otherwise unchanged.
+- The group keeps its **own** group-level `nt:OptionalStatement`. The
+  all-members-optional normalization does not strip member flags here, because six
+  members stay required — the `optionalGroupWithRequiredMembersIsUnchanged` case.
+- `st51` / `st52` / `st54` stay required.
+- Three fixtures fill with zero unused statements: a view carrying `"void"` in the part
+  field and mapping, a derive-style view carrying `"void"` in the *target* field, and a
+  view with all three triples absent.
+
+Then in the form, on the live instance: the Q&A view
+[`RAE6lrZG…`](https://w3id.org/np/RAE6lrZG_D73P7wD0HKUabUSoTK6tew202EleZjKUIyjY) was
+superseded through the new template. Its assertion diff against the predecessor is four
+dropped `"void"` triples and nothing else; both versions parse to the same page size,
+action lists, target fields, part fields, mappings, title and structural position.
+
+### Notes for the next template that adopts this
+
+- **A supersede does not clear an old sentinel.** Filling a nanopub that still carries
+  `"void"` puts that string into the now-optional field, and it is republished verbatim
+  unless the author clears the row. Old content keeps its sentinels through edits; that
+  is correct behaviour, not a bug.
+- **Absence is not always distinguishable from a value.** For `gen:hasActionTemplateTargetField`
+  the consuming code does `if (targetField == null) targetField = "resource"`, so an
+  absent triple, `"void"` and `"resource"` are all equivalent. Making a statement optional
+  only stops a meaningless triple being published — it does not by itself create a way to
+  express "nothing". Check the consumer before assuming it does.
+- **The `(optional)` mark makes "leave empty if…" labels redundant.** Member-optional
+  lines render their own inline mark plus a `nanopub-optional-part` class
+  (`StatementItem.java:419-424`), so the placeholder label should just name the field.
+  Keep it short: `LiteralTextfieldItem:73` uses the label verbatim as the input's
+  placeholder attribute and, unlike `IriTextfieldItem:121`, does **not** apply the
+  ` - ` short/long convention.

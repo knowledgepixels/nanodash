@@ -25,7 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A component that displays the status of a nanopublication.
@@ -140,8 +142,11 @@ public class StatusLine extends Panel {
     }
 
     private void applyResponse(ApiResponse response, boolean mayBlock) {
-        List<String> latest = new ArrayList<>();
-        List<String> retractions = new ArrayList<>();
+        // Sets, because the query returns one row per indexed signature key and
+        // creation date, so the same version can come back several times -- and a
+        // query instance with damaged metadata can multiply that further.
+        Set<String> latest = new LinkedHashSet<>();
+        Set<String> retractions = new LinkedHashSet<>();
         for (ApiResponseEntry e : response.getData()) {
             String newerVersion = e.get("newerVersion");
             String retractedBy = e.get("retractedBy");
@@ -152,6 +157,10 @@ public class StatusLine extends Panel {
                 retractions.add(retractedBy);
             }
         }
+        // The supersedes path in the query is reflexive, so this nanopublication is
+        // always among the results and is never a newer version of itself.
+        List<String> newerVersions = new ArrayList<>(latest);
+        newerVersions.remove(npId);
 
         latestBySupersedes = false;
         if (latest.isEmpty() && retractions.isEmpty()) {
@@ -159,21 +168,21 @@ public class StatusLine extends Panel {
             links = List.of();
             verified = false;
         } else if (!latest.isEmpty()) {
-            if (latest.size() == 1 && latest.getFirst().equals(npId)) {
+            if (newerVersions.isEmpty()) {
                 statusText = LATEST_TEXT;
                 links = List.of();
                 latestBySupersedes = true;
-            } else if (latest.size() == 1) {
+            } else if (newerVersions.size() == 1) {
                 statusText = NEWER_VERSION_TEXT;
-                links = latest;
+                links = newerVersions;
             } else {
                 statusText = "This nanopublication has <strong>newer versions</strong>:";
-                links = latest;
+                links = newerVersions;
             }
             verified = true;
         } else {
             statusText = "This nanopublication has been <strong>retracted</strong>:";
-            links = retractions;
+            links = new ArrayList<>(retractions);
             verified = true;
         }
         applyGovernedOverride(mayBlock);

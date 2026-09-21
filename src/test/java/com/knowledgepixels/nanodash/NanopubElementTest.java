@@ -3,13 +3,17 @@ package com.knowledgepixels.nanodash;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import jakarta.xml.bind.DatatypeConverter;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubImpl;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.testsuite.NanopubTestSuite;
+import org.nanopub.testsuite.TestSuiteCategory;
 import org.nanopub.vocabulary.NPX;
 
 import java.io.File;
@@ -23,7 +27,17 @@ import static org.mockito.Mockito.mockStatic;
 
 class NanopubElementTest {
 
-    private final File np = new File("src/test/resources/np-grlc-query.trig");
+    /**
+     * The published "Get participation links" query. It lives in the nanopub test suite rather
+     * than in this repository, so that the fixture is shared with the other implementations
+     * instead of being copied into each of them (#620).
+     */
+    private static final String QUERY_CODE = "RA6T-YLqLnYd5XfnqR9PaGUjCzudvHdYjcG4GvOc7fdpA";
+
+    private final File np = NanopubTestSuite.getLatest()
+            .getByArtifactCode(QUERY_CODE, TestSuiteCategory.VALID)
+            .orElseThrow(() -> new IllegalStateException("Not in the nanopub test suite: " + QUERY_CODE))
+            .toFile();
 
     @Test
     void getWithURI() throws MalformedNanopubException, IOException {
@@ -145,6 +159,33 @@ class NanopubElementTest {
         NanopubElement nanopubElement = NanopubElement.get(nanopub);
         List<IRI> expectedTypes = List.of(NPX.EXAMPLE_NANOPUB);
         assertEquals(expectedTypes, nanopubElement.getTypes());
+    }
+
+    @Test
+    void isProtectedForTypeInPubinfo() throws Exception {
+        NanopubCreator creator = TestUtils.getNanopubCreator("http://example.org/protected-np/");
+        creator.addAssertionStatement(TestUtils.anyIri, TestUtils.anyIri, TestUtils.anyIri);
+        TestUtils.fillProvenanceGraph(creator);
+        creator.addPubinfoStatement(RDF.TYPE, NPX.PROTECTED_NANOPUB);
+
+        assertTrue(NanopubElement.get(creator.finalizeNanopub()).isProtected());
+    }
+
+    @Test
+    void isNotProtectedForTypeOutsidePubinfo() throws Exception {
+        // Only the type of the nanopub itself, in its own publication info, marks it protected:
+        // the same triple in the assertion is a statement about something else.
+        NanopubCreator creator = TestUtils.getNanopubCreator("http://example.org/unprotected-np/");
+        creator.addAssertionStatement(TestUtils.anyIri, RDF.TYPE, NPX.PROTECTED_NANOPUB);
+        TestUtils.fillProvenanceGraph(creator);
+        TestUtils.fillPubInfoGraph(creator);
+
+        assertFalse(NanopubElement.get(creator.finalizeNanopub()).isProtected());
+    }
+
+    @Test
+    void isNotProtectedForPlainNanopub() throws Exception {
+        assertFalse(NanopubElement.get(TestUtils.createNanopub()).isProtected());
     }
 
 }

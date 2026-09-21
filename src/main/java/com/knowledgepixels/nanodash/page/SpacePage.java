@@ -10,17 +10,21 @@ import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Optional;
@@ -76,6 +80,7 @@ public class SpacePage extends NanodashPage {
 
         Space space = resolveSpace(parameters);
         spaceId = space.getId();
+        redirectIfRdfRequested(new RdfSource("space", spaceId, null, List.of()));
         spaceModel = new LoadableDetachableModel<Space>() {
             @Override
             protected Space load() {
@@ -106,12 +111,20 @@ public class SpacePage extends NanodashPage {
         }
 
         add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
+        setMetaDescription(spaceMetaDescription(space));
+        // Optional profile picture, right of the title/URI block (issue #632). Shown
+        // plainly, i.e. without the tilted-square mask that user icons get, and simply
+        // omitted when the space declares none.
+        ProfilePicture profilePicture = space.getProfilePicture();
+        add(profilePicture != null
+                ? new ExternalImage("profilepic", profilePicture.getSrc())
+                : new WebMarkupContainer("profilepic").setVisible(false));
         add(new Label("spacename", space.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         // Calendar submenus for (event-containing) event spaces, plus configuration
         // shortcuts for maintainers+; invisible when there is neither. See
-        // SpaceTitleMenu.forSpace.
-        add(SpaceTitleMenu.forSpace("calendarmenu", space));
+        // PageTitleMenu.forSpace.
+        add(PageTitleMenu.forSpace("titlemenu", space));
         add(new ExternalLinkWithActionsPanel("id", Model.of(space.getId()), Model.of(space.getLabel())));
 
         // Disambiguation notice: shown when viewing a specific claimant (ref pinned) or the
@@ -172,7 +185,8 @@ public class SpacePage extends NanodashPage {
             if (empty) {
                 contentContainer.add(new WebMarkupContainer("views").setVisible(false));
             } else {
-                contentContainer.add(new ViewList("views", space));
+                contentContainer.add(RefreshingStructurePanel.of("views", space,
+                        markupId -> new ViewList(markupId, spaceModel.getObject())));
             }
             addUnconfiguredFallback(contentContainer, space, empty);
         } else {
@@ -277,6 +291,31 @@ public class SpacePage extends NanodashPage {
     protected void onDetach() {
         spaceModel.detach();
         super.onDetach();
+    }
+
+    /**
+     * The description a space page gives search engines and link previews: the space's own
+     * description where it has one, and what the page shows otherwise.
+     *
+     * @param space the space this page shows
+     * @return the description
+     */
+    private static String spaceMetaDescription(Space space) {
+        String description = space.getDescription();
+        if (description != null && !description.isBlank()) return description;
+        return "The " + space.getLabel() + " space on Nanodash, with its nanopublications, members and views.";
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The space's root nanopublication declares it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        Space space = spaceModel.getObject();
+        List<Nanopub> declarations = space != null && space.getNanopub() != null ? List.of(space.getNanopub()) : List.of();
+        return new RdfSource("space", spaceId, null, declarations);
     }
 
     /**

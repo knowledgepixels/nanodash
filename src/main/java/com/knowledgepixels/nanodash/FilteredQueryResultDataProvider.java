@@ -73,6 +73,8 @@ public class FilteredQueryResultDataProvider implements ISortableDataProvider<Ap
             String prop = sortParam.getProperty();
             String labelProp = prop + "_label";
             String sortProp = Arrays.asList(response.getHeader()).contains(labelProp) ? labelProp : prop;
+            // Values are compared with Utils.compareValues rather than as plain text, so
+            // that a column of numbers does not come out with "10" above "9" (issue #673).
             data.sort((o1, o2) -> {
                 String v1 = o1.get(sortProp);
                 String v2 = o2.get(sortProp);
@@ -80,7 +82,7 @@ public class FilteredQueryResultDataProvider implements ISortableDataProvider<Ap
                 if (v1 == null && v2 == null) result = 0;
                 else if (v1 == null) result = 1;
                 else if (v2 == null) result = -1;
-                else result = v1.compareToIgnoreCase(v2);
+                else result = Utils.compareValues(v1, v2);
                 if (!sortParam.isAscending()) result = -result;
                 return result;
             });

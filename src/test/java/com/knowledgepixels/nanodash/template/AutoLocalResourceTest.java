@@ -69,12 +69,35 @@ public class AutoLocalResourceTest {
     }
 
     @Test
-    void introducedResourcesStayUntouched() throws Exception {
+    void introducedResourcesGetTaggedToo() throws Exception {
+        // Introduced/Embedded Resource tags only record the resulting IRI for pubinfo
+        // and say nothing about minting, so they must not exempt an otherwise untyped
+        // local IRI from the Local Resource treatment (issue #602).
         NanopubCreator creator = templateCreator();
         creator.addAssertionStatement(LOCAL_SUBJ, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
         Template t = new Template(creator.finalizeNanopub());
-        assertFalse(t.isLocalResource(LOCAL_SUBJ), "an introduced resource must not be auto-tagged as Local Resource");
+        assertTrue(t.isLocalResource(LOCAL_SUBJ), "a bare introduced resource must still be auto-tagged as Local Resource");
         assertTrue(t.isIntroducedResource(LOCAL_SUBJ));
+    }
+
+    @Test
+    void embeddedResourcesGetTaggedToo() throws Exception {
+        NanopubCreator creator = templateCreator();
+        creator.addAssertionStatement(LOCAL_SUBJ, RDF.TYPE, NTEMPLATE.EMBEDDED_RESOURCE);
+        Template t = new Template(creator.finalizeNanopub());
+        assertTrue(t.isLocalResource(LOCAL_SUBJ), "a bare embedded resource must still be auto-tagged as Local Resource");
+        assertTrue(t.isEmbeddedResource(LOCAL_SUBJ));
+    }
+
+    @Test
+    void introducedPlaceholdersStayUntouched() throws Exception {
+        // e.g. "Question" template: nt:IntroducedResource, nt:UriPlaceholder
+        NanopubCreator creator = templateCreator();
+        creator.addAssertionStatement(LOCAL_SUBJ, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
+        creator.addAssertionStatement(LOCAL_SUBJ, RDF.TYPE, NTEMPLATE.URI_PLACEHOLDER);
+        Template t = new Template(creator.finalizeNanopub());
+        assertFalse(t.isLocalResource(LOCAL_SUBJ), "an introduced placeholder must not be auto-tagged as Local Resource");
+        assertTrue(t.isPlaceholder(LOCAL_SUBJ));
     }
 
     @Test

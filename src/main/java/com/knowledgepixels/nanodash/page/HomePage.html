@@ -2,13 +2,14 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:head>
-  <title>nanodash</title>
+  <title wicket:id="pagetitle">Nanodash — browse and publish nanopublications</title>
 </wicket:head>
 <wicket:extend>
 
   <div class="row-section">
     <div class="col-12">
-      <h2><img src="images/logo.svg" alt="nanodash" style="height:2.4em;vertical-align:middle;" /></h2>
+      <h2><img src="images/logo.svg" alt="nanodash" style="height:2.4em;vertical-align:middle;" /><span
+          class="title-actions" wicket:id="titlemenu"></span></h2>
       <p><span wicket:id="warning" class="negative"></span></p>
       <p><span wicket:id="text"></span></p>
     </div>

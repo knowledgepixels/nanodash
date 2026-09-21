@@ -1,10 +1,14 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.calendar.CalendarEvent;
 import com.knowledgepixels.nanodash.calendar.CalendarUrls;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.CalendarFeedPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
@@ -14,6 +18,7 @@ import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -32,23 +37,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import org.apache.wicket.util.visit.IVisitor;
+import org.nanopub.extra.services.QueryRef;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * The dropdown next to a space title: a regular chevron menu (like the other dropdowns)
- * offering the space's calendar actions and, for maintainer-tier members and above, the
+ * The dropdown next to a page title: a regular chevron menu (like the other dropdowns)
+ * offering whatever the page as a whole can be asked to do. Every logged-in viewer gets
+ * "refresh now", the page-level counterpart of a view display's own refresh entry; a space
+ * additionally gets its calendar actions and, for maintainer-tier members and above, the
  * space-configuration shortcuts. Each calendar entry names a group of actions ("add to
  * calendar", "add events to calendar") and opens its entries in a submenu flyout on
  * hover; the configuration shortcuts are plain entries below them.
  *
+ * <p>Just right of the chevron sits the {@link StructureRefreshIndicator}: the spinner
+ * saying the page structure is being recalculated (issue #622).</p>
+ *
  * <p>Each supplied link must use the markup id {@code "link"}; the links are rendered in
  * order as menu entries.</p>
  */
-public class SpaceTitleMenu extends Panel {
+public class PageTitleMenu extends Panel {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpaceTitleMenu.class);
+    private static final Logger logger = LoggerFactory.getLogger(PageTitleMenu.class);
 
     /** A submenu: its label in the top-level dropdown, and the entries of its flyout. */
     private record Group(String label, List<AbstractLink> entries) implements Serializable {
@@ -62,8 +76,12 @@ public class SpaceTitleMenu extends Panel {
         }
     }
 
-    private SpaceTitleMenu(String id, List<Group> groups, List<AbstractLink> extraEntries) {
+    private PageTitleMenu(String id, List<Group> groups, List<AbstractLink> extraEntries, AbstractResourceWithProfile resource, boolean canRefresh) {
         super(id);
+        add(new StructureRefreshIndicator("spinner", resource));
+        add(new WebMarkupContainer("refreshSeparator")
+                .setVisible(canRefresh && !(groups.isEmpty() && extraEntries.isEmpty())));
+        add(refreshNowLink(resource).setVisible(canRefresh));
         add(new DataView<Group>("groups", new ListDataProvider<>(groups)) {
             @Override
             protected void populateItem(Item<Group> groupItem) {
@@ -86,8 +104,88 @@ public class SpaceTitleMenu extends Panel {
     }
 
     /**
+     * Brings the whole page up to date, in that order: first the resource's own structure —
+     * which views it shows — and then the views that refreshed structure turns out to
+     * contain. The two steps are deliberately sequential: refreshing the views that happen
+     * to be on screen at the moment of the click would refresh the <em>old</em> list, so a
+     * view display that has just been added would arrive with whatever the cache held for
+     * it, and one that has just been removed would be re-queried for nothing. The request
+     * is therefore left standing on the resource and honoured by the view list that is
+     * built once the refreshed structure has landed (see
+     * {@link AbstractResourceWithProfile#requestViewRefresh()} and
+     * {@link RefreshingStructurePanel}).
+     * <p>
+     * Views that are not part of that structure-driven list — the About and Explore tabs
+     * build their own — have no refreshed list to wait for and are marked right away.
+     * <p>
+     * The page-level counterpart of a view display's "refresh now", which does the same for
+     * its one query.
+     *
+     * @param resource the page's resource, or null if the page has none
+     * @return the menu entry
+     */
+    private static AbstractLink refreshNowLink(AbstractResourceWithProfile resource) {
+        // Held by id: see StructureRefreshIndicator on why the singleton itself is not kept.
+        final String resourceId = resource == null ? null : resource.getId();
+        return new AjaxFallbackLink<Void>("refreshNow") {
+            @Override
+            public void onClick(Optional<AjaxRequestTarget> target) {
+                AbstractResourceWithProfile r = resourceId == null ? null : AbstractResourceWithProfile.get(resourceId);
+                // Only a page that shows a view list has views to refresh once the
+                // refreshed structure lands. Asking for it on a page that has none (a
+                // tab that builds its own views) would leave the request standing on the
+                // process-wide resource for some later page to pick up.
+                boolean hasViewList = Boolean.TRUE.equals(getPage().visitChildren(ViewList.class,
+                        (IVisitor<ViewList, Boolean>) (list, visit) -> visit.stop(Boolean.TRUE)));
+                if (r != null) {
+                    // Asked for before the structure refresh is set going, so that the
+                    // update it triggers is one that already knows to re-resolve the view
+                    // definitions along the way.
+                    if (hasViewList) r.requestViewRefresh();
+                    r.forceRefresh(0);
+                }
+                getPage().visitChildren(QueryResult.class, (IVisitor<QueryResult, Void>) (view, visit) -> {
+                    if (view.findParent(ViewList.class) != null) return;
+                    QueryRef queryRef = view.getQueryRef();
+                    if (queryRef != null) ApiCache.clearCache(queryRef, 0);
+                    // A view built outside the page's structure has no refreshed view list to
+                    // pick a newer definition up from, so its version is re-checked here, the
+                    // way a view display's own "refresh now" does it (issue #654). The
+                    // resolution is dropped rather than replaced in place: the panel looks the
+                    // view up by the id hard-coded for it, and finding nothing memoized under
+                    // that id is what makes the re-render resolve it afresh.
+                    String shownViewId = view.getShownViewId();
+                    if (shownViewId != null) View.refreshLatestVersion(shownViewId);
+                });
+                setResponsePage(getPage().getClass(), getPage().getPageParameters());
+            }
+        };
+    }
+
+    /**
+     * The title menu for a page showing a resource that is not a space: the refresh entry
+     * and the structure spinner. Invisible for viewers who are not logged in, who have
+     * nothing to ask of the page.
+     *
+     * @param id       the Wicket component id
+     * @param resource the resource whose page this is
+     * @return the menu, or an invisible {@link EmptyPanel}
+     */
+    public static Component forResource(String id, AbstractResourceWithProfile resource) {
+        return build(id, new ArrayList<>(), new ArrayList<>(), resource);
+    }
+
+    private static Component build(String id, List<Group> groups, List<AbstractLink> extraEntries, AbstractResourceWithProfile resource) {
+        boolean canRefresh = resource != null && NanodashSession.get().getUserIri() != null;
+        if (groups.isEmpty() && extraEntries.isEmpty() && !canRefresh) {
+            return new EmptyPanel(id).setVisible(false);
+        }
+        return new PageTitleMenu(id, groups, extraEntries, resource, canRefresh);
+    }
+
+    /**
      * The title menu for a space, or an invisible placeholder when there is nothing to
-     * offer: no calendar-relevant dates and no configuration rights.
+     * offer: no calendar-relevant dates, no configuration rights and nobody logged in.
      *
      * <p>An Event space offers its own date as a one-off copy (an {@code .ics} file, or a
      * pre-filled form at Google or Outlook). A space containing Events offers a
@@ -95,8 +193,8 @@ public class SpaceTitleMenu extends Panel {
      * an event is later rescheduled. A space that is both gets both submenus.</p>
      *
      * <p>For viewers of maintainer tier or above, the menu additionally offers "configure"
-     * (leading to the space's About tab) and "add view display..." (the About tab's
-     * view-displays action, as a direct shortcut).</p>
+     * (leading to the space's About tab) and the About tab's view-displays actions
+     * ("add view display...", "add part-level view display...") as direct shortcuts.</p>
      *
      * @param id    the Wicket component id
      * @param space the space to build the menu for
@@ -130,26 +228,27 @@ public class SpaceTitleMenu extends Panel {
                     new PageParameters().set("id", space.getId()).set("tab", "about"));
             configure.setBody(Model.of("<span class=\"actionmenu-icon\">⚙</span>configure")).setEscapeModelStrings(false);
             extraEntries.add(configure);
-            AbstractLink addViewDisplay = addViewDisplayLink(space);
-            if (addViewDisplay != null) extraEntries.add(addViewDisplay);
+            extraEntries.addAll(addViewDisplayLinks(space));
         }
 
-        if (groups.isEmpty() && extraEntries.isEmpty()) {
-            return new EmptyPanel(id).setVisible(false);
-        }
-        return new SpaceTitleMenu(id, groups, extraEntries);
+        return build(id, groups, extraEntries, space);
     }
 
     /**
-     * The "add view display..." shortcut: the result-level action of the About tab's
+     * The "add view display..." shortcuts: the result-level actions of the About tab's
      * view-displays view ({@link AboutSpacePanel#VIEW_DISPLAYS_VIEW}), rendered the same
-     * way the view itself renders it (template link with the space pre-filled as target),
-     * so the shortcut stays in sync with the view nanopub's action declaration.
+     * way the view itself renders them (template link with the space pre-filled as target),
+     * so the shortcuts stay in sync with the view nanopub's action declarations.
+     *
+     * <p>The view declares more than one such action (issue #641 added a part-level variant
+     * next to the plain one), and the menu offers all of them the viewer is entitled to, in
+     * the order the view nanopub lists them.</p>
      */
-    private static AbstractLink addViewDisplayLink(Space space) {
+    private static List<AbstractLink> addViewDisplayLinks(Space space) {
+        List<AbstractLink> links = new ArrayList<>();
         try {
             View view = View.get(AboutSpacePanel.VIEW_DISPLAYS_VIEW);
-            if (view == null) return null;
+            if (view == null) return links;
             for (IRI actionIri : view.getViewResultActionList()) {
                 if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), space, null)) continue;
                 Template t = view.getTemplateForAction(actionIri);
@@ -171,12 +270,12 @@ public class SpaceTitleMenu extends Panel {
                 } else {
                     l.setBody(Model.of(label));
                 }
-                return l;
+                links.add(l);
             }
         } catch (Exception ex) {
-            logger.error("Couldn't build add-view-display shortcut for space {}", space.getId(), ex);
+            logger.error("Couldn't build add-view-display shortcuts for space {}", space.getId(), ex);
         }
-        return null;
+        return links;
     }
 
     /**

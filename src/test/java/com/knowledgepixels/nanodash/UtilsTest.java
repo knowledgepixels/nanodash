@@ -164,6 +164,76 @@ class UtilsTest {
     }
 
     @Test
+    void sanitizeHtmlKeepsInlineSvg() {
+        String rawHtml = "<p>Chart:</p><svg viewBox=\"0 0 20 10\" width=\"20\" height=\"10\">"
+                + "<rect x=\"0\" y=\"0\" width=\"5\" height=\"5\" fill=\"#eee\"/>"
+                + "<text x=\"1\" y=\"9\" font-size=\"4\">hi</text></svg>";
+        String sanitized = Utils.sanitizeHtml(rawHtml);
+        for (String kept : new String[] {"<p>Chart:</p>", "<svg", "viewBox=\"0 0 20 10\"", "<rect",
+                "fill=\"#eee\"", "</rect><text", "font-size=\"4\"", "hi"}) {
+            assertTrue(sanitized.contains(kept), "expected to keep: " + kept + " in: " + sanitized);
+        }
+    }
+
+    @Test
+    void sanitizeHtmlRemovesScriptingFromInlineSvg() {
+        String rawHtml = "<div><svg width=\"10\" height=\"10\">"
+                + "<script>alert('XSS')</script>"
+                + "<rect width=\"10\" height=\"10\" onclick=\"alert('XSS')\" style=\"fill:red\"></rect>"
+                + "<foreignObject><body onload=\"alert('XSS')\">x</body></foreignObject>"
+                + "<use href=\"https://evil.example/x.svg#a\"></use>"
+                + "</svg></div>";
+        String sanitized = Utils.sanitizeHtml(rawHtml);
+        for (String dropped : new String[] {"<script", "alert", "onclick", "onload", "style", "<foreignObject",
+                "<use", "evil.example"}) {
+            assertFalse(sanitized.contains(dropped), "expected to drop: " + dropped + " but got: " + sanitized);
+        }
+        assertTrue(sanitized.contains("<rect width=\"10\" height=\"10\""));
+    }
+
+    @Test
+    void sanitizeHtmlLeavesHtmlSelfClosedElementsAlone() {
+        // Only SVG element names are expanded to explicit end tags; HTML void
+        // elements (and element names that merely start with an SVG one) are not.
+        String sanitized = Utils.sanitizeHtml("<p>a<br/>b</p><img src=\"x.png\"/>");
+        assertFalse(sanitized.contains("</br>"), "unexpected: " + sanitized);
+        assertEquals("<p>a<br />b</p><img src=\"x.png\" />", sanitized);
+    }
+
+    @Test
+    void toLabelTextDropsSvgAndTags() {
+        // The label of an HTML value with an inline figure, as published from a
+        // template whose nanopub label pattern includes that placeholder.
+        String value = "<div>\nImage Test:\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 8 8\" width=\"2cm\">\n"
+                + "<path d=\"M5,8H8L3,0H0M8,4.8V0H5M0,3.2V8H3\"/>\n</svg>\n</div>";
+        assertEquals("Image Test:", Utils.toLabelText(value));
+    }
+
+    @Test
+    void toLabelTextDropsSvgFromNonHtmlValue() {
+        // The value doesn't start with a tag, so it isn't HTML by our rule, but a
+        // figure is never label text either.
+        assertEquals("Image Test:", Utils.toLabelText("Image Test: <svg viewBox=\"0 0 8 8\"><rect/></svg>"));
+    }
+
+    @Test
+    void toLabelTextLeavesPlainTextAlone() {
+        assertEquals("a < b and c > d", Utils.toLabelText("  a < b and c > d "));
+    }
+
+    @Test
+    void htmlToPlainTextUnescapesEntities() {
+        assertEquals("a < b & c d", Utils.htmlToPlainText("<p>a &lt; b &amp; c</p> <b>d</b>"));
+        assertEquals("\"quoted\" and 'single' and é", Utils.htmlToPlainText("&#34;quoted&#34; and &#39;single&#39; and &#xe9;"));
+    }
+
+    @Test
+    void looksLikeHtmlRecognizesInlineSvg() {
+        assertTrue(Utils.looksLikeHtml("<svg viewBox=\"0 0 10 10\"><rect/></svg>"));
+        assertFalse(Utils.looksLikeHtml("svg is a format"));
+    }
+
+    @Test
     void sanitizeSvgKeepsStaticSvgSubset() {
         String rawSvg = "<svg viewBox=\"0 0 504 900\" width=\"504\" height=\"900\" font-family=\"sans-serif\">"
                 + "<rect x=\"20\" y=\"8\" width=\"464\" height=\"34\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#93c5fd\"></rect>"
@@ -240,6 +310,20 @@ class UtilsTest {
 
         assertEquals(1, result.size());
         assertTrue(result.contains(includedType));
+        mockStatic.close();
+    }
+
+    @Test
+    void getTypesExcludesProtectedNanopubType() {
+        // npx:ProtectedNanopub is shown as its own flag in NanopubItem, not as a type tag.
+        Nanopub nanopub = mock(Nanopub.class);
+        MockedStatic<NanopubUtils> mockStatic = mockStatic(NanopubUtils.class);
+        IRI includedType = Values.iri("http://knowledgepixels.com/nanopubIri#ValidType");
+        mockStatic.when(() -> NanopubUtils.getTypes(nanopub)).thenReturn(Set.of(NPX.PROTECTED_NANOPUB, includedType));
+
+        List<IRI> result = Utils.getTypes(nanopub);
+
+        assertEquals(List.of(includedType), result);
         mockStatic.close();
     }
 
@@ -708,7 +792,10 @@ class UtilsTest {
     void getEscapedLiteralStringEscapesQuotesCorrectly() {
         String input = "This is a \"quote\"";
         String result = Utils.getEscapedLiteralString(Utils.getUnescapedLiteralString(input));
-        assertEquals("This is a \"quote\"", result);
+        // Quotes must come back escaped, like the backslashes below: an unescaped inner
+        // quote ends the serialized literal early, so a value containing one (e.g. SVG
+        // markup, issue #634) could not be round-tripped through a value field.
+        assertEquals("This is a \\\"quote\\\"", result);
     }
 
     @Test
@@ -1025,6 +1112,48 @@ class UtilsTest {
         assertFalse(Utils.isDate("2026-1-30"));
         assertFalse(Utils.isDate("30-01-2026"));
         assertFalse(Utils.isDate("2026-01-30 12:00:00")); // missing T
+    }
+
+    @Test
+    void compareValues_ordersNumbersByValue() {
+        assertTrue(Utils.compareValues("9", "10") < 0);
+        assertTrue(Utils.compareValues("10", "9") > 0);
+        assertTrue(Utils.compareValues("2", "10") < 0);
+        assertEquals(0, Utils.compareValues("42", "42"));
+        assertTrue(Utils.compareValues("007", "8") < 0);
+        assertTrue(Utils.compareValues("1.25", "1.5") < 0);
+        assertTrue(Utils.compareValues("-3", "2") < 0);
+        // Whitespace around a value is not part of it.
+        assertEquals(0, Utils.compareValues(" 7 ", "7"));
+    }
+
+    @Test
+    void compareValues_ordersNumbersInsideText() {
+        assertTrue(Utils.compareValues("Session #9", "Session #34") < 0);
+        assertTrue(Utils.compareValues("item2", "item10") < 0);
+        assertTrue(Utils.compareValues("v1.9.0", "v1.10.0") < 0);
+        assertTrue(Utils.compareValues("2026-09-02", "2026-09-10") < 0);
+    }
+
+    @Test
+    void compareValues_ordersTextIgnoringCase() {
+        assertTrue(Utils.compareValues("apple", "Banana") < 0);
+        assertTrue(Utils.compareValues("Banana", "apple") > 0);
+        assertEquals(0, Utils.compareValues("Apple", "apple"));
+        assertTrue(Utils.compareValues("apple", "applesauce") < 0);
+        assertTrue(Utils.compareValues("", "a") < 0);
+    }
+
+    @Test
+    void compareValues_isConsistentInBothDirections() {
+        List<String> values = List.of("10", "9", "Session #34", "Session #9", "", "apple", "1.5", "1.25");
+        for (String a : values) {
+            for (String b : values) {
+                assertEquals(Integer.signum(Utils.compareValues(a, b)),
+                        -Integer.signum(Utils.compareValues(b, a)),
+                        "asymmetric for '" + a + "' / '" + b + "'");
+            }
+        }
     }
 
 }

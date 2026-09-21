@@ -508,6 +508,39 @@ th {
   border-bottom: 1px solid #888;
 }
 
+/* Sort state of a result table's columns (issue #673). Wicket marks the header
+   cell with wicket_orderUp/wicket_orderDown/wicket_orderNone but ships no styling
+   for them, so ordering a column left no visible trace and it was easy to doubt
+   whether the click had done anything. The caret sits after the header label: solid
+   on the column the table is ordered by, and shown only on hover for the others, so
+   the header row stays quiet while still advertising that a column can be ordered.
+   The space is reserved either way, so nothing shifts as the caret appears. */
+.result-table th.wicket_orderUp > a::after,
+.result-table th.wicket_orderDown > a::after,
+.result-table th.wicket_orderNone > a::after {
+  font-size: 0.8em;
+  margin-left: 4px;
+  vertical-align: 1px;
+}
+
+.result-table th.wicket_orderUp > a::after {
+  content: "\25B2";
+}
+
+.result-table th.wicket_orderDown > a::after {
+  content: "\25BC";
+}
+
+.result-table th.wicket_orderNone > a::after {
+  content: "\25B2";
+  color: #aaa;
+  visibility: hidden;
+}
+
+.result-table th.wicket_orderNone > a:hover::after {
+  visibility: visible;
+}
+
 tbody tr:nth-child(even) {
   /* Alpha-based so the zebra stripe darkens whatever is behind it (≈ #efefef
      on white), instead of looking brighter than darker backgrounds (e.g. on
@@ -675,6 +708,30 @@ img.thirdparty {
   -webkit-mask-image: url("images/mask.svg");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: contain;
+}
+
+/* Profile pictures of spaces and maintained resources (issue #632): unlike user
+   icons these are shown plainly, without the tilted-square mask, right-aligned in
+   the header row next to the title/URI block. object-fit: contain keeps wide logos
+   uncropped; with no picture the header is exactly as it was before. */
+.resource-header {
+  display: flex;
+  align-items: center;
+  column-gap: 1.5em;
+}
+
+.resource-header > .resource-header-text {
+  min-width: 0;
+}
+
+.resource-profile-pic {
+  display: block;
+  flex-shrink: 0;
+  margin-left: auto;
+  height: 4.2em;
+  width: auto;
+  max-width: 12em;
+  object-fit: contain;
 }
 
 .api-icon {
@@ -969,13 +1026,23 @@ a.actionlink {
   max-height: 28px;
 }
 
-.select2-selection__rendered > span.term {
+.select2-selection__rendered > span.term,
+.select2-selection__rendered > span.mint-note {
   display: inline-block;
   margin-top: 3px;
 }
 
 .select2-dropdown span.term {
   font-weight: bold;
+}
+
+/* The note on a value that the nanopublication will mint itself: an aside about the value, not
+   part of it, so it is set apart from the term next to it -- but only in weight and slant, since
+   it sits on the same line and shares the rules above with that term (issue #652). */
+span.mint-note {
+  font-weight: normal;
+  font-style: italic;
+  vertical-align: middle;
 }
 
 .select2-dropdown.select2-dropdown--below {
@@ -1201,6 +1268,7 @@ input[type=radio] + label strong {
    chevron — the border only appears on hover (as an outline, not a filled button). */
 .result-table .actionmenu,
 .inline-list .actionmenu,
+.item-list .actionmenu,
 .paragraph-header .actionmenu,
 .graphsubheader .actionmenu {
   position: relative;
@@ -1209,6 +1277,7 @@ input[type=radio] + label strong {
 
 .result-table .actionmenu-button,
 .inline-list .actionmenu-button,
+.item-list .actionmenu-button,
 .paragraph-header .actionmenu-button,
 .graphsubheader .actionmenu-button {
   border-color: transparent;
@@ -1219,6 +1288,7 @@ input[type=radio] + label strong {
 
 .result-table .actionmenu:hover .actionmenu-button,
 .inline-list .actionmenu:hover .actionmenu-button,
+.item-list .actionmenu:hover .actionmenu-button,
 .paragraph-header .actionmenu:hover .actionmenu-button,
 .graphsubheader .actionmenu:hover .actionmenu-button {
   border-color: #0B73DA;
@@ -1247,6 +1317,14 @@ input[type=radio] + label strong {
   font-weight: 400;
   margin-left: 12px;
   vertical-align: middle;
+}
+
+/* The page-structure spinner, immediately right of the title menu's chevron: a little
+   larger than the in-row one, since the heading beside it is larger too. */
+.title-actions .refresh-spinner {
+  width: 13px;
+  height: 13px;
+  margin-left: 8px;
 }
 
 /* Nested submenu inside a dropdown (e.g. the calendar menu): a group row whose entries
@@ -1467,6 +1545,62 @@ select {
   white-space: nowrap;
 }
 
+.service-health-note {
+  padding: 6px 20px;
+  font-size: 13px;
+  text-align: center;
+  color: #7a4a00;
+  background-color: #fff4d6;
+  border-bottom: 1px solid #e0b055;
+}
+
+.restricted-marker {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: #7a4a00;
+  background-color: #ffe6b3;
+  border: 1px solid #e0b055;
+  border-radius: 3px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* The protected-nanopublication option on the publish form, kept out of the advanced
+   publication info section because where a nanopublication may be stored is not an advanced
+   detail (#671). */
+.protected-option {
+  padding: 8px 12px;
+  background-color: #fff4d6;
+  border: 1px solid #e0b055;
+  border-radius: 3px;
+}
+
+.protected-option label {
+  color: #7a4a00;
+}
+
+.protected-note {
+  display: block;
+  margin-left: 22px;
+  font-size: 13px;
+  color: #7a4a00;
+}
+
+.protectedtag {
+  color: #7a4a00;
+  font-size: 12px;
+  padding: 2px 6px;
+  margin-right: 4px;
+  background-color: #ffe6b3;
+  border: 1px solid #e0b055;
+  border-radius: 3px;
+  white-space: nowrap;
+  cursor: help;
+}
+
 .positivetag {
   font-size: 14px;
   padding: 4px 10px;
@@ -1680,6 +1814,21 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
 }
 */
 
+/* The parts of an xsd:gYear/gMonth/... value: a year is four characters, not a full-width
+   text field, and a month or day dropdown needs only enough room for its longest name -- so it
+   sizes to its widest option rather than to the 350px every other select gets. The height is
+   the one input[type=text] is given, which a select does not pick up on its own. */
+.gregorian-year {
+  width: 7em;
+}
+
+.gregorian-part {
+  width: auto;
+  min-width: 8em;
+  height: 28px;
+  margin-left: 2px;
+}
+
 .pubinfosection .nanopub-pubinfo {
   display: none;
 }
@@ -1693,6 +1842,16 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   padding: 4px !important;
   border-radius: 2px;
   white-space: pre-wrap;
+}
+
+/* Pre-filled value that the link opening the form stated as locked (issue #678): shown with
+   its value, but not editable. */
+.locked-value,
+input.locked-value,
+textarea.locked-value {
+  background: #f2f2f2;
+  color: #555;
+  cursor: not-allowed;
 }
 
 .litlang {
@@ -2078,6 +2237,12 @@ hr {
 .titlebar-message-box-warning {
   background: #A012081A;
   border-color: #A0120840;
+}
+
+/* Amber variant for the "account pending approval" notice box (issue #625). */
+.titlebar-message-box-pending {
+  background: #B075001A;
+  border-color: #B0750040;
 }
 
 .titlebar-message-close {
@@ -2474,6 +2639,32 @@ p.waiting {
   margin-left: 0;
 }
 
+/* A header view's title row is built differently — an h3 above a rule, baseline-aligned,
+   with no filter field — but the spinner means the same thing and goes to the same place.
+   It rides the row's baseline: an empty inline-block has no line box of its own, so its
+   baseline is its bottom edge, which lands the circle on the title's baseline like a
+   capital letter. Centring it in the row instead would sit it 7px high, since the row is
+   taller than the text by the heading's top margin. */
+.view-header-titlerow > .refresh-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-left: 10px;
+  margin-right: auto;
+  align-self: baseline;
+  flex: none;
+}
+
+/* As in a panel title row: the title stops filling the row so the spinner takes that space
+   instead, and the buttons' auto left margin gives way to the spinner's auto right one. */
+[class*="col-"].section-header .view-header-titlerow:has(> .refresh-spinner) h3 {
+  flex: 0 1 auto;
+}
+
+.view-header-titlerow:has(> .refresh-spinner) > span.buttons {
+  margin-left: 0;
+}
+
 /* Standing on its own — a whole page section or panel body with nothing in it yet — the
    same spinner is drawn larger: there is no title or message beside it to carry the eye,
    and none of the gutter's width limit applies. */
@@ -2689,26 +2880,55 @@ div.navigator .goto a[disabled] {
   margin-left: 0;
 }
 
+/* Paragraph sections: extra room before a heading, a regular paragraph gap after
+   it. The content is a div (not a p) because paragraph HTML carries its own <p>
+   elements, which cannot nest inside a p and used to leave stray empty paragraphs
+   with uneven gaps. */
 .paragraph-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 1.8em;
   margin-bottom: 0;
 }
 
-.paragraph-header + p {
-  margin-top: 8px;
+.paragraph-block:first-child .paragraph-header:not(.no-title) {
+  margin-top: 1.25em;
 }
 
-/* Title-less paragraph: float the source link to the top-right corner so it
-   doesn't occupy its own line; the content flows up beside it. */
+/* Each block contains its own floats, so the row menu of a title-less paragraph
+   (floated, see below) never spills into the next block and shoves that block's
+   menu leftward out of line. */
+.paragraph-block {
+  display: flow-root;
+}
+
+/* A regular paragraph gap (1em) below the heading text. The heading row itself
+   runs about 4px below the text, because the row menu's chevron button is taller
+   than the heading's line box, so the margin is set from the row's edge accordingly. */
+.paragraph-header + .paragraph-content {
+  margin-top: 12px;
+}
+
+/* Inner paragraphs keep their own 1em gaps between each other; the block's
+   outer margins come from the header and the content container instead. */
+.paragraph-content > :first-child {
+  margin-top: 0;
+}
+
+.paragraph-content > :last-child {
+  margin-bottom: 0;
+}
+
+/* Title-less paragraph: float the row menu to the top-right corner so it
+   doesn't occupy its own line; the content flows up beside it. The top margin
+   matches the content's below, so the menu rides the first text line. */
 .paragraph-header.no-title {
   float: right;
-  margin: 0 0 0 12px;
+  margin: 8px 0 0 12px;
 }
 
-.paragraph-header.no-title + p {
+.paragraph-header.no-title + .paragraph-content {
   margin-top: 8px;
 }
 
@@ -2727,16 +2947,29 @@ div.navigator .goto a[disabled] {
   height: auto;
 }
 
-/* Links in SVG-view figures follow the page's link colors (matching the a /
-   a:hover rules above). CSS overrides the SVG's own fill presentation
-   attributes, which queries keep as a fallback for standalone rendering. */
+/* Links in SVG figures (both SVG views and inline SVG in HTML snippets) follow
+   the page's link colors (matching the a / a:hover rules above). CSS overrides
+   the SVG's own fill presentation attributes, which queries keep as a fallback
+   for standalone rendering. */
 .svg-view-content a text,
-.svg-view-content a tspan {
+.svg-view-content a tspan,
+.cell-data-html a text,
+.cell-data-html a tspan,
+.inline-list a text,
+.inline-list a tspan,
+.paragraph-content a text,
+.paragraph-content a tspan {
   fill: #0b73da;
 }
 
 .svg-view-content a:hover text,
-.svg-view-content a:hover tspan {
+.svg-view-content a:hover tspan,
+.cell-data-html a:hover text,
+.cell-data-html a:hover tspan,
+.inline-list a:hover text,
+.inline-list a:hover tspan,
+.paragraph-content a:hover text,
+.paragraph-content a:hover tspan {
   fill: #6eb2f7;
 }
 
@@ -2888,12 +3121,29 @@ td div:has(.button-list) {
   width: 100% !important;
 }
 
+/* Date and time fields sized to their content: a date like "25 Aug 2026", and a time like
+   "14:30", wider when the field asks for seconds. The !important is needed because the Kendo
+   widgets put their default widths as inline styles on these boxes. */
+span.k-datepicker {
+  width: 140px !important;
+}
+
+span.k-timepicker {
+  width: 90px !important;
+}
+
+span.k-timepicker:has(input.with-seconds) {
+  width: 115px !important;
+}
+
 /* Time zone picker: the whole box opens the dropdown, the globe included. The select covers the
    box, and the globe is drawn on top of it without taking the clicks for itself; the select's own
    arrow is hidden, as the globe is the button this box shows. The tag is in the selector below to
-   outweigh Kendo's own .k-input {width: 100%} whichever way round the stylesheets are loaded. */
+   outweigh Kendo's own .k-input {width: 100%} whichever way round the stylesheets are loaded.
+   The box fits the "UTC+02:00" part of the selected label; the place names behind it are
+   clipped, and still shown in full in the opened dropdown. */
 span.timezone-picker {
-  width: 240px;
+  width: 150px;
   position: relative;
   cursor: pointer;
 }
@@ -3021,6 +3271,16 @@ a.source:hover {
 .cell-data-html span,
 .cell-data-html div {
   margin: 0;
+}
+
+/* Inline SVG in HTML snippets coming from queries (table cells, list entries and
+   paragraph content), scaled down to the available width like SVG-view figures. */
+.cell-data-html svg,
+.inline-list svg,
+.paragraph-content svg {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
 }
 
 /* Advanced/Simple mode toggle */

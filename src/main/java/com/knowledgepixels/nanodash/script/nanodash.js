@@ -71,6 +71,26 @@ function renderFriendlyDates(root) {
   });
 }
 
+/* The address of the page as it is worth sending to somebody else. Two things Wicket
+   puts there belong to the current visit only and are left out:
+   - the counter for the page instance it is serving, at the front of the query string
+     as a parameter with no value: ".../space?3&id=...". Any other valueless number
+     goes the same way; nanodash's own parameters all have names.
+   - the session id, which Wicket writes into the path as ";jsessionid=..." when the
+     visitor has cookies disabled: ".../space;jsessionid=79B384...?id=...". Sending
+     that on would hand the recipient a live session. */
+function shareableUrl() {
+  var url = window.location.href.split("#")[0];
+  var queryStart = url.indexOf("?");
+  var path = (queryStart === -1 ? url : url.slice(0, queryStart))
+      .replace(/;jsessionid=[^/]*/gi, "");
+  if (queryStart === -1) return path;
+  var params = url.slice(queryStart + 1).split("&").filter(function (param) {
+    return !/^[0-9]+$/.test(param);
+  });
+  return path + (params.length ? "?" + params.join("&") : "");
+}
+
 /* Section anchors — every view display of a page carries a fragment identifier
    (server-side, see ViewAnchors): on its wrapping .listview element where ViewList
    renders it, and on the panel itself (.view-section) on the pages that build their
@@ -98,7 +118,7 @@ function addSectionAnchors(root) {
       // The href already moves the browser to the section; additionally put the full
       // link on the clipboard, which is what one actually wants it for.
       if (!navigator.clipboard) return;
-      var url = window.location.href.split("#")[0] + "#" + section.id;
+      var url = shareableUrl() + "#" + section.id;
       navigator.clipboard.writeText(url).then(function () {
         showToast("Link to section copied to clipboard!");
       }, function () { /* clipboard denied: the plain link still works */ });
@@ -178,10 +198,50 @@ function makeSpinner() {
 var UPDATE_SPINNER_DELAY_MS = 250;
 /* Backstop for a call that never reports completion, so a spinner cannot get stuck. */
 var UPDATE_SPINNER_MAX_MS = 30000;
+/* An update the user explicitly asked for — a view's "refresh now" — is the exception to
+   the delay above: it shows at once and stays long enough to be read. The delay is there so
+   that updates happening *incidentally*, as a side effect of typing or paging, do not
+   flicker; a refresh someone clicked for is the opposite case, and answering it with
+   nothing visible reads as a click that did nothing. Most of these round trips finish in
+   about a tenth of a second, which is why the delay alone left them silent. */
+var REQUESTED_SPINNER_MIN_MS = 600;
 var updatingPanels = new Map();
+/* The panel each call in flight was started from, remembered by the id of the control that
+   triggered it. The control itself can be gone by the time the call completes — a table
+   re-renders its own header and paging links with fresh ids — and looking the panel up
+   again would then find nothing, leaving the spinner turning until the backstop. */
+var pendingCalls = new Map();
 
 function isVisible(el) {
   return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+/* The title rows a spinner can go in: a regular view panel's, and a header view's, which
+   is built differently (an h3 under a rule rather than an h4) but sits in the same place
+   and means the same thing. */
+var TITLE_ROW_SELECTOR = ".paneltitlerow, .view-header-titlerow";
+var TITLE_SELECTOR = "h4, h3";
+
+/* Whether an Ajax call came from a control the user clicked to ask for a refresh, as
+   opposed to one where updating is a side effect (a filter field, a paging link). The
+   markup says so: "refresh now" carries the class. */
+function isRequestedRefresh(attributes) {
+  var id = attributes && attributes.c;
+  if (!id || typeof id !== "string") return false;
+  var el = document.getElementById(id);
+  return !!(el && el.classList.contains("refresh-request"));
+}
+
+/* Whether an Ajax call is a table reordering a column header was clicked for. The rows
+   are already on the page and no query is made; the round trip only re-renders them in a
+   different order. Answering that with the "updating" spinner suggested data was being
+   fetched, and made a reordering look like a refresh (issue #673), so these calls stay
+   out of the indicator. Header sort links are the only Ajax triggers inside a <th>. */
+function isTableReordering(attributes) {
+  var id = attributes && attributes.c;
+  if (!id || typeof id !== "string") return false;
+  var el = document.getElementById(id);
+  return !!(el && el.closest("th"));
 }
 
 /* The view panel an Ajax call was triggered from, or null for calls that belong to no
@@ -195,7 +255,7 @@ function findUpdatingPanel(attributes) {
   var panel = el.closest('[class*="col-"]');
   // A view panel is a column with a title row; anything else (a page-level column, a
   // form) is left alone, since the gutter position is meaningless there.
-  return panel && panel.querySelector(".paneltitlerow") ? panel : null;
+  return panel && panel.querySelector(TITLE_ROW_SELECTOR) ? panel : null;
 }
 
 function showUpdateSpinner(panel) {
@@ -207,9 +267,9 @@ function showUpdateSpinner(panel) {
   if (existing && isVisible(existing)) return;
   // Right after the title, where the view's own spinner goes; the title row's layout keeps
   // it clear of the title icon and of the filter and menu on the right.
-  var titleRow = panel.querySelector(".paneltitlerow");
-  var title = titleRow ? titleRow.querySelector("h4") : null;
+  var titleRow = panel.querySelector(TITLE_ROW_SELECTOR);
   if (!titleRow) return;
+  var title = titleRow.querySelector(TITLE_SELECTOR);
   var spinner = makeSpinner();
   spinner.title = "Updating...";
   panel.classList.add("view-refreshing");
@@ -219,8 +279,18 @@ function showUpdateSpinner(panel) {
 
 function hideUpdateSpinner(panel) {
   var state = updatingPanels.get(panel);
-  updatingPanels.delete(panel);
   if (!state) return;
+  // An explicitly requested refresh keeps its spinner until it has been visible long
+  // enough to register, however quickly the server answered.
+  if (state.minUntil) {
+    var left = state.minUntil - performance.now();
+    if (left > 0) {
+      state.minUntil = null;
+      setTimeout(function () { hideUpdateSpinner(panel); }, left);
+      return;
+    }
+  }
+  updatingPanels.delete(panel);
   if (state.showTimer) clearTimeout(state.showTimer);
   if (state.maxTimer) clearTimeout(state.maxTimer);
   if (!state.spinner) return;
@@ -232,16 +302,21 @@ function hideUpdateSpinner(panel) {
   }
 }
 
-function onUpdateStart(panel) {
+function onUpdateStart(panel, requested) {
   var state = updatingPanels.get(panel);
   if (state) {
     state.count++;
     return;
   }
-  state = {count: 1, spinner: null, showTimer: null, maxTimer: null};
+  state = {count: 1, spinner: null, showTimer: null, maxTimer: null, minUntil: null};
   updatingPanels.set(panel, state);
-  state.showTimer = setTimeout(function () { showUpdateSpinner(panel); }, UPDATE_SPINNER_DELAY_MS);
   state.maxTimer = setTimeout(function () { hideUpdateSpinner(panel); }, UPDATE_SPINNER_MAX_MS);
+  if (requested) {
+    state.minUntil = performance.now() + REQUESTED_SPINNER_MIN_MS;
+    showUpdateSpinner(panel);
+  } else {
+    state.showTimer = setTimeout(function () { showUpdateSpinner(panel); }, UPDATE_SPINNER_DELAY_MS);
+  }
 }
 
 function onUpdateEnd(panel) {
@@ -254,11 +329,23 @@ function onUpdateEnd(panel) {
 function trackAjaxUpdates() {
   if (typeof Wicket === "undefined" || !Wicket.Event) return;
   Wicket.Event.subscribe("/ajax/call/before", function (jqEvent, attributes) {
+    if (isTableReordering(attributes)) return;
     var panel = findUpdatingPanel(attributes);
-    if (panel) onUpdateStart(panel);
+    if (!panel) return;
+    var id = attributes && attributes.c;
+    if (typeof id === "string") pendingCalls.set(id, panel);
+    onUpdateStart(panel, isRequestedRefresh(attributes));
   });
   Wicket.Event.subscribe("/ajax/call/complete", function (jqEvent, attributes) {
-    var panel = findUpdatingPanel(attributes);
+    if (isTableReordering(attributes)) return;
+    var id = attributes && attributes.c;
+    var panel = null;
+    if (typeof id === "string" && pendingCalls.has(id)) {
+      panel = pendingCalls.get(id);
+      pendingCalls.delete(id);
+    } else {
+      panel = findUpdatingPanel(attributes);
+    }
     if (panel) onUpdateEnd(panel);
   });
 }

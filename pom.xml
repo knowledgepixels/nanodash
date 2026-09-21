@@ -4,7 +4,7 @@
   <groupId>com.knowledgepixels</groupId>
   <artifactId>nanodash</artifactId>
   <packaging>war</packaging>
-  <version>5.10.1-SNAPSHOT</version>
+  <version>5.15.1-SNAPSHOT</version>
   <name>nanodash</name>
   <url>https://github.com/knowledgepixels/nanodash</url>
   <licenses>
@@ -106,7 +106,7 @@
     <dependency>
       <groupId>org.nanopub</groupId>
       <artifactId>nanopub</artifactId>
-      <version>1.90.0</version>
+      <version>1.94.0</version>
     </dependency>
     <dependency>
       <groupId>io.github.openhtmltopdf</groupId>
@@ -129,6 +129,14 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>6.1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Nanopublications used as test fixtures are kept in the nanopub test suite, not
+         copied into this repository; this connector fetches them. -->
+    <dependency>
+      <groupId>org.nanopub</groupId>
+      <artifactId>nanopub-testsuite-connector</artifactId>
+      <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -288,6 +296,11 @@
         <version>3.5.5</version>
         <configuration>
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djava.awt.headless=true</argLine>
+          <environmentVariables>
+            <!-- Tests that start a WicketApplication must not read or write the developer's
+                 real API cache persistence (snapshot file and entry store) in ~/.nanopub. -->
+            <NANODASH_API_CACHE_FILE>none</NANODASH_API_CACHE_FILE>
+          </environmentVariables>
         </configuration>
       </plugin>
       <plugin>

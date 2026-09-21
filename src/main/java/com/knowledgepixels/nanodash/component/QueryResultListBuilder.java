@@ -2,15 +2,8 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.Space;
-import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
-import com.knowledgepixels.nanodash.template.Template;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 
@@ -116,68 +109,14 @@ public class QueryResultListBuilder implements Serializable {
     }
 
     private QueryResultList buildList(String markupId, ApiResponse response) {
-        if (resourceWithProfile == null) {
-            QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
-            resultList.setPageResource(pageResource);
-            resultList.setContextId(contextId);
-            ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, null, refRoot);
-            return resultList;
-        }
         QueryResultList resultList = new QueryResultList(markupId, queryRef, response, viewDisplay);
         resultList.setResourceWithProfile(resourceWithProfile);
         resultList.setPageResource(pageResource);
         resultList.setContextId(contextId);
         resultList.setPostPublishTab(postPublishTab);
         resultList.setRefRoot(refRoot);
-        View view = viewDisplay.getView();
-        if (view != null) {
-            for (IRI actionIri : view.getViewResultActionList()) {
-                if (!SpaceMemberRole.isViewerEntitled(view.getActionVisibleTo(actionIri), resourceWithProfile, refRoot)) continue;
-                Template t = view.getTemplateForAction(actionIri);
-                if (t == null) continue;
-                String targetField = view.getTemplateTargetFieldForAction(actionIri);
-                if (targetField == null) targetField = "resource";
-                String label = view.getLabelForAction(actionIri);
-                if (label == null) label = "action...";
-                if (!label.endsWith("...")) label += "...";
-                PageParameters params = new PageParameters().set("template", t.getId())
-                        .set("param_" + targetField, id)
-                        .set("context", contextId)
-                        .set("template-version", "latest");
-                if (id != null && contextId != null && !id.equals(contextId)) {
-                    params.set("part", id);
-                }
-                String partField = view.getTemplatePartFieldForAction(actionIri);
-                if (partField != null && contextId != null) {
-                    // The part field pre-fills a namespaced child IRI (the user fills the suffix).
-                    // TODO Find a better way to pass the MaintainedResource object to this method:
-                    MaintainedResource r = MaintainedResourceRepository.get().findById(contextId);
-                    String namespace = null;
-                    if (r != null) {
-                        namespace = r.getNamespace();
-                    } else if (resourceWithProfile instanceof Space) {
-                        // The Space-creation templates' `space` placeholder has a fixed
-                        // `https://w3id.org/spaces/` prefix, so the pre-fill is relative to it.
-                        // Nesting the new space's IRI under this space's path makes it a
-                        // sub-space via the prefix match.
-                        namespace = contextId.replaceFirst("https://w3id.org/spaces/", "") + "/";
-                    }
-                    if (namespace != null) {
-                        params.set("param_" + partField, namespace + "<SET-SUFFIX>");
-                    }
-                }
-                String queryMapping = view.getTemplateQueryMapping(actionIri);
-                if (queryMapping != null && queryMapping.contains(":")) {
-                    params.set("values-from-query", queryRef.getAsUrlString());
-                    params.set("values-from-query-mapping", queryMapping);
-                }
-                params.set("refresh-upon-publish", queryRef.getAsUrlString());
-                if (postPublishTab != null) params.set("postpub-tab", postPublishTab);
-                resultList.addButton(label, PublishPage.class, params);
-            }
-        }
+        ViewActionMappings.addResultActions(resultList, viewDisplay, queryRef, id, contextId, resourceWithProfile, refRoot);
         return resultList;
     }
-
 
 }

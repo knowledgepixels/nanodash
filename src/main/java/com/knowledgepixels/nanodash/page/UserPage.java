@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -21,9 +22,12 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,6 +76,7 @@ public class UserPage extends NanodashPage {
         if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         final String userIriString = parameters.get("id").toString();
         userIri = Utils.vf.createIRI(userIriString);
+        redirectIfRdfRequested(new RdfSource("user", userIriString, null, List.of()));
 
         for (String pk : User.getPubkeyhashes(userIri, null)) {
             pubkeyHashes += " " + pk;
@@ -82,9 +87,9 @@ public class UserPage extends NanodashPage {
         add(new TitleBar("titlebar", this)
                 .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
-        IRI profilePictureIri = User.getProfilePicture(userIri);
-        if (profilePictureIri != null) {
-            ExternalImage userIcon = new ExternalImage("userIcon", profilePictureIri);
+        ProfilePicture profilePicture = User.getProfilePicture(userIri);
+        if (profilePicture != null) {
+            ExternalImage userIcon = new ExternalImage("userIcon", profilePicture.getSrc());
             add(userIcon);
         } else {
             boolean isSoftware = IndividualAgent.isSoftware(userIri);
@@ -100,8 +105,10 @@ public class UserPage extends NanodashPage {
 
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user) | nanodash"));
+        setMetaDescription("The Nanodash page of " + displayName + ", with their profile and nanopublications.");
         add(new Label("username", displayName));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", IndividualAgent.get(userIriString)));
 
         add(new ExternalLinkWithActionsPanel("fullid", Model.of(userIriString), Model.of(displayName)));
 
@@ -181,7 +188,8 @@ public class UserPage extends NanodashPage {
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
-                    contentContainer.add(new ViewList("views", individualAgent));
+                    contentContainer.add(RefreshingStructurePanel.of("views", individualAgent,
+                            markupId -> new ViewList(markupId, IndividualAgent.get(userIriString))));
                 }
                 contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
                 if (empty) {
@@ -232,6 +240,20 @@ public class UserPage extends NanodashPage {
                 });
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A user is declared by their approved introduction nanopublications.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        List<Nanopub> declarations = new ArrayList<>();
+        for (IntroNanopub intro : User.getIntroNanopubs(userIri)) {
+            if (User.isApproved(intro) && intro.getNanopub() != null) declarations.add(intro.getNanopub());
+        }
+        return new RdfSource("user", userIri.stringValue(), null, declarations);
     }
 
     /**

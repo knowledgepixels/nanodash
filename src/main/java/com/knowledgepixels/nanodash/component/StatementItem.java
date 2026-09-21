@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -120,8 +121,12 @@ public class StatementItem extends Panel {
             viewElements.addAll(r.getShownStatementParts());
             boolean isOnly = repetitionGroups.size() == 1;
             boolean isLast = repetitionGroups.get(repetitionGroups.size() - 1) == r;
-            r.addRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && isLast);
-            r.removeRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && !isOnly);
+            // A locked statement has the set of repetitions the form was opened with (issue #678):
+            // no adding, no removing. Hiding the buttons is enough to enforce it, as Wicket does
+            // not invoke a listener of a component that is not visible.
+            boolean statementLocked = context.isStatementLocked(statementId);
+            r.addRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && isLast && !statementLocked);
+            r.removeRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && !isOnly && !statementLocked);
             r.optionalMark.setVisible(isOnly);
             first = false;
         }
@@ -175,6 +180,15 @@ public class StatementItem extends Panel {
      */
     public int getRepetitionCount() {
         return repetitionGroups.size();
+    }
+
+    /**
+     * Returns the IRI of the statement node this item was built from.
+     *
+     * @return the statement IRI
+     */
+    public IRI getStatementId() {
+        return statementId;
     }
 
     /**
@@ -553,6 +567,24 @@ public class StatementItem extends Panel {
                         }
                     }
                 }
+            }
+            // The lock of a pre-filled value belongs to the value, not to the slot it sits in, so
+            // it has to travel with the value that shifts up (issue #678). Without this, removing
+            // a locked repetition would leave the value that slides into its place uneditable.
+            // Only the IRIs that actually get a repetition suffix are shifted, under the same
+            // condition transform() applies: iriSet also holds the constants of the statement,
+            // and one of those can share the postfix of a placeholder (rdfs:comment and a
+            // "comment" placeholder, say), which would shift the same lock twice and undo it.
+            Set<String> shiftedLockBases = new HashSet<>();
+            for (IRI iriBase : iriSet) {
+                if (!context.hasNarrowScope(iriBase)) continue;
+                if (!getTemplate().isPlaceholder(iriBase) && !getTemplate().isLocalResource(iriBase)) continue;
+                String lockBase = Utils.getUriPostfix(iriBase);
+                if (!shiftedLockBases.add(lockBase)) continue;
+                for (int i = getRepeatIndex(); i < repetitionGroups.size() - 1; i++) {
+                    context.moveLock(lockBase + getRepeatSuffix(i + 1), lockBase + getRepeatSuffix(i));
+                }
+                context.clearLock(lockBase + getRepeatSuffix(repetitionGroups.size() - 1));
             }
             RepetitionGroup lastGroup = repetitionGroups.get(repetitionGroups.size() - 1);
             repetitionGroups.remove(lastGroup);

@@ -1,13 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
-import com.knowledgepixels.nanodash.domain.User;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
@@ -68,16 +66,10 @@ public class AboutPartPanel extends Panel {
         Multimap<String, String> infoParams = ArrayListMultimap.create();
         infoParams.put("partid", partId);
         infoParams.put("context", context.getId());
-        if (context.getSpace() != null) {
-            for (IRI userIri : context.getSpace().getUsers()) {
-                for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
-                    infoParams.put("pubkey", pubkey);
-                }
-            }
-        } else {
-            for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(context.getId()), true)) {
-                infoParams.put("pubkey", pubkey);
-            }
+        // The same keys the part page resolves the part's definition with, so the Info view
+        // cannot describe a different nanopublication than the page shows.
+        for (String pubkey : ViewDataFetcher.partDefinitionPubkeys(context.getId(), context)) {
+            infoParams.put("pubkey", pubkey);
         }
         add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
 
@@ -100,7 +92,11 @@ public class AboutPartPanel extends Panel {
         for (IRI partClass : partClasses) {
             vdParams.put("partclass", partClass.stringValue());
         }
-        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(QueryApiAccess.LIST_PART_VIEW_DISPLAYS, vdParams), new ViewDisplay(vdView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
+        // Take the query from the view itself (as the space/user/maintained-resource panels do)
+        // rather than from a constant here: a constant silently drifts from the view's
+        // gen:hasViewQuery, and the view's per-row actions map columns the view's own query
+        // version provides.
+        add(QueryResultTableBuilder.create("viewdisplays", new QueryRef(vdView.getQuery().getQueryId(), vdParams), new ViewDisplay(vdView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());
     }
 
 }

@@ -38,10 +38,13 @@ public class TemplateContext implements Serializable {
     private final Template template;
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
+    private final Set<String> lockedParams = new HashSet<>();
+    private final Set<String> lockedStatements = new HashSet<>();
     private List<Component> components = new ArrayList<>();
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
+    private Set<IRI> newUriIris = new LinkedHashSet<>();
     private Map<IRI, IRI> rolePropertyPins = new LinkedHashMap<>();
     private List<StatementItem> statementItems;
     private Set<IRI> iriSet = new HashSet<>();
@@ -140,6 +143,9 @@ public class TemplateContext implements Serializable {
                     String param = postfix + "__" + absPos;
                     if (i - corr == 0) param = postfix;
                     setParam(param, getParam(p));
+                    // A lock stated on the relative name has to follow the value to the
+                    // absolute name it ends up under, or it would never match a placeholder.
+                    if (isLocked(p)) setLocked(param);
                     finalRepetitionCount.put(si, i - corr);
                 } else {
                     break;
@@ -242,6 +248,111 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasParam(String name) {
         return params.containsKey(name);
+    }
+
+    /**
+     * Marks a parameter as locked: the form field it pre-fills is shown but cannot be edited
+     * (issue #678). Locking is per repetition, as the name carries the repetition suffix of the
+     * field it refers to ("key" locks the first repetition, "key__1" the second, and so on).
+     * Locking a value the user cannot see or reach would leave the form unfillable, so only
+     * parameters that actually carry a value can be locked.
+     *
+     * @param name the name of the parameter to lock
+     */
+    public void setLocked(String name) {
+        if (!hasParam(name)) {
+            logger.warn("Ignoring lock on parameter {}, which has no value in this context", name);
+            return;
+        }
+        lockedParams.add(name);
+    }
+
+    /**
+     * Checks whether the given parameter name is locked.
+     *
+     * @param name the name of the parameter
+     * @return true if the parameter is locked, false otherwise
+     */
+    public boolean isLocked(String name) {
+        return lockedParams.contains(name);
+    }
+
+    /**
+     * Checks whether the given placeholder is locked, i.e. pre-filled with a value the user is
+     * not allowed to change. The placeholder IRI carries the repetition suffix of its repetition
+     * group (see {@link StatementItem.RepetitionGroup}), so this holds per repetition: the second
+     * repetition of a locked placeholder is editable unless it was locked in its own right.
+     *
+     * @param iri the placeholder IRI, as handed to the form component
+     * @return true if the placeholder is locked, false otherwise
+     */
+    public boolean isLocked(IRI iri) {
+        if (iri == null) return false;
+        return isLocked(Utils.getUriPostfix(iri));
+    }
+
+    /**
+     * Moves the lock of one parameter to another, used when removing a repetition group shifts
+     * the values of the following groups up into its slot ({@link StatementItem.RepetitionGroup}
+     * shifts values through fixed placeholder slots rather than deleting one). The lock belongs
+     * to the pre-filled value, not to the slot, so it has to travel with the value: otherwise
+     * removing a locked repetition would leave the value that slides up into its place
+     * uneditable.
+     *
+     * @param fromName the parameter name the value is moving away from
+     * @param toName   the parameter name the value is moving to
+     */
+    public void moveLock(String fromName, String toName) {
+        if (lockedParams.remove(fromName)) {
+            lockedParams.add(toName);
+        } else {
+            lockedParams.remove(toName);
+        }
+    }
+
+    /**
+     * Removes the lock of the given parameter, if any.
+     *
+     * @param name the name of the parameter to unlock
+     */
+    public void clearLock(String name) {
+        lockedParams.remove(name);
+    }
+
+    /**
+     * Marks a statement as locked: the user cannot add or remove repetitions of it (issue #678).
+     * Unlike a locked value, which is a guardrail against accidental edits, this one holds:
+     * Wicket does not invoke a listener of a component that is not visible, so the hidden
+     * repetition buttons cannot be triggered from the browser either.
+     * <p>
+     * The name is resolved when the lock is queried rather than here, because the statements are
+     * only built later ({@link #initStatements()}): it matches either the name of the statement
+     * node itself ("st2") or the name of a placeholder used in that statement and no other
+     * ("public-key"), which is the name a link author is more likely to have at hand.
+     *
+     * @param name the name of the statement, or of a placeholder that identifies it
+     */
+    public void setStatementLocked(String name) {
+        lockedStatements.add(name);
+    }
+
+    /**
+     * Checks whether the given statement is locked, i.e. whether its repetitions are fixed.
+     *
+     * @param statementId the IRI of the statement node
+     * @return true if the statement is locked, false otherwise
+     */
+    public boolean isStatementLocked(IRI statementId) {
+        if (statementId == null || lockedStatements.isEmpty()) return false;
+        if (lockedStatements.contains(Utils.getUriPostfix(statementId))) return true;
+        // A placeholder used in a single statement names that statement unambiguously; one used
+        // in several is wide-scope and names none of them.
+        for (Map.Entry<IRI, StatementItem> e : narrowScopeMap.entrySet()) {
+            if (e.getValue() == null) continue;
+            if (!lockedStatements.contains(Utils.getUriPostfix(e.getKey()))) continue;
+            if (statementId.equals(e.getValue().getStatementId())) return true;
+        }
+        return false;
     }
 
     /**
@@ -370,6 +481,32 @@ public class TemplateContext implements Serializable {
         return token != null && resolvePrefixBase(token) == null;
     }
 
+    /**
+     * Whether the given value, held for the given placeholder, will be minted as a new IRI under
+     * the namespace of the nanopublication being published, rather than referring to an existing
+     * one (issue #652). This mirrors what {@link #processValue(Value)} does with a plain name that
+     * has no prefix in front of it, and lets the form show such a value as what it is rather than
+     * as a bare word.
+     *
+     * @param iri   the placeholder IRI
+     * @param value the value currently held for that placeholder
+     * @return true if publishing would mint the value under the target namespace
+     */
+    public boolean isToBeMinted(IRI iri, String value) {
+        // The same rule processValue applies: a plain name (no colon, hash or space) gets the
+        // target namespace put in front of it. The colon also rules out anything that is a URI.
+        if (value == null || !value.matches("[^:# ]+")) return false;
+        // An external URI placeholder points at something that exists outside this
+        // nanopublication, so there is nothing to mint for it (issue #676).
+        if (template.isExternalUriPlaceholder(iri)) return false;
+        // A space-/namespace-dependent prefix mints the resource under the space or maintained
+        // resource instead, so it is not a local identifier of this nanopublication.
+        if (hasDynamicPrefix(iri)) return false;
+        if (template.isLocalResource(iri)) return true;
+        String prefix = getPrefix(iri);
+        return prefix == null || prefix.isEmpty();
+    }
+
     private String resolvePrefixBase(String token) {
         String base = DynamicPrefix.resolveFromContext(token, navigationContextId);
         if (base != null && !base.isEmpty()) return base;
@@ -395,6 +532,25 @@ public class TemplateContext implements Serializable {
      */
     public Set<IRI> getEmbeddedIris() {
         return embeddedIris;
+    }
+
+    /**
+     * Returns the IRIs this context formed for placeholders the template marks as naming a
+     * resource that does not exist yet ({@link Template#NEW_URI_PLACEHOLDER}).
+     * <p>
+     * Such an identifier carries no artifact code, so nothing makes it unique: two people
+     * filling the same form with the same name arrive at the same IRI, and the second
+     * nanopublication silently extends the first one's resource. The publish form checks
+     * these against what has already been published (see #646).
+     * <p>
+     * Only the tag puts an IRI in here. How the value was formed makes no difference -- typed
+     * out in full, or a name placed under a prefix -- because whether a value names something
+     * new is the template author's call, not something to infer from the shape of the form.
+     *
+     * @return a set of IRIs for new resources, in the order they were processed
+     */
+    public Set<IRI> getNewUriIris() {
+        return newUriIris;
     }
 
     /**
@@ -481,7 +637,7 @@ public class TemplateContext implements Serializable {
                     prefix = targetNamespace;
                     unresolvedPrefix = false;
                 }
-                if (tfObject.matches("https?://.+")) {
+                if (Utils.isUriValue(tfObject)) {
                     prefix = "";
                     unresolvedPrefix = false;
                 }
@@ -491,8 +647,9 @@ public class TemplateContext implements Serializable {
                 if (!unresolvedPrefix) {
                     String v = prefix + tf.getObject();
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                    if (v.matches("https?://.*")) {
+                    if (Utils.isUriValue(v)) {
                         processedValue = vf.createIRI(v);
+                        recordIfNewUri(iri, (IRI) processedValue);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
                     }
@@ -515,7 +672,7 @@ public class TemplateContext implements Serializable {
                 if (template.isAutoEscapePlaceholder(iri)) {
                     v = prefix + Utils.urlEncode(tf.getObject());
                 } else {
-                    if (tfObject.matches("https?://.+")) {
+                    if (Utils.isUriValue(tfObject)) {
                         prefix = "";
                         unresolvedPrefix = false;
                     }
@@ -526,6 +683,7 @@ public class TemplateContext implements Serializable {
                 if (!unresolvedPrefix) {
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     processedValue = vf.createIRI(v);
+                    recordIfNewUri(iri, (IRI) processedValue);
                 }
             }
         } else if (template.isIntroducedResource(iri)
@@ -613,6 +771,25 @@ public class TemplateContext implements Serializable {
             if (directionPin != null) rolePropertyPins.put(pvIri, directionPin);
         }
         return processedValue;
+    }
+
+    /**
+     * Records an IRI formed for a placeholder the template marks as naming a resource that
+     * does not exist yet, so that the publish form can check it against the identifiers
+     * already in use (#646).
+     * <p>
+     * An untagged placeholder records nothing and is never checked, whatever its value looks
+     * like. An IRI still sitting under the nanopublication's own namespace is left out as
+     * well: its artifact code is substituted at signing time, which both makes it unique and
+     * means the value seen here is not the one that gets published.
+     *
+     * @param placeholder the placeholder the value was entered into
+     * @param iri         the IRI that was just formed
+     */
+    private void recordIfNewUri(IRI placeholder, IRI iri) {
+        if (!template.isNewUriPlaceholder(placeholder)) return;
+        if (iri.stringValue().startsWith(targetNamespace)) return;
+        newUriIris.add(iri);
     }
 
     /**

@@ -1,0 +1,193 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub:  <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:get-view-displays-unresolved a grlc:grlc-query;
+    dct:description "Variant of get-view-displays (ref-scoped) that returns view references UNRESOLVED: the ?view column carries the version IRI the display/preset actually references (or, for space-governed pins, the governed resolution), and resolving a referenced version to the current supersedes-head is the CALLER's job (Nanodash: per-view latest-version lookups through ApiCache, forced refresh on own publishes). This removes the former run-once repo-wide resolution sub-select -- the query's dominant and fragility-prone cost, linear in the total view count -- leaving only bound point lookups; see nanopub-query doc/design-view-head-materialization.md for the measurements. Same inputs as get-view-displays-ref-scoped (resource = space IRI, root_np = the ref's root nanopub; authority gate scoped to that ref) and the same columns, plus ?governedBySpace: when bound, the row's ?view is the space-governed resolution (newest member+-signed version of its (kind, space) pair, kind validated as maintained resource; nanodash docs/views-and-presets-as-maintained-resources.md) and the caller must NOT apply supersedes-head resolution on top of it; when unbound, the caller resolves ?view to its latest version. ?viewKind is taken from the referenced version's own dct:isVersionOf (version-stable, hence equal to the head's kind), falling back to ?view itself for kind-less legacy views. Federation footprint (2026-08-20): the query now runs on the repo/full endpoint, so the former SERVICE hops to repo/full (preset branch) and to the ResourceView type repo (view lookups, governed candidates) are plain local patterns; only the two lookups of materialized space state (authority gate, governed-signer validation) remain federated, to repo/spaces. The previous 5-SERVICE layout was the main amplifier of a connection-pool deadlock in the query service's loopback federation (an outer query holds a pooled connection while each SERVICE hop -- one per binding under a nested-loop join -- requests another from the same pool): a thread dump during a production wedge showed all 60 route connections held by result streamers of exactly these hops. Validated byte-for-byte identical to the previous version across resources covering standalone displays, preset assignments, governed views, an agent's own page, and rival space refs. Preset-assignment identity (nanodash issue #607): rows contributed by a preset assignment now also carry ?presetKind, the assigned preset's stable kind (dct:isVersionOf, falling back to the version IRI), so the client can keep only the newest assignment per (preset kind, resource) -- the same identity view displays already have via view kind -- and views that a newer preset version no longer carries drop out with the older assignment. Purely additive: every pre-existing column is unchanged.";
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
+    rdfs:label "Get view displays (unresolved versions)";
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/full>;
+    grlc:sparql """prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix dct:  <http://purl.org/dc/terms/>
+prefix np:   <http://www.nanopub.org/nschema#>
+prefix npa:  <http://purl.org/nanopub/admin/>
+prefix npx:  <http://purl.org/nanopub/x/>
+prefix gen:  <https://w3id.org/kpxl/gen/terms/>
+
+select distinct ?display ?view (coalesce(?pinKind, ?view) as ?viewKind) ?governedBySpace ?presetKind
+                ?label ?displayType ?displayMode ?np ?pubkey ?date where {
+  values ?_resource_multi_iri {}
+  values ?_root_np_multi_iri {}
+  service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+    graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
+    graph npa:spacesGraph { ?passedRef npa:rootNanopub ?_root_np_multi_iri . }
+    {
+      # Authority gate (issue #130 / nanodash#510): a single mandatory hop through the
+      # governing space ref, which covers both a maintained resource and a space itself
+      # (the reflexive self-edge), keyed on the role tier materialized on the
+      # RoleInstantiation since #125. Replaces the old bare-IRI isMaintainedBy? hop and the
+      # dead RoleDeclaration maintainer join. Ref variant: the governing ref is pinned to
+      # ?passedRef (resolved from root_np), so authority cannot bleed across rival refs
+      # claiming the same space IRI.
+      graph ?stateG {
+        ?_resource_multi_iri npa:hasGoverningSpaceRef ?passedRef .
+        ?ri a gen:RoleInstantiation ; npa:forSpaceRef ?passedRef ; npa:hasRoleType ?roleType ; npa:forAgent ?authAgent .
+        filter(?roleType = gen:AdminRole || ?roleType = gen:MaintainerRole)
+        ?authAcct a npa:AccountState ; npa:agent ?authAgent ; npa:pubkey ?pubkey .
+      }
+    } union {
+      graph ?stateG { ?selfAcct a npa:AccountState ; npa:agent ?_resource_multi_iri ; npa:pubkey ?pubkey . }
+    }
+  }
+  {
+    # branch (a): standalone view displays — LOCAL pattern on the endpoint repo
+    graph npa:graph {
+      ?np npx:hasNanopubType gen:ViewDisplay .
+      ?np npa:hasValidSignatureForPublicKeyHash ?pubkey .
+      filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+      ?np dct:created ?date .
+      ?np npx:embeds ?display .
+      ?np np:hasAssertion ?a .
+      optional { ?np rdfs:label ?label }
+    }
+    graph ?a {
+      ?display gen:isDisplayOfView ?refView .
+      ?display gen:isDisplayFor   ?_resource_multi_iri .
+      optional { values ?displayType { gen:PartLevelViewDisplay gen:TopLevelViewDisplay } ?display a ?displayType . }
+      optional { values ?displayMode { gen:ActivatedViewDisplay gen:DeactivatedViewDisplay } ?display a ?displayMode . }
+    }
+  }
+  union
+  {
+    # branch (b): preset-supplied views — LOCAL since the endpoint moved to
+    # repo/full (the connection-pinning SERVICE hop this replaced was the main
+    # amplifier of the federation deadlock, eclipse-rdf4j/rdf4j federation +
+    # nanopub-query loopback route). Kept wrapped in a sub-SELECT so its
+    # bindings cannot collapse branch (a). ?display stays unbound.
+    select ?refView ?label ?displayType ?displayMode ?np ?pubkey ?date ?_resource_multi_iri ?presetKind {
+      {  # was: service repo/full — now local on the repo/full endpoint
+        graph npa:graph {
+          ?np npx:hasNanopubType gen:PresetAssignment .
+          ?np npa:hasValidSignatureForPublicKeyHash ?pubkey .
+          filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+          ?np dct:created ?date .
+          ?np npx:embeds ?assignment .
+          ?np np:hasAssertion ?a .
+          optional { ?np rdfs:label ?label }
+        }
+        graph ?a {
+          ?assignment gen:isAssignmentFor      ?_resource_multi_iri .
+          ?assignment gen:isAssignmentOfPreset ?presetRef .
+          optional { values ?displayMode { gen:ActivatedPresetAssignment gen:DeactivatedPresetAssignment } ?assignment a ?displayMode . }
+        }
+        graph npa:graph { ?presetNp npx:embeds ?presetRef ; np:hasAssertion ?pa . }
+        graph ?pa {
+          ?presetRef a gen:Preset .
+          optional { ?presetRef dct:isVersionOf ?presetKindOptional . }
+          { ?presetRef gen:hasTopLevelView ?refView . bind(gen:TopLevelViewDisplay as ?displayType) }
+          union { ?presetRef gen:hasView ?refView . bind(gen:PartLevelViewDisplay as ?displayType) }
+        }
+        # A preset assignment is identified by the preset's stable KIND and the resource
+        # (nanodash issue #607), so the client keeps only the newest assignment per kind
+        # and an older version's views drop out when a newer version is assigned. A
+        # version declaring no kind keys on itself.
+        bind(coalesce(?presetKindOptional, ?presetRef) as ?presetKind)
+      }
+    }
+  }
+  # Pin metadata of the referenced version (kind + optional governing space).
+  # ?refView is bound by branch (a)/(b) at this point, so these are bound point
+  # lookups for the handful of referenced views — now LOCAL joins (endpoint =
+  # repo/full), where previously each was its own SERVICE round-trip: evaluated
+  # under a nested-loop join, that fired one loopback HTTP request per
+  # referenced view while the outer query held its own pooled connection — the
+  # per-binding amplification at the heart of the federation deadlock. NOT
+  # wrapped in a sub-select, deliberately: a run-once sub-select could not see
+  # outer bindings and would have to enumerate every view in the repository
+  # (the measured dominant cost of the former resolution variant;
+  # supersedes-head resolution itself happens caller-side, per view, cached).
+  optional {
+    {  # was: service repo/type/ec6722… (ResourceView shard) — now local on the repo/full endpoint
+      graph npa:graph { ?rnp npx:embeds ?refView ; np:hasAssertion ?ra . }
+      graph ?ra { ?refView a gen:ResourceView . }
+      optional { graph ?ra { ?refView dct:isVersionOf ?pinKind . } }
+      optional { graph ?ra { ?refView gen:governedBy ?pinSpace . } }
+    }
+  }
+  # Space-governed resolution (gen:governedBy; nanodash docs/views-and-presets-as-
+  # maintained-resources.md): a pinned version declaring a governing space resolves to
+  # the newest member+-signed version of its (kind, space) pair instead of the
+  # supersedes head; no valid candidate -> the pin stands. Joins on (?pinKind,
+  # ?pinSpace) from the bound lookup above; rows without a governing space are
+  # unaffected.
+  optional {
+        { select ?pinKind ?pinSpace (iri(strafter(max(concat(str(?cDate), \">\", str(?cver))), \">\")) as ?governedLatest) where {
+            # Candidate versions — was a service on the ResourceView type shard, now
+            # local on the repo/full endpoint. The sub-select wrapper is LOAD-BEARING,
+            # not stylistic: on rdf4j 6.0.0, bindings produced by raw statement
+            # patterns are silently NOT joined into a subsequent SERVICE clause
+            # (empirically: identical bindings via VALUES join fine, via bare
+            # patterns yield zero rows, and any projecting sub-select restores the
+            # join — reproduced on two instances, 2026-08-20). Without this wrapper
+            # the spaces SERVICE below returns nothing and governed resolution
+            # silently falls back to the pin.
+            { select ?pinKind ?pinSpace ?cver ?cpk ?cDate where {
+              graph npa:graph {
+                ?cnp dct:created ?cDate ; npa:hasValidSignatureForPublicKeyHash ?cpk ; npx:embeds ?cver ; np:hasAssertion ?ca .
+                filter not exists { ?ci npx:invalidates ?cnp ; npa:hasValidSignatureForPublicKeyHash ?cpk . }
+              }
+              graph ?ca { ?cver dct:isVersionOf ?pinKind ; gen:governedBy ?pinSpace . }
+            } }
+            service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+              graph npa:graph { <http://purl.org/nanopub/admin/thisRepo> npa:hasCurrentSpaceState ?gsg . }
+              graph ?gsg {
+                ?pinKind npa:isMaintainedBy ?pinSpace ; npa:hasGoverningSpaceRef ?gref .
+                ?gri a gen:RoleInstantiation ; npa:forSpace ?pinSpace ; npa:forSpaceRef ?gref ; npa:hasRoleType ?gtier ; npa:forAgent ?gag .
+                filter(?gtier = gen:AdminRole || ?gtier = gen:MaintainerRole || ?gtier = gen:MemberRole)
+                ?gacct a npa:AccountState ; npa:agent ?gag ; npa:pubkey ?cpk .
+              }
+            }
+          } group by ?pinKind ?pinSpace }
+  }
+  bind(if(bound(?pinSpace), coalesce(?governedLatest, ?refView), ?refView) as ?view)
+  bind(if(bound(?pinSpace), ?pinSpace, ?undef_) as ?governedBySpace)
+}
+order by desc(?date)""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  
+  this: dct:created "2026-09-09T06:25:41Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:embeds sub:get-view-displays-unresolved;
+    npx:supersedes <https://w3id.org/np/RAkIkmSiwDT-bgYZhGtknPhpkHsJcx0Q3nP0u8OyO_fZ4>;
+    rdfs:label "Get view displays (unresolved versions)";
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU>;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw>, <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> .
+}
+

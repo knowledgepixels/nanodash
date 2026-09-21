@@ -149,6 +149,10 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
                 datePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
                 timePicker.add(new org.apache.wicket.AttributeModifier("autocomplete", "off"));
                 timePicker.add(new org.apache.wicket.AttributeModifier("data-form-type", "other"));
+                if (secondsShown) {
+                    // Lets the stylesheet give the field the width of a time with seconds:
+                    timePicker.add(org.apache.wicket.AttributeModifier.append("class", "with-seconds"));
+                }
             }
             @Override
             @SuppressWarnings("unchecked")

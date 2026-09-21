@@ -26,7 +26,6 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
-import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
@@ -42,7 +41,6 @@ import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
@@ -115,7 +113,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 String v = getFullValue();
                 if (prefixLabel == null || IndividualAgent.isUser(v) || foafNameMap.containsKey(v)) {
                     return "";
-                } else if (prefixLabel.matches("https?://.*")) {
+                } else if (Utils.isUriValue(prefixLabel)) {
                     // Hide prefix label that leaks through as a raw URL.
                     return "";
                 } else {
@@ -149,7 +147,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                     } else {
                         return "";
                     }
-                } else if (obj.matches("https?://.+")) {
+                } else if (Utils.isUriValue(obj)) {
                     return NanodashLink.getPageUrl(obj);
                 } else {
                     return "";
@@ -173,7 +171,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 if (obj != null && obj.equals(LocalUri.of("assertion").stringValue())) {
                     return context.getType() == ContextType.ASSERTION ? "this assertion" : "the assertion above";
                 }
-                if (obj != null && obj.matches("https?://.+")) {
+                if (obj != null && Utils.isUriValue(obj)) {
                     IRI objIri = vf.createIRI(obj);
                     if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
                         // TODO We might want to introduce a "(you)" flag here at some point
@@ -216,7 +214,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 if (rootResolvesToThisNanopub()) {
                     return "This is the identifier for this whole nanopublication.";
                 }
-                if (obj != null && obj.matches("https?://.+")) {
+                if (obj != null && Utils.isUriValue(obj)) {
                     IRI objIri = vf.createIRI(obj);
                     if (isAssertionValue(objIri)) {
                         return "This is the identifier for the assertion of this nanopublication.";
@@ -539,7 +537,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             if (template.isAutoEscapePlaceholder(iri)) {
                 sv = Utils.urlEncode(sv);
             }
-            if (sv.matches("https?://.+")) {
+            if (Utils.isUriValue(sv)) {
                 p = "";
             } else if (sv.contains(":")) {
                 s.error(new ValidationError("Colon character is not allowed in postfix"));
@@ -549,16 +547,11 @@ public class ReadonlyItem extends AbstractContextComponent {
                 p = LocalUri.PREFIX;
                 iriString = p + sv;
             }
-            try {
-                ParsedIRI piri = new ParsedIRI(iriString);
-                if (!piri.isAbsolute()) {
-                    s.error(new ValidationError("IRI not well-formed"));
-                }
-                if (p.isEmpty() && !Utils.isLocalURI(sv) && !sv.matches("https?://.+")) {
-                    s.error(new ValidationError("Only http(s):// IRIs are allowed here"));
-                }
-            } catch (URISyntaxException ex) {
+            if (!Utils.isWellFormedUri(iriString)) {
                 s.error(new ValidationError("IRI not well-formed"));
+            }
+            if (p.isEmpty() && !Utils.isLocalURI(sv) && !Utils.isUriValue(sv)) {
+                s.error(new ValidationError("IRI scheme not allowed here; use one of: " + Utils.getAllowedUriSchemesLabel()));
             }
             String regex = template.getRegex(iri);
             if (regex != null) {
@@ -573,7 +566,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 }
             }
             if (template.isExternalUriPlaceholder(iri)) {
-                if (!iriString.matches("https?://.+")) {
+                if (!Utils.isUriValue(iriString)) {
                     s.error(new ValidationError("Not an external IRI"));
                 }
             }

@@ -10,7 +10,10 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Class to manage Nanodash preferences.
@@ -56,7 +59,39 @@ public class NanodashPreferences implements Serializable {
     private String claudeChatBinary = "claude";
     private String claudeChatModel;
     private boolean mcpRemoteEnabled = false;
+    private String apiCacheFile;
+    private String uriResolvers;
+    private boolean protectedByDefault = false;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
+
+    /**
+     * Default location of the API cache snapshot file, inside {@code ~/.nanopub} — the
+     * directory the standard Docker setup mounts as a volume, so the snapshot survives
+     * container restarts and upgrades without configuration.
+     */
+    public static final String DEFAULT_API_CACHE_PATH = "/.nanopub/nanodash-api-cache.ser";
+
+    /**
+     * Value for {@link #getApiCacheFile()} that disables API cache persistence.
+     */
+    public static final String API_CACHE_DISABLED = "none";
+
+    /**
+     * Where non-http(s) URIs are sent when they are followed as links (issue #655). Nanodash
+     * cannot display an {@code ipfs:}, {@code did:} or {@code at:} resource itself, so it hands
+     * the URI to a web resolver. Keys are schemes, values are URL templates in which
+     * {@code $uri} expands to the whole URI and {@code $rest} to the part after the scheme
+     * (and after {@code //}, where present), both percent-encoded.
+     * <p>
+     * These defaults are public third-party services and are meant to be overridden — an IPFS
+     * gateway in particular is better pointed at a local node, e.g.
+     * {@code ipfs=http://127.0.0.1:8080/ipfs/$rest}.
+     */
+    public static final Map<String, String> DEFAULT_URI_RESOLVERS = Map.of(
+            "ipfs", "https://ipfs.io/ipfs/$rest",
+            "ipns", "https://ipfs.io/ipns/$rest",
+            "did", "https://dev.uniresolver.io/1.0/identifiers/$uri",
+            "at", "https://pdsls.dev/$uri");
 
     /** Where an instance is assumed to be reachable when nothing says otherwise: a local run. */
     public static final String DEFAULT_WEBSITE_URL = "http://localhost:37373/";
@@ -368,6 +403,67 @@ public class NanodashPreferences implements Serializable {
         this.mcpRemoteEnabled = mcpRemoteEnabled;
     }
 
+    /**
+     * Get the file where the API cache is persisted across restarts, from the
+     * {@code NANODASH_API_CACHE_FILE} environment variable or the preferences file, falling
+     * back to {@link #DEFAULT_API_CACHE_PATH} in the user's home directory.
+     *
+     * @return the snapshot file path, or null when persistence is disabled with the value
+     *         {@value #API_CACHE_DISABLED}
+     */
+    public String getApiCacheFile() {
+        String s = System.getenv("NANODASH_API_CACHE_FILE");
+        if (s == null || s.isBlank()) s = apiCacheFile;
+        if (s == null || s.isBlank()) s = System.getProperty("user.home") + DEFAULT_API_CACHE_PATH;
+        if (API_CACHE_DISABLED.equalsIgnoreCase(s.trim())) return null;
+        return s;
+    }
+
+    /**
+     * Set the file where the API cache is persisted across restarts.
+     *
+     * @param apiCacheFile the snapshot file path, or {@value #API_CACHE_DISABLED} to disable
+     *                     persistence
+     */
+    public void setApiCacheFile(String apiCacheFile) {
+        this.apiCacheFile = apiCacheFile;
+    }
+
+    /**
+     * Get the resolvers for non-http(s) URI schemes, from the {@code NANODASH_URI_RESOLVERS}
+     * environment variable or the preferences file, falling back to
+     * {@link #DEFAULT_URI_RESOLVERS}. The configured form is a comma-separated list of
+     * {@code scheme=urlTemplate} entries; it replaces the defaults rather than adding to them,
+     * so an empty value switches outbound resolution off entirely.
+     *
+     * @return scheme to URL template, keyed by lower-case scheme
+     */
+    public Map<String, String> getUriResolvers() {
+        String s = System.getenv("NANODASH_URI_RESOLVERS");
+        if (s == null) s = uriResolvers;
+        if (s == null) return DEFAULT_URI_RESOLVERS;
+        Map<String, String> map = new HashMap<>();
+        for (String entry : s.split(",")) {
+            if (entry.isBlank()) continue;
+            int eq = entry.indexOf('=');
+            if (eq < 1) {
+                logger.warn("Ignoring malformed URI resolver entry (expected scheme=urlTemplate): {}", entry);
+                continue;
+            }
+            map.put(entry.substring(0, eq).trim().toLowerCase(Locale.ROOT), entry.substring(eq + 1).trim());
+        }
+        return map;
+    }
+
+    /**
+     * Set the resolvers for non-http(s) URI schemes.
+     *
+     * @param uriResolvers comma-separated {@code scheme=urlTemplate} entries
+     */
+    public void setUriResolvers(String uriResolvers) {
+        this.uriResolvers = uriResolvers;
+    }
+
     public String getHomeResource() {
         String s = System.getenv("NANODASH_HOME_RESOURCE");
         if (s != null && !s.isBlank()) {
@@ -380,6 +476,36 @@ public class NanodashPreferences implements Serializable {
 
     public void setHomeResource(String homeResource) {
         this.homeResource = homeResource;
+    }
+
+    /**
+     * Whether new nanopublications are protected by default, i.e. whether this is a
+     * private-by-default deployment. Read from the {@code NANODASH_PROTECTED_BY_DEFAULT}
+     * environment variable or the preferences file.
+     * <p>
+     * This only sets where the publish form starts; the user can still turn protection off for
+     * an individual nanopublication (unless it is protected by force, see
+     * {@link ProtectedNanopubs}). It has no effect at all on a deployment whose registry is not
+     * a local instance, since such a registry has no way to store a protected nanopublication.
+     *
+     * @return true if the publish form should offer protection pre-selected
+     */
+    public boolean isProtectedByDefault() {
+        if ("true".equals(System.getenv("NANODASH_PROTECTED_BY_DEFAULT"))) {
+            logger.debug("Found environment variable NANODASH_PROTECTED_BY_DEFAULT with value: {}", true);
+            return true;
+        }
+        logger.debug("Environment variable NANODASH_PROTECTED_BY_DEFAULT not set, using default: {}", protectedByDefault);
+        return protectedByDefault;
+    }
+
+    /**
+     * Set whether new nanopublications are protected by default.
+     *
+     * @param protectedByDefault true for a private-by-default deployment
+     */
+    public void setProtectedByDefault(boolean protectedByDefault) {
+        this.protectedByDefault = protectedByDefault;
     }
 
 }

@@ -30,8 +30,17 @@ public class QueryApiAccess {
     public static final String GET_MOST_USED_TEMPLATES_LAST30D = "RAvL7pe2ppsfq4mVWTdJjssYGsjrmliNd_sZO2ytLvg1Y/get-most-used-templates-last30d";
     public static final String GET_LATEST_NANOPUBS_BY_TYPE = "RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type";
     public static final String GET_LATEST_VERSION_OF_NP = "RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np";
+    // Minimal single-lookup probe for whether a given nanopub has been loaded by the
+    // answering Nanopub Query instance; used to time post-publish refreshes (issue #629).
+    public static final String CHECK_NANOPUB_LOADED = "RAxqXyhP1fnjvDdX-K0z9TgnwoXf462FxV1wEAWRm_gos/check-nanopub-loaded";
     public static final String GET_ALL_USER_INTROS = "RAjHh6P11QFUaoPiMRBavdAnTq4YMJW4PB85oVFSBfYjU/get-all-user-intros";
     public static final String GET_ALL_USER_PROFILE_PICS = "RAtcodMPmTrmBvdOqwYIrNNFDO74f8B_xo0qsOcKlCwTA/get-all-user-profile-pics";
+    // Profile pictures of spaces and maintained resources (issue #632), declared as
+    // schema:image on the resource IRI. Unlike the user pictures above -- self-declared and
+    // read from a subject-agnostic query -- these are gated on the declaring nanopub being
+    // signed by a current admin of the governing space ref, so a third party cannot set a
+    // space's picture. Ordered newest first; the first row wins.
+    public static final String GET_RESOURCE_PROFILE_PICTURE = "RALK8_WQPtAbMUv2IvHeZyUU1WjD77V4a3hb0KsiZI0tI/get-resource-profile-picture";
     public static final String GET_ALL_USER_DEFAULT_LICENSE = "RA-_IwzReR2_HfTLz4YcNM6Mh3Vt16y0RUS12tpJTN9FI/get-all-user-default-license";
     public static final String GET_SUGGESTED_TEMPLATES_TO_GET_STARTED = "RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started";
     public static final String GET_MONTHLY_TYPE_OVERVIEW_BY_PUBKEYS = "RAhI-C2KsqS_IvnxwyBrbMFsoj65dhLWE_CBo_KtcVEVA/get-monthly-type-overview-by-pubkeys";
@@ -52,7 +61,10 @@ public class QueryApiAccess {
     public static final String GET_PROJECTS = "RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects";
     public static final String GET_OWNERS = "RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners";
     public static final String GET_MEMBERS = "RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members";
-    public static final String GET_PARTS = "RAJmZoM0xCGE8OL6EgmQBOd1M58ggNkwZ0IUqHOAPRfvE/get-parts";
+    // Reads the part-of relation as (dct:partOf|dct:isPartOf), so that terms published with
+    // the legacy spelling keep being found alongside correctly written ones; derived from
+    // RAJmZoM0, which matched dct:partOf alone (#511).
+    public static final String GET_PARTS = "RAaJUR8YijcD0BnYQkIvjmA2EJxWTeQNzTke9quasmj-8/get-parts";
     // Node-anchored variants (label/tag/unlisted read off the typed template node, so
     // templates with embedded identity list correctly); derived from, not superseding,
     // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
@@ -94,7 +106,26 @@ public class QueryApiAccess {
     // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
     // governing space resolves to the newest member+-signed version of its (kind, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
-    public static final String GET_VIEW_DISPLAYS = "RArKslem_skNR9Q9qEpHhIQbJdP47PxDojp40Z5r11Ubs/get-view-displays";
+    // RAWlJqJ5 (supersedes RArKslem): same semantics, endpoint rebased from the ViewDisplay
+    // type repo onto repo/full, cutting the query from 5 SERVICE clauses to 2 (only the
+    // repo/spaces state lookups remain federated). The per-hop federation was the main
+    // amplifier of the rdf4j connection-pool deadlock behind the fleet-wide /api wedges
+    // (nanopub-query, 2026-08-20 thread dump: 22 of 28 pool-blocked threads were this
+    // query). Validated byte-identical across standalone/preset/governed/self-page cases.
+    // RA3ekD-2 (supersedes RAWlJqJ5) adds the pending-account self-arm (issue #625 /
+    // nanopub-query#195): the own-page branch of the authority gate additionally accepts
+    // npa:PendingAccountState rows (mirrored from authoritative introductions of users not
+    // trust-approved yet), so such a user's own page shows the view displays they signed
+    // themselves. Display-only: the pending class is distinct from npa:AccountState, so the
+    // admin/maintainer arm and the governed-version resolution keep requiring approved
+    // accounts. Validated byte-identical to RAWlJqJ5 across approved resources.
+    // RAwkiytr (supersedes RA3ekD-2) adds ?presetKind to the preset branch (issue #607): the
+    // assigned preset's stable kind (dct:isVersionOf, falling back to the version IRI), so the
+    // client keeps only the newest assignment per (preset kind, resource) -- the identity view
+    // displays already have via view kind. Purely additive; every other column is unchanged
+    // (validated identical across standalone, preset, governed, self-page and maintained-resource
+    // cases).
+    public static final String GET_VIEW_DISPLAYS = "RAwkiytrR_PaBVqUjfUtoTEBAVwNWq7QxHJbAshQ1dD9g/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
@@ -119,7 +150,12 @@ public class QueryApiAccess {
     // resolution. Supersedes-head resolution happens caller-side per view (View.get with
     // resolveLatest=true, memoized), which also covers the governed case, so the extra columns
     // need not be consulted.
-    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAXdRFNLE1jB_NTaWrwIC9965SmZdZKB96VFnj1HvjdbY/get-view-displays-unresolved";
+    // RAkIkmSi (supersedes RAXdRFNL): endpoint rebased onto repo/full (5 SERVICE -> 2, see
+    // GET_VIEW_DISPLAYS above); in particular the per-referenced-view pin lookups are now
+    // local joins instead of one federated round-trip per view under a nested-loop join.
+    // RAt7dfZO (supersedes RAkIkmSi) adds the same ?presetKind column as GET_VIEW_DISPLAYS
+    // (issue #607); no other change.
+    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAt7dfZOYAqtuR_7o0Q1ogzLtnvuvmzMRfnzOT_nq8r6I/get-view-displays-unresolved";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
@@ -159,11 +195,15 @@ public class QueryApiAccess {
     // matches admins on npa:forSpaceRef, so multi-ref spaces don't merge admin keys across
     // refs. Published independently. Source at docs/queries/get-space-admin-pubkey-hashes-ref.trig.
     public static final String GET_SPACE_ADMIN_PUBKEY_HASHES_REF = "RAO8KDdS4_Z0-R1qCSKqWcewg0WUSaiQDh_p1N1Bg-zic/get-space-admin-pubkey-hashes";
-    public static final String GET_SPACE_ROLES = "RAKJFw-xIQ2r_aSKT4-6Pm3JkeqlWC_wmypfpA1JWPJl8/get-space-roles";
+    // 2026-09-11: the six role-listing queries below (get-space-roles, get-space-roles-ref, list-space-observers-ref,
+    // list-space-non-approved-ref, list-space-members-ref, list-space-roles-ref) were superseded to read the role name via
+    // schema:name in BOTH schemes (http://schema.org/ and https://schema.org/): nanopub-java >= 1.93.0 blacklists the
+    // http form, so new roles carry https://schema.org/name and showed up as a bare "role" in the About tab.
+    public static final String GET_SPACE_ROLES = "RAr9zGmPYtJwRK2m0pOwGrhsfhS7i3bqog27mILED6wjc/get-space-roles";
     // Ref-scoped roles (Stage 2): takes the ref's root nanopub (root_np), matches
     // RoleAssignments on npa:forSpaceRef, so multi-ref spaces don't merge role sets across
     // refs. Published independently. Source at docs/queries/get-space-roles-ref.trig.
-    public static final String GET_SPACE_ROLES_REF = "RAqUWUfmEmzxpkeuXek7oEiVSnwjuzRfV8kRe7pQSpe4c/get-space-roles";
+    public static final String GET_SPACE_ROLES_REF = "RATwohQqQwgra4nu0CYEmJCpc-Xo1xz2xb1IVc544D28U/get-space-roles";
     public static final String GET_SPACE_MEMBERS = "RAo0c4UNoD-uTP3xATU_-TB6vO-nMO4Ya-mvdaGjX5qVE/get-space-members";
     // Ref-scoped members (Stage 2): takes the ref's root nanopub (root_np), resolves the
     // ref + its space IRI, and returns ALL non-admin RoleInstantiations naming that IRI
@@ -210,15 +250,24 @@ public class QueryApiAccess {
     // scoped to the SAME role property ((npa:regularProperty|npa:inverseProperty) ?roleProp on
     // ?vriH), so a higher tier held through a different property no longer suppresses the observer
     // association, while the #498 tier-collision fix (same property validated at a higher tier)
-    // is preserved.
-    public static final String LIST_SPACE_OBSERVERS_REF = "RAQylZL4shGjfhxcBiqoanuY2-cUJcVeWvpZDkfjP9_ko/list-space-observers";
+    // is preserved. RAt8PKQ2 (supersedes RARcL1s1, adding the hidden revokeAgent action-mapping column; RARcL1s1 superseded RAQylZL4) distinguishes pending accounts (issue #625 /
+    // nanopub-query#195): an association validated only through a pending account — the
+    // materialized RoleInstantiation carries npa:trustStatus npa:seen, produced by the
+    // PendingAccountState self-arm for observer-tier self-signups of introduced-but-unapproved
+    // users — shows ⏳ in the headerless flag column (empty = approved-validated, ⏳ =
+    // pending-validated, ⚠️ = not validated at all). Latest (RANXPEIi, supersedes RAt8PKQ2) adds a
+    // member_label column so each agent shows by name: the canonical foaf:name mirrored into the
+    // current space state, falling back to the foaf:name asserted for that agent in the grant
+    // nanopub's pubinfo. Most role holders have no key introduction of their own, so without the
+    // fallback they rendered as bare ORCIDs; purely self-declared claims that carry no name
+    // anywhere still show their IRI.
+    public static final String LIST_SPACE_OBSERVERS_REF = "RAy7MVefpFPFBhxDBh5sFzw6S5H-gCH5yJ2dENH1ackKI/list-space-observers";
 
     // Ref-scoped non-approved role claims (root_np): agents holding a higher-tier role
     // instantiation (admin/maintainer/member) that is NOT in the validated state — a
     // self-assigned or otherwise ungranted claim awaiting approval by an equal-or-higher-tier
     // member. Observer-tier roles are excluded (self-assignable, so they need no approval and
-    // are listed by LIST_SPACE_OBSERVERS_REF). Only admin claims are detectable today (the live
-    // repo materialises every declaration as ObserverRole). Drives the "❓ Pending
+    // are listed by LIST_SPACE_OBSERVERS_REF). Drives the "❓ Pending
     // Admins/Maintainers/Members" view. v3 (RA2BnCGv, supersedes RAZMAChi) resolves owl:sameAs
     // space aliases via the ref's validated npa:sameAsSpace edges, so a higher-tier claim made
     // against an alias IRI of the space is detected. v4 (RAwv7GRc, supersedes RA2BnCGv) gates the
@@ -229,9 +278,23 @@ public class QueryApiAccess {
     // sameAsSpace ... }` alias pattern left ?inSpace unbound on RDF4J (BIND in a UNION branch does
     // not see the outer ?spaceIri), so the query returned ZERO rows for every space (no pending
     // claim could ever surface). Replaced with a non-union
-    // `filter( ?inSpace = ?spaceIri || exists { ... sameAsSpace ... } )`. Source at
-    // docs/queries/list-space-non-approved-ref-v5.trig.
-    public static final String LIST_SPACE_NON_APPROVED_REF = "RAtSaYBHpb2iG6dwlHRHVfUpygNAKS-3bUa1iV5YNqk3w/list-space-non-approved";
+    // `filter( ?inSpace = ?spaceIri || exists { ... sameAsSpace ... } )`. v6 (RAhSqdJ6, supersedes
+    // RAtSaYBH via the RAPo1zp2 intermediate) adds an approve_np column with the granting
+    // nanopub. Latest (RAVsaIwA, supersedes RAhSqdJ6; issue #603): the admin-only
+    // roleAssignmentTemplate and agent_iri columns are replaced by a per-row
+    // (approve_np, grant_template) pair — the grant nanopub and its own creation template
+    // (nt:wasCreatedFromTemplate, free-form template as fallback) — so the view's approve
+    // action can open the pending grant in derive mode for EVERY tier, not only for admin
+    // grants. The tier column is deterministic (the highest tier among the member's pending
+    // claims, rank-keyed min instead of a flapping sample), and the pair is computed from
+    // the SAME grant via a rank-prefixed concatenated min preferring that highest tier, so
+    // tier, derive target, and template always agree. A grant whose assertion defines a
+    // Space itself (a competing root definition) is not offered for derivation; admin-tier
+    // claims from such definitions pair with the built-in admin-assignment template instead
+    // (the hasAdmin triple unifies), keeping the space-ref-conflict remedy.
+    // Source at docs/queries/list-space-non-approved-ref-v7.trig. v8 (RAoX3Htu, supersedes
+    // RAVsaIwA) adds a member_label column, sourced like the observers query above.
+    public static final String LIST_SPACE_NON_APPROVED_REF = "RA8r_O22FL53frfrmudFKMB-g7S-H0HU78O7uDiOx4WZ4/list-space-non-approved";
 
     // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
@@ -247,10 +310,12 @@ public class QueryApiAccess {
     // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
     // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
     // RoleAssignment-scoping workaround and the global RoleDeclaration matching that leaked observer-tier
-    // members into the Approved listing. See nanodash#498. Latest (RA7E54m5, supersedes RApyKS9D)
-    // drops the role-label coalesce to read schema:name only.
-    public static final String LIST_SPACE_MEMBERS_REF = "RA7E54m5Hb413Ud-0T9HEiH9wnxlJXBkcUT701NDaUGQk/list-space-members";
-    public static final String LIST_SPACE_ROLES_REF = "RAYrSRARuWV2iTWVe6tKDgkaED8ztlr1q5Z5QBIDV4a-Q/list-space-roles";
+    // members into the Approved listing. See nanodash#498. RAJ15No3 (supersedes RA7E54m5, adding the hidden revokeAgent action-mapping column; RA7E54m5 superseded RApyKS9D)
+    // drops the role-label coalesce to read schema:name only. Latest (RA-90ZiE, supersedes RAJ15No3)
+    // adds a member_label column, sourced like the observers query above, and orders rows by tier and
+    // then by that display name.
+    public static final String LIST_SPACE_MEMBERS_REF = "RAroCpts3CpuUpSsuPpccRbyKkwkOvVNQSjoY0ZYAVvBg/list-space-members";
+    public static final String LIST_SPACE_ROLES_REF = "RAYOsITlBsY5vmlPmZuMnsJQvwIss9DfjdWW0VjgLkMjE/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
     public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
 
@@ -260,18 +325,8 @@ public class QueryApiAccess {
     // ref-scoped query requires root_np; the IRI-keyed variant backs the users' view. See
     // docs/queries/list-view-displays{,-ref}.trig.
 
-    // Part view-displays listing (resource + partid + partclass): the owning resource's displays,
-    // each ?displayed_here-flagged for the specific part. RAMy6Nu supersedes RAPaHJiD (renames
-    // ?shown_here → ?displayed_here). RAFkUf3A (derived from RAMy6Nu) adds a ?position_label column
-    // (first 3 chars of the structural position) so the position cell shows e.g. "1.1" with the full
-    // literal on hover.
-    // RAs9S7c9 (supersedes RA2LG9c5) swaps the authority gate to the npa:hasGoverningSpaceRef gate
-    // keyed on materialized npa:hasRoleType (issue #510), preserving the ?position_label column.
-    // RAKHyaoB (supersedes RAs9S7c9) adds space-governed version resolution (gen:governedBy;
-    // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
-    // governing space resolves to the newest member+-signed version of its (kind, space)
-    // pair via a run-once governed sub-select, falling back to the pinned version.
-    public static final String LIST_PART_VIEW_DISPLAYS = "RAKHyaoBCpNdbGsdPLdc8lbxLb4KuLhnmU0V2-NcxHei0/list-part-view-displays";
+    // The part view-displays listing is not referenced here either: AboutPartPanel takes it
+    // from the part view nanopub's gen:hasViewQuery and passes resource + partid + partclass.
 
     // Ref-scoped preset-assignment listing (root_np): reads the server-materialised
     // npa:PresetAssignment rows scoped by npa:forSpaceRef from the validated current space-state
@@ -280,7 +335,15 @@ public class QueryApiAccess {
     // admin-authored row). Column-identical to the IRI-keyed list-preset-assignments, so it drives
     // the existing Preset assignments view unchanged. Used by AboutSpacePanel with an IRI-keyed
     // fallback when the ref root is unknown. Source at docs/queries/list-preset-assignments-ref.trig.
-    public static final String LIST_PRESET_ASSIGNMENTS_REF = "RAeLNbudAq68NdqfIL3mtT2YeLnIHZ5T52Qwl_rJzMJJk/list-preset-assignments";
+    // RArC6iR- (supersedes RA3zdn0g, itself the head this constant had been left behind by)
+    // keys an assignment on the preset's stable kind rather than the pinned version, and adds the
+    // version columns behind the view's "update to latest version" action (issue #607).
+    // RArXnUQf (supersedes RArC6iR-) replaces the earlier blank-header notice with a proper
+    // "version" column: version_label is the displayed verdict ("latest" / "⬆️ update available")
+    // and version the dates behind it, since the renderer shows a literal column's _label
+    // companion and puts the principal value in the tooltip. Column-compatible with the IRI-keyed
+    // variant, which the view supplies for non-space pages.
+    public static final String LIST_PRESET_ASSIGNMENTS_REF = "RArXnUQf2dQguqlteWMwKVWxIpnk5xzF4ppAokGkpuOn8/list-preset-assignments";
 
     private static final Logger logger = LoggerFactory.getLogger(QueryApiAccess.class);
 
@@ -356,6 +419,60 @@ public class QueryApiAccess {
         }
         Pair<Long, String> cached = latestVersionMap.get(nanopubId);
         return cached != null ? cached.getRight() : nanopubId;
+    }
+
+    /**
+     * Drops the memoized latest-version lookup for a nanopub, so that the next
+     * {@link #getLatestVersionId(String)} goes back to the query API instead of answering
+     * from a memo that can be up to a minute old. For the places where the user explicitly
+     * asks for current data, such as {@link View#refreshLatestVersion(String)}.
+     *
+     * @param nanopubId The ID of the nanopublication.
+     */
+    public static void forgetLatestVersion(String nanopubId) {
+        latestVersionMap.remove(nanopubId);
+    }
+
+    /**
+     * Checks whether the given nanopublication has been loaded by the query services,
+     * with a single cheap indexed lookup. A negative answer only means the instance that
+     * happened to answer does not have the nanopub yet.
+     *
+     * @param nanopubId The ID of the nanopublication.
+     * @return True if the answering query service instance has the nanopub.
+     * @throws org.nanopub.extra.services.FailedApiCallException         If the API call fails.
+     * @throws org.nanopub.extra.services.APINotReachableException       If the API is not reachable.
+     * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException If there are not enough API instances.
+     */
+    public static boolean isNanopubLoaded(String nanopubId) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        ApiResponse r = get(new QueryRef(CHECK_NANOPUB_LOADED, "np", nanopubId));
+        return r != null && !r.getData().isEmpty();
+    }
+
+    /**
+     * Checks whether the given IRI has already been used as the identifier of a resource,
+     * i.e. whether some nanopublication already introduces it.
+     * <p>
+     * This is the question an identifier that carries no artifact code raises: nothing makes
+     * it unique, so the same form filled with the same name twice yields the same IRI, and
+     * the second nanopublication silently attaches itself to the first one's resource (#646).
+     * The lookup runs against the meta repository, where {@code npx:introduces} is indexed.
+     * <p>
+     * A query service that cannot be reached answers false: a check that cannot be made is
+     * not evidence of a collision, and publishing should not depend on the query services
+     * being up.
+     *
+     * @param uri The IRI to check.
+     * @return True if a nanopublication introducing the IRI was found.
+     */
+    public static boolean isUriIntroduced(String uri) {
+        try {
+            ApiResponse r = get(new QueryRef(GET_INTRODUCING_NANOPUB, "thing", uri));
+            return r != null && !r.getData().isEmpty();
+        } catch (Exception ex) {
+            logger.error("Could not check whether IRI '{}' is already introduced", uri, ex);
+            return false;
+        }
     }
 
     /**

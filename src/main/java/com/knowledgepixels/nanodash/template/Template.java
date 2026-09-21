@@ -13,6 +13,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
+import org.nanopub.vocabulary.KPXL_GRLC;
 import org.nanopub.vocabulary.NTEMPLATE;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.slf4j.Logger;
@@ -34,18 +35,26 @@ public class Template implements Serializable {
      */
     public static final String DEFAULT_TARGET_NAMESPACE = "https://w3id.org/np/";
 
-    // TODO Move these to the other ntemplate vocabulary terms in nanopub-java:
-    private static final IRI ADVANCED_STATEMENT = vf.createIRI("https://w3id.org/np/o/ntemplate/AdvancedStatement");
+    // TODO Move these to the other ntemplate vocabulary terms in nanopub-java (both added
+    // there in Nanopublication/nanopub-java#156; drop them once that release is picked up):
+    /**
+     * Type of a template whose filled content applies only to the specific nanopublication
+     * it was published with, and is not carried over when that nanopublication is
+     * superseded, overridden, derived from, or otherwise used as a fill source.
+     */
+    public static final IRI TRANSIENT_TEMPLATE = vf.createIRI("https://w3id.org/np/o/ntemplate/TransientTemplate");
 
     /**
-     * Type of a literal placeholder whose language tag is selected by the user at fill time.
+     * Type marking a URI placeholder whose value names a resource that does not exist yet,
+     * applied alongside the placeholder's own type. The publish form refuses to publish when
+     * such an identifier is already in use (#646).
+     * <p>
+     * This is the template author's statement of intent, and the only thing that turns the
+     * check on: nothing is checked for an untagged placeholder, however its value is formed.
+     * It says more than {@link org.nanopub.vocabulary.NTEMPLATE#INTRODUCED_RESOURCE}, which a
+     * template also attaches when the user supplies the IRI of a thing that already exists.
      */
-    public static final IRI LANGUAGE_TAGGED_LITERAL_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/LanguageTaggedLiteralPlaceholder");
-
-    /**
-     * Predicate restricting the language tags offered by a language-tag picker.
-     */
-    public static final IRI POSSIBLE_LANGUAGE_TAG = vf.createIRI("https://w3id.org/np/o/ntemplate/possibleLanguageTag");
+    public static final IRI NEW_URI_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/NewUriPlaceholder");
 
     private final Nanopub nanopub;
     private String label;
@@ -115,6 +124,18 @@ public class Template implements Serializable {
     public boolean isUnlisted() {
         List<IRI> types = typeMap.get(templateIri);
         return types != null && types.contains(NTEMPLATE.UNLISTED_TEMPLATE);
+    }
+
+    /**
+     * Checks if the template is transient, meaning its filled content applies only to the
+     * specific nanopublication it was published with and is not carried over when that
+     * nanopublication is superseded, overridden, derived from, or used as a fill source.
+     *
+     * @return true if the template is transient, false otherwise.
+     */
+    public boolean isTransient() {
+        List<IRI> types = typeMap.get(templateIri);
+        return types != null && types.contains(TRANSIENT_TEMPLATE);
     }
 
     /**
@@ -573,10 +594,22 @@ public class Template implements Serializable {
     }
 
     /**
-     * Checks if the IRI is an auto-escape URI placeholder.
+     * Checks if the IRI is a placeholder for a URI that does not exist yet, i.e. one the
+     * template marks with {@link #NEW_URI_PLACEHOLDER}.
      *
      * @param iri the IRI to check.
-     * @return true if the IRI is an auto-escape URI placeholder, false otherwise.
+     * @return true if the IRI is a new-URI placeholder, false otherwise.
+     */
+    public boolean isNewUriPlaceholder(IRI iri) {
+        iri = transform(iri);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NEW_URI_PLACEHOLDER);
+    }
+
+    /**
+     * Checks if the IRI is an auto-escape URI placeholder.
+     *
+     * @param iri the IRI to check
+     * @return true if it is an auto-escape placeholder
      */
     public boolean isAutoEscapePlaceholder(IRI iri) {
         iri = transform(iri);
@@ -592,7 +625,7 @@ public class Template implements Serializable {
     public boolean isLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && (typeMap.get(iri).contains(NTEMPLATE.LITERAL_PLACEHOLDER) || typeMap.get(iri).contains(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)
-                || typeMap.get(iri).contains(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER));
+                || typeMap.get(iri).contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER));
     }
 
     /**
@@ -603,7 +636,7 @@ public class Template implements Serializable {
      */
     public boolean isLanguageTagSelectable(IRI iri) {
         iri = transform(iri);
-        return typeMap.containsKey(iri) && typeMap.get(iri).contains(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER);
     }
 
     /**
@@ -615,6 +648,38 @@ public class Template implements Serializable {
     public boolean isLongLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.LONG_LITERAL_PLACEHOLDER);
+    }
+
+    /**
+     * Checks whether the given placeholder is filled with the SPARQL code of a query, i.e.
+     * whether the template puts it in object position of a {@code kpxl_grlc:sparql} statement.
+     * <p>
+     * This is what tells a SPARQL field apart from any other long literal, and it has to be
+     * read off the template rather than guessed from the field: only the template knows what
+     * the value it collects is going to mean.
+     *
+     * @param iri the placeholder IRI to check.
+     * @return true if the placeholder holds the SPARQL code of a query.
+     */
+    public boolean isSparqlPlaceholder(IRI iri) {
+        iri = transform(iri);
+        for (IRI i : getStatementIris()) {
+            if (statementMap.containsKey(i)) {
+                // grouped statement
+                for (IRI g : getStatementIris(i)) {
+                    if (isSparqlStatementFor(g, iri)) return true;
+                }
+            } else {
+                // non-grouped statement
+                if (isSparqlStatementFor(i, iri)) return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSparqlStatementFor(IRI statementIri, IRI iri) {
+        return KPXL_GRLC.SPARQL.equals(statementPredicates.get(statementIri))
+                && iri.equals(statementObjects.get(statementIri));
     }
 
     /**
@@ -692,7 +757,7 @@ public class Template implements Serializable {
             if (t.equals(NTEMPLATE.AGENT_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)) return true;
-            if (t.equals(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER)) return true;
+            if (t.equals(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.SEQUENCE_ELEMENT_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER)) return true;
         }
@@ -757,7 +822,7 @@ public class Template implements Serializable {
      * @return true if the IRI is an advanced statement, false otherwise.
      */
     public boolean isAdvancedStatement(IRI iri) {
-        return typeMap.containsKey(iri) && typeMap.get(iri).contains(ADVANCED_STATEMENT);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(NTEMPLATE.ADVANCED_STATEMENT);
     }
 
     /**
@@ -968,17 +1033,21 @@ public class Template implements Serializable {
     // picker wins so the placeholder keeps rendering as a text field.
     private void checkLanguageTagPlaceholders() {
         for (Map.Entry<IRI, List<IRI>> e : typeMap.entrySet()) {
-            if (e.getValue().contains(LANGUAGE_TAGGED_LITERAL_PLACEHOLDER) && datatypeMap.containsKey(e.getKey())) {
+            if (e.getValue().contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER) && datatypeMap.containsKey(e.getKey())) {
                 logger.warn("Ignoring datatype {} on language-tag-selectable placeholder {}", datatypeMap.get(e.getKey()), e.getKey());
                 datatypeMap.remove(e.getKey());
             }
         }
     }
 
-    // Local IRIs in used statement positions that carry no identity type (no placeholder
-    // type, not a Local/Introduced/Embedded Resource) are automatically treated as Local
+    // Local IRIs in used statement positions that carry no minting-relevant type (no
+    // placeholder type, not a Local Resource) are automatically treated as Local
     // Resources, so every produced nanopub mints them under its own namespace instead of
-    // copying the template-local IRI verbatim (see issue #551).
+    // copying the template-local IRI verbatim (see issue #551). Introduced/Embedded
+    // Resource tags do not exempt an IRI: they only record the resulting IRI for pubinfo
+    // (npx:introduces / npx:embeds) and say nothing about minting; a template-local IRI
+    // tagged only nt:IntroducedResource would otherwise be shared by all produced
+    // nanopubs (see issue #602).
     private void tagUntypedLocalIrisAsLocalResources(Nanopub templateNp) {
         List<IRI> topIris = statementMap.get(templateIri);
         if (topIris == null) return;
@@ -1008,7 +1077,7 @@ public class Template implements Serializable {
         if (iri.equals(templateIri)) return;
         // Statement/group identifiers referenced as values stay untouched:
         if (statementMap.containsKey(iri) || statementSubjects.containsKey(iri)) return;
-        if (isPlaceholder(iri) || isLocalResource(iri) || isIntroducedResource(iri) || isEmbeddedResource(iri)) return;
+        if (isPlaceholder(iri) || isLocalResource(iri)) return;
         addType(iri, NTEMPLATE.LOCAL_RESOURCE);
     }
 
@@ -1094,7 +1163,7 @@ public class Template implements Serializable {
                 datatypeMap.put(subj, objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
                 languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
-            } else if (pred.equals(POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
+            } else if (pred.equals(NTEMPLATE.POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
                 possibleLanguageTagMap.computeIfAbsent(subj, k -> new ArrayList<>()).add(Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(NTEMPLATE.HAS_PREFIX) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
@@ -1298,7 +1367,7 @@ public class Template implements Serializable {
                 datatypeMap.put(subj, objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
                 languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
-            } else if (pred.equals(POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
+            } else if (pred.equals(NTEMPLATE.POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
                 possibleLanguageTagMap.computeIfAbsent(subj, k -> new ArrayList<>()).add(Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(NTEMPLATE.HAS_PREFIX) && obj instanceof Literal) {
                 prefixMap.put(subj, objS);
@@ -1372,6 +1441,17 @@ public class Template implements Serializable {
             typeMap.put(thing, l);
         }
         l.add(type);
+    }
+
+    /**
+     * Maps a rendered IRI back to its template form, undoing the artifact-code expansion and the
+     * {@code __N} repetition suffix that are added while rendering a repeatable statement group.
+     *
+     * @param iri the rendered IRI.
+     * @return the corresponding template IRI, or the given IRI if no transformation is needed.
+     */
+    public IRI getTemplateIri(IRI iri) {
+        return transform(iri);
     }
 
     private IRI transform(IRI iri) {

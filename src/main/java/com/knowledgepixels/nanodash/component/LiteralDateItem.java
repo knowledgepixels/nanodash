@@ -74,6 +74,7 @@ public class LiteralDateItem extends AbstractContextComponent {
 
         context.getComponentModels().put(iri, dateComponent.getModel());
         context.getComponents().add(dateComponent);
+        lockIfNeeded(dateComponent, iri);
         dateComponent.add(new ValueItem.KeepValueAfterRefreshBehavior());
         dateComponent.add(new InvalidityHighlighting());
         add(dateComponent);

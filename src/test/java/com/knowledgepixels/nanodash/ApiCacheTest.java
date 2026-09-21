@@ -16,6 +16,7 @@ import org.nanopub.extra.services.QueryRef;
 import com.google.common.cache.Cache;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -38,6 +39,9 @@ class ApiCacheTest {
         resetMap("refreshStart");
         resetMap("runAfter");
         resetMap("forcedRefresh");
+        resetMap("awaitIngest");
+        resetMap("ingestConfirmResults");
+        resetMap("ingestConfirmLocks");
 
         lenient().when(mockQueryRef.getAsUrlString()).thenReturn(MOCK_CACHE_ID);
     }
@@ -117,18 +121,23 @@ class ApiCacheTest {
     }
 
     @Test
-    @DisplayName("retrieveResponseSync should refresh stale cache and return fresh response through API call")
-    void retrieveResponseSync_refreshesStaleCache() throws Exception {
+    @DisplayName("retrieveResponseSync should serve an outdated response and leave the re-fetch to the background")
+    void retrieveResponseSync_servesOutdatedResponse() throws Exception {
         ApiResponse stale = mock(ApiResponse.class);
-        ApiResponse fresh = mock(ApiResponse.class);
+        // Well past the refresh threshold, as e.g. every entry restored from the
+        // persisted snapshot after a restart is.
         putCachedResponse(stale, 90000L);
+        // A refresh is already in flight, so nothing new is submitted while the test runs.
+        getMap("refreshStart").put(MOCK_CACHE_ID, System.currentTimeMillis());
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
-            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
-
+            long start = System.currentTimeMillis();
             ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+            long elapsed = System.currentTimeMillis() - start;
 
-            assertSame(fresh, result);
+            assertSame(stale, result, "the outdated response should be served straight away");
+            assertTrue(elapsed < 1000, "should not have re-fetched inline, but took " + elapsed + "ms");
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
         }
     }
 
@@ -157,6 +166,34 @@ class ApiCacheTest {
     }
 
     @Test
+    @DisplayName("retrieveMap should keep the cached map when the refresh fails")
+    void retrieveMap_keepsCachedMapWhenApiCallFails() throws Exception {
+        ConcurrentMap<String, Map<String, String>> cachedMaps = getMap("cachedMaps");
+        ConcurrentMap<String, Long> lastRefresh = getMap("lastRefresh");
+        Map<String, String> cached = Map.of("key", "value");
+        cachedMaps.put(MOCK_CACHE_ID, cached);
+        // Outdated enough to trigger a refresh, but well within the maximum cache age.
+        lastRefresh.put(MOCK_CACHE_ID, System.currentTimeMillis() - 2 * 60 * 1000);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class);
+             MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef))
+                    .thenThrow(new FailedApiCallException(new Exception("API call failed")));
+            // Run the refresh job on this thread, where the mocked API access applies.
+            threadPool.when(() -> NanodashThreadPool.submit(any(Runnable.class))).thenAnswer(inv -> {
+                inv.getArgument(0, Runnable.class).run();
+                return null;
+            });
+
+            Map<String, String> result = ApiCache.retrieveMap(mockQueryRef);
+
+            assertSame(cached, result);
+            assertSame(cached, cachedMaps.get(MOCK_CACHE_ID),
+                    "a failed refresh must not throw away the cached map");
+        }
+    }
+
+    @Test
     @DisplayName("retrieveResponseSync should throw RuntimeException after three consecutive failures and the failed counter should be cleared so subsequent calls can retry")
     void retrieveResponseSync_throwsRuntimeExceptionAfterThreeFailures() throws Exception {
         putFailed(3);
@@ -169,6 +206,27 @@ class ApiCacheTest {
             ConcurrentMap<String, Integer> failed = getMap("failed");
             assertFalse(failed.containsKey(MOCK_CACHE_ID));
         }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseIfAvailable should answer with null instead of throwing after three consecutive failures (issue #684)")
+    void retrieveResponseIfAvailable_answersWithNullAfterThreeFailures() throws Exception {
+        putFailed(3);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            // The callers of this hold the state whole pages are built from: a query that
+            // cannot be answered has to read as "nothing to show yet", not as a failed page.
+            assertNull(ApiCache.retrieveResponseIfAvailable(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseIfAvailable should hand back a cached response like retrieveResponseSync")
+    void retrieveResponseIfAvailable_returnsCachedResponse() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 0L);
+
+        assertSame(cached, ApiCache.retrieveResponseIfAvailable(mockQueryRef));
     }
 
     @Test
@@ -259,6 +317,29 @@ class ApiCacheTest {
     }
 
     @Test
+    @DisplayName("retrieveResponseSync should still re-fetch a clearCache-marked entry on a request thread")
+    void retrieveResponseSync_stillRefreshesMarkedEntryOnRequestThread() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 90000L);
+        ApiCache.clearCache(mockQueryRef, 0L);
+
+        WicketTester tester = new WicketTester();
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // The marking means the kept entry must not be handed out as current, so the
+            // request thread does wait for the re-fetch here.
+            assertSame(fresh, result);
+        } finally {
+            tester.destroy();
+            ThreadContext.detach();
+        }
+    }
+
+    @Test
     @DisplayName("retrieveResponseSync should drop the clearCache marking even when the refresh fails")
     void retrieveResponseSync_dropsMarkingWhenRefreshFails() throws Exception {
         ApiResponse stale = mock(ApiResponse.class);
@@ -274,6 +355,76 @@ class ApiCacheTest {
             // otherwise every later call would re-run the failing query.
             assertSame(stale, result);
             assertFalse(getSet("forcedRefresh").contains(MOCK_CACHE_ID));
+        }
+    }
+
+    @Test
+    @DisplayName("a publish-marked refresh should be released by ingest confirmation instead of the blind delay")
+    void publishMarkedRefreshReleasedByIngestConfirmation() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x1";
+        // A fallback delay far longer than the test may take: with a positive probe, the
+        // refresh must not wait it out.
+        ApiCache.clearCache(mockQueryRef, 60000L, npId);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.isNanopubLoaded(npId)).thenReturn(true);
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            long start = System.currentTimeMillis();
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+            long elapsed = System.currentTimeMillis() - start;
+
+            assertSame(fresh, result);
+            assertTrue(elapsed < 10000, "confirmation should release the refresh long before the 60s fallback, but took " + elapsed + "ms");
+            queryApiAccess.verify(() -> QueryApiAccess.isNanopubLoaded(npId));
+            assertFalse(this.<String, String>getMap("awaitIngest").containsKey(MOCK_CACHE_ID), "the pending confirmation should be consumed");
+            assertFalse(this.<String, Long>getMap("runAfter").containsKey(MOCK_CACHE_ID), "the fallback delay should be dropped on confirmation");
+        }
+    }
+
+    @Test
+    @DisplayName("a failing ingest probe should fall back to the blind delay")
+    void failingIngestProbeFallsBackToBlindDelay() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x2";
+        ApiCache.clearCache(mockQueryRef, 0L, npId);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.isNanopubLoaded(npId)).thenThrow(new FailedApiCallException(new Exception("probe broken")));
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // A broken probe must never make publishing worse than before: the refresh
+            // still runs after the (here elapsed) fallback delay.
+            assertSame(fresh, result);
+        }
+    }
+
+    @Test
+    @DisplayName("a shared negative probe result should short-circuit later waiters")
+    void sharedNegativeProbeResultShortCircuits() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x3";
+        // Another view's refresh has already polled for this nanopub and given up.
+        this.<String, Boolean>getMap("ingestConfirmResults").put(npId, false);
+        ApiCache.clearCache(mockQueryRef, 0L, npId);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            assertSame(fresh, result);
+            // The shared result answers instead of a second polling round.
+            queryApiAccess.verify(() -> QueryApiAccess.isNanopubLoaded(any()), never());
         }
     }
 

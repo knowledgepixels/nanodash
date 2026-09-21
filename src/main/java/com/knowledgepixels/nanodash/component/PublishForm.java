@@ -34,6 +34,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -44,16 +45,17 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
-import org.nanopub.extra.server.PublishNanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
+import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,7 @@ import org.wicketstuff.select2.Select2Choice;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * Form for publishing a nanopublication.
@@ -79,10 +82,20 @@ public class PublishForm extends Panel {
     public static final String DEFAULT_PROV_TEMPLATE = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
     private static final String supersedesPubInfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
     private static final String derivesFromPubInfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
+    private static final String changeNotePubInfoTemplateId = "https://w3id.org/np/RAVXmu2rj-pkWoDjHH4n1oAHbseAf3RcUYpYiwI1WXDmY";
 
     private static final String[] fixedPubInfoTemplates = new String[]{CREATOR_PUB_INFO_TEMPLATE, LICENSE_PUB_INFO_TEMPLATE};
 
     private static final String INVALID_TEMPLATE_MESSAGE = "This form is based on an invalid template and cannot be published.";
+    private static final String CONSENT_TEXT =
+            "I understand that published data cannot be fully removed (only retracted or superseded " +
+            "by new versions), and is publicly connected to my personal identifier.";
+    // Where protected nanopublications are possible, the consent has to say which of the two it
+    // is about: it is the open publication that cannot be taken back (#671).
+    private static final String OPEN_CONSENT_TEXT =
+            "I understand that this will be openly published, that published data cannot be fully " +
+            "removed (only retracted or superseded by new versions), and that it will be publicly " +
+            "connected to my personal identifier.";
     // Page parameters that make the form supersede or override an existing nanopublication
     // ("fill" is the deprecated form of "supersede"):
     private static final String[] sourceParamKeys = new String[]{"supersede", "supersede-a", "override", "override-a", "fill"};
@@ -95,6 +108,20 @@ public class PublishForm extends Panel {
          * Use fill mode
          */
         USE,
+        /**
+         * Partial fill mode: identical to {@link #USE} (no provenance link back to
+         * the source, introduced IRIs re-minted, the new nanopub is its own root),
+         * except that content of the source which does not match the template being
+         * filled is discarded <em>silently</em> instead of being reported.
+         * <p>
+         * Intended for filling deliberately <em>across</em> templates, where the
+         * source is only a seed for the form and a mismatch is expected rather than a
+         * warning: e.g. a view action that opens an "assign" form seeded from the
+         * nanopublication that reported the issue. The other modes keep reporting
+         * unmatched content, which is what you want when the source and the target
+         * template are meant to line up.
+         */
+        PARTIAL,
         /**
          * Supersede fill mode
          */
@@ -130,6 +157,19 @@ public class PublishForm extends Panel {
     private final Map<String, TemplateContext> pubInfoContextMap = new HashMap<>();
     private final List<TemplateContext> requiredPubInfoContexts = new ArrayList<>();
     private String targetNamespace;
+    // Protected nanopublications (#671). The context carrying the marker is present exactly when
+    // the nanopublication being created is to be protected; the checkbox next to the consent one
+    // adds and removes it. The reason is non-null when the user has no say (see
+    // ProtectedNanopubs.getForcedReason).
+    private TemplateContext protectedContext;
+    private String protectedForcedReason;
+    private String protectedTemplateId;
+    private boolean protectedTemplateMissing;
+    private Label protectedNoteLabel;
+    private Label consentTextLabel;
+    private CheckBox consentCheck;
+    private WebMarkupContainer consentSection;
+    private boolean publishingDisabled;
     // The space / maintained resource / user this form was reached under, which
     // space-/namespace-dependent template prefixes resolve against (see DynamicPrefix):
     private final String navigationContextId;
@@ -170,6 +210,13 @@ public class PublishForm extends Panel {
         } else if (!pageParams.get("use-a").isNull()) {
             fillNp = Utils.getNanopub(pageParams.get("use-a").toString());
             fillMode = FillMode.USE;
+            fillOnlyAssertion = true;
+        } else if (!pageParams.get("partial").isNull()) {
+            fillNp = Utils.getNanopub(pageParams.get("partial").toString());
+            fillMode = FillMode.PARTIAL;
+        } else if (!pageParams.get("partial-a").isNull()) {
+            fillNp = Utils.getNanopub(pageParams.get("partial-a").toString());
+            fillMode = FillMode.PARTIAL;
             fillOnlyAssertion = true;
         } else if (!pageParams.get("supersede").isNull()) {
             fillNp = Utils.getNanopub(pageParams.get("supersede").toString());
@@ -267,6 +314,17 @@ public class PublishForm extends Panel {
             pubInfoContextMap.put(derivesFromPubInfoTemplateId, c);
             c.setParam("np", fillNp.getUri().stringValue());
         }
+        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
+            // Offer a change-note field by default when a new version of a nanopub is
+            // made (removable, and its statement is optional in the template, so an
+            // empty note doesn't block publishing):
+            String changeNoteIdLatest = td.getLatestTemplateId(changeNotePubInfoTemplateId);
+            if (!pubInfoContextMap.containsKey(changeNoteIdLatest)) {
+                TemplateContext c = newContext(ContextType.PUBINFO, changeNoteIdLatest, "pi-statement");
+                pubInfoContexts.add(c);
+                pubInfoContextMap.put(c.getTemplateId(), c);
+            }
+        }
         for (IRI r : assertionContext.getTemplate().getRequiredPubInfoElements()) {
             String latestId = td.getLatestTemplateId(r.stringValue());
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) {
@@ -293,10 +351,21 @@ public class PublishForm extends Panel {
             }
             piParamIdMap.put(i, c);
         }
+        // Pubinfo templates of the fill source that are marked transient: their content
+        // applies to the source nanopub only, so they get no form context; their
+        // statements are consumed and discarded below instead of carried over.
+        final List<String> transientPiTemplateIds = new ArrayList<>();
         if (fillNp != null && !fillOnlyAssertion) {
             for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
+                // The flag is checked on the latest template version, so flagging a
+                // template also stops carry-over from nanopubs created with older,
+                // unflagged versions of it:
                 String piTemplateIdLatest = td.getLatestTemplateId(piTemplateId.stringValue());
                 if (piTemplateIdLatest.equals(supersedesPubInfoTemplateId)) {
+                    continue;
+                }
+                if (isTransientTemplate(piTemplateIdLatest)) {
+                    transientPiTemplateIds.add(piTemplateId.stringValue());
                     continue;
                 }
                 if (!pubInfoContextMap.containsKey(piTemplateIdLatest)) {
@@ -305,28 +374,19 @@ public class PublishForm extends Panel {
                 }
             }
         }
+        // Query-driven pre-fills, least specific first, so that a later source overrides an
+        // earlier one: the target-driven fill query (issue #690), then the listing-driven
+        // values, then the explicit param_ parameters below.
+        if (!pageParams.get("fill-query").isEmpty() && !pageParams.get("fill-query-mapping").isEmpty()) {
+            // Bound here, on the publishing user's own request, so a fill query may use the
+            // magic parameters (local key, current user) of whoever opens the form rather
+            // than of whoever rendered the listing that linked here.
+            QueryRef fillRef = MagicQueryParams.augment(QueryRef.parseString(pageParams.get("fill-query").toString()));
+            applyFillQueryValues(pageParams.get("fill-query-mapping").toString(), retrieveForPrefill(fillRef), assertionContext);
+        }
         if (!pageParams.get("values-from-query").isEmpty() && !pageParams.get("values-from-query-mapping").isEmpty()) {
-            String querySpec = pageParams.get("values-from-query").toString();
-
-            String mapping = pageParams.get("values-from-query-mapping").toString();
-            String mapsFrom, mapsTo;
-            if (mapping.contains(":")) {
-                mapsFrom = mapping.split(":")[0];
-                mapsTo = mapping.split(":")[1];
-            } else {
-                mapsFrom = mapping;
-                mapsTo = mapping;
-            }
-            ApiResponse resp = ApiCache.retrieveResponseSync(QueryRef.parseString(querySpec), false);
-            int i = 0;
-            for (ApiResponseEntry e : resp.getData()) {
-                String mapsToSuffix = "";
-                if (i > 0) {
-                    mapsToSuffix = "__" + i;
-                }
-                assertionContext.setParam(mapsTo + mapsToSuffix, e.get(mapsFrom));
-                i++;
-            }
+            QueryRef valuesRef = QueryRef.parseString(pageParams.get("values-from-query").toString());
+            applyQueryValues(pageParams.get("values-from-query-mapping").toString(), retrieveForPrefill(valuesRef), assertionContext);
         }
         for (String k : pageParams.getNamedKeys()) {
             if (k.startsWith("param_")) {
@@ -346,6 +406,7 @@ public class PublishForm extends Panel {
                 piParamIdMap.get(i).setParam(n, pageParams.get(k).toString());
             }
         }
+        applyLocks(pageParams, assertionContext, provenanceContext, piParamIdMap);
 
         final Nanopub improveNp;
         if (!pageParams.get("improve").isNull()) {
@@ -357,6 +418,35 @@ public class PublishForm extends Panel {
         // Propagate fill source (supersede/derive/improve) so contexts can resolve
         // the `local:nanopub`/`local:assertion` sentinels to the fill nanopub's URIs.
         Nanopub fillSource = fillNp != null ? fillNp : improveNp;
+
+        // Protected nanopublications (#671): the marker is added by an ordinary (but unlisted)
+        // pubinfo template, driven from the checkbox next to the consent one rather than from the
+        // "add element..." dropdown, which is behind "show more". A carried-over marker from a
+        // protected fill source has already put the context in the map above; that counts as on.
+        List<Template> formTemplates = new ArrayList<>();
+        formTemplates.add(assertionContext.getTemplate());
+        formTemplates.add(provenanceContext.getTemplate());
+        for (TemplateContext c : pubInfoContexts) formTemplates.add(c.getTemplate());
+        protectedForcedReason = ProtectedNanopubs.getForcedReason(fillSource, formTemplates);
+        protectedTemplateId = td.getLatestTemplateId(ProtectedNanopubs.TEMPLATE_ID);
+        protectedContext = pubInfoContextMap.get(protectedTemplateId);
+        if (protectedContext == null) {
+            protectedContext = pubInfoContextMap.get(ProtectedNanopubs.TEMPLATE_ID);
+        }
+        if (protectedContext != null && requiredPubInfoContexts.contains(protectedContext)) {
+            // The assertion template declares it in nt:hasRequiredPubinfoElement: this kind of
+            // content is always protected, whatever the deployment default says.
+            protectedForcedReason = "the template it is based on requires it";
+        }
+        if (protectedContext == null && (protectedForcedReason != null || ProtectedNanopubs.isOnByDefault())) {
+            protectedContext = newProtectedContext();
+        }
+        if (protectedContext != null && !requiredPubInfoContexts.contains(protectedContext)) {
+            // Turning protection off is what the checkbox is for; a second control for the same
+            // decision, hidden behind "show more", would only be a way to get it half-off.
+            requiredPubInfoContexts.add(protectedContext);
+        }
+
         if (fillSource != null) {
             assertionContext.setFillSource(fillSource);
             provenanceContext.setFillSource(fillSource);
@@ -409,18 +499,70 @@ public class PublishForm extends Panel {
                         }
                     }
                 }
+                // Consume the transient templates' statements first, so they neither
+                // fill into another template below nor end up as unused-statement
+                // warnings; the throwaway contexts are then simply discarded. One
+                // context consumes only one fill's worth, so repeat with fresh
+                // contexts until nothing more is consumed (e.g. several
+                // prov:wasDerivedFrom triples from a multi-source derivation):
+                for (String tid : transientPiTemplateIds) {
+                    int unusedBefore;
+                    do {
+                        unusedBefore = piFiller.getUnusedStatements().size();
+                        TemplateContext c = newContext(ContextType.PUBINFO, tid, "pi-statement");
+                        c.setFillSource(fillNp);
+                        // The creator slot is preset to the session user and then only
+                        // unifies with them; a throwaway must consume the template's
+                        // triples whoever they were about, so clear the preset:
+                        IModel<?> creatorModel = c.getComponentModels().get(NTEMPLATE.CREATOR_PLACEHOLDER);
+                        if (creatorModel instanceof Model) {
+                            ((Model<String>) creatorModel).setObject("");
+                        }
+                        c.initStatements();
+                        piFiller.fill(c);
+                    } while (piFiller.getUnusedStatements().size() < unusedBefore);
+                }
+                // The hand-coded catch-all (present already when the source was made with
+                // it) is filled last, after the cleanup below, so it only gets what no
+                // other template and no cleanup rule has claimed:
+                final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
+                final String handcodedIdLatest = td.getLatestTemplateId(handcodedStatementsTemplateId);
+                TemplateContext handcodedContext = null;
                 for (TemplateContext c : pubInfoContexts) {
+                    String latestId = td.getLatestTemplateId(c.getTemplateId());
+                    if (isTransientTemplate(latestId)) {
+                        // A transient template kept in the form (e.g. the fresh derivation
+                        // link in derive mode) starts from its parameters only; values from
+                        // the fill source must not leak into it.
+                        continue;
+                    }
+                    if (latestId.equals(handcodedIdLatest)) {
+                        handcodedContext = c;
+                        continue;
+                    }
                     piFiller.fill(c);
                 }
                 piFiller.removeUnusedStatements(NanodashSession.get().getUserIri(), FOAF.NAME, null);
-                if (piFiller.hasUnusedStatements()) {
-                    final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
-                    if (!pubInfoContextMap.containsKey(handcodedStatementsTemplateId)) {
-                        TemplateContext c = createPubInfoContext(handcodedStatementsTemplateId);
-                        c.setFillSource(fillNp);
-                        c.initStatements();
-                        piFiller.fill(c);
+                // The name triples of the source's creators are auto-generated alongside
+                // the creator statements; with those discarded as transient, keeping the
+                // orphaned names would leak them into hand-coded statements:
+                for (IRI creator : SimpleCreatorPattern.getCreators(fillNp)) {
+                    piFiller.removeUnusedStatements(creator, FOAF.NAME, null);
+                }
+                if (piFiller.hasUnusedStatements() && fillMode != FillMode.PARTIAL) {
+                    // A partial fill discards what does not match rather than sweeping it into
+                    // the catch-all, which would publish it after all.
+                    if (handcodedContext == null) {
+                        handcodedContext = createPubInfoContext(handcodedStatementsTemplateId);
+                        handcodedContext.setFillSource(fillNp);
+                        handcodedContext.initStatements();
                     }
+                    piFiller.fill(handcodedContext);
+                } else if (handcodedContext != null && !requiredPubInfoContexts.contains(handcodedContext)) {
+                    // Everything was claimed or discarded: an empty catch-all would only
+                    // block publishing on its required statement, so drop it.
+                    pubInfoContexts.remove(handcodedContext);
+                    pubInfoContextMap.values().remove(handcodedContext);
                 }
                 unusedPiStatementList.addAll(piFiller.getUnusedStatements());
                 // TODO: Also use pubinfo templates stated in nanopub to be filled in?
@@ -438,6 +580,14 @@ public class PublishForm extends Panel {
             ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION, true);
             filler.fill(assertionContext);
             unusedStatementList.addAll(filler.getUnusedStatements());
+        }
+        if (fillMode == FillMode.PARTIAL) {
+            // A partial fill takes what matches and drops the rest without telling the user:
+            // the mismatch is intended, so reporting it would only be noise. Every other
+            // mode keeps reporting it.
+            unusedStatementList.clear();
+            unusedPrStatementList.clear();
+            unusedPiStatementList.clear();
         }
         if (!unusedStatementList.isEmpty()) {
             add(new Label("warnings", "Some content from the existing nanopublication could not be filled in:"));
@@ -478,6 +628,15 @@ public class PublishForm extends Panel {
         for (TemplateContext c : pubInfoContexts) {
             collectTemplateErrors("Publication info", c, templateErrors);
         }
+        if (protectedTemplateMissing) {
+            // The form was to start protected, and cannot. Without the marker the nanopublication
+            // would go to the public network, which is exactly what was to be prevented, and a
+            // silent downgrade to public is the one outcome that cannot be taken back.
+            templateErrors.add(new TemplateError("Publication info",
+                    "This nanopublication is to be protected, because " +
+                    (protectedForcedReason != null ? protectedForcedReason : "this deployment protects nanopublications by default") +
+                    ", but the template that marks it as such could not be loaded: " + protectedTemplateId));
+        }
         if (!templateErrors.isEmpty()) {
             add(new Label("template-error-intro", "This form is based on an invalid template and will not produce the nanopublication it describes:"));
         } else {
@@ -500,7 +659,7 @@ public class PublishForm extends Panel {
             c.finalizeStatements();
         }
 
-        final CheckBox consentCheck = new CheckBox("consentcheck", new Model<>(false));
+        consentCheck = new CheckBox("consentcheck", new Model<>(false));
         consentCheck.add(new InvalidityHighlighting());
 
         form = new Form<Void>("form") {
@@ -524,7 +683,7 @@ public class PublishForm extends Panel {
                     return;
                 }
 
-                if (!Boolean.TRUE.equals(consentCheck.getModelObject())) {
+                if (!isConsentGiven()) {
                     feedbackPanel.error("You need to check the checkbox that you understand the consequences.");
                     return;
                 }
@@ -533,10 +692,13 @@ public class PublishForm extends Panel {
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
+                    if (!areNewUrisUnused()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
-                    String npUrl = PublishNanopub.publish(signedNp);
+                    String npUrl = Utils.publishNanopub(signedNp);
                     logger.info("Nanopublication published: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
                 } catch (Exception ex) {
@@ -557,10 +719,22 @@ public class PublishForm extends Panel {
                     // Broaden the refresh: also force-refresh the context resource's own
                     // data (e.g. a space's roles/members) so the page we redirect to —
                     // typically its Content tab — reflects the just-published change, not
-                    // only the specific view query that was acted on.
+                    // only the specific view query that was acted on. Only for publications
+                    // that can change the page structure, though: for the rest, re-running
+                    // the resource's view-display query and rebuilding the page around the
+                    // view would only get in the way of the view's own refresh (#622).
                     if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)) {
+                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)
+                            && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
+                    }
+                    // On a part page, the nanopub the page shows is resolved before any view
+                    // runs, so a publication that introduces the part is invisible until that
+                    // lookup is re-run — the view queries are all keyed on the old one (#622).
+                    String partRefresh = PostPublishRefresh.partDefinitionRefreshTarget(
+                            signedNp, pageParams.get("part").toString(""), contextId);
+                    if (partRefresh != null) {
+                        WicketApplication.get().notifyNanopubPublished(signedNp, partRefresh, 5 * 1000);
                     }
                     if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {
                         // Forward to the context resource's page, or home if no context; always throws.
@@ -628,18 +802,32 @@ public class PublishForm extends Panel {
         final List<String> recommendedProvTemplateOptionIds = new ArrayList<>();
         final List<String> provTemplateOptionIds = new ArrayList<>();
         if (pageParams.get("prtemplate-options").isNull()) {
-            // TODO Make this dynamic and consider updated templates:
-            recommendedProvTemplateOptionIds.add(DEFAULT_PROV_TEMPLATE);
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE");
-            recommendedProvTemplateOptionIds.add("https://w3id.org/np/RASORV2mMEVpS4lWh2bwUTEcV-RWjbD9RPbN7J0PIeYAU");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAjkBbM5yQm7hKH1l_Jk3HAUqWi3Bd57TPmAOZCsZmi_M");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAGXx_k9eQMnXaCbsXMsJbGClwZtQEGNg0GVJu6amdAVw");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RA1fnITI3Pu1UQ0CHghNpys3JwQrM32LBnjmDLoayp9-4");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RAJgbsGeGdTG-zq_gU0TLw4s3raMgoRk-mPlc2DSLXvE0");
-            recommendedProvTemplateOptionIds.add("http://purl.org/np/RA6SXfhUY-xeblZU8HhPddw6tsu-C5NXevG6C_zv4bMxU");
-            for (String s : recommendedProvTemplateOptionIds) {
+            // TODO Make this dynamic:
+            for (String s : List.of(
+                    DEFAULT_PROV_TEMPLATE,
+                    "http://purl.org/np/RAcTpoh5Ra0ssqmcpOgWdaZ_YiPE6demO6cpw-2RvSNs8",
+                    "http://purl.org/np/RA4LGtuOqTIMqVAkjnfBXk1YDcAPNadP5CGiaJiBkdHCQ",
+                    "http://purl.org/np/RAl_-VTw9Re_uRF8r8y0rjlfnu7FlhTa8xg_8xkcweqiE",
+                    "https://w3id.org/np/RASORV2mMEVpS4lWh2bwUTEcV-RWjbD9RPbN7J0PIeYAU",
+                    "http://purl.org/np/RAjkBbM5yQm7hKH1l_Jk3HAUqWi3Bd57TPmAOZCsZmi_M",
+                    "http://purl.org/np/RAGXx_k9eQMnXaCbsXMsJbGClwZtQEGNg0GVJu6amdAVw",
+                    "http://purl.org/np/RA1fnITI3Pu1UQ0CHghNpys3JwQrM32LBnjmDLoayp9-4",
+                    "http://purl.org/np/RAJgbsGeGdTG-zq_gU0TLw4s3raMgoRk-mPlc2DSLXvE0",
+                    "http://purl.org/np/RA6SXfhUY-xeblZU8HhPddw6tsu-C5NXevG6C_zv4bMxU")) {
+                // The IDs above are pinned to specific versions; recommend the latest
+                // version of each instead (issue #585):
+                String latest = td.getLatestTemplateId(s);
+                if (!handledProvTemplates.containsKey(latest)) {
+                    recommendedProvTemplateOptionIds.add(latest);
+                    handledProvTemplates.put(latest, true);
+                    Template lt = td.getTemplate(latest);
+                    if (lt != null) {
+                        // Key the nanopub-URI form too: the listing below is keyed by
+                        // nanopub URI, which for a template with embedded identity
+                        // differs from its canonical ID.
+                        handledProvTemplates.put(lt.getNanopub().getUri().stringValue(), true);
+                    }
+                }
                 handledProvTemplates.put(s, true);
             }
 
@@ -752,13 +940,6 @@ public class PublishForm extends Panel {
         final Map<String, Boolean> handledPiTemplates = new HashMap<>();
         final List<String> recommendedPiTemplateOptionIds = new ArrayList<>();
         final List<String> piTemplateOptionIds = new ArrayList<>();
-        // TODO Make this dynamic and consider updated templates:
-        recommendedPiTemplateOptionIds.add("http://purl.org/np/RAXflINqt3smqxV5Aq7E9lzje4uLdkKIOefa6Bp8oJ8CY");
-        recommendedPiTemplateOptionIds.add("https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ");
-        recommendedPiTemplateOptionIds.add("https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA");
-        recommendedPiTemplateOptionIds.add("http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4");
-        recommendedPiTemplateOptionIds.add("https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w");
-        recommendedPiTemplateOptionIds.add("http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI");
         for (TemplateContext c : pubInfoContexts) {
             // Key both ID forms: the "others" dedup below compares against listing
             // entries keyed by nanopub URI, which for a template with embedded
@@ -766,8 +947,26 @@ public class PublishForm extends Panel {
             handledPiTemplates.put(c.getTemplate().getId(), true);
             handledPiTemplates.put(c.getTemplate().getNanopub().getUri().stringValue(), true);
         }
-        for (String s : recommendedPiTemplateOptionIds) {
+        // TODO Make this dynamic:
+        for (String s : List.of(
+                "http://purl.org/np/RAXflINqt3smqxV5Aq7E9lzje4uLdkKIOefa6Bp8oJ8CY",
+                "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ",
+                "https://w3id.org/np/RA16U9Wo30ObhrK1NzH7EsmVRiRtvEuEA_Dfc-u8WkUCA",
+                "http://purl.org/np/RAdyqI6k07V5nAS82C6hvIDtNWk179EIV4DV-sLbOFKg4",
+                "https://w3id.org/np/RAjvEpLZUE7rMoa8q6mWSsN6utJDp-5FmgO47YGsbgw3w",
+                "http://purl.org/np/RAxuGRKID6yNg63V5Mf0ot2NjncOnodh-mkN3qT_1txGI")) {
+            // The IDs above are pinned to specific versions; recommend the latest
+            // version of each instead (issue #585):
+            String latest = td.getLatestTemplateId(s);
+            if (!recommendedPiTemplateOptionIds.contains(latest)) {
+                recommendedPiTemplateOptionIds.add(latest);
+            }
             handledPiTemplates.put(s, true);
+            handledPiTemplates.put(latest, true);
+            Template lt = td.getTemplate(latest);
+            if (lt != null) {
+                handledPiTemplates.put(lt.getNanopub().getUri().stringValue(), true);
+            }
         }
 
         for (ApiResponseEntry entry : td.getPubInfoTemplates()) {
@@ -883,11 +1082,61 @@ public class PublishForm extends Panel {
 
         // An invalid template cannot produce the nanopublication it describes, so there is
         // nothing to consent to, publish or preview; the reasons are listed above the form.
-        boolean publishingDisabled = !templateErrors.isEmpty();
+        publishingDisabled = !templateErrors.isEmpty();
 
-        WebMarkupContainer consentSection = new WebMarkupContainer("consent-section");
+        // The protected-nanopublication option (#671), next to the consent checkbox rather than
+        // among the publication info elements: those sit behind "show more", and where a
+        // nanopublication may be stored is not something to find by unfolding an advanced section.
+        WebMarkupContainer protectedSection = new WebMarkupContainer("protected-section");
+        protectedSection.setVisible((ProtectedNanopubs.isOffered() || protectedContext != null) && !publishingDisabled);
+        final CheckBox protectedCheck = new CheckBox("protectedcheck", new Model<>(protectedContext != null));
+        protectedCheck.setOutputMarkupId(true);
+        if (protectedForcedReason != null) {
+            // Wicket skips input processing for a disabled component, so the model keeps saying
+            // "protected" even though the browser submits nothing for the checkbox.
+            protectedCheck.setEnabled(false);
+        } else {
+            protectedCheck.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    setProtected(Boolean.TRUE.equals(protectedCheck.getModelObject()), target);
+                }
+
+            });
+        }
+        protectedSection.add(protectedCheck);
+        protectedNoteLabel = new Label("protected-note", (IModel<String>) this::getProtectedNote) {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                // Unprotected needs no note: the consent checkbox below says it will be openly
+                // published, which is the same statement.
+                setVisible(getProtectedNote() != null);
+            }
+
+        };
+        protectedNoteLabel.setOutputMarkupPlaceholderTag(true);
+        protectedSection.add(protectedNoteLabel);
+        form.add(protectedSection);
+
+        // Hidden while the protected checkbox stands in for it (#671), so that the user has one
+        // box to tick rather than two saying overlapping things.
+        consentSection = new WebMarkupContainer("consent-section");
+        consentSection.setOutputMarkupPlaceholderTag(true);
         consentSection.add(consentCheck);
-        consentSection.setVisible(!publishingDisabled);
+        consentTextLabel = new Label("consenttext", new IModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getConsentText();
+            }
+
+        });
+        consentTextLabel.setOutputMarkupId(true);
+        consentSection.add(consentTextLabel);
+        consentSection.setVisible(!publishingDisabled && protectedContext == null);
         form.add(consentSection);
 
         WebMarkupContainer buttonSection = new WebMarkupContainer("button-section");
@@ -911,11 +1160,16 @@ public class PublishForm extends Panel {
                     }
 
                     Nanopub np = createNanopub();
+                    // Checked here too: the preview page publishes the nanopublication it
+                    // was given, without coming back through this form.
+                    if (!areNewUrisUnused()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
-                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, Boolean.TRUE.equals(consentCheck.getModelObject()), getPage().getPageReference()));
+                            new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, isConsentGiven(), getPage().getPageReference()));
                     throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
                 } catch (RestartResponseException ex) {
                     throw ex;
@@ -1016,6 +1270,264 @@ public class PublishForm extends Panel {
         return context;
     }
 
+    /**
+     * Applies the locks stated by the {@code locked} and {@code locked-statements} page
+     * parameters to the contexts they belong to (issue #678).
+     * <p>
+     * {@code locked} names the pre-filled values that cannot be changed, so that a link can hand
+     * the form a value the user is not meant to touch, such as the public key of an introduction.
+     * {@code locked-statements} names the statements whose repetitions are fixed, so that a link
+     * can also say that its pre-filled repetitions are the ones to publish: no adding, no
+     * removing.
+     * <p>
+     * Both take the names their target is known by, prefixed to say which template it belongs to:
+     * {@code param_} for the assertion template, {@code prparam_} for the provenance template and
+     * {@code piparamN_} for the Nth publication-info template. A name without a prefix belongs to
+     * the assertion template, which is what a link states in nearly all cases. Several names can
+     * be given as a comma-separated list, as repeated parameters, or both.
+     * <p>
+     * A value lock holds per repetition, as the name carries the repetition suffix of the field it
+     * refers to: {@code param_public-key} locks the first repetition and {@code param_public-key__1}
+     * the second, which is what lets a form pre-fill and lock the keys a user already has while
+     * leaving them free to add more. A statement lock is named either by the statement node
+     * ({@code st2}) or by a placeholder that occurs in that statement and no other
+     * ({@code public-key}).
+     */
+    /**
+     * Runs a query whose result is to pre-fill the form. A pre-fill is a convenience, so a
+     * query that cannot be run (the API is down, or has failed on it repeatedly) costs the
+     * user the pre-fill and not the form.
+     *
+     * @param queryRef the query to run
+     * @return the response, or null if it could not be obtained
+     */
+    private static ApiResponse retrieveForPrefill(QueryRef queryRef) {
+        try {
+            return ApiCache.retrieveResponseSync(queryRef, false);
+        } catch (RuntimeException ex) {
+            logger.warn("Could not run {} to pre-fill the form: {}", queryRef.getAsUrlString(), ex.toString());
+            return null;
+        }
+    }
+
+    /**
+     * Parses one mapping as a form-side pre-fill understands it: {@code "col:field"} or
+     * {@code "col:!field"} (docs/magic-query-params.md). A bare {@code "name"} maps the column
+     * to the field of the same name, as the listing-driven fill has always allowed in a
+     * hand-written URL. A raw-key target ({@code "col:@key"}) has no meaning here: such keys
+     * (the fill mode, the template) are read before any query runs, so they can only come
+     * from the link itself, as an entry action passes them. Neither has a page source
+     * ({@code "@source:target"}), which is resolved where the link is built.
+     *
+     * @param mapping the mapping
+     * @return the parsed mapping, or null if it cannot apply at this point
+     */
+    private static View.ActionMapping parseFormMapping(String mapping) {
+        View.ActionMapping m = View.ActionMapping.parse(mapping);
+        if (m == null) return new View.ActionMapping(mapping, mapping, false, false);
+        if (m.rawKey()) {
+            logger.warn("Ignoring mapping {}: a raw key cannot be set from a query result at form time", mapping);
+            return null;
+        }
+        if (m.pageSource()) {
+            // A page source is resolved where the action link is built, against the page the
+            // view is on; the form has no page to read it from.
+            logger.warn("Ignoring mapping {}: a page source cannot be resolved at form time", mapping);
+            return null;
+        }
+        return m;
+    }
+
+    /**
+     * Listing-driven pre-fill: the mapped columns of <em>every</em> row go into the template,
+     * the rows after the first under the repetition suffixes {@code __1}, {@code __2}, ...
+     * This is what a result action's {@code gen:hasActionTemplateQueryMapping} does with the
+     * view's own query — it fills a repeatable field from the listing (one row per entry).
+     *
+     * @param mappingLiteral the whitespace-separated mappings
+     * @param response       the query response, or null for none
+     * @param context        the assertion context to fill
+     */
+    static void applyQueryValues(String mappingLiteral, ApiResponse response, TemplateContext context) {
+        if (response == null) return;
+        for (String mapping : View.parseMappingLiteral(mappingLiteral)) {
+            View.ActionMapping m = parseFormMapping(mapping);
+            if (m == null) continue;
+            int i = 0;
+            for (ApiResponseEntry row : response.getData()) {
+                String name = m.key() + (i > 0 ? "__" + i : "");
+                context.setParam(name, row.get(m.column()));
+                if (m.locked()) context.setLocked(name);
+                i++;
+            }
+        }
+    }
+
+    /**
+     * Target-driven pre-fill (issue #690): the mapped columns of the <em>first</em> row go
+     * into the template, and only the first, as these are defaults for single-valued fields
+     * — the fill query is bound to the target resource, and the row describes it. An empty
+     * or missing value is no default at all: the field is left as it was, and unlocked.
+     *
+     * @param mappingLiteral the whitespace-separated mappings
+     * @param response       the query response, or null for none
+     * @param context        the assertion context to fill
+     */
+    static void applyFillQueryValues(String mappingLiteral, ApiResponse response, TemplateContext context) {
+        if (response == null || response.getData().isEmpty()) return;
+        ApiResponseEntry row = response.getData().get(0);
+        for (String mapping : View.parseMappingLiteral(mappingLiteral)) {
+            View.ActionMapping m = parseFormMapping(mapping);
+            if (m == null) continue;
+            String value = row.get(m.column());
+            if (value == null || value.isBlank()) continue;
+            context.setParam(m.key(), value);
+            if (m.locked()) context.setLocked(m.key());
+        }
+    }
+
+    static void applyLocks(PageParameters pageParams, TemplateContext assertionContext,
+            TemplateContext provenanceContext, Map<Integer, TemplateContext> piParamIdMap) {
+        forEachLockedName(pageParams, "locked", assertionContext, provenanceContext, piParamIdMap,
+                TemplateContext::setLocked);
+        forEachLockedName(pageParams, "locked-statements", assertionContext, provenanceContext, piParamIdMap,
+                TemplateContext::setStatementLocked);
+    }
+
+    /**
+     * Reads one lock parameter and hands each name it holds, stripped of its template prefix, to
+     * the context of that template.
+     */
+    private static void forEachLockedName(PageParameters pageParams, String paramName,
+            TemplateContext assertionContext, TemplateContext provenanceContext,
+            Map<Integer, TemplateContext> piParamIdMap, BiConsumer<TemplateContext, String> lock) {
+        for (StringValue lockedValue : pageParams.getValues(paramName)) {
+            if (lockedValue.isNull()) continue;
+            for (String k : lockedValue.toString().split(",")) {
+                k = k.trim();
+                if (k.isEmpty()) continue;
+                if (k.startsWith("prparam_")) {
+                    lock.accept(provenanceContext, k.substring(8));
+                } else if (k.matches("piparam[1-9][0-9]*_.*")) {
+                    Integer i = Integer.parseInt(k.replaceFirst("^piparam([1-9][0-9]*)_.*$", "$1"));
+                    if (!piParamIdMap.containsKey(i)) {
+                        logger.error("Locked name {} of the publication info template not found", i);
+                        continue;
+                    }
+                    lock.accept(piParamIdMap.get(i), k.replaceFirst("^piparam[1-9][0-9]*_(.*)$", "$1"));
+                } else if (k.startsWith("param_")) {
+                    lock.accept(assertionContext, k.substring(6));
+                } else {
+                    // Bare names refer to the assertion template, which is what a link locks in
+                    // nearly all cases.
+                    lock.accept(assertionContext, k);
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks whether the given template is transient (see {@link Template#isTransient()}),
+     * i.e. its filled content is not carried over when the nanopub is used as fill source.
+     */
+    private static boolean isTransientTemplate(String templateId) {
+        Template t = TemplateData.get().getTemplate(templateId);
+        return t != null && t.isTransient();
+    }
+
+    /**
+     * Turns protection of the nanopublication being created on or off (#671), by adding or
+     * removing the pubinfo context that carries the marker.
+     *
+     * @param on     whether the nanopublication is to be protected
+     * @param target the AJAX target to update the form with, may be null
+     */
+    private void setProtected(boolean on, AjaxRequestTarget target) {
+        TemplateContext created = null;
+        if (on && protectedContext == null) {
+            protectedContext = newProtectedContext();
+            if (protectedContext == null) {
+                feedbackPanel.error("The template that marks a nanopublication as protected could " +
+                        "not be loaded, so this nanopublication cannot be protected: " + protectedTemplateId);
+            } else {
+                protectedContext.initStatements();
+                requiredPubInfoContexts.add(protectedContext);
+                created = protectedContext;
+            }
+        } else if (!on && protectedContext != null) {
+            pubInfoContexts.remove(protectedContext);
+            pubInfoContextMap.remove(protectedContext.getTemplateId());
+            pubInfoContextMap.remove(protectedTemplateId);
+            requiredPubInfoContexts.remove(protectedContext);
+            protectedContext = null;
+        }
+        refreshPubInfo(target);
+        if (created != null) created.finalizeStatements();
+        consentSection.setVisible(!publishingDisabled && protectedContext == null);
+        if (target != null) {
+            target.add(protectedNoteLabel);
+            target.add(consentSection);
+        }
+    }
+
+    /**
+     * Returns the sentence below the protected-nanopublication checkbox, saying what the current
+     * setting means for where this nanopublication ends up.
+     *
+     * @return the note to show
+     */
+    private String getProtectedNote() {
+        if (protectedForcedReason != null) {
+            return "This nanopublication has to be protected, because " + protectedForcedReason + ".";
+        }
+        if (protectedContext != null) {
+            return ProtectedNanopubs.STAYS_LOCAL_NOTE;
+        }
+        // Nothing to say: the consent checkbox below states that this will be openly published.
+        return null;
+    }
+
+    /**
+     * Returns whether the user has confirmed that they understand what publishing means here.
+     * <p>
+     * The consent is about <em>open</em> publication: what cannot be taken back is putting the
+     * content on the public network under one's own identifier. A protected nanopublication does
+     * not go there, so there is nothing to consent to and no second checkbox — the protected one
+     * is then the only box on the form.
+     *
+     * @return true if publishing may go ahead
+     */
+    private boolean isConsentGiven() {
+        return protectedContext != null || Boolean.TRUE.equals(consentCheck.getModelObject());
+    }
+
+    /**
+     * Returns the text of the consent checkbox, which is only shown for a nanopublication that
+     * will be openly published. Also used by the preview page, which shows the same checkbox.
+     *
+     * @return the consent text to show
+     */
+    public static String getConsentText() {
+        return ProtectedNanopubs.isOffered() ? OPEN_CONSENT_TEXT : CONSENT_TEXT;
+    }
+
+    /**
+     * Creates the pubinfo context that marks the nanopublication as protected (#671), or returns
+     * null when its template cannot be loaded. The latter is recorded so that the form can refuse
+     * to publish when protection is not optional: publishing without the marker would put the
+     * content on the public network.
+     *
+     * @return the context, or null if the template is not available
+     */
+    private TemplateContext newProtectedContext() {
+        if (TemplateData.get().getTemplate(protectedTemplateId) == null) {
+            logger.error("Pubinfo template for protected nanopublications not available: {}", protectedTemplateId);
+            protectedTemplateMissing = true;
+            return null;
+        }
+        return createPubInfoContext(protectedTemplateId);
+    }
+
     private TemplateContext createPubInfoContext(String piTemplateId) {
         TemplateContext c;
         if (pubInfoContextMap.containsKey(piTemplateId)) {
@@ -1037,6 +1549,7 @@ public class PublishForm extends Panel {
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
+        assertionContext.getNewUriIris().clear();
         assertionContext.getRolePropertyPins().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
@@ -1089,7 +1602,29 @@ public class PublishForm extends Panel {
         if (websiteUrl != null) {
             npCreator.addPubinfoStatement(NPX.WAS_CREATED_AT, vf.createIRI(websiteUrl));
         }
+        checkProtectedMarker(npCreator);
         return npCreator.finalizeNanopub();
+    }
+
+    /**
+     * Refuses to build a nanopublication that says it is protected in a way no registry acts on
+     * (#671). Registries look for {@code rdf:type npx:ProtectedNanopub} on the nanopublication
+     * itself, which only the template behind the protected checkbox produces. The generic
+     * "Nanopublication type" pubinfo element, for one, produces {@code npx:hasNanopubType
+     * npx:ProtectedNanopub} instead: it looks right in the form, and publishing it would send the
+     * content to the public network.
+     *
+     * @param npCreator the creator holding the statements about to be finalized
+     */
+    private void checkProtectedMarker(NanopubCreator npCreator) {
+        if (protectedContext != null) return;
+        for (Statement st : npCreator.getCurrentPubinfoStatements()) {
+            if (!st.getObject().equals(NPX.PROTECTED_NANOPUB)) continue;
+            throw new IllegalStateException("This nanopublication is marked as protected in a way that " +
+                    "registries do not recognize, so it would be published to the public network. Remove " +
+                    "the publication info element that states it" +
+                    (ProtectedNanopubs.isOffered() ? ", and use the protected checkbox instead." : "."));
+        }
     }
 
     private String getNanopubLabel(NanopubCreator npCreator) {
@@ -1152,7 +1687,9 @@ public class PublishForm extends Panel {
                     logger.error("Nanopub label placeholder IRI error: {}", ex.getMessage());
                 }
             }
-            placeholderLabel = placeholderLabel.replaceAll("\\s+", " ");
+            // HTML in a value is a rendering detail with no place in a label: SVG
+            // figures are dropped entirely and the remaining tags stripped.
+            placeholderLabel = Utils.toLabelText(placeholderLabel);
             if (placeholderLabel.length() > 100) {
                 placeholderLabel = placeholderLabel.substring(0, 97) + "...";
             }
@@ -1190,6 +1727,75 @@ public class PublishForm extends Panel {
             return true;
         }
         feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
+        return false;
+    }
+
+    private boolean areNewUrisUnused() {
+        IRI takenId = findTakenNewUri(assertionContext);
+        if (takenId == null) {
+            return true;
+        }
+        feedbackPanel.error("The identifier " + takenId.stringValue()
+                + " is already in use. Pick a different one, or use a template for describing"
+                + " an existing resource if that is what you mean to do.");
+        return false;
+    }
+
+    /**
+     * Returns the first identifier the given assertion context forms for a placeholder the
+     * template marks as naming a resource that does not exist yet -- the IRI of a new space,
+     * say -- that is already in use, or null if all of them are free.
+     * <p>
+     * Such an identifier carries no artifact code, so nothing makes it unique: filling the
+     * same form with the same name twice yields the same IRI, and the second nanopublication
+     * silently extends the first one's resource instead of defining a new one. A
+     * nanopublication cannot be edited afterwards, so the collision is worth catching before
+     * publishing rather than after (#646).
+     * <p>
+     * Only a placeholder the template tags with {@link com.knowledgepixels.nanodash.template.Template#NEW_URI_PLACEHOLDER} is
+     * checked; everything else publishes as before, whether or not its IRI already exists.
+     * <p>
+     * Superseding and overriding exempt the identifiers the source already carries, since a new
+     * version keeps the resource it is a version of, and finding that one in use is the expected
+     * answer rather than a collision. They are not exempt wholesale: a prefix-minted identifier
+     * carries no artifact code, so nothing re-mints it for the new version, and editing the name
+     * while superseding defines a genuinely new resource that can collide like any other. (An
+     * identifier minted under the nanopublication's own namespace does change with the new
+     * artifact code, but those never reach here -- see TemplateContext#recordIfNewUri.) With no
+     * source to compare against, nothing is checked, so an unrecognised fill leaves publishing
+     * exactly as it was.
+     *
+     * @param assertionContext the assertion context, after its values have been processed
+     * @return the first identifier for a new resource that is already in use, or null if none is
+     */
+    public static IRI findTakenNewUri(TemplateContext assertionContext) {
+        FillMode fillMode = assertionContext.getFillMode();
+        Nanopub source = null;
+        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
+            source = assertionContext.getReferenceNanopub();
+            if (source == null) return null;
+        }
+        for (IRI newUri : assertionContext.getNewUriIris()) {
+            if (source != null && isUsedIn(source, newUri)) continue;
+            if (QueryApiAccess.isUriIntroduced(newUri.stringValue())) return newUri;
+        }
+        return null;
+    }
+
+    /**
+     * Tells whether the given nanopublication already mentions the given IRI, which is how a
+     * superseding version says it is carrying the source's resource over rather than naming a
+     * new one. Every graph counts: the resource appears as a subject in the assertion and again
+     * under {@code npx:introduces} in the publication info.
+     *
+     * @param nanopub the nanopublication to look in
+     * @param iri     the identifier to look for
+     * @return true if the nanopublication uses the identifier
+     */
+    private static boolean isUsedIn(Nanopub nanopub, IRI iri) {
+        for (Statement st : NanopubUtils.getStatements(nanopub)) {
+            if (iri.equals(st.getSubject()) || iri.equals(st.getObject())) return true;
+        }
         return false;
     }
 

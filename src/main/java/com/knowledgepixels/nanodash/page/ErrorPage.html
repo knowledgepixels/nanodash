@@ -5,15 +5,24 @@
     <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
 </wicket:remove>
   <wicket:head>
-    <title>Error | nanodash</title>
+    <title wicket:id="pagetitle">Error | nanodash</title>
   </wicket:head>
 </head>
 <body>
 <wicket:extend>
   <div class="row-section">
     <div class="col-12">
-      <h2>An error has happened... :(</h2>
-      <div wicket:id="message" class="message"></div>
+      <h2 wicket:id="heading"></h2>
+      <div class="message">
+        <p wicket:id="message"></p>
+        <wicket:enclosure child="address"><p><code wicket:id="address"></code></p></wicket:enclosure>
+        <p wicket:id="responsibility"></p>
+      </div>
+      <p>
+        <a class="button" href="." wicket:id="back-link">back to where you were</a>
+        <a class="button" href="." wicket:id="home-link">to the homepage</a>
+        <a class="button" href="." wicket:id="report-link">report this problem</a>
+      </p>
     </div>
   </div>
 </wicket:extend>

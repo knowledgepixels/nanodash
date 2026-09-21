@@ -189,6 +189,14 @@ public class NanodashLink extends Panel {
     }
 
     private static Component createLinkComponent(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
+        // An ipfs:/did:/at: resource goes to its external resolver, the same as in
+        // getPageUrl (issue #655). Checked first because the lookups below all assume an
+        // http(s) identifier, and because the Explore page fallback at the end has nothing
+        // to show for one of these.
+        String resolverUrl = Utils.getExternalResolverUrl(uri);
+        if (resolverUrl != null) {
+            return new ExternalLink(markupId, resolverUrl, displayLabel(label, explicitLabel));
+        }
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         PageParameters params = new PageParameters().set("id", uri);
         if (contextId != null) params.set("context", contextId);
@@ -251,6 +259,11 @@ public class NanodashLink extends Panel {
      * falling back to the Explore page otherwise.
      */
     public static String getPageUrl(String uri) {
+        // An ipfs:/did:/at: resource has no Nanodash page to show and nothing to explore, so it
+        // goes to an external resolver instead of the Explore page (issue #655). Checked first
+        // because the lookups below all assume an http(s) identifier.
+        String resolverUrl = Utils.getExternalResolverUrl(uri);
+        if (resolverUrl != null) return resolverUrl;
         if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
             return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
         } else if (SpaceRepository.get().findById(uri) != null) {

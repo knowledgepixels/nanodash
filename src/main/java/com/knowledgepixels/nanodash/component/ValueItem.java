@@ -68,11 +68,14 @@ public class ValueItem extends AbstractContextComponent {
             } else if (template.isLongLiteralPlaceholder(iri)) {
                 component = new LiteralTextareaItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLiteralPlaceholder(iri)) {
-                // TODO add all date time types
                 if (XSD.DATE.equals(template.getDatatype(iri))) {
                     component = new LiteralDateItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
                 } else if (XSD.DATETIME.equals(template.getDatatype(iri))) {
                     component = new LiteralDateTimeItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
+                } else if (LiteralGregorianItem.supports(template.getDatatype(iri))) {
+                    // xsd:gYear and its relatives name a point on the calendar that is coarser
+                    // than a date, so they get parts to pick rather than a date picker.
+                    component = new LiteralGregorianItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
                 } else {
                     component = new LiteralTextfieldItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
                 }

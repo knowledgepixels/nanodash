@@ -9,17 +9,21 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
+import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Optional;
@@ -70,6 +74,7 @@ public class MaintainedResourcePage extends NanodashPage {
 
         MaintainedResource resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
         resourceId = resource.getId();
+        redirectIfRdfRequested(new RdfSource("resource", resourceId, null, List.of()));
         resourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
@@ -88,8 +93,16 @@ public class MaintainedResourcePage extends NanodashPage {
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
         add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
+        // Optional profile picture, left of the title/URI block (issue #632). Shown
+        // plainly, i.e. without the tilted-square mask that user icons get, and simply
+        // omitted when the resource declares none.
+        ProfilePicture profilePicture = resource.getProfilePicture();
+        add(profilePicture != null
+                ? new ExternalImage("profilepic", profilePicture.getSrc())
+                : new WebMarkupContainer("profilepic").setVisible(false));
         add(new Label("resourcename", resource.getLabel()));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", resource));
         add(new ExternalLinkWithActionsPanel("id", Model.of(resource.getId()), Model.of(resource.getLabel()), Values.iri(resource.getNanopubId())));
 
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
@@ -101,7 +114,8 @@ public class MaintainedResourcePage extends NanodashPage {
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
-                    contentContainer.add(new ViewList("views", resource));
+                    contentContainer.add(RefreshingStructurePanel.of("views", resource,
+                            markupId -> new ViewList(markupId, resourceModel.getObject())));
                 }
                 addUnconfiguredFallback(contentContainer, resource, empty);
             } else {
@@ -193,6 +207,18 @@ public class MaintainedResourcePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The resource's declaring nanopublication describes it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        MaintainedResource resource = resourceModel.getObject();
+        List<Nanopub> declarations = resource != null && resource.getNanopub() != null ? List.of(resource.getNanopub()) : List.of();
+        return new RdfSource("resource", resourceId, null, declarations);
     }
 
     /**

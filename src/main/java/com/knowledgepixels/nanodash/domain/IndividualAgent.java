@@ -113,4 +113,14 @@ public class IndividualAgent extends AbstractResourceWithProfile {
         return getId();
     }
 
+    /**
+     * A user's profile picture is self-declared, so it comes from the user data (loaded once
+     * for all users) rather than from the admin-gated per-resource query the base class uses
+     * for spaces and maintained resources (issue #632).
+     */
+    @Override
+    public ProfilePicture getProfilePicture() {
+        return User.getProfilePicture(Utils.vf.createIRI(getId()));
+    }
+
 }

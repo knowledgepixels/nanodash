@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.component.QueryParamField;
+import com.knowledgepixels.nanodash.page.ErrorPage;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
@@ -22,7 +24,7 @@ import java.util.regex.Pattern;
  * <p>
  * Query parsing (SPARQL, endpoint, label, description, placeholders) is inherited from
  * {@link QueryTemplate} in nanopub-java. This subclass adds Nanodash-specific concerns:
- * an instance cache with {@link #get} factory methods, and integration with the
+ * an instance cache with the {@link #get} and {@link #load} factory methods, and integration with the
  * {@link QueryParamField} form components used by the query UI.
  */
 public class GrlcQuery extends QueryTemplate {
@@ -47,27 +49,94 @@ public class GrlcQuery extends QueryTemplate {
     }
 
     /**
-     * Returns a singleton instance of GrlcQuery for the given query ID.
+     * Returns a singleton instance of GrlcQuery for the given query ID, or null if there is
+     * no query to be had for it. Use {@link #load(String)} instead where the reason matters,
+     * e.g. to tell the user what is wrong with the query.
      *
      * @param id the unique identifier or URI of the query
-     * @return a GrlcQuery instance
+     * @return a GrlcQuery instance, or null if the query couldn't be loaded
      */
     public static GrlcQuery get(String id) {
-        if (id == null) return null;
-        GrlcQuery cached = instanceMap.getIfPresent(id);
-        if (cached == null) {
-            try {
-                GrlcQuery q = new GrlcQuery(id);
-                id = q.getQueryId();
-                cached = instanceMap.getIfPresent(id);
-                if (cached != null) return cached;
-                instanceMap.put(id, q);
-                cached = q;
-            } catch (Exception ex) {
-                logger.warn("Could not load query: {}", id, ex);
-            }
+        try {
+            return load(id);
+        } catch (QueryLoadException ex) {
+            return null;
         }
-        return cached;
+    }
+
+    /**
+     * Returns a singleton instance of GrlcQuery for the given query ID, reporting why it
+     * can't be had when it can't. Queries come from nanopublications that anybody can
+     * publish, so failing to load one says something about that nanopublication rather than
+     * about Nanodash, and the user is better served by being told what is wrong with it than
+     * by a generic error.
+     *
+     * @param id the unique identifier or URI of the query
+     * @return a GrlcQuery instance, never null
+     * @throws QueryLoadException if the query cannot be loaded, with a message explaining why
+     */
+    public static GrlcQuery load(String id) {
+        if (id == null || id.isBlank()) {
+            throw new QueryLoadException("No query was given to show or run.", ErrorPage.Kind.REQUEST);
+        }
+        GrlcQuery cached = instanceMap.getIfPresent(id);
+        if (cached != null) return cached;
+        GrlcQuery q;
+        try {
+            q = new GrlcQuery(id);
+        } catch (Exception ex) {
+            // Logged in full here, because what is shown to the user is only the gist of it.
+            logger.warn("Could not load query: {}", id, ex);
+            throw new QueryLoadException(explainLoadFailure(id, ex), kindOfLoadFailure(id), ex);
+        }
+        // Cached under the normalized ID, so that the different ways of referring to the same
+        // query (URI, ID, containing nanopublication) share one instance.
+        cached = instanceMap.getIfPresent(q.getQueryId());
+        if (cached != null) return cached;
+        instanceMap.put(q.getQueryId(), q);
+        return q;
+    }
+
+    /**
+     * Puts into plain words why the query with the given ID couldn't be loaded, for showing
+     * to the user.
+     *
+     * @param id the query ID or URI that was asked for
+     * @param ex the failure that loading it ran into
+     * @return the explanation
+     */
+    private static String explainLoadFailure(String id, Exception ex) {
+        MalformedQueryException sparqlFailure = null;
+        if (ex instanceof MalformedQueryException direct) {
+            sparqlFailure = direct;
+        } else if (ex.getCause() instanceof MalformedQueryException wrapped) {
+            sparqlFailure = wrapped;
+        }
+        if (sparqlFailure != null) {
+            String detail = SparqlSyntax.summarize(sparqlFailure.getMessage());
+            String characterHint = SparqlSyntax.explainOffendingCharacter(sparqlFailure.getMessage());
+            // Who can fix this — the query's author, not the reader — is left to the error
+            // page, which says that for every error of this kind (#616).
+            return "The SPARQL code of the query '" + id + "' is not valid, so the query can't be shown or run."
+                    + (detail == null ? "" : " The SPARQL parser reports: " + detail)
+                    + (characterHint == null ? "" : " " + characterHint);
+        }
+        String detail = ex.getMessage();
+        if (detail == null || detail.isBlank()) detail = ex.getClass().getSimpleName();
+        return "The query '" + id + "' couldn't be loaded: " + detail;
+    }
+
+    /**
+     * Whose problem a failed load is: the asking user's when the ID doesn't hold an artifact
+     * code at all, so that nothing could have been fetched for it, and the query author's
+     * otherwise — the nanopublication that was asked for is then the thing at fault, whether
+     * its SPARQL doesn't parse, it holds no query, or it isn't to be had.
+     *
+     * @param id the query ID or URI that was asked for
+     * @return the kind of error to answer with
+     */
+    private static ErrorPage.Kind kindOfLoadFailure(String id) {
+        return ARTIFACT_CODE_PATTERN.matcher(id).find() ? ErrorPage.Kind.CONTENT : ErrorPage.Kind.REQUEST;
     }
 
     /**

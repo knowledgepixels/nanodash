@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
@@ -50,9 +51,9 @@ public class ProfileItem extends Panel {
         } else {
             if (userId != null) {
                 BookmarkablePageLink<ProfilePage> l = new BookmarkablePageLink<ProfilePage>("profilelink", UserPage.class, new PageParameters().set("id", userId.stringValue()));
-                IRI profilePictureIri = User.getProfilePicture(userId);
-                if (profilePictureIri != null) {
-                    l.add(new ExternalImage("profileimage", profilePictureIri.stringValue()));
+                ProfilePicture profilePicture = User.getProfilePicture(userId);
+                if (profilePicture != null) {
+                    l.add(new ExternalImage("profileimage", profilePicture.getSrc()));
                 } else {
                     l.add(new Image("profileimage", new ContextRelativeResourceReference("images/user-icon.svg", false)));
                 }

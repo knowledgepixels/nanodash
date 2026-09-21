@@ -29,6 +29,10 @@ public class KPXL_TERMS {
      * optional {@code title} column as its heading). Unlike the other display types,
      * the query computes the visual itself — e.g. a diagram laid out in SPARQL from
      * the underlying data.
+     *
+     * <p>A CONSTRUCT query may instead describe the figure as RDF in the OntoSVG
+     * vocabulary, which is serialized to markup before the same sanitization and
+     * rendering (issue #592); see {@link com.knowledgepixels.nanodash.OntoSvg}.
      */
     public static final IRI SVG_VIEW = VocabUtils.createIRI(NAMESPACE, "SvgView");
 
@@ -101,6 +105,16 @@ public class KPXL_TERMS {
     public static final IRI HAS_ACTION_TEMPLATE_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionTemplateTargetField");
     public static final IRI HAS_ACTION_TEMPLATE_PART_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionTemplatePartField");
     public static final IRI HAS_ACTION_TEMPLATE_QUERY_MAPPING = VocabUtils.createIRI(NAMESPACE, "hasActionTemplateQueryMapping");
+    /**
+     * A query a view action runs against its target resource when its form opens, to pre-fill
+     * fields from what is known about that resource (issue #690). The target's IRI is bound
+     * to the query placeholder named by {@link #HAS_ACTION_FILL_QUERY_TARGET_FIELD}
+     * ({@code resource} by default); the first result row is mapped into form fields by
+     * {@link #HAS_ACTION_FILL_QUERY_MAPPING}. See docs/magic-query-params.md.
+     */
+    public static final IRI HAS_ACTION_FILL_QUERY = VocabUtils.createIRI(NAMESPACE, "hasActionFillQuery");
+    public static final IRI HAS_ACTION_FILL_QUERY_MAPPING = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryMapping");
+    public static final IRI HAS_ACTION_FILL_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryTargetField");
     public static final IRI HAS_PAGE_SIZE = VocabUtils.createIRI(NAMESPACE, "hasPageSize");
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
@@ -165,6 +179,14 @@ public class KPXL_TERMS {
     public static final IRI INVERSE_ROLE_PROPERTY = VocabUtils.createIRI(NAMESPACE, "InverseRoleProperty");
     public static final IRI REGULAR_ROLE_PROPERTY = VocabUtils.createIRI(NAMESPACE, "RegularRoleProperty");
 
+    // Role revocation (issue #639 / nanopub-query #129): key-level negatives resolved
+    // server-side by authorization-scoped latest-wins. A gen:RevokedRoleInstantiation
+    // nanopub revokes one (space, agent, role) assignment (admins keyed on
+    // gen:hasRole gen:AdminRole); a gen:detachedRole triple removes a role from a
+    // space altogether. See nanopub-query's doc/design-role-revocation.md.
+    public static final IRI REVOKED_ROLE_INSTANTIATION = VocabUtils.createIRI(NAMESPACE, "RevokedRoleInstantiation");
+    public static final IRI DETACHED_ROLE = VocabUtils.createIRI(NAMESPACE, "detachedRole");
+
     // Role tiers (subclasses of gen:SpaceMemberRole; materialized server-side by
     // nanopub-query as the npa:hasRoleType value). Ordered admin > maintainer >
     // member > observer; observer is the default when a role declares no tier.
@@ -191,5 +213,13 @@ public class KPXL_TERMS {
      * visible to everyone. See docs/role-specific-views.md.
      */
     public static final IRI IS_VISIBLE_TO = VocabUtils.createIRI(NAMESPACE, "isVisibleTo");
+
+    /**
+     * Declared on a space: the lowest role tier whose members' nanopublications count as
+     * definitions of the space's parts. The object is one of the tier IRIs
+     * ({@link #MEMBER_ROLE} and friends), as with {@link #IS_VISIBLE_TO}. Absent means what
+     * Nanodash has always done: every role-holder of the space, observers included.
+     */
+    public static final IRI HAS_PART_DEFINITION_TIER = VocabUtils.createIRI(NAMESPACE, "hasPartDefinitionTier");
 
 }

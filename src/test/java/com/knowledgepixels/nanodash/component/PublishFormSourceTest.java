@@ -37,9 +37,21 @@ class PublishFormSourceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"use", "use-a", "derive", "derive-a", "improve", "fill-all"})
+    @ValueSource(strings = {"use", "use-a", "partial", "partial-a", "derive", "derive-a", "improve", "fill-all"})
     void sourceIdIsNullForNonSupersedingParams(String key) {
         assertNull(PublishForm.getSupersededOrOverriddenNanopubId(params(key, OLD_NP)));
+    }
+
+    /**
+     * Partial is a Use variant: it claims neither the source's identity nor its root,
+     * so it must not be treated as superseding/overriding (no outdated-source check,
+     * and {@link PublishForm#withSourceNanopub} must leave it alone).
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"partial", "partial-a"})
+    void tryUseIsNotASupersedingSource(String key) {
+        assertFalse(PublishForm.isSourceOutdated(params(key, OLD_NP)));
+        assertEquals(OLD_NP, PublishForm.withSourceNanopub(params(key, OLD_NP), NEW_NP).get(key).toString());
     }
 
     @Test

@@ -11,6 +11,7 @@ import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,6 +79,29 @@ public class ApiCache {
     // attempt has completed, successfully or not.
     private static final Set<String> forcedRefresh = ConcurrentHashMap.newKeySet();
 
+    // How long we keep polling for a just-published nanopub to show up at the query
+    // services before giving up and refreshing anyway (issue #629). A hard bound: the
+    // probe is a single indexed lookup, but an unbounded retry loop from many publishing
+    // sessions is the load shape that has wedged the query API before.
+    private static final long INGEST_CONFIRM_MAX_WAIT_MS = 20 * 1000;
+    private static final long INGEST_CONFIRM_POLL_INTERVAL_MS = 1000;
+    // Margin after a positive probe: the confirming instance has the nanopub, but its
+    // other repos and the other instances may trail slightly behind.
+    private static final long INGEST_CONFIRM_MARGIN_MS = 1000;
+
+    // Cache ids whose next refresh should wait for the given nanopub to be ingested
+    // rather than (only) sit out the blind runAfter delay; set by clearCache after a
+    // publish, consumed by waitOutIngestDelay in the background refresh.
+    private transient static ConcurrentMap<String, String> awaitIngest = new ConcurrentHashMap<>();
+    // Shared probe results, so several views refreshing after the same publish cost one
+    // polling loop, not one each. False (timed out or probe failed) is cached too, to
+    // keep late arrivals from re-running a full polling round that already gave up.
+    private static final Cache<String, Boolean> ingestConfirmResults = CacheBuilder.newBuilder()
+        .maximumSize(1000)
+        .expireAfterWrite(60, TimeUnit.SECONDS)
+        .build();
+    private transient static ConcurrentMap<String, Object> ingestConfirmLocks = new ConcurrentHashMap<>();
+
     private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
 
     // Guava fires removal notifications also when an entry is REPLACED (every routine
@@ -95,6 +119,45 @@ public class ApiCache {
         failed.remove(cacheId);
         runAfter.remove(cacheId);
         forcedRefresh.remove(cacheId);
+        awaitIngest.remove(cacheId);
+    }
+
+    /**
+     * Fills a memory miss from the per-entry store (see
+     * {@link ApiCachePersistence#loadEntry}): the stored response goes back into the
+     * in-memory cache with its <em>original</em> refresh timestamp, so the normal staleness
+     * logic takes over from there — the restored content is served while anything older than
+     * {@link #REFRESH_AGE_THRESHOLD_MS} re-fetches in the background. This is what makes
+     * memory eviction invisible to callers: the persistent tier never evicts, so content
+     * that once arrived stays available (however outdated) until a re-fetch replaces it.
+     * A timestamp from the future (a clock jump) is not adopted, leaving the entry to count
+     * as stale rather than as fresh indefinitely.
+     *
+     * @param cacheId the cache id (the query's URL string)
+     * @return the restored response, or null if the store has none
+     */
+    private static ApiResponse loadResponseFromStore(String cacheId) {
+        ApiCachePersistence.PersistedEntry entry = ApiCachePersistence.loadEntry(cacheId);
+        if (entry == null || !(entry.value instanceof ApiResponse response)) return null;
+        cachedResponses.put(cacheId, response);
+        if (entry.lastRefresh <= System.currentTimeMillis()) {
+            lastRefresh.putIfAbsent(cacheId, entry.lastRefresh);
+        }
+        return response;
+    }
+
+    /**
+     * The map counterpart of {@link #loadResponseFromStore(String)}.
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> loadMapFromStore(String cacheId) {
+        ApiCachePersistence.PersistedEntry entry = ApiCachePersistence.loadEntry(cacheId);
+        if (entry == null || !(entry.value instanceof Map<?, ?> map)) return null;
+        cachedMaps.put(cacheId, (Map<String, String>) map);
+        if (entry.lastRefresh <= System.currentTimeMillis()) {
+            lastRefresh.putIfAbsent(cacheId, entry.lastRefresh);
+        }
+        return (Map<String, String>) map;
     }
 
     /**
@@ -153,6 +216,74 @@ public class ApiCache {
     }
 
     /**
+     * Waits out the post-publish ingest delay for a cache entry, if one is pending,
+     * before its refresh is allowed to run. With a nanopub to wait for (see
+     * {@link #clearCache(QueryRef, long, String)}), the wait is a measurement: poll
+     * until the query services report the nanopub as loaded, plus a small margin. If
+     * there is none, or the probe fails or times out, this falls back to the blind
+     * runAfter delay, so a broken probe never makes publishing worse than before.
+     * Runs on background threads only; request threads are diverted beforehand.
+     *
+     * @param cacheId the cache id (the query's URL string)
+     */
+    private static void waitOutIngestDelay(String cacheId) throws InterruptedException {
+        String npId = awaitIngest.remove(cacheId);
+        if (npId != null && awaitNanopubLoaded(npId)) {
+            Thread.sleep(INGEST_CONFIRM_MARGIN_MS);
+            runAfter.remove(cacheId);
+            return;
+        }
+        Long after = runAfter.get(cacheId);
+        if (after != null) {
+            while (System.currentTimeMillis() < after) {
+                Thread.sleep(100);
+            }
+            runAfter.remove(cacheId);
+        }
+    }
+
+    /**
+     * Polls the query services until they report the given nanopub as loaded, bounded by
+     * {@link #INGEST_CONFIRM_MAX_WAIT_MS}. Concurrent callers for the same nanopub (the
+     * several views refreshing after one publish) share a single polling loop: the first
+     * caller polls, the others wait on its result.
+     *
+     * @param npId the nanopub id to wait for
+     * @return true if the nanopub was confirmed as loaded, false if the probe timed out
+     * or failed (callers then fall back to the blind delay)
+     */
+    private static boolean awaitNanopubLoaded(String npId) throws InterruptedException {
+        Boolean known = ingestConfirmResults.getIfPresent(npId);
+        if (known != null) return known;
+        Object lock = ingestConfirmLocks.computeIfAbsent(npId, k -> new Object());
+        synchronized (lock) {
+            try {
+                known = ingestConfirmResults.getIfPresent(npId);
+                if (known != null) return known;
+                long deadline = System.currentTimeMillis() + INGEST_CONFIRM_MAX_WAIT_MS;
+                boolean loaded = false;
+                while (true) {
+                    try {
+                        loaded = QueryApiAccess.isNanopubLoaded(npId);
+                    } catch (Exception ex) {
+                        logger.warn("Nanopub load probe failed for {}: {}", npId, ex.getMessage());
+                        break;
+                    }
+                    if (loaded || System.currentTimeMillis() + INGEST_CONFIRM_POLL_INTERVAL_MS > deadline) break;
+                    Thread.sleep(INGEST_CONFIRM_POLL_INTERVAL_MS);
+                }
+                if (!loaded) {
+                    logger.info("Nanopub {} not confirmed as loaded, falling back to blind delay", npId);
+                }
+                ingestConfirmResults.put(npId, loaded);
+                return loaded;
+            } finally {
+                ingestConfirmLocks.remove(npId, lock);
+            }
+        }
+    }
+
+    /**
      * Updates the cached API response for a specific query reference.
      *
      * @param queryRef The query reference
@@ -167,14 +298,41 @@ public class ApiCache {
         }
         String cacheId = queryRef.getAsUrlString();
         logger.info("Updating cached API response for {}", cacheId);
+        long timeNow = System.currentTimeMillis();
         cachedResponses.put(cacheId, response);
-        lastRefresh.put(cacheId, System.currentTimeMillis());
+        lastRefresh.put(cacheId, timeNow);
+        ApiCachePersistence.storeEntry(cacheId, response, timeNow);
+    }
+
+    /**
+     * The response for a query if it can be had, and null if it cannot — nothing cached yet,
+     * or a query the service could not answer.
+     * <p>
+     * For the callers that hold the state whole pages are built from, where a query that
+     * cannot be answered means "nothing to show yet" rather than an error to raise. They
+     * already treat a missing response that way; without this they would treat a failing one
+     * as fatal, and a cold instance whose query service is unavailable could then not build a
+     * page at all, its own error page included (issue #684).
+     *
+     * @param queryRef The query reference
+     * @return the response, or null if there is none to be had
+     */
+    public static ApiResponse retrieveResponseIfAvailable(QueryRef queryRef) {
+        try {
+            return retrieveResponseSync(queryRef, false);
+        } catch (Exception ex) {
+            logger.error("Could not retrieve {}: {}", queryRef.getAsUrlString(), ex.toString());
+            return null;
+        }
     }
 
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         logger.debug("Retrieving cached API response synchronously for {}", cacheId);
+        if (cachedResponses.getIfPresent(cacheId) == null) {
+            loadResponseFromStore(cacheId);
+        }
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
             // lastRefresh can be missing for a cached entry (racing invalidation or
@@ -196,7 +354,8 @@ public class ApiCache {
         // and leaves the refresh to a thread that can afford to wait.
         boolean onRequestThread = RequestCycle.get() != null;
         Long after = runAfter.get(cacheId);
-        boolean waitingForIngest = after != null && System.currentTimeMillis() < after;
+        boolean waitingForIngest = (after != null && System.currentTimeMillis() < after)
+                || awaitIngest.containsKey(cacheId);
         if (onRequestThread && waitingForIngest) {
             logger.debug("Not waiting out the ingest delay for {} on a request thread", cacheId);
             // Hand the refresh to the background, where waiting out the delay costs nobody
@@ -204,16 +363,28 @@ public class ApiCache {
             retrieveResponseAsync(queryRef);
             return cachedResponses.getIfPresent(cacheId);
         }
+        // A merely outdated entry is served right away on any thread, with the re-fetch
+        // handed to the background, instead of running the query inline: a synchronous
+        // caller that is fine with data from the last refresh cycle must not block on the
+        // network for it, whether it serves a user directly (a request thread) or builds
+        // the state pages are gated on (the repository and resource-data threads). This is
+        // also what lets a restart come back up warm from the persisted snapshot (issue
+        // #570) — every restored entry is older than the refresh threshold, and re-fetching
+        // them synchronously would stall the first page render on the very queries the
+        // snapshot was meant to cover. Callers that genuinely need current data say so, and
+        // keep their blocking fetch: a forced call, or an entry marked by clearCache (e.g.
+        // just after publishing).
+        if (needsRefresh && !forced && !forcedRefresh.contains(cacheId)
+                && cachedResponses.getIfPresent(cacheId) != null) {
+            logger.debug("Serving outdated response for {}, refreshing in the background", cacheId);
+            retrieveResponseAsync(queryRef);
+            return cachedResponses.getIfPresent(cacheId);
+        }
         if ((needsRefresh || forced) && !isRunning(cacheId)) {
             logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
             try {
-                if (waitingForIngest) {
-                    while (System.currentTimeMillis() < after) {
-                        Thread.sleep(100);
-                    }
-                }
-                if (after != null) runAfter.remove(cacheId);
+                waitOutIngestDelay(cacheId);
                 if (!onRequestThread) {
                     if (failed.get(cacheId) != null) {
                         // 1 second pause between failed attempts;
@@ -279,6 +450,9 @@ public class ApiCache {
             forcedRefresh.add(cacheId);
         }
         boolean forced = forcedRefresh.contains(cacheId);
+        if (cachedResponses.getIfPresent(cacheId) == null) {
+            loadResponseFromStore(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
@@ -295,13 +469,7 @@ public class ApiCache {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
-                    Long after = runAfter.get(cacheId);
-                    if (after != null) {
-                        while (System.currentTimeMillis() < after) {
-                            Thread.sleep(100);
-                        }
-                        runAfter.remove(cacheId);
-                    }
+                    waitOutIngestDelay(cacheId);
                     if (failed.get(cacheId) != null) {
                         // 1 second pause between failed attempts;
                         Thread.sleep(1000);
@@ -348,8 +516,10 @@ public class ApiCache {
             map.put(resultEntry.get("key"), resultEntry.get("value"));
         }
         String cacheId = queryRef.getAsUrlString();
+        long timeNow = System.currentTimeMillis();
         cachedMaps.put(cacheId, map);
-        lastRefresh.put(cacheId, System.currentTimeMillis());
+        lastRefresh.put(cacheId, timeNow);
+        ApiCachePersistence.storeEntry(cacheId, (Serializable) map, timeNow);
     }
 
     /**
@@ -366,6 +536,9 @@ public class ApiCache {
             cachedMaps.invalidate(cacheId);
             lastRefresh.remove(cacheId);
         }
+        if (cachedMaps.getIfPresent(cacheId) == null) {
+            loadMapFromStore(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedMaps.getIfPresent(cacheId) != null) {
@@ -377,13 +550,7 @@ public class ApiCache {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
-                    Long after = runAfter.get(cacheId);
-                    if (after != null) {
-                        while (System.currentTimeMillis() < after) {
-                            Thread.sleep(100);
-                        }
-                        runAfter.remove(cacheId);
-                    }
+                    waitOutIngestDelay(cacheId);
                     Thread.sleep(100 + new Random().nextLong(400));
                 } catch (InterruptedException ex) {
                     logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
@@ -392,7 +559,10 @@ public class ApiCache {
                     ApiCache.updateMap(queryRef);
                 } catch (Exception ex) {
                     logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    cachedMaps.invalidate(cacheId);
+                    // Keep whatever is cached, as the response and RDF-model paths do: a query we
+                    // cannot reach right now is a reason to go on showing the previous data, never
+                    // to throw it away. Only the refresh timestamp is bumped, so the next attempt
+                    // waits out the usual interval instead of retrying on every access.
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 }  finally {
                     refreshStart.remove(cacheId);
@@ -460,13 +630,7 @@ public class ApiCache {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
                 try {
-                    Long after = runAfter.get(cacheId);
-                    if (after != null) {
-                        while (System.currentTimeMillis() < after) {
-                            Thread.sleep(100);
-                        }
-                        runAfter.remove(cacheId);
-                    }
+                    waitOutIngestDelay(cacheId);
                     if (failed.get(cacheId) != null) {
                         Thread.sleep(1000);
                     }
@@ -498,7 +662,9 @@ public class ApiCache {
 
     /**
      * Returns whatever response is cached for a query reference, however outdated, without
-     * triggering a refresh or any other side effect. Meant for showing the previous content
+     * triggering a refresh. A memory miss falls through to the per-entry store, which never
+     * evicts, so this finds any response that ever arrived for the query — restored quickly
+     * from a local file, never the network. Meant for showing the previous content
      * while a refresh is in flight (issue #599) — never as a substitute for the current data,
      * which is what {@link #retrieveResponseAsync(QueryRef)} and
      * {@link #retrieveResponseSync(QueryRef, boolean)} return.
@@ -507,7 +673,124 @@ public class ApiCache {
      * @return The cached response of any age, or null if nothing is cached.
      */
     public static ApiResponse retrieveStaleResponse(QueryRef queryRef) {
-        return cachedResponses.getIfPresent(queryRef.getAsUrlString());
+        String cacheId = queryRef.getAsUrlString();
+        ApiResponse response = cachedResponses.getIfPresent(cacheId);
+        if (response != null) return response;
+        return loadResponseFromStore(cacheId);
+    }
+
+    /**
+     * The cache content worth carrying across restarts: the query responses and maps together
+     * with when each was last refreshed. The transient bookkeeping (running refreshes, failure
+     * counts, ingest delays, forced-refresh markings) is process-local by nature and stays out.
+     * The cached RDF models are also left out for now: they would need a text serialization of
+     * their own, and their queries re-fetch quickly enough.
+     */
+    static class Snapshot implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Map<String, ApiResponse> responses;
+        private final Map<String, Map<String, String>> maps;
+        private final Map<String, Long> refreshTimes;
+
+        private Snapshot(Map<String, ApiResponse> responses, Map<String, Map<String, String>> maps, Map<String, Long> refreshTimes) {
+            this.responses = responses;
+            this.maps = maps;
+            this.refreshTimes = refreshTimes;
+        }
+
+        boolean isEmpty() {
+            return responses.isEmpty() && maps.isEmpty();
+        }
+
+        int size() {
+            return responses.size() + maps.size();
+        }
+
+    }
+
+    /**
+     * Captures the persistable cache content (see {@link Snapshot}). Entries whose refresh
+     * timestamp is missing — typically because their first fetch is still in flight — are
+     * left out, since without a timestamp the importer could not tell how stale they are.
+     *
+     * @return a snapshot of the current cache content
+     */
+    static Snapshot exportSnapshot() {
+        Map<String, ApiResponse> responses = new HashMap<>(cachedResponses.asMap());
+        Map<String, Map<String, String>> maps = new HashMap<>(cachedMaps.asMap());
+        Map<String, Long> refreshTimes = new HashMap<>();
+        for (String cacheId : responses.keySet()) {
+            Long t = lastRefresh.get(cacheId);
+            if (t != null) refreshTimes.put(cacheId, t);
+        }
+        for (String cacheId : maps.keySet()) {
+            Long t = lastRefresh.get(cacheId);
+            if (t != null) refreshTimes.put(cacheId, t);
+        }
+        responses.keySet().retainAll(refreshTimes.keySet());
+        maps.keySet().retainAll(refreshTimes.keySet());
+        return new Snapshot(responses, maps, refreshTimes);
+    }
+
+    /**
+     * Restores a snapshot into the cache, meant to run once at startup before the instance
+     * serves requests. Each entry keeps its original refresh timestamp, so the normal age
+     * logic takes over from there: anything older than {@link #REFRESH_AGE_THRESHOLD_MS} is
+     * re-fetched in the background on first access while the restored content is shown
+     * meanwhile — the same stale-but-displayable behavior as within a single run.
+     *
+     * <p>Entries already present in the cache are left alone, as are entries older than the
+     * given maximum age or carrying a timestamp from the future (a clock jump must not
+     * produce entries that would count as fresh indefinitely).</p>
+     *
+     * @param snapshot the snapshot to restore
+     * @param maxAgeMs entries whose last refresh lies further back than this are dropped
+     * @return the number of restored entries
+     */
+    static int importSnapshot(Snapshot snapshot, long maxAgeMs) {
+        long timeNow = System.currentTimeMillis();
+        int count = 0;
+        for (Map.Entry<String, ApiResponse> e : snapshot.responses.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || t > timeNow || timeNow - t > maxAgeMs) continue;
+            if (e.getValue() == null || cachedResponses.getIfPresent(e.getKey()) != null) continue;
+            cachedResponses.put(e.getKey(), e.getValue());
+            lastRefresh.putIfAbsent(e.getKey(), t);
+            count++;
+        }
+        for (Map.Entry<String, Map<String, String>> e : snapshot.maps.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || t > timeNow || timeNow - t > maxAgeMs) continue;
+            if (e.getValue() == null || cachedMaps.getIfPresent(e.getKey()) != null) continue;
+            cachedMaps.put(e.getKey(), e.getValue());
+            lastRefresh.putIfAbsent(e.getKey(), t);
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Copies a restored snapshot's entries into the per-entry store, so content saved by a
+     * version from before the store existed is not lost to memory eviction again. Entries
+     * the store already has are left alone (its version is at least as new), and no age
+     * limit applies — unlike the in-memory import, the store keeps everything. Meant to run
+     * once at startup, right after the snapshot file is read.
+     *
+     * @param snapshot the restored snapshot
+     */
+    static void backfillEntryStore(Snapshot snapshot) {
+        for (Map.Entry<String, ApiResponse> e : snapshot.responses.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || e.getValue() == null) continue;
+            ApiCachePersistence.storeEntryIfAbsent(e.getKey(), e.getValue(), t);
+        }
+        for (Map.Entry<String, Map<String, String>> e : snapshot.maps.entrySet()) {
+            Long t = snapshot.refreshTimes.get(e.getKey());
+            if (t == null || e.getValue() == null) continue;
+            ApiCachePersistence.storeEntryIfAbsent(e.getKey(), (Serializable) e.getValue(), t);
+        }
     }
 
     /**
@@ -520,11 +803,28 @@ public class ApiCache {
      * @param waitMillis The amount of time in milliseconds to wait before allowing the cache to be refreshed again.
      */
     public static void clearCache(QueryRef queryRef, long waitMillis) {
+        clearCache(queryRef, waitMillis, null);
+    }
+
+    /**
+     * Like {@link #clearCache(QueryRef, long)}, but for the refresh after a publish: the
+     * refresh is released as soon as the query services confirm the given nanopub as
+     * loaded (plus a small margin), instead of after the blind delay (issue #629). The
+     * delay stays in place as the fallback for when the confirmation probe fails, and the
+     * confirmation wait itself is bounded by {@link #INGEST_CONFIRM_MAX_WAIT_MS}.
+     *
+     * @param queryRef   The query reference for which to clear the cache.
+     * @param waitMillis The fallback delay in milliseconds, used if the nanopub's arrival cannot be confirmed.
+     * @param nanopubId  The id of the just-published nanopub to wait for, or null for the plain delay.
+     */
+    public static void clearCache(QueryRef queryRef, long waitMillis, String nanopubId) {
         if (waitMillis < 0) {
             throw new IllegalArgumentException("waitMillis must be non-negative");
         }
-        forcedRefresh.add(queryRef.getAsUrlString());
-        runAfter.put(queryRef.getAsUrlString(), System.currentTimeMillis() + waitMillis);
+        String cacheId = queryRef.getAsUrlString();
+        forcedRefresh.add(cacheId);
+        runAfter.put(cacheId, System.currentTimeMillis() + waitMillis);
+        if (nanopubId != null) awaitIngest.put(cacheId, nanopubId);
     }
 
 }

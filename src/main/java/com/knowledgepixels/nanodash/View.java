@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -105,6 +106,74 @@ public class View implements Serializable {
     }
 
     /**
+     * The current latest-version resolution memo, for persisting across restarts (issue
+     * #570; see {@link ApiCachePersistence}). Restoring it is what lets pages build their
+     * view panels synchronously right after a restart — {@link #isCached(String)} decides
+     * that — and the stale-while-revalidate handling re-resolves the restored entries in
+     * the background as they are used.
+     *
+     * @return a copy of the memoized resolutions
+     */
+    static Map<String, Pair<Long, View>> exportResolvedViews() {
+        return new HashMap<>(latestResolvedViews.asMap());
+    }
+
+    /**
+     * The current exact-version view cache, for persisting across restarts (issue #570; see
+     * {@link ApiCachePersistence}). These are the constructed View objects the view displays
+     * hand out; rebuilding one involves governed-version lookups and query construction, so
+     * restoring them is what makes a page's views renderable right after a restart. Keyed by
+     * the exact (immutable) version id, so a restored entry can never be out of date.
+     *
+     * @return a copy of the cached views
+     */
+    static Map<String, View> exportViews() {
+        return new HashMap<>(views.asMap());
+    }
+
+    /**
+     * Restores previously exported views into the exact-version cache, skipping any that are
+     * already cached. Meant to run once at startup.
+     *
+     * @param map the views to restore
+     * @return the number of restored views
+     */
+    static int importViews(Map<String, View> map) {
+        int count = 0;
+        for (Map.Entry<String, View> e : map.entrySet()) {
+            if (e.getKey() == null || e.getValue() == null) continue;
+            if (views.getIfPresent(e.getKey()) != null) continue;
+            views.put(e.getKey(), e.getValue());
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Restores previously exported latest-version resolutions, keeping their original
+     * resolution times so the normal re-resolution age logic takes over. Entries already
+     * memoized are left alone, as are entries older than the given maximum age or carrying
+     * a timestamp from the future. Meant to run once at startup.
+     *
+     * @param map      the resolutions to restore
+     * @param maxAgeMs entries resolved further back than this are dropped
+     * @return the number of restored entries
+     */
+    static int importResolvedViews(Map<String, Pair<Long, View>> map, long maxAgeMs) {
+        long timeNow = System.currentTimeMillis();
+        int count = 0;
+        for (Map.Entry<String, Pair<Long, View>> e : map.entrySet()) {
+            if (e.getKey() == null || e.getValue() == null || e.getValue().getLeft() == null || e.getValue().getRight() == null) continue;
+            long t = e.getValue().getLeft();
+            if (t > timeNow || timeNow - t > maxAgeMs) continue;
+            if (latestResolvedViews.getIfPresent(e.getKey()) != null) continue;
+            latestResolvedViews.put(e.getKey(), e.getValue());
+            count++;
+        }
+        return count;
+    }
+
+    /**
      * Get a View by its ID, resolving to the latest version (following the
      * supersedes chain).
      *
@@ -132,7 +201,7 @@ public class View implements Serializable {
      * @return the View object
      */
     public static View get(String id, boolean resolveLatest) {
-        String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+        String npId = toNanopubId(id);
         if (!resolveLatest) {
             View exact = getExactVersion(id, npId);
             if (exact == null || exact.getGoverningSpace() == null || exact.getViewKindIri() == null) {
@@ -140,6 +209,14 @@ public class View implements Serializable {
             }
             // fall through to the memoized latest path, which resolves a governed
             // version space-based (never supersedes-based) for this pin
+        }
+        // Inside a fresh-resolution scope (a page-level "refresh now", see
+        // withFreshResolution) the memo is not to be trusted at all: go back to the API
+        // once per id, then let the re-memoized answer serve the rest of the build.
+        Set<String> freshScope = freshlyResolved.get();
+        if (freshScope != null && freshScope.add(id)) {
+            View refreshed = refreshLatestVersion(id);
+            if (refreshed != null) return refreshed;
         }
         Pair<Long, View> memo = latestResolvedViews.getIfPresent(id);
         if (memo != null) {
@@ -153,6 +230,101 @@ public class View implements Serializable {
             latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
         }
         return resolved;
+    }
+
+    /**
+     * The ids already re-resolved in the current fresh-resolution scope, or null outside
+     * one. Thread-confined: a scope covers one build on one thread (see
+     * {@link #withFreshResolution}).
+     */
+    private static final ThreadLocal<Set<String>> freshlyResolved = new ThreadLocal<>();
+
+    /**
+     * Runs the given build with every latest-version resolution it makes going back to the
+     * query API instead of answering from the memo — what a page-level "refresh now" asks
+     * for (issue #654). Which id a view is looked up by is the caller's business (a display
+     * resolves the version its nanopub references, a built-in view the id hard-coded for
+     * it), so the scope covers the whole build rather than a list of ids guessed in advance;
+     * each id is re-resolved once, and what that leaves memoized serves the rest of it.
+     * <p>
+     * The lookups block, so this belongs on a background thread, never on a request thread.
+     *
+     * @param build the build to run
+     * @param <T>   what it returns
+     * @return what the build returns
+     */
+    public static <T> T withFreshResolution(Supplier<T> build) {
+        if (freshlyResolved.get() != null) return build.get();
+        freshlyResolved.set(new HashSet<>());
+        try {
+            return build.get();
+        } finally {
+            freshlyResolved.remove();
+        }
+    }
+
+    /**
+     * Re-resolves the latest version of a view, going back to the query API instead of
+     * trusting what is memoized. This is what lets a view display's "refresh now" bring the
+     * <em>view</em> up to date and not just its results (issue #654): a memoized resolution
+     * is only re-checked once a minute in the background, and a display whose view was
+     * resolved server-side by the {@code get-view-displays} query carries an exact version
+     * that is never re-checked at all, so a newly published version of the view would
+     * otherwise not show up until the page's structure happened to be refreshed.
+     * <p>
+     * Every memoized resolution leading to the given version is dropped along with the
+     * lookups behind it, so that pages reaching this view by another id — a built-in view is
+     * looked up by the id hard-coded for it, not by the version that id resolves to —
+     * re-resolve it on their next render too.
+     *
+     * @param id the id of the view version currently shown
+     * @return the view's current latest version, which is the given one when there is no
+     * newer version or the lookup fails, or null if the view cannot be loaded at all
+     */
+    public static View refreshLatestVersion(String id) {
+        // The ids whose lookups are to be forgotten: the given one, plus every memo key
+        // that leads to it.
+        Set<String> staleIds = new HashSet<>();
+        staleIds.add(id);
+        for (Map.Entry<String, Pair<Long, View>> memo : latestResolvedViews.asMap().entrySet()) {
+            View memoized = memo.getValue().getRight();
+            if (memo.getKey().equals(id) || (memoized != null && id.equals(memoized.getId()))) {
+                latestResolvedViews.invalidate(memo.getKey());
+                staleIds.add(memo.getKey());
+            }
+        }
+        for (String staleId : staleIds) forgetLatestVersionLookup(staleId);
+        View resolved = resolveLatestVersion(id, toNanopubId(id));
+        if (resolved != null) {
+            latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
+        }
+        return resolved;
+    }
+
+    /**
+     * Marks the version lookup behind a view id as outdated, so that the next resolution
+     * asks the API instead of answering from what it holds: the governed-version query for
+     * a view that floats within its space, the supersedes-chain lookup (its memo and its
+     * cached response both) for one that does not.
+     */
+    private static void forgetLatestVersionLookup(String viewId) {
+        String npId = toNanopubId(viewId);
+        View pinned = getExactVersion(viewId, npId);
+        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
+            ApiCache.clearCache(GovernedVersions.getQueryRef(
+                    pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue()), 0);
+        } else {
+            QueryApiAccess.forgetLatestVersion(npId);
+            ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_LATEST_VERSION_OF_NP, "np", npId), 0);
+        }
+    }
+
+    /**
+     * The id of the nanopub a view id belongs to: the view id up to and including its
+     * artifact code. An id that is already a nanopub id is returned unchanged.
+     */
+    private static String toNanopubId(String viewId) {
+        return viewId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
     }
 
     /**
@@ -208,7 +380,7 @@ public class View implements Serializable {
             String latestId = GovernedVersions.getLatestVersionIriSync(
                     pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue());
             if (latestId != null && !latestId.equals(pinned.getId())) {
-                String latestNpId = latestId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+                String latestNpId = toNanopubId(latestId);
                 View resolved = getExactVersion(latestId, latestNpId);
                 if (resolved != null) return resolved;
             }
@@ -280,6 +452,12 @@ public class View implements Serializable {
     private Map<IRI, IRI> actionTemplateTypeMap = new HashMap<>();
     private Map<IRI, String> actionTemplatePartFieldMap = new HashMap<>();
     private Map<IRI, List<String>> actionTemplateQueryMappingsMap = new HashMap<>();
+    // The action's fill query (issue #690): run against the target when the form opens,
+    // kept apart from the listing-driven query mappings above, whose source columns the
+    // result builders hide — these columns belong to a different query altogether.
+    private Map<IRI, GrlcQuery> actionFillQueryMap = new HashMap<>();
+    private Map<IRI, List<String>> actionFillQueryMappingsMap = new HashMap<>();
+    private Map<IRI, String> actionFillQueryTargetFieldMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
     private IRI viewType;
     private boolean queryForm = false;
@@ -350,6 +528,20 @@ public class View implements Serializable {
                 if (!"void".equals(mapping)) {
                     actionTemplateQueryMappingsMap.computeIfAbsent((IRI) st.getSubject(), k -> new ArrayList<>()).add(mapping);
                 }
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY) && st.getObject() instanceof IRI objIri) {
+                GrlcQuery fillQuery = GrlcQuery.get(objIri.stringValue());
+                if (fillQuery == null) {
+                    logger.error("Fill query of action {} could not be loaded: {}", st.getSubject(), objIri);
+                } else {
+                    actionFillQueryMap.put((IRI) st.getSubject(), fillQuery);
+                }
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY_MAPPING)) {
+                String mapping = st.getObject().stringValue();
+                if (!"void".equals(mapping)) {
+                    actionFillQueryMappingsMap.computeIfAbsent((IRI) st.getSubject(), k -> new ArrayList<>()).add(mapping);
+                }
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY_TARGET_FIELD)) {
+                putUnlessVoid(actionFillQueryTargetFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
                 // Per-action visibility: gen:isVisibleTo on an action node restricts
                 // that action button to viewers holding the given role tier or
@@ -541,7 +733,8 @@ public class View implements Serializable {
      * — or, when {@code target} begins with {@code @}, to the raw URL parameter
      * {@code target} (without the {@code param_} prefix), used for fill-mode keys
      * such as {@code @derive-a} / {@code @supersede}. An entry action applies all
-     * of these per row; see docs/magic-query-params.md.
+     * of these per row; a result action passes them whole to the publish form, which
+     * applies them against every row of the view's query. See docs/magic-query-params.md.
      *
      * @param actionIri the action IRI
      * @return the list of mappings (never null; empty if none)
@@ -581,6 +774,12 @@ public class View implements Serializable {
      * the result builders skip them when rendering visible columns. A column that
      * happens to be both a display column and a mapping source would also be hidden;
      * map a duplicated/aliased column instead if you need to show one.
+     * <p>
+     * Page sources ({@code @}-prefixed) are not result columns at all, so they are left
+     * out — except {@code @result.<column>}, which names one: it is the column's single
+     * view-wide value, so the column is action data like any other mapping source and is
+     * hidden the same way. That is what lets a query return a column purely for an action
+     * (an aliased {@code (?np as ?override_target)}, say) without it showing up in the table.
      *
      * @return the set of mapping-source column names (never null)
      */
@@ -588,23 +787,118 @@ public class View implements Serializable {
         Set<String> columns = new HashSet<>();
         for (IRI actionIri : actionTemplateQueryMappingsMap.keySet()) {
             for (String mapping : getTemplateQueryMappings(actionIri)) {
-                int idx = mapping.indexOf(':');
-                if (idx > 0) columns.add(mapping.substring(0, idx));
+                ActionMapping m = ActionMapping.parse(mapping);
+                if (m == null) continue;
+                if (!m.pageSource()) {
+                    columns.add(m.column());
+                } else if (m.column().startsWith(RESULT_SOURCE_PREFIX)) {
+                    columns.add(m.column().substring(RESULT_SOURCE_PREFIX.length()));
+                }
             }
         }
         return columns;
     }
 
     /**
-     * Gets the first query mapping for an action, or null. Kept for result-action
-     * callers that pass a single {@code values-from-query-mapping}.
+     * Prefix of the page source that names a result column ({@code @result.<column>}); see
+     * {@link com.knowledgepixels.nanodash.component.ViewActionMappings#RESULT_PREFIX}, which
+     * resolves it.
+     */
+    private static final String RESULT_SOURCE_PREFIX = "@result.";
+
+    /**
+     * Gets the fill query of an action (issue #690): a query run against the action's
+     * target resource when the form opens, whose first result row pre-fills form fields
+     * per {@link #getFillQueryMappings}. The target's IRI is bound to the placeholder
+     * named by {@link #getFillQueryTargetFieldForAction}.
      *
      * @param actionIri the action IRI
-     * @return the first mapping, or null
+     * @return the fill query, or null if the action declares none (or it failed to load)
      */
-    public String getTemplateQueryMapping(IRI actionIri) {
-        List<String> mappings = actionTemplateQueryMappingsMap.get(actionIri);
-        return (mappings == null || mappings.isEmpty()) ? null : mappings.get(0);
+    public GrlcQuery getFillQueryForAction(IRI actionIri) {
+        return actionFillQueryMap.get(actionIri);
+    }
+
+    /**
+     * Gets the fill-query mappings of an action, each {@code "col:field"} — result column
+     * {@code col} of the fill query to template field {@code field}, or {@code !field} to
+     * also lock the field. Same literal syntax as the query mappings
+     * ({@link #parseMappingLiteral}), but the columns are the <em>fill</em> query's, so
+     * these never count as {@link #getActionMappingSourceColumns}.
+     *
+     * @param actionIri the action IRI
+     * @return the mappings (never null; empty if none)
+     */
+    public List<String> getFillQueryMappings(IRI actionIri) {
+        List<String> result = new ArrayList<>();
+        for (String literal : actionFillQueryMappingsMap.getOrDefault(actionIri, Collections.emptyList())) {
+            result.addAll(parseMappingLiteral(literal));
+        }
+        return result;
+    }
+
+    /**
+     * Gets the fill-query placeholder the action's target IRI is bound to, or null for
+     * the default ({@code resource}).
+     *
+     * @param actionIri the action IRI
+     * @return the placeholder name, or null
+     */
+    public String getFillQueryTargetFieldForAction(IRI actionIri) {
+        return actionFillQueryTargetFieldMap.get(actionIri);
+    }
+
+    /**
+     * One parsed {@code "col:target"} action mapping: the value of result column
+     * {@code column} goes to {@code key} — a template field (written to
+     * {@code param_<key>}) unless {@code rawKey}, in which case {@code key} is a raw
+     * publish-URL key (the target began with {@code @}). {@code locked} says the target
+     * began with {@code !}: the field is filled and then locked
+     * (docs/locked-prefilled-values.md). Only meaningful for a field, so never set
+     * together with {@code rawKey}.
+     * <p>
+     * A {@code column} that itself begins with {@code @} names a <em>page source</em>
+     * rather than a result column: a value the page supplies, resolved by the action-link
+     * builder instead of read from a row (see
+     * {@link com.knowledgepixels.nanodash.component.ViewActionMappings} and
+     * docs/magic-query-params.md).
+     *
+     * @param column the result column the value is read from, or an {@code @}-prefixed page source
+     * @param key    the template field or raw URL key, with its {@code @}/{@code !} marker stripped
+     * @param rawKey whether {@code key} is a raw URL key rather than a template field
+     * @param locked whether the field is to be locked after filling
+     */
+    public record ActionMapping(String column, String key, boolean rawKey, boolean locked) {
+
+        /**
+         * Parses one mapping. The split is on the <em>first</em> colon: neither a result
+         * column nor a field name may contain one.
+         *
+         * @param mapping the {@code "col:target"} mapping
+         * @return the parsed mapping, or null if it has no colon
+         */
+        /**
+         * Whether {@link #column} names a page source (it begins with {@code @}) rather
+         * than a result column: its value comes from the page the view is shown on, not
+         * from a row.
+         *
+         * @return true if this mapping reads from a page source
+         */
+        public boolean pageSource() {
+            return column.startsWith("@");
+        }
+
+        public static ActionMapping parse(String mapping) {
+            int sep = mapping.indexOf(':');
+            if (sep < 0) return null;
+            String column = mapping.substring(0, sep);
+            String target = mapping.substring(sep + 1);
+            boolean rawKey = target.startsWith("@");
+            String key = rawKey ? target.substring(1) : target;
+            boolean locked = !rawKey && key.startsWith("!");
+            if (locked) key = key.substring(1);
+            return new ActionMapping(column, key, rawKey, locked);
+        }
     }
 
     /**

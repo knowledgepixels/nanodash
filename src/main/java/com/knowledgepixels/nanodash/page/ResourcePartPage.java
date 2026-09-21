@@ -2,13 +2,12 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
-import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
-import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.apache.wicket.Component;
@@ -58,9 +57,50 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
+     * This page's own resource is the part links out of it should point back to
+     * (issue #697), not the maintaining resource the {@code context} param names.
+     */
+    @Override
+    public String getPartId() {
+        return getPageParameters().get("id").toString();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPartLabel() {
+        return partLabel;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The nanopublication defining the part declares it; a part without one has nothing
+     * to embed, but its download still lists what the views show about it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        Nanopub definition = Utils.getAsNanopub(definitionNanopubId);
+        List<Nanopub> declarations = definition == null ? List.of() : List.of(definition);
+        return new RdfSource("part", getPartId(), getPageParameters().get("context").toString(), declarations);
+    }
+
+    /**
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
     private AbstractResourceWithProfile resourceWithProfile;
+
+    /**
+     * The nanopublication defining this part, or null when none is known.
+     */
+    private String definitionNanopubId;
+
+    /**
+     * The part's label as resolved for the title, handed to links out of this page so
+     * their back-link can name the part.
+     */
+    private String partLabel;
 
     /**
      * If the {@code id} in the given parameters falls under a namespace declared by a
@@ -80,13 +120,22 @@ public class ResourcePartPage extends NanodashPage {
         }
     }
 
+    /**
+     * Whether the given predicate is schema.org's {@code title}, in either of its
+     * spellings.
+     */
+    static boolean isSchemaTitle(IRI predicate) {
+        String p = predicate.stringValue();
+        return p.equals("http://schema.org/title") || p.equals("https://schema.org/title");
+    }
+
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
 
         final String id = parameters.get("id").toString();
         final String contextId = parameters.get("context").toString();
         final String nanopubId;
-        String label = parameters.get("label").isEmpty() ? id.replaceFirst("^.*[#/]([^#/]+)$", "$1") : parameters.get("label").toString();
+        String label = parameters.get("label").isEmpty() ? Utils.getShortNameFromURI(id) : parameters.get("label").toString();
         Set<IRI> classes = new HashSet<>();
 
         resourceWithProfile = MaintainedResourceRepository.get().findById(contextId);
@@ -99,42 +148,44 @@ public class ResourcePartPage extends NanodashPage {
                 throw new IllegalArgumentException("Not a resource, space, or user: " + contextId);
             }
         }
+        redirectIfRdfRequested(new RdfSource("part", id, contextId, List.of()));
 
-        QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", id);
-        if (resourceWithProfile.getSpace() != null) {
-            for (IRI userIri : resourceWithProfile.getSpace().getUsers()) {
-                for (String pubkey : User.getUserData().getPubkeyHashes(userIri, true)) {
-                    getDefQuery.getParams().put("pubkey", pubkey);
-                }
-            }
-        } else {
-            for (String pubkey : User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true)) {
-                getDefQuery.getParams().put("pubkey", pubkey);
-            }
-        }
-
+        QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(id, contextId, resourceWithProfile);
         ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
         if (getDefResp != null && !getDefResp.getData().isEmpty()) {
             nanopubId = getDefResp.getData().iterator().next().get("np");
 
             Nanopub nanopub = Utils.getAsNanopub(nanopubId);
+            boolean hasRdfsLabel = false;
+            String schemaTitle = null;
             for (Statement st : nanopub.getAssertion()) {
                 if (!st.getSubject().stringValue().equals(id)) {
                     continue;
                 }
                 if (st.getPredicate().equals(RDFS.LABEL)) {
                     label = st.getObject().stringValue();
+                    hasRdfsLabel = true;
+                } else if (isSchemaTitle(st.getPredicate())) {
+                    schemaTitle = st.getObject().stringValue();
                 }
                 if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
                     classes.add(objIri);
                 }
             }
+            // Parts declared with a title rather than a label (paragraphs, say) are still
+            // named after it instead of after their IRI's last segment (issue #701).
+            if (!hasRdfsLabel && schemaTitle != null && !schemaTitle.isBlank()) {
+                label = schemaTitle;
+            }
         } else {
             nanopubId = null;
         }
+        definitionNanopubId = nanopubId;
 //        if (getDefResp == null || getDefResp.getData().isEmpty()) {
 //            throw new RestartResponseException(ExplorePage.class, parameters);
 //        }
+
+        partLabel = label;
 
         List<NanodashPageRef> breadCrumb;
         if (resourceWithProfile.getSpace() != null) {
@@ -158,6 +209,7 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part) | nanodash"));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
@@ -182,7 +234,8 @@ public class ResourcePartPage extends NanodashPage {
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
             if (resourceWithProfile.isDataInitialized()) {
-                contentContainer.add(new ViewList("views", resourceWithProfile, id, nanopubRef, classes));
+                contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile,
+                        markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)));
             } else {
                 contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)) {
 

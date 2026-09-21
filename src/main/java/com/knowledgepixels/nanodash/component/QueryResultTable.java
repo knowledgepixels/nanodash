@@ -254,7 +254,10 @@ public class QueryResultTable extends QueryResult {
         }
 
         public Column(String title, String dataKey, String key, String cssClass) {
-            super(new Model<String>(title), dataKey);
+            // Only a column with a header label is sortable: an empty header is nothing to
+            // click, and the actions column would otherwise offer to order the table by a
+            // property no row has, giving a round trip that changes nothing (issue #673).
+            super(new Model<String>(title), Strings.isEmpty(title) ? null : dataKey);
             this.key = key;
             this.dataKey = dataKey;
             this.cssClass = cssClass;
@@ -319,7 +322,9 @@ public class QueryResultTable extends QueryResult {
                         for (int i = 0; i < parts.length; i++) {
                             String part = parts[i];
                             String rawLabel = (labels != null && i < labels.length && !labels[i].isBlank()) ? Utils.unescapeMultiValue(labels[i]) : null;
-                            if (part.matches("https?://.+")) {
+                            if (isPublishLink(part)) {
+                                components.add(new Label("component", publishButtonHtml(part, rawLabel)).setEscapeModelStrings(false));
+                            } else if (Utils.isUriValue(part)) {
                                 if (rawLabel != null && rawLabel.equals(part)) {
                                     rawLabel = null;
                                 }
@@ -333,7 +338,7 @@ public class QueryResultTable extends QueryResult {
                                 } else {
                                     String display = label != null ? label : unescaped;
                                     if (Utils.looksLikeHtml(display)) {
-                                        components.add(new Label("component", withContextInHtmlLinks(Utils.sanitizeHtml(display)))
+                                        components.add(new Label("component", cellHtml(display))
                                                 .setEscapeModelStrings(false)
                                                 .add(new AttributeAppender("class", "cell-data-html")));
                                     } else {
@@ -356,7 +361,7 @@ public class QueryResultTable extends QueryResult {
                                 // Friendly relative time, matching single-value cells.
                                 components.add(new Label("component", Utils.friendlyDateHtml(display, display)).setEscapeModelStrings(false));
                             } else if (Utils.looksLikeHtml(display)) {
-                                components.add(new Label("component", withContextInHtmlLinks(Utils.sanitizeHtml(display)))
+                                components.add(new Label("component", cellHtml(display))
                                         .setEscapeModelStrings(false)
                                         .add(new AttributeAppender("class", "cell-data-html")));
                             } else {
@@ -369,10 +374,16 @@ public class QueryResultTable extends QueryResult {
                         if (label == null || label.isBlank()) {
                             label = truncateLabel(value);
                         }
-                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
+                        String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
+                        templateUrl += linkNavParams(templateUrl);
                         String html = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(label) + "</a>";
                         cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
-                    } else if (value.matches("https?://.+")) {
+                    } else if (isPublishLink(value)) {
+                        // A ready-made link to the publish form: an action the view offers,
+                        // shown as a button rather than as a link to content.
+                        String label = rowModel.getObject().get(key + "_label");
+                        cellItem.add(new Label(componentId, publishButtonHtml(value, label)).setEscapeModelStrings(false));
+                    } else if (Utils.isUriValue(value)) {
                         String label = rowModel.getObject().get(key + "_label");
                         cellItem.add(new NanodashLink(componentId, value, null, null, label, contextId));
                     } else {
@@ -380,7 +391,7 @@ public class QueryResultTable extends QueryResult {
                         if (litLabel != null && !litLabel.isBlank() && !litLabel.equals(value)) {
                             // Separate display label for a (non-IRI) literal value; the full
                             // literal is shown on hover via the standard styled tooltip.
-                            String labelHtml = Utils.looksLikeHtml(litLabel) ? withContextInHtmlLinks(Utils.sanitizeHtml(litLabel)) : Strings.escapeMarkup(litLabel).toString();
+                            String labelHtml = Utils.looksLikeHtml(litLabel) ? cellHtml(litLabel) : Strings.escapeMarkup(litLabel).toString();
                             String html = "<span class=\"tooltip\"><span class=\"tooltiptext tooltiptext-auto\">" + Strings.escapeMarkup(value) + "</span>" + labelHtml + "</span>";
                             cellItem.add(new Label(componentId, html).setEscapeModelStrings(false));
                         } else if (key.startsWith("pubkey")) {
@@ -391,7 +402,7 @@ public class QueryResultTable extends QueryResult {
                         } else {
                             Label cellLabel;
                             if (Utils.looksLikeHtml(value)) {
-                                cellLabel = (Label) new Label(componentId, withContextInHtmlLinks(Utils.sanitizeHtml(value)))
+                                cellLabel = (Label) new Label(componentId, cellHtml(value))
                                         .setEscapeModelStrings(false)
                                         .add(new AttributeAppender("class", "cell-data-html"));
                             } else {

@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -36,10 +37,10 @@ public class ItemListElement extends Panel {
         super(markupId);
 
         IRI userIri = getUserIri(pageClass, parameters);
-        IRI profilePicIri = (userIri != null) ? User.getProfilePicture(userIri) : null;
+        ProfilePicture profilePicture = (userIri != null) ? User.getProfilePicture(userIri) : null;
 
-        if (profilePicIri != null) {
-            ExternalImage profilePic = new ExternalImage("user-icon", profilePicIri.stringValue());
+        if (profilePicture != null) {
+            ExternalImage profilePic = new ExternalImage("user-icon", profilePicture.getSrc());
             add(profilePic);
         } else {
             Component userIcon;

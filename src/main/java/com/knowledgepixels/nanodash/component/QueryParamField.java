@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -9,10 +10,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
-import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.nanopub.extra.services.QueryTemplate;
 
-import java.net.URISyntaxException;
 
 /**
  * A field for entering query parameters, with validation for required fields and IRIs.
@@ -153,16 +152,12 @@ public class QueryParamField extends Panel {
             }
             if (isIri()) {
                 for (String value : expandValues(i.getValue(), paramId)) {
-                    if (!value.matches("https?://.+")) {
-                        i.error(new ValidationError("Invalid IRI protocol: " + value));
+                    if (!Utils.isUriValue(value)) {
+                        i.error(new ValidationError("IRI scheme not allowed: " + value
+                                + " (use one of: " + Utils.getAllowedUriSchemesLabel() + ")"));
                         return;
                     }
-                    try {
-                        ParsedIRI piri = new ParsedIRI(value);
-                        if (!piri.isAbsolute()) {
-                            i.error(new ValidationError("IRI not well-formed: " + value));
-                        }
-                    } catch (URISyntaxException ex) {
+                    if (!Utils.isWellFormedUri(value)) {
                         i.error(new ValidationError("IRI not well-formed: " + value));
                     }
                 }

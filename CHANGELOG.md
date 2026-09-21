@@ -1,3 +1,210 @@
+## [5.15.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.14.0...nanodash-5.15.0) (2026-09-11)
+
+### Features
+
+* **pages:** describe pages to search engines and link previews ([3f257e2](https://github.com/knowledgepixels/nanodash/commit/3f257e26edded6cb8d65b34fb658a06febe0c4cb)), closes [#704](https://github.com/knowledgepixels/nanodash/issues/704)
+* **presets:** key preset assignments on the preset kind and offer an update action ([a64e46d](https://github.com/knowledgepixels/nanodash/commit/a64e46d9f8ab29a3c5ca0d4db67287f91bd83d48)), closes [#607](https://github.com/knowledgepixels/nanodash/issues/607)
+* **spaces:** show member names instead of bare ORCIDs in space user listings ([c43c019](https://github.com/knowledgepixels/nanodash/commit/c43c0191a4849a01ba2c55dc78df8d351359faf8))
+* **views:** let a paragraph link to its own part page ([776513a](https://github.com/knowledgepixels/nanodash/commit/776513a9b14de1ac6ee1b74030d5b27c37685bc0)), closes [#701](https://github.com/knowledgepixels/nanodash/issues/701) [#697](https://github.com/knowledgepixels/nanodash/issues/697) [#701](https://github.com/knowledgepixels/nanodash/issues/701)
+* **views:** let a view decide what its actions act on ([3299e51](https://github.com/knowledgepixels/nanodash/commit/3299e5102713a2bb5f67e54636184c6a8228801d))
+
+### Bug Fixes
+
+* **cache:** let closing the entry store stop the writers in it ([da0b5de](https://github.com/knowledgepixels/nanodash/commit/da0b5dee5d725c6e7a083780238cfbd2d5c949b3)), closes [#668](https://github.com/knowledgepixels/nanodash/issues/668)
+* **navigation:** carry the resource part across links out of a part page ([40e9258](https://github.com/knowledgepixels/nanodash/commit/40e9258e024bc86ad55bf1001adf688d9090ef80)), closes [#697](https://github.com/knowledgepixels/nanodash/issues/697)
+* read role schema:name in both schema.org schemes in role listings ([67c5390](https://github.com/knowledgepixels/nanodash/commit/67c539052dc90cc677b457c75ab1d27fe447bb4d))
+* **views:** even out the spacing around paragraph headings ([912e9ca](https://github.com/knowledgepixels/nanodash/commit/912e9cada04fb5ad252f3a035e5fe5615adb3f8a))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([e8ddcae](https://github.com/knowledgepixels/nanodash/commit/e8ddcae57907fac7f77374288eccd96607ac5905))
+
+### Style improvements
+
+* **views:** use the bare recycling glyph for the override action icon ([4de08d5](https://github.com/knowledgepixels/nanodash/commit/4de08d52e972ac4abab2a5b4b98972d2e609051b))
+
+## [5.14.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.13.0...nanodash-5.14.0) (2026-09-08)
+
+### Features
+
+* **protected nanopubs:** flag them, and say when the services are restricted ([1fd9b94](https://github.com/knowledgepixels/nanodash/commit/1fd9b94d81a798d7bf025bda18ed7845787bd772)), closes [#671](https://github.com/knowledgepixels/nanodash/issues/671)
+* **publish:** let users of local instances publish protected nanopublications ([5195919](https://github.com/knowledgepixels/nanodash/commit/51959190b57f7f7e43ce76dce9cf43023b34d9c9)), closes [#671](https://github.com/knowledgepixels/nanodash/issues/671)
+* **template:** start an empty year field's spinner at the current year ([27b33d6](https://github.com/knowledgepixels/nanodash/commit/27b33d6d0d37926d30d9dd32c481a32558fd1bcb))
+* **template:** support xsd:gYear and its relatives as placeholder types ([dc0a3a8](https://github.com/knowledgepixels/nanodash/commit/dc0a3a8b3312b4afffdce657345f007a9d12632d)), closes [#670](https://github.com/knowledgepixels/nanodash/issues/670)
+* **title bar:** say when a service cannot answer, instead of failing part by part ([c1b0b1b](https://github.com/knowledgepixels/nanodash/commit/c1b0b1b0648e3ef7da9c216fa57f27a6aac8b460)), closes [#600](https://github.com/knowledgepixels/nanodash/issues/600) [#681](https://github.com/knowledgepixels/nanodash/issues/681)
+* **views:** pre-fill a result action's form from a fill query ([#690](https://github.com/knowledgepixels/nanodash/issues/690)) ([dcc1f69](https://github.com/knowledgepixels/nanodash/commit/dcc1f698da51224620e26d4a7c5f4a99760343f1))
+
+### Bug Fixes
+
+* **cold start:** serve pages when a service cannot answer ([667d43a](https://github.com/knowledgepixels/nanodash/commit/667d43a0a8e121bffa7375db610bce00a1590357)), closes [#681](https://github.com/knowledgepixels/nanodash/issues/681) [#684](https://github.com/knowledgepixels/nanodash/issues/684)
+* **config:** let an explicitly configured main registry/query URL win ([1e198f2](https://github.com/knowledgepixels/nanodash/commit/1e198f2440e340c758e2cfc7db3359db2298faa9)), closes [#680](https://github.com/knowledgepixels/nanodash/issues/680)
+* **publish:** send protected nanopublications to the configured local instance ([a2aca77](https://github.com/knowledgepixels/nanodash/commit/a2aca77cbfe02083e6557ebc3b8f5dcebdbcc11a))
+* **template:** judge a Gregorian value as it is being entered ([13d5476](https://github.com/knowledgepixels/nanodash/commit/13d5476f126f5f3ec0398f60b706c88803edb2b1))
+* **template:** keep a corrected Gregorian value after a rejected one ([980d971](https://github.com/knowledgepixels/nanodash/commit/980d97176aa4ef056d6d97899c158c44c7716d04))
+* **template:** name the part each Gregorian dropdown is waiting for ([97bd926](https://github.com/knowledgepixels/nanodash/commit/97bd92629412122f726545407a8c7f47caf34c83))
+* **version check:** remember a failed lookup and keep it off the render path ([881e0a0](https://github.com/knowledgepixels/nanodash/commit/881e0a0df37b5cbe71bff03057dcc0b5ab8ad4e1)), closes [#600](https://github.com/knowledgepixels/nanodash/issues/600) [#686](https://github.com/knowledgepixels/nanodash/issues/686)
+
+### Documentation
+
+* **optional-statements:** record end-to-end verification ([d79ec3f](https://github.com/knowledgepixels/nanodash/commit/d79ec3f7f30acbc6dfcc5b001661167f6e6c1333)), closes [#691](https://github.com/knowledgepixels/nanodash/issues/691)
+
+### Tests
+
+* **publish:** give the protected-marker test its own session user ([c74764d](https://github.com/knowledgepixels/nanodash/commit/c74764db90eafed349a0718b56694cd40222c119))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([80c8e02](https://github.com/knowledgepixels/nanodash/commit/80c8e02a212aabbc14761683bcc9a1ed2ab975b0))
+
+### Refactoring
+
+* **views:** route every result kind through addResultActions ([e2f4bc5](https://github.com/knowledgepixels/nanodash/commit/e2f4bc5ac87440989adb7af8d928a7d400bd41c4))
+
+## [5.13.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.12.0...nanodash-5.13.0) (2026-09-04)
+
+### Features
+
+* add "partial" fill mode that discards non-matching source content ([9bc3149](https://github.com/knowledgepixels/nanodash/commit/9bc3149b288fbbce63ad3e011dc5041247a1dafb))
+* allow any URI or a local name in agent placeholders ([6106b81](https://github.com/knowledgepixels/nanodash/commit/6106b811e546353c7a20eea021656a3e0ae04869)), closes [#652](https://github.com/knowledgepixels/nanodash/issues/652)
+* offer "refresh now" on header views too ([72ff9b9](https://github.com/knowledgepixels/nanodash/commit/72ff9b9b736e1d7265fb8baaceed03c1acc377c3))
+* offer every view-displays action in the space title menu ([#641](https://github.com/knowledgepixels/nanodash/issues/641)) ([a60541a](https://github.com/knowledgepixels/nanodash/commit/a60541a1c27deb4f8d5f7f088452ac7c3f6370cd))
+* offer plain names in guided choices, leave restricted ones alone ([6aac2d0](https://github.com/knowledgepixels/nanodash/commit/6aac2d0251f9f5efc49a2ad9d91ea9b1ed7abbec))
+* **publish form:** lock pre-filled values and statements ([#678](https://github.com/knowledgepixels/nanodash/issues/678)) ([4cbd323](https://github.com/knowledgepixels/nanodash/commit/4cbd3232f23bc187f04c5cd21cae873b9a74d312))
+* support non-http(s) URI schemes (ipfs:, ipns:, did:, at:) ([209a068](https://github.com/knowledgepixels/nanodash/commit/209a068dc1c4c615f12bcae7a34c43e9888fc7b3)), closes [#655](https://github.com/knowledgepixels/nanodash/issues/655)
+* transient pubinfo templates not carried over on supersede/override/derive/use ([6d44859](https://github.com/knowledgepixels/nanodash/commit/6d4485943d34645bf87aa23a30bc57ebbc658e53)), closes [#606](https://github.com/knowledgepixels/nanodash/issues/606) [#606](https://github.com/knowledgepixels/nanodash/issues/606)
+* **view actions:** let an action lock the field it fills ([#678](https://github.com/knowledgepixels/nanodash/issues/678)) ([2d92b1b](https://github.com/knowledgepixels/nanodash/commit/2d92b1b154f91d43679fc492b3a30124898ff915))
+* wire role revocation and detachment into the space About tab ([72da9ae](https://github.com/knowledgepixels/nanodash/commit/72da9aea688f340bec63109090dff676e66433b2)), closes [#639](https://github.com/knowledgepixels/nanodash/issues/639) [#129](https://github.com/knowledgepixels/nanodash/issues/129) [#639](https://github.com/knowledgepixels/nanodash/issues/639)
+
+### Bug Fixes
+
+* align the "mint locally" note with the value in a selected choice ([42d4789](https://github.com/knowledgepixels/nanodash/commit/42d47897e5f234e83bb78bb7b5239c361dd83b71))
+* check for a new view version on a view display's "refresh now" ([095446f](https://github.com/knowledgepixels/nanodash/commit/095446f3b78451c73ab63023e07b8712d5a91fe4)), closes [#654](https://github.com/knowledgepixels/nanodash/issues/654)
+* **choice fields:** no locally minted option for external URI placeholders ([f237ba3](https://github.com/knowledgepixels/nanodash/commit/f237ba3e8e563e5591bf2851d6855987ee61d0d8)), closes [#652](https://github.com/knowledgepixels/nanodash/issues/652) [#676](https://github.com/knowledgepixels/nanodash/issues/676)
+* don't number introduced resources in repeatable groups ([55e89a2](https://github.com/knowledgepixels/nanodash/commit/55e89a27fb69d64a7008eca5179d058c67ebf661)), closes [#651](https://github.com/knowledgepixels/nanodash/issues/651)
+* re-resolve view definitions on a page-level "refresh now" ([b5695e9](https://github.com/knowledgepixels/nanodash/commit/b5695e9a8ef4a2dec5dfa728769b37293b2b50db)), closes [#622](https://github.com/knowledgepixels/nanodash/issues/622)
+* read the part view-displays query from its view, not a constant ([a1562ab](https://github.com/knowledgepixels/nanodash/commit/a1562abc6bf599f49377912ca6bb1ee5f7f2aed1)), closes [#664](https://github.com/knowledgepixels/nanodash/issues/664)
+* refresh the list of view displays before the views themselves ([993f326](https://github.com/knowledgepixels/nanodash/commit/993f326eb2e479687179af388fa95d522b561820))
+* release post-publish refreshes on ingest confirmation instead of a blind delay ([dc89394](https://github.com/knowledgepixels/nanodash/commit/dc893944145f7b42618bde5fa7038a2cd2a5e21f)), closes [#629](https://github.com/knowledgepixels/nanodash/issues/629) [#629](https://github.com/knowledgepixels/nanodash/issues/629)
+* route query-result links for non-http(s) URIs to the resolver too ([4307d8f](https://github.com/knowledgepixels/nanodash/commit/4307d8fbfdf19fd1d0087f15f25ee908b8f1caa7)), closes [#655](https://github.com/knowledgepixels/nanodash/issues/655)
+* **section anchors:** leave the page counter out of the copied link ([a167b0f](https://github.com/knowledgepixels/nanodash/commit/a167b0f5294b2c4231e4bfb4e07d362f03f17608)), closes [#650](https://github.com/knowledgepixels/nanodash/issues/650)
+* **section anchors:** leave the session id out of the copied link too ([9d88700](https://github.com/knowledgepixels/nanodash/commit/9d8870055bb70563b8d68b6ce6d8ed31651bb02e)), closes [#650](https://github.com/knowledgepixels/nanodash/issues/650)
+* show the update spinner for a refresh the user asked for ([81c1d23](https://github.com/knowledgepixels/nanodash/commit/81c1d2340fcb91203a30b4ed6d2a9369155cf147))
+* sit the header view's refresh spinner on the title's baseline ([dce479b](https://github.com/knowledgepixels/nanodash/commit/dce479bf19c389bf263b3a0938572bf6f28f41d9))
+* size date, time and time zone fields to their content ([3ffb42c](https://github.com/knowledgepixels/nanodash/commit/3ffb42c15161d139df31c1af6d0676c2757c87b3))
+* stop a query-form view's "refresh now" from re-rendering the page ([66e35d9](https://github.com/knowledgepixels/nanodash/commit/66e35d9048088b0dc2da8e2176e10e867e8fa394))
+* **view tables:** make ordering by a column visible and correct ([8c20503](https://github.com/knowledgepixels/nanodash/commit/8c20503a223fb230e3c9fc9190f9c271f5f0b528)), closes [#673](https://github.com/knowledgepixels/nanodash/issues/673)
+
+### Tests
+
+* read the test nanopublications from the nanopub test suite ([72f3505](https://github.com/knowledgepixels/nanodash/commit/72f3505a25546987bcbaf1e90cedb1361c37e09f)), closes [#619](https://github.com/knowledgepixels/nanodash/issues/619) [#620](https://github.com/knowledgepixels/nanodash/issues/620) [Nanopublication/nanopub-testsuite#6](https://github.com/Nanopublication/nanopub-testsuite/issues/6) [#620](https://github.com/knowledgepixels/nanodash/issues/620)
+* require the grlc query template rather than skipping without it ([80f7ce4](https://github.com/knowledgepixels/nanodash/commit/80f7ce4ef3cdae997ab9d464c95c2506c2110cf6)), closes [Nanopublication/nanopub-testsuite#5](https://github.com/Nanopublication/nanopub-testsuite/issues/5) [#620](https://github.com/knowledgepixels/nanodash/issues/620)
+
+### Build and continuous integration
+
+* **deps:** update nanopub-java to 1.94.0 ([ed01f64](https://github.com/knowledgepixels/nanodash/commit/ed01f6487126354c0bb577f66f8c642288b0474b)), closes [#671](https://github.com/knowledgepixels/nanodash/issues/671)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([769be83](https://github.com/knowledgepixels/nanodash/commit/769be830ba90f94755d05a23b2b917c179a36c02))
+
+## [5.12.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.11.1...nanodash-5.12.0) (2026-08-25)
+
+### Features
+
+* allow inline SVG in HTML snippets from queries ([cd4bc31](https://github.com/knowledgepixels/nanodash/commit/cd4bc31dccb768a305739b1ad5162c61fe1a0385))
+* allow SVG markup as a profile picture ([#634](https://github.com/knowledgepixels/nanodash/issues/634)) ([e1234c2](https://github.com/knowledgepixels/nanodash/commit/e1234c207158c49e7557b382c5dcbfb1d0113dfe))
+* give the error page a way onward ([db22dc6](https://github.com/knowledgepixels/nanodash/commit/db22dc67e0184dfc222a43650d0039596951e2a1)), closes [#616](https://github.com/knowledgepixels/nanodash/issues/616)
+* never-evicting per-entry store behind the API cache ([7db90ca](https://github.com/knowledgepixels/nanodash/commit/7db90ca41778a679a675471e8fc4a02564f8d1e8)), closes [#570](https://github.com/knowledgepixels/nanodash/issues/570)
+* page-level refresh action and page-structure spinner ([#622](https://github.com/knowledgepixels/nanodash/issues/622)) ([cd9b690](https://github.com/knowledgepixels/nanodash/commit/cd9b6900863dfdbad1a4f1cf0b76d03bd133dd3f))
+* profile pictures for spaces and maintained resources ([#632](https://github.com/knowledgepixels/nanodash/issues/632)) ([fc48e39](https://github.com/knowledgepixels/nanodash/commit/fc48e39767eaf00b411f7a72014b972eb8a165f1))
+* show `/publish?...` links from views as buttons ([f80b6ea](https://github.com/knowledgepixels/nanodash/commit/f80b6ea1c08a3a3a5b9d46ee7d1e20d72c172e18)), closes [#628](https://github.com/knowledgepixels/nanodash/issues/628)
+* **SourceNanopub:** update nanopub element with additional data for RDFa parsers ([47d194b](https://github.com/knowledgepixels/nanodash/commit/47d194b53ed337aa63565ae1c28a4e689aee673b))
+* surface introduced-but-unapproved users as pending ([#625](https://github.com/knowledgepixels/nanodash/issues/625)) ([d48abac](https://github.com/knowledgepixels/nanodash/commit/d48abac7e532f9f83fe348335d233e2b45e93f69)), closes [nanopub-query#195](https://github.com/knowledgepixels/nanopub-query/issues/195)
+* **template:** check the SPARQL of a query before it is published ([b66a296](https://github.com/knowledgepixels/nanodash/commit/b66a29648532dc5e960db0f45a1a506469a5a162)), closes [#615](https://github.com/knowledgepixels/nanodash/issues/615)
+
+### Bug Fixes
+
+* borderless entry-action chevrons on item list views ([9afff08](https://github.com/knowledgepixels/nanodash/commit/9afff080a4318a618498631ff8967d135fbd09b7))
+* don't list a nanopublication as its own newer version ([4d871b7](https://github.com/knowledgepixels/nanodash/commit/4d871b7299ad82525d313199267039860e95252e))
+* **ExplorePage:** recognise terms published with the legacy part-of term ([be71dc0](https://github.com/knowledgepixels/nanodash/commit/be71dc0f03785ef6caf336ffbade07823721c24e)), closes [#511](https://github.com/knowledgepixels/nanodash/issues/511)
+* keep SVG paint that is declared in style attributes ([39a7339](https://github.com/knowledgepixels/nanodash/commit/39a7339fcf11188367b008fa1394c3ed45a52c95))
+* parse literal serializations without overflowing the stack ([a86360f](https://github.com/knowledgepixels/nanodash/commit/a86360f9868cb37c7b6b0bf2701766f4ccec0130))
+* **QueryApiAccess:** point get-parts at the version reading both part-of terms ([94aab6b](https://github.com/knowledgepixels/nanodash/commit/94aab6b58edb111bd56bbecb938679e8a2731c68)), closes [#511](https://github.com/knowledgepixels/nanodash/issues/511)
+* **QueryPage:** explain why a query can't be loaded instead of failing ([cfdb06e](https://github.com/knowledgepixels/nanodash/commit/cfdb06edd926c7d868259444b27f11328adf4883)), closes [#284](https://github.com/knowledgepixels/nanodash/issues/284)
+* refresh the acted-on view, not the whole page structure ([#622](https://github.com/knowledgepixels/nanodash/issues/622)) ([b5a44d7](https://github.com/knowledgepixels/nanodash/commit/b5a44d751636236a7f094c2aa30315fd2751b325))
+* right-align space/resource profile pictures in header row ([2864a36](https://github.com/knowledgepixels/nanodash/commit/2864a36456d25dc0542a057ad5c11d7fe0f7e8b3))
+* shorten pending-approval banner to one line ([956e19b](https://github.com/knowledgepixels/nanodash/commit/956e19bc639b5f68d50c2902005efa7a1227c635))
+* strip HTML and drop SVG from generated nanopublication labels ([51a1618](https://github.com/knowledgepixels/nanodash/commit/51a161845b50ed436a077e0de63dfe92cc801a7f))
+* URL-decode fallback term labels on /part page ([#621](https://github.com/knowledgepixels/nanodash/issues/621)) ([133cee8](https://github.com/knowledgepixels/nanodash/commit/133cee88c640e059a64616041d4c2d16200292ae))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([fade39d](https://github.com/knowledgepixels/nanodash/commit/fade39db66cbdd7796ce5edd3cddea82fffb49e6))
+
+### Style improvements
+
+* put the page-structure spinner right of the title dropdown ([05064ea](https://github.com/knowledgepixels/nanodash/commit/05064eaf83a2a592f394d5973f1c6b2f175a96a1))
+
+### Refactoring
+
+* **test:** take the query template fixture from the nanopub test suite ([944c286](https://github.com/knowledgepixels/nanodash/commit/944c2865a87ab1c46c91b337f80f0b6e0a110fe7)), closes [Nanopublication/nanopub-testsuite#5](https://github.com/Nanopublication/nanopub-testsuite/issues/5) [#615](https://github.com/knowledgepixels/nanodash/issues/615)
+
+## [5.11.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.11.0...nanodash-5.11.1) (2026-08-20)
+
+### Dependency updates
+
+* **deps:** update nanopub-java to 1.92.0 ([9d812aa](https://github.com/knowledgepixels/nanodash/commit/9d812aa2b4d7cd00ec3875b0055b635a10fa620e))
+
+### Bug Fixes
+
+* keep the cached map when a refresh fails ([c261a06](https://github.com/knowledgepixels/nanodash/commit/c261a0654a43233540a2dd01bd779b9be28681bc))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([375f916](https://github.com/knowledgepixels/nanodash/commit/375f916c07a1beac86c54fdd502452cb67b1bba9))
+
+## [5.11.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.10.0...nanodash-5.11.0) (2026-08-19)
+
+### Features
+
+* persist caches across restarts for a warm start ([#570](https://github.com/knowledgepixels/nanodash/issues/570)) ([62cab72](https://github.com/knowledgepixels/nanodash/commit/62cab72de48b9fb82111a39b8257b777146b6102))
+* show outdated view results with a spinner instead of a bare spinner ([#599](https://github.com/knowledgepixels/nanodash/issues/599)) ([b492cd3](https://github.com/knowledgepixels/nanodash/commit/b492cd3d35e5e586bd80667e1bafb4ae142b36ae))
+* show the publish button as busy while publishing ([c748b2e](https://github.com/knowledgepixels/nanodash/commit/c748b2ee6df3db072e5596805c3db4218d346aa9))
+* show the same update indicator for every kind of view update ([e7032d5](https://github.com/knowledgepixels/nanodash/commit/e7032d5abef978c872f0452801444c3f7a303eb5))
+
+### Bug Fixes
+
+* **AjaxZonedDateTimePicker:** empty the fields when the value is cleared ([e56173d](https://github.com/knowledgepixels/nanodash/commit/e56173d4a48a17666cf564c6d6cefdf3d320083b))
+* **AjaxZonedDateTimePicker:** group the zone choices by current offset ([250069d](https://github.com/knowledgepixels/nanodash/commit/250069d5cdad7cb382b7cadadf0cdc4036b2b617))
+* **AjaxZonedDateTimePicker:** keep the entered value when the form comes back ([12fbe7f](https://github.com/knowledgepixels/nanodash/commit/12fbe7f3ad298b7072847ce5edeb8e1fe64c542c))
+* **AjaxZonedDateTimePicker:** open the pickers from field and icon alike ([4687d14](https://github.com/knowledgepixels/nanodash/commit/4687d142528f5b4983b3055c77a54d79010ef0c1))
+* **AjaxZonedDateTimePicker:** preselect the user's time zone ([c6154d0](https://github.com/knowledgepixels/nanodash/commit/c6154d0467d47cdd2dc7329945968ac968e0a3ac)), closes [#596](https://github.com/knowledgepixels/nanodash/issues/596)
+* apply auto Local Resource treatment to introduced/embedded resources ([2528232](https://github.com/knowledgepixels/nanodash/commit/25282321f83e0cc3a5ba4f2e1f57ba20c1e78a8d)), closes [#602](https://github.com/knowledgepixels/nanodash/issues/602)
+* do not add a level to the page when a view is refreshed ([6f94f0d](https://github.com/knowledgepixels/nanodash/commit/6f94f0d74516ed28c38a64b68a13732e80107ae0))
+* **explore:** show "use this template..." only for full template definitions ([3b628ac](https://github.com/knowledgepixels/nanodash/commit/3b628ac6787f92c187b69eeb846935968e8c4214)), closes [#597](https://github.com/knowledgepixels/nanodash/issues/597)
+* give style.css a URL that changes when the file does ([0074711](https://github.com/knowledgepixels/nanodash/commit/00747115722174d669d1254d00b8350d58f6481e))
+* keep the filter field in place while a view's spinner shows ([099c0fa](https://github.com/knowledgepixels/nanodash/commit/099c0fa9d8908e11b00553ed29b08e97da8475c8))
+* **LiteralDateTimeItem:** stop asking for seconds ([60ffc3a](https://github.com/knowledgepixels/nanodash/commit/60ffc3a77d428ecfee7f21e6f80bfdfabf237a22))
+* offer the pending-members approve action for every tier, not only admins ([2c02a2d](https://github.com/knowledgepixels/nanodash/commit/2c02a2d91043a7c12dfaa6c28f90183db777c3ef)), closes [#603](https://github.com/knowledgepixels/nanodash/issues/603) [#603](https://github.com/knowledgepixels/nanodash/issues/603)
+* refresh a view that is inside a wrapper, not the wrapper's content ([069b559](https://github.com/knowledgepixels/nanodash/commit/069b5598c5d22c959c2d816a3a16a5b4e6007ba1))
+* refresh a view where it stands instead of re-rendering the page ([fd4aaa0](https://github.com/knowledgepixels/nanodash/commit/fd4aaa09a033b0c4fbfe87c116ecbbba5c81405e))
+* render a lazily loaded view where a directly rendered one sits ([859e3a9](https://github.com/knowledgepixels/nanodash/commit/859e3a97e7b302900e56f01356fd3d2847895f6a))
+* resolve recommended prov/pubinfo templates to their latest versions ([6e8a2b0](https://github.com/knowledgepixels/nanodash/commit/6e8a2b013a7cb23a0cf589d097d47cc3ae7ebd9a)), closes [#585](https://github.com/knowledgepixels/nanodash/issues/585)
+* stop the About tab from reloading itself on every visit ([3c00049](https://github.com/knowledgepixels/nanodash/commit/3c00049dc43f8d96a750a67071c8c951ae1bd4b2))
+
+### Documentation
+
+* correct preference keys for remote MCP and Claude chat ([8d1be46](https://github.com/knowledgepixels/nanodash/commit/8d1be46f38332edb3688a20f0c3c5621e4a06525))
+
+### Performance improvements
+
+* keep request threads off the network waits ([7b4883f](https://github.com/knowledgepixels/nanodash/commit/7b4883f0a60bd6d277c7bfc35918da69f7167ef2))
+
+### General maintenance
+
+* **AboutSpacePanel:** update maintaine-resources-view URI ([b56f9ee](https://github.com/knowledgepixels/nanodash/commit/b56f9eeb52d7a291ec2f27f00a4419e84fb486f7))
+* setting next snapshot version [skip ci] ([35c9f81](https://github.com/knowledgepixels/nanodash/commit/35c9f81e8317b530d1c99cea714961f3babf41f9))
+
 ## [5.10.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.9.0...nanodash-5.10.0) (2026-08-14)
 
 ### Features

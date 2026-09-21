@@ -9,6 +9,7 @@ import org.nanopub.SimpleTimestampPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.NanopubSignatureElement;
 import org.nanopub.extra.security.SignatureUtils;
+import org.nanopub.extra.server.NanopubServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +161,18 @@ public class NanopubElement implements Serializable {
             seemsToHaveSignature = SignatureUtils.seemsToHaveSignature(nanopub);
         }
         return seemsToHaveSignature;
+    }
+
+    /**
+     * Checks whether the Nanopub is protected, i.e. typed {@code npx:ProtectedNanopub} in its own
+     * publication info. Such a nanopub is only accepted by registries and query services that are
+     * configured as local/private instances, so it is not part of the public network.
+     *
+     * @return True if the Nanopub is protected, false otherwise.
+     */
+    public boolean isProtected() {
+        if (nanopub == null) return false;
+        return NanopubServerUtils.isProtectedNanopub(nanopub);
     }
 
     /**

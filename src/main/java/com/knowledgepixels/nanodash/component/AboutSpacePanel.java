@@ -44,31 +44,38 @@ public class AboutSpacePanel extends Panel {
      * count of how many of the space's users hold each role), built on the
      * list-space-roles query. The built-in Admin role is always the first row.
      */
-    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RActRjB7sOPegsSWdlJPNXvEfqEuomlO9HvjmBuXMqfQw/space-roles-view";
+    public static final String SPACE_ROLES_VIEW = "https://w3id.org/np/RAbUQYCEiYIWBmJ4W1OvD2fpTXxxhrBjusUlIVT9cFlTE/space-roles-view";
 
     /**
      * View listing a space's members (admins, maintainers, members) with their
      * highest role tier, built on the list-space-members query. Observer-tier
      * members are excluded.
      */
-    public static final String MEMBERS_VIEW = "https://w3id.org/np/RAFmrcEqniX7mqrZQ8c4OCqjU-3wwKjLhE2glXAZKFNT0/space-members-view";
+    public static final String MEMBERS_VIEW = "https://w3id.org/np/RAsv1Tede_234X-bmKeq38nepPfFzwuJg2_BDKLqo_CQ0/view";
 
     /**
      * View listing a space's non-approved role claims (agents holding an
      * admin/maintainer/member-tier role instantiation that is not in the
      * validated state — a self-assigned or otherwise ungranted claim awaiting
      * approval), built on the list-space-non-approved query. Carries a per-row
-     * "approve" action (visible to members and above) that re-asserts the same
-     * role triple, signed by the approver.
+     * "approve" action (visible to members and above) that opens the pending
+     * grant nanopub in derive mode under its own creation template
+     * (approve_np:@derive-a grant_template:@template), so the approver
+     * re-publishes the same assertion under their own key — for every tier,
+     * not only admin grants (issue #603). Deliberately a FRESH view identity
+     * (own kind, no npx:supersedes): views resolve to the latest version of
+     * their chain, so continuing the old pending-members-view chain would
+     * change behavior on deployed instances that still pin the old query;
+     * this way they keep working with what they have.
      */
-    public static final String NON_APPROVED_VIEW = "https://w3id.org/np/RAk5nU4XXK1-CzrE2mcSLcRmJXnANVWgkQ2dNUQzDVR64/pending-members-view";
+    public static final String NON_APPROVED_VIEW = "https://w3id.org/np/RA1eynkJJ4d3QVzThyuSWW8qSihyWFq5Gi8pOVREu3cHQ/pending-members-view";
 
     /**
      * View listing a space's observers (members whose highest tier is observer,
      * i.e. holding no admin/maintainer/member role), built on the
      * list-space-observers query.
      */
-    public static final String OBSERVERS_VIEW = "https://w3id.org/np/RA7uYe4WmsJCk3NaMTE8p0YofcMcRfjLyM8PGLaADkH18/space-observers-view";
+    public static final String OBSERVERS_VIEW = "https://w3id.org/np/RADW4rDxlnkF7cAInPjmUGnRBktsZkr46K9-6dkI0YsWE/view";
 
     /**
      * View listing a space's direct sub-spaces with their types, built on the
@@ -187,15 +194,20 @@ public class AboutSpacePanel extends Panel {
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_MEMBERS_REF, "root_np", refRoot)
                 : new QueryRef(membersView.getQuery().getQueryId(), "space", space.getId());
         ViewDisplay membersDisplay = new ViewDisplay(membersView);
-        add(anchors.anchor(QueryResultTableBuilder.create("members", membersQuery, membersDisplay).build(), membersDisplay));
+        // resourceWithProfile/contextId let the view's per-row "revoke role" action gate on the
+        // viewer's tier in this space and pre-fill param_space (issue #639); postPublishTab
+        // returns the revoker to the About tab, where the shrunk listing shows.
+        add(anchors.anchor(QueryResultTableBuilder.create("members", membersQuery, membersDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), membersDisplay));
 
         // Non-approved (pending) higher-tier role claims, between members and observers.
         // Ref-scoped (root_np), like the observers table below; there is no IRI-keyed
         // fallback query, so when the ref root is unknown (pre-v3 data) the table is driven
-        // by the param-less query, which yields no rows. The space is passed as
-        // resource/context so the per-row "approve" action pre-fills param_space; the agent
-        // and role template come from the row via the view's query mappings. postPublishTab
-        // returns the approver to the About tab, where the approved member now shows.
+        // by the param-less query, which yields no rows. The per-row "approve" action opens
+        // the pending grant in derive mode under its own creation template (the row's
+        // approve_np/grant_template pair via the view's query mappings), so the approver
+        // re-publishes the same assertion under their own key — which works for every tier
+        // (issue #603). postPublishTab returns the approver to the About tab, where the
+        // approved member now shows.
         View nonApprovedView = View.get(NON_APPROVED_VIEW);
         QueryRef nonApprovedQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_NON_APPROVED_REF, "root_np", refRoot)
@@ -212,7 +224,8 @@ public class AboutSpacePanel extends Panel {
                 ? new QueryRef(QueryApiAccess.LIST_SPACE_OBSERVERS_REF, "root_np", refRoot)
                 : new QueryRef(observersView.getQuery().getQueryId(), "space", space.getId());
         ViewDisplay observersDisplay = new ViewDisplay(observersView);
-        add(anchors.anchor(QueryResultTableBuilder.create("observers", observersQuery, observersDisplay).build(), observersDisplay));
+        // Same action wiring as the members table above (issue #639).
+        add(anchors.anchor(QueryResultTableBuilder.create("observers", observersQuery, observersDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), observersDisplay));
 
         // "Sub-units" section: sub-spaces and maintained resources, side by side
         // (both views declare 6/12 width). resourceWithProfile/id/contextId let the
