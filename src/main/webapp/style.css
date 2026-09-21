@@ -1808,15 +1808,33 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   width: 350px;
 }
 
-/* The rich-text editor for rdf:HTML literals (#672). Formatted text is written in a block
-   of its own rather than in a field read at a glance, so it gets more room than a text
-   field and sits on its own line. The attach-a-file button is left out: a nanopublication
-   carries markup, and there is nowhere to keep a file it would point at. */
+/* The rich-text editor for rdf:HTML literals (#672). Formatted text needs more room than a
+   value read at a glance, so the statement holding one is laid out as a row whose object
+   takes whatever width is left: the editor stays on the line with the rest of the statement
+   and reaches the right edge, instead of being a fixed-width box with empty space beside it.
+   The statement's own trailing icons then sit after the full stop rather than floating past
+   the editor. The attach-a-file button is left out: a nanopublication carries markup, and
+   there is nowhere to keep a file it would point at. */
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .valueitem.obj {
+  flex: 1 1 24em;
+  min-width: 0;
+}
+
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .nanopub-statement-float {
+  float: none;
+  flex: 0 0 auto;
+}
+
 .nanopub-html-editor {
-  display: inline-block;
-  vertical-align: top;
-  width: 500px;
-  max-width: 100%;
+  display: block;
+  width: 100%;
 }
 
 .nanopub-html-editor trix-editor {
