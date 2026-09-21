@@ -1832,6 +1832,13 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   flex: 0 0 auto;
 }
 
+/* The full stop closes the statement, so it sits at the end of it: at the foot of the editor
+   rather than beside its toolbar, where it read as belonging to the line above. */
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .fullstop,
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .nanopub-statement-float {
+  align-self: flex-end;
+}
+
 .nanopub-html-editor {
   display: block;
   width: 100%;
