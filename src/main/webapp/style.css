@@ -2500,6 +2500,21 @@ span.internal {
   border-color: rgba(0, 0, 0, 0.15);
 }
 
+/* HTML content in a statement is a box standing on the line, not a run of text in it, so it
+   lines up with the values beside it at the top. Left to its own baseline it hangs a line
+   lower than everything else on the row, and the space its margins take reads as the box
+   being out of line. Content long enough to be cut off keeps the bottom alignment its
+   "show more" arrow is placed by (.long-literal). */
+.nanopub-statement .value-container:has(> span.internal),
+.nanopub-statement span.internal {
+  vertical-align: top;
+}
+
+.nanopub-statement span.internal {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .refresh-icon {
   display: inline-block;
   background-image: url("images/refresh.svg");

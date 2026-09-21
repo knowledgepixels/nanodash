@@ -16,6 +16,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 
+import java.util.regex.Pattern;
+
 /**
  * A rich-text editor for literals declared with the {@code rdf:HTML} datatype (issue #378).
  * Such a literal is rendered as HTML wherever it is shown, so it is also written as HTML
@@ -40,6 +42,16 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
             new WebjarsJavaScriptResourceReference("trix/current/dist/trix.umd.min.js");
     private static final JavaScriptResourceReference HTML_EDITOR_JS =
             new JavaScriptResourceReference(WicketApplication.class, "script/html-editor.js");
+
+    private static final String BLANK = "(?:\\s|&nbsp;|&#0*160;|&#[xX]0*[aA]0;|\u00A0|<br\\s*/?>)+";
+    private static final String UP_TO_THE_END = "(?=(?:</[A-Za-z][^>]*>\\s*)*\\z)";
+
+    private static final Pattern BLANK_AT_THE_END = Pattern.compile(BLANK + UP_TO_THE_END);
+    private static final Pattern EMPTY_ELEMENT_AT_THE_END =
+            Pattern.compile("<([A-Za-z][A-Za-z0-9]*)(?:\\s[^<>]*)?>\\s*</\\1>" + UP_TO_THE_END);
+    private static final Pattern BLANK_AT_THE_START =
+            Pattern.compile("\\A((?:<(?!br)[A-Za-z][^>]*>\\s*)*)" + BLANK);
+    private static final Pattern ESCAPED_APOSTROPHE = Pattern.compile("&#0*39;|&#[xX]0*27;|&apos;");
 
     private HiddenField<String> valueField;
 
@@ -78,7 +90,14 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
      */
     @Override
     protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
-        valueField = new HiddenField<>("editorinput", model);
+        valueField = new HiddenField<>("editorinput", model) {
+
+            @Override
+            public String getInput() {
+                return cleanUp(super.getInput());
+            }
+
+        };
         valueField.setOutputMarkupId(true);
         return valueField;
     }
@@ -108,16 +127,60 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
     /**
      * {@inheritDoc}
      * <p>
-     * Sanitizes the markup before it becomes part of the nanopublication.
+     * Cleans up a value the form was opened with, the way what is typed is cleaned up on its way
+     * in.
      */
     @Override
     public void finalizeValues() {
         IModel<String> model = getTextComponent().getModel();
-        String value = model.getObject();
-        if (value != null && !value.isBlank()) {
-            model.setObject(Utils.sanitizeHtml(value));
-        }
+        model.setObject(cleanUp(model.getObject()));
         super.finalizeValues();
+    }
+
+    /**
+     * Sanitizes the markup and takes the blank edges off it. This runs on the way into the form,
+     * so that what is published, shown and validated is the cleaned-up markup: a nanopublication
+     * cannot be edited afterwards, and whatever is in it at signing time stays in it.
+     *
+     * @param html the markup as it arrives, or null
+     * @return the cleaned-up markup, or null if there was none
+     */
+    private static String cleanUp(String html) {
+        if (html == null || html.isBlank()) return html;
+        return keepApostrophes(trimBlankEdges(Utils.sanitizeHtml(html)));
+    }
+
+    /**
+     * Writes an apostrophe as itself rather than as the escape the sanitizer gives every one of
+     * them. Nothing needs the escape: the sanitizer quotes attribute values with double quotes,
+     * and in text an apostrophe is an ordinary character. What is published reads as it was
+     * written.
+     *
+     * @param sanitizedHtml the markup as the sanitizer wrote it
+     * @return the markup with its apostrophes spelled out
+     */
+    private static String keepApostrophes(String sanitizedHtml) {
+        return ESCAPED_APOSTROPHE.matcher(sanitizedHtml).replaceAll("'");
+    }
+
+    /**
+     * Removes what writing in the editor leaves at the ends of the markup and nothing reads: a
+     * space typed after the last word, which the editor has to write as a non-breaking space for
+     * it to survive at all, an empty last paragraph, a line break at the end.
+     *
+     * @param html the sanitized markup
+     * @return the markup without blank edges, which is empty if nothing else was in it
+     */
+    private static String trimBlankEdges(String html) {
+        String trimmed = html;
+        String previous = null;
+        while (!trimmed.equals(previous)) {
+            previous = trimmed;
+            trimmed = BLANK_AT_THE_END.matcher(trimmed).replaceAll("");
+            trimmed = EMPTY_ELEMENT_AT_THE_END.matcher(trimmed).replaceAll("");
+            trimmed = BLANK_AT_THE_START.matcher(trimmed).replaceAll("$1");
+        }
+        return trimmed;
     }
 
     /**

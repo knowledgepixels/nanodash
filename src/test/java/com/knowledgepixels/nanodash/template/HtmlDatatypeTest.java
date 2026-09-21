@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -181,6 +182,24 @@ public class HtmlDatatypeTest {
 
 
 
+    @Test
+    void shortHtmlIsShownWhole() throws Exception {
+        // The "show more" arrow and the fade-out that comes with it are for content too long
+        // to show: on one line of HTML they covered the line and sat on top of it.
+        mockTemplate(RDF.HTML);
+        String html = renderReadOnly(vf.createLiteral(HTML_CONTENT, RDF.HTML));
+        assertFalse(html.contains("long-literal"), html);
+        assertFalse(html.contains("show-more"), html);
+    }
+
+    @Test
+    void longHtmlIsCutOffWithAnArrow() throws Exception {
+        mockTemplate(RDF.HTML);
+        String html = renderReadOnly(vf.createLiteral("<p>" + "word ".repeat(40) + "</p>", RDF.HTML));
+        assertTrue(html.contains("long-literal collapsed"), html);
+        assertTrue(html.contains("show-more"), html);
+    }
+
     /**
      * Renders the publish form for the template, the way an author sees it.
      */
@@ -266,6 +285,52 @@ public class HtmlDatatypeTest {
         Matcher editorTag = Pattern.compile("<trix-editor[^>]*>").matcher(renderEditable(true));
         assertTrue(editorTag.find(), "no editor rendered");
         assertTrue(editorTag.group().contains("locked-value"), editorTag.group());
+    }
+
+    /**
+     * Publishes the given markup the way the form does, and gives back what the assertion
+     * would carry.
+     */
+    private Value published(String markup) throws Exception {
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        context.initStatements();
+        @SuppressWarnings("unchecked")
+        IModel<String> model = (IModel<String>) context.getComponentModels().get(COMMENT);
+        model.setObject(markup);
+        context.finalizeStatements();
+        return context.processValue(COMMENT);
+    }
+
+    @Test
+    void aSpaceTypedAfterTheLastWordIsNotPublished() throws Exception {
+        // The editor writes a trailing space as a non-breaking space, since that is the only
+        // way it survives in HTML at all -- and a nanopublication carries it forever.
+        mockTemplate(RDF.HTML);
+        assertEquals("<div>Text.</div>", published("<div>Text.&nbsp;</div>").stringValue());
+    }
+
+    @Test
+    void anEmptyLastParagraphIsNotPublished() throws Exception {
+        mockTemplate(RDF.HTML);
+        assertEquals("<div>Text.</div>", published("<div>Text.</div><div><br></div>").stringValue());
+        assertEquals("<div>Text.</div>", published("<div>Text.<br></div>").stringValue());
+    }
+
+    @Test
+    void blanksWithinTheMarkupAreLeftAlone() throws Exception {
+        // Only the edges are trimmed: a non-breaking space between two words was put there on
+        // purpose, and so was the empty paragraph between two others.
+        mockTemplate(RDF.HTML);
+        assertEquals("<div>A\u00A0B</div>", published("<div>A&nbsp;B</div>").stringValue(),
+                "the sanitizer writes the entity as the character it stands for");
+        assertEquals("<div>A</div><div><br /></div><div>B</div>",
+                published("<div>A</div><div><br></div><div>B</div>").stringValue());
+    }
+
+    @Test
+    void markupThatIsOnlyBlankPublishesNoValue() throws Exception {
+        mockTemplate(RDF.HTML);
+        assertNull(published("<div>&nbsp;</div>"), "an editor holding nothing but a space states nothing");
     }
 
     @Test

@@ -23,15 +23,30 @@ sub:description a nt:LongLiteralPlaceholder ;
   nt:hasDatatype rdf:HTML .
 ```
 
-## Sanitizing
+## Cleaning up
 
-The markup is sanitized twice, with the same policy (`Utils.sanitizeHtml`, which keeps a
-static SVG subset and drops scripting):
+The markup is sanitized with `Utils.sanitizeHtml`, which keeps a static SVG subset and
+drops scripting, at two points:
 
-- **Before publishing**, when the editor's value is finalized. A nanopublication cannot be
-  edited afterwards, so markup that would be dropped on display should never enter the
-  assertion in the first place — this also catches whatever was pasted into the editor.
+- **On the way into the form**, on every value the editor submits — in
+  `LiteralHtmlEditorItem`, on the input as it arrives with the request, not when the form
+  is built (which happens before anything is typed). A nanopublication cannot be edited
+  afterwards, so markup that would be dropped on display must never enter the assertion in
+  the first place; this also catches whatever was pasted into the editor.
 - **At render time**, because most HTML literals on the network were published elsewhere.
+
+On the way in, the value also loses what writing in an editor leaves behind and nothing
+reads: a space typed after the last word, which the editor has to write as `&nbsp;` for it
+to survive at all, an empty last paragraph, a trailing line break. Blanks within the markup
+are left alone. Apostrophes are written as themselves rather than as the escape the
+sanitizer gives each one, so the published literal reads as it was written.
+
+## Showing it
+
+An HTML literal is shown as a box on the statement's line, lined up with the values beside
+it. Content longer than `ReadonlyItem.LONG_LITERAL_LENGTH` is cut off with a "show more"
+arrow, the same way a long plain literal is; anything shorter is shown whole, without the
+arrow or the fade-out covering it.
 
 ## Legacy content
 
