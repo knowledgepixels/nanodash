@@ -355,6 +355,7 @@ document.addEventListener("DOMContentLoaded", function() {
   wrapCellEmoji();
   renderFriendlyDates();
   addSectionAnchors();
+  adjustLongLiterals();
   startAnchorTracking();
   trackAjaxUpdates();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
@@ -364,6 +365,7 @@ document.addEventListener("DOMContentLoaded", function() {
       wrapCellEmoji();
       renderFriendlyDates();
       addSectionAnchors();
+      adjustLongLiterals();
       scrollToAnchor();
     });
   }
@@ -388,6 +390,7 @@ function updateElements() {
   renderFriendlyDates();
   addSectionAnchors();
   adjustValueWidths();
+  adjustLongLiterals();
   setCollapseOverflow();
   collapseNanopubAssertions();
   scrollToAnchor();
@@ -594,6 +597,32 @@ function collapseNanopubAssertion(el) {
     }
   });
 }
+
+/* A long literal is cut off with a fade-out and a "show more" arrow. Whether it is long is
+   decided on the server by counting characters, which says nothing about how many lines they
+   take at this width: a sentence that fits on one line was being covered by the fade-out with
+   the arrow sitting on top of it. So whatever fits is shown whole, and only what really
+   doesn't fit is cut off. Re-run whenever the width changes, since that changes the answer. */
+function adjustLongLiterals() {
+  document.querySelectorAll('.long-literal').forEach(function (el) {
+    if (el.classList.contains('expanded')) return;
+    el.classList.remove('fits');
+    el.classList.add('collapsed');
+    var fits = el.scrollHeight <= el.clientHeight + 1;
+    if (fits) {
+      el.classList.remove('collapsed');
+      el.classList.add('fits');
+    }
+    var arrow = el.parentElement && el.parentElement.querySelector('.show-more');
+    if (arrow) arrow.style.display = fits ? 'none' : '';
+  });
+}
+
+var longLiteralAdjustment;
+window.addEventListener('resize', function () {
+  clearTimeout(longLiteralAdjustment);
+  longLiteralAdjustment = setTimeout(adjustLongLiterals, 150);
+});
 
 function showMore(el) {
   const $longLiteral = $(el).siblings('.long-literal');

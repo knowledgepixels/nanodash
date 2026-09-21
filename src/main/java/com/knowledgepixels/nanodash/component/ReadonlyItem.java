@@ -494,9 +494,11 @@ public class ReadonlyItem extends AbstractContextComponent {
                 extraComp.setVisible(true);
                 showMoreLabelLiteral.setVisible(false);
                 // Only content that is actually too long to show is cut off and given the
-                // "show more" arrow. On a short piece of HTML the fade-out covered the one
-                // line there was, and the arrow sat on top of it.
-                if (vs.length() >= LONG_LITERAL_LENGTH) {
+                // "show more" arrow, and its length is the length of the text rather than of
+                // the markup carrying it. Whether it then really doesn't fit is settled in the
+                // browser, which is the only place that knows how many lines it takes
+                // (adjustLongLiterals in nanodash.js).
+                if (Utils.htmlToPlainText(vs).length() >= LONG_LITERAL_LENGTH) {
                     extraComp.add(AttributeAppender.append("class", "long-literal collapsed"));
                     showMoreLabelHTML.setVisible(true);
                 }

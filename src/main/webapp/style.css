@@ -2780,6 +2780,14 @@ span.usertext {
   text-indent: 0;
 }
 
+/* Content that turns out to fit (see adjustLongLiterals in nanodash.js) is shown as it is:
+   no height limit, and none of the room the "show more" arrow was to sit in. */
+.long-literal.fits {
+  max-height: none;
+  padding-bottom: 8px;
+  padding-left: 8px;
+}
+
 .collapsed::after {
   content: "";
   position: absolute;

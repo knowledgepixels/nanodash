@@ -44,9 +44,16 @@ sanitizer gives each one, so the published literal reads as it was written.
 ## Showing it
 
 An HTML literal is shown as a box on the statement's line, lined up with the values beside
-it. Content longer than `ReadonlyItem.LONG_LITERAL_LENGTH` is cut off with a "show more"
-arrow, the same way a long plain literal is; anything shorter is shown whole, without the
-arrow or the fade-out covering it.
+it. Content whose *text* is longer than `ReadonlyItem.LONG_LITERAL_LENGTH` is a candidate
+for being cut off with a "show more" arrow, the same way a long plain literal is — the
+length of the text, not of the markup carrying it.
+
+Whether it is then really cut off is settled in the browser, by `adjustLongLiterals` in
+`nanodash.js`: a character count says nothing about how many lines the text takes at the
+width it is shown at, and a sentence that fits on one line was being covered by the
+fade-out with the arrow sitting on top of it. Whatever fits is shown whole; the answer is
+re-checked when the window is resized. This holds for long plain literals too, which are
+marked the same way.
 
 ## Legacy content
 
