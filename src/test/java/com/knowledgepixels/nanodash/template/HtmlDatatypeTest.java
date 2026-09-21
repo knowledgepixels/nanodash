@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.WicketApplication;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
@@ -168,6 +169,64 @@ public class HtmlDatatypeTest {
         Literal literal = (Literal) result;
         assertEquals(HTML_CONTENT, literal.stringValue());
         assertEquals(RDF.HTML, literal.getDatatype());
+    }
+
+
+
+    /**
+     * Renders the publish form for the template, the way an author sees it.
+     */
+    private String renderEditable() {
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        context.initStatements();
+        tester.startComponentInPage(context.getStatementItems().get(0));
+        return tester.getLastResponseAsString();
+    }
+
+    @Test
+    void htmlDatatypeIsWrittenWithTheRichTextEditor() throws Exception {
+        // Content declared as rdf:HTML is rendered as HTML, so it is written as HTML too
+        // rather than as markup typed into a plain text area.
+        mockTemplate(RDF.HTML);
+        String html = renderEditable();
+        assertTrue(html.contains("class=\"nanopub-html-editor\""), html);
+        assertFalse(html.contains("class=\"nanopub-textfield\""), html);
+    }
+
+    @Test
+    void otherDatatypesKeepThePlainTextArea() throws Exception {
+        mockTemplate(XSD.STRING);
+        String html = renderEditable();
+        assertTrue(html.contains("class=\"nanopub-textfield\""), html);
+        assertFalse(html.contains("nanopub-html-editor"), html);
+    }
+
+    @Test
+    void undeclaredDatatypeKeepsThePlainTextArea() throws Exception {
+        mockTemplate(null);
+        String html = renderEditable();
+        assertTrue(html.contains("class=\"nanopub-textfield\""), html);
+        assertFalse(html.contains("nanopub-html-editor"), html);
+    }
+
+    @Test
+    void editorMarkupIsSanitizedBeforeItIsPublished() throws Exception {
+        // A nanopublication cannot be edited afterwards, so what the editor produced (or
+        // what was pasted into it) is cleaned before signing, not only when rendered.
+        mockTemplate(RDF.HTML);
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        context.initStatements();
+        @SuppressWarnings("unchecked")
+        IModel<String> model = (IModel<String>) context.getComponentModels().get(COMMENT);
+        model.setObject("<p onclick=\"alert('x')\">Hi</p><script>alert('x')</script>");
+        context.finalizeStatements();
+        Value result = context.processValue(COMMENT);
+        assertTrue(result instanceof Literal, "entered value must not be dropped");
+        Literal literal = (Literal) result;
+        assertEquals(RDF.HTML, literal.getDatatype());
+        assertFalse(literal.stringValue().contains("alert("), literal.stringValue());
+        assertFalse(literal.stringValue().contains("<script"), literal.stringValue());
+        assertTrue(literal.stringValue().contains("<p>Hi</p>"), literal.stringValue());
     }
 
 }

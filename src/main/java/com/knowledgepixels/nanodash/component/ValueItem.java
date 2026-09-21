@@ -11,6 +11,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.vocabulary.NPX;
@@ -65,6 +66,12 @@ public class ValueItem extends AbstractContextComponent {
                 component = new ReadonlyItem("value", id, iri, statementPartId, rg);
             } else if (template.isUriPlaceholder(iri)) {
                 component = new IriTextfieldItem("value", id, iri, rg.isOptionalPart(statementPartId), this.context);
+            } else if (RDF.HTML.equals(template.getDatatype(iri))
+                    && (template.isLongLiteralPlaceholder(iri) || template.isLiteralPlaceholder(iri))) {
+                // Content declared as rdf:HTML is rendered as HTML wherever it is shown
+                // (issue #378), so it is written with a rich-text editor rather than as
+                // markup typed by hand.
+                component = new LiteralHtmlEditorItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLongLiteralPlaceholder(iri)) {
                 component = new LiteralTextareaItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLiteralPlaceholder(iri)) {
