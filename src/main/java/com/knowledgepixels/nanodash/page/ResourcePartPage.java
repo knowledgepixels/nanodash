@@ -134,12 +134,20 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
-     * Whether the given predicate names what a part belongs to: schema.org's
-     * {@code about}, in either of its spellings, or {@code dct:isPartOf}.
+     * Whether the given predicate names what a part belongs to: {@code dct:isPartOf}, or
+     * schema.org's {@code about} in either of its spellings, which parts published before
+     * the hierarchy was stated with {@code dct:isPartOf} use instead.
      */
     static boolean isParentPredicate(IRI predicate) {
+        return predicate.equals(DCTERMS.IS_PART_OF) || isSchemaAbout(predicate);
+    }
+
+    /**
+     * Whether the given predicate is schema.org's {@code about}, in either of its spellings.
+     */
+    private static boolean isSchemaAbout(IRI predicate) {
         String p = predicate.stringValue();
-        return p.equals("http://schema.org/about") || p.equals("https://schema.org/about") || predicate.equals(DCTERMS.IS_PART_OF);
+        return p.equals("http://schema.org/about") || p.equals("https://schema.org/about");
     }
 
     /**
@@ -178,22 +186,29 @@ public class ResourcePartPage extends NanodashPage {
      * @return the candidate parent ids, possibly empty
      */
     static List<String> getDeclaredParentCandidates(Nanopub nanopub, String partId, String contextId) {
-        Set<String> candidates = new LinkedHashSet<>();
+        Set<String> declared = new LinkedHashSet<>();
+        Set<String> aboutOnly = new LinkedHashSet<>();
         for (Statement st : nanopub.getAssertion()) {
-            if (st.getSubject().stringValue().equals(partId) && isParentPredicate(st.getPredicate())
-                    && st.getObject() instanceof IRI parent
-                    && !parent.stringValue().equals(partId) && !parent.stringValue().equals(contextId)) {
-                candidates.add(parent.stringValue());
+            if (!st.getSubject().stringValue().equals(partId) || !isParentPredicate(st.getPredicate())
+                    || !(st.getObject() instanceof IRI parent)) {
+                continue;
             }
+            String parentId = parent.stringValue();
+            if (parentId.equals(partId) || parentId.equals(contextId)) {
+                continue;
+            }
+            (isSchemaAbout(st.getPredicate()) ? aboutOnly : declared).add(parentId);
         }
-        return new ArrayList<>(candidates);
+        declared.addAll(aboutOnly);
+        return new ArrayList<>(declared);
     }
 
     /**
-     * The most ancestors a part page's breadcrumb shows, so that a long or malformed chain
-     * of declared parents cannot make the page resolve parts without end.
+     * The most ancestors a part page's breadcrumb shows. The hierarchy is followed as deep
+     * as it goes, but parts of parts need not form a tree, so a bound keeps a long or
+     * malformed chain from making the page resolve parts without end.
      */
-    static final int MAX_ANCESTORS = 5;
+    static final int MAX_ANCESTORS = 20;
 
     /**
      * A part resolved while walking up its ancestors: its id, the label to show for it,
@@ -207,65 +222,30 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
-     * The breadcrumbs between the context and this page's part, top-down (issue #718).
-     * A part whose definition declares no parent that is a part of the context sits at the
-     * top level, like a documentation topic, and gets no crumbs, even when it was reached
-     * from another part. Otherwise the chain starts at the part this page was reached
-     * from, as the incoming {@code part} parameter names it, or, without one, at the
-     * declared parent. From there it follows each part's own declared parent upwards,
-     * until a part declares none, a part would repeat, or {@link #MAX_ANCESTORS} is
-     * reached. A part without a known definition cannot tell its level, so it keeps the
-     * part it was reached from.
+     * The breadcrumbs between the context and this page's part, top-down (issue #718): the
+     * hierarchy the parts themselves declare, not the path the reader took to get here, so
+     * a part reads the same wherever it was opened from. It starts at the part this one
+     * declares to belong to and follows each part's own declared parent upwards, as deep as
+     * the hierarchy goes, stopping when a part declares none, when a part would repeat
+     * (parts of parts need not form a tree), or at {@link #MAX_ANCESTORS}.
      *
-     * @param parameters      the page parameters
      * @param definition      the nanopublication defining this page's part, or null if none is known
      * @param partId          this page's part resource id
      * @param contextId       the context resource id this page is shown under
      * @param partDefinitions returns the nanopublication defining a resource as a part of the context, or null if it is none
      * @return the ancestors' page references, top-down, possibly empty
      */
-    static List<NanodashPageRef> getAncestorRefs(PageParameters parameters, Nanopub definition, String partId, String contextId,
+    static List<NanodashPageRef> getAncestorRefs(Nanopub definition, String partId, String contextId,
                                                  Function<String, Nanopub> partDefinitions) {
         Set<String> visited = new HashSet<>(List.of(partId, contextId));
-        AncestorPart declaredParent = getDeclaredParent(definition, partId, contextId, visited, partDefinitions);
         List<NanodashPageRef> ancestors = new ArrayList<>();
-        if (definition != null && declaredParent == null) {
-            return ancestors;
-        }
-        AncestorPart ancestor = getIncomingPart(parameters, visited, partDefinitions);
-        if (ancestor == null) {
-            ancestor = declaredParent;
-        }
+        AncestorPart ancestor = getDeclaredParent(definition, partId, contextId, visited, partDefinitions);
         while (ancestor != null && ancestors.size() < MAX_ANCESTORS) {
             visited.add(ancestor.id());
             ancestors.add(0, NavigationContext.getPartPageRef(ancestor.id(), ancestor.label(), contextId));
             ancestor = getDeclaredParent(ancestor.definition(), ancestor.id(), contextId, visited, partDefinitions);
         }
         return ancestors;
-    }
-
-    /**
-     * The part this page was reached from, as the incoming {@code part} parameter names
-     * it. {@link NavigationContext#withPart} only ever sets that parameter together with
-     * the context the part belongs to, so it is trusted without checking; its label is
-     * the one handed along, else the one its definition declares.
-     *
-     * @param parameters      the page parameters
-     * @param visited         the ids that may not appear again in the chain
-     * @param partDefinitions returns the nanopublication defining a resource as a part of the context, or null if it is none
-     * @return the incoming part, or null if there is none or it is already in the chain
-     */
-    private static AncestorPart getIncomingPart(PageParameters parameters, Set<String> visited, Function<String, Nanopub> partDefinitions) {
-        String incomingId = NavigationContext.getPartId(parameters);
-        if (incomingId == null || visited.contains(incomingId)) {
-            return null;
-        }
-        Nanopub incomingDefinition = partDefinitions.apply(incomingId);
-        String incomingLabel = NavigationContext.getPartLabel(parameters);
-        if (incomingLabel == null && incomingDefinition != null) {
-            incomingLabel = getDeclaredLabel(incomingDefinition, incomingId);
-        }
-        return new AncestorPart(incomingId, incomingLabel, incomingDefinition);
     }
 
     /**
@@ -374,7 +354,7 @@ public class ResourcePartPage extends NanodashPage {
             breadCrumb = new ArrayList<>();
             breadCrumb.add(new NanodashPageRef(UserPage.class, new PageParameters().add("id", contextId), resourceWithProfile.getLabel()));
         }
-        breadCrumb.addAll(getAncestorRefs(parameters, definition, id, contextId,
+        breadCrumb.addAll(getAncestorRefs(definition, id, contextId,
                 resourceId -> getPartDefinition(resourceId, contextId, resourceWithProfile)));
         breadCrumb.add(new NanodashPageRef(ResourcePartPage.class, new PageParameters().add("id", id).add("context", contextId).add("label", label), label));
         NanodashPageRef[] breadCrumbArray = breadCrumb.toArray(new NanodashPageRef[0]);

@@ -4,7 +4,6 @@ import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.utils.TestUtils;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -26,8 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for how {@link ResourcePartPage} finds the parent part it shows in its breadcrumb
- * (issue #718).
+ * Tests for the ancestors {@link ResourcePartPage} shows in its breadcrumb (issue #718):
+ * the hierarchy the parts declare, however deep it goes, and never the path the reader
+ * took to reach the page.
  */
 class ResourcePartPageParentTest {
 
@@ -68,22 +68,6 @@ class ResourcePartPageParentTest {
     }
 
     /**
-     * Page parameters of a part page, reached from another part as
-     * {@link NavigationContext#withPart} leaves them.
-     *
-     * @param partId      the part page's own id
-     * @param parentId    the part the page was reached from, or null
-     * @param parentLabel the label handed along with it, or null
-     * @return the page parameters
-     */
-    private static PageParameters partPageParams(String partId, String parentId, String parentLabel) {
-        PageParameters params = new PageParameters().set("id", partId).set(NavigationContext.CONTEXT_PARAM, CONTEXT_ID);
-        if (parentId != null) params.set(NavigationContext.PART_PARAM, parentId);
-        if (parentLabel != null) params.set(NavigationContext.PART_LABEL_PARAM, parentLabel);
-        return params;
-    }
-
-    /**
      * A resolver that treats exactly the given definitions as parts of the context.
      *
      * @param definitions the defining nanopublication of each part, by part id
@@ -116,105 +100,78 @@ class ResourcePartPageParentTest {
     }
 
     @Test
-    void incomingPartIsFollowedUpItsDeclaredParents() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub rounds = nanopubWith(ROUNDS, SCHEMA_ABOUT_HTTP, TRUST_TOPIC, ROUNDS, SCHEMA_TITLE, "Rounds");
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_ABOUT_HTTP, TOPIC, PARAGRAPH, SCHEMA_TITLE, "Approval");
-        Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
+    void theChainFollowsTheDeclaredHierarchy() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub rounds = nanopubWith(ROUNDS, DCTERMS.IS_PART_OF, TRUST_TOPIC, ROUNDS, SCHEMA_TITLE, "Rounds");
         Nanopub trust = nanopubWith(TRUST_TOPIC, RDFS.LABEL, "Trust and approval");
-        PageParameters params = partPageParams(ROUNDS.stringValue(), PARAGRAPH.stringValue(), "Approval");
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(params, rounds, ROUNDS.stringValue(), CONTEXT_ID,
-                partsOfContext(Map.of(PARAGRAPH, approval, TOPIC, person, TRUST_TOPIC, trust)));
-        assertEquals(List.of(TOPIC.stringValue(), PARAGRAPH.stringValue()), ids(ancestors));
-        assertEquals(List.of("Person", "Approval"), labels(ancestors));
-        for (NanodashPageRef ref : ancestors) {
-            assertSame(ResourcePartPage.class, ref.getPageClass());
-            assertEquals(CONTEXT_ID, ref.getParameters().get(NavigationContext.CONTEXT_PARAM).toString());
-        }
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(rounds, ROUNDS.stringValue(), CONTEXT_ID,
+                partsOfContext(Map.of(TRUST_TOPIC, trust)));
+        assertEquals(List.of(TRUST_TOPIC.stringValue()), ids(ancestors));
+        assertEquals(List.of("Trust and approval"), labels(ancestors));
+        assertSame(ResourcePartPage.class, ancestors.get(0).getPageClass());
+        assertEquals(CONTEXT_ID, ancestors.get(0).getParameters().get(NavigationContext.CONTEXT_PARAM).toString());
     }
 
     @Test
-    void topLevelPartReachedFromAnotherPartGetsNoAncestors() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_ABOUT_HTTP, TOPIC, PARAGRAPH, SCHEMA_TITLE, "Approval");
-        Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
+    void thePartTheReaderCameFromIsNotAnAncestor() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        // Opening Rounds from the Approval paragraph must read the same as opening it directly:
+        // Approval is a sibling in the hierarchy, not a parent (issue #718 review).
+        Nanopub rounds = nanopubWith(ROUNDS, DCTERMS.IS_PART_OF, TRUST_TOPIC);
+        Nanopub approval = nanopubWith(PARAGRAPH, DCTERMS.IS_PART_OF, TOPIC, PARAGRAPH, SCHEMA_TITLE, "Approval");
         Nanopub trust = nanopubWith(TRUST_TOPIC, RDFS.LABEL, "Trust and approval");
-        PageParameters params = partPageParams(TRUST_TOPIC.stringValue(), PARAGRAPH.stringValue(), "Approval");
-        assertTrue(ResourcePartPage.getAncestorRefs(params, trust, TRUST_TOPIC.stringValue(), CONTEXT_ID,
-                partsOfContext(Map.of(PARAGRAPH, approval, TOPIC, person, TRUST_TOPIC, trust))).isEmpty());
-    }
-
-    @Test
-    void partWhoseDeclaredParentsAreNoPartsOfTheContextIsTopLevel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub trust = nanopubWith(TRUST_TOPIC, SCHEMA_ABOUT, OTHER_TOPIC, TRUST_TOPIC, RDFS.LABEL, "Trust and approval");
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_TITLE, "Approval");
-        PageParameters params = partPageParams(TRUST_TOPIC.stringValue(), PARAGRAPH.stringValue(), "Approval");
-        assertTrue(ResourcePartPage.getAncestorRefs(params, trust, TRUST_TOPIC.stringValue(), CONTEXT_ID,
-                partsOfContext(Map.of(PARAGRAPH, approval))).isEmpty());
-    }
-
-    @Test
-    void withoutIncomingPartTheChainStartsAtTheDeclaredParent() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_ABOUT, TOPIC);
         Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
-        PageParameters params = partPageParams(PARAGRAPH.stringValue(), null, null);
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(params, approval, PARAGRAPH.stringValue(), CONTEXT_ID,
-                partsOfContext(Map.of(TOPIC, person)));
-        assertEquals(List.of(TOPIC.stringValue()), ids(ancestors));
-        assertEquals(List.of("Person"), labels(ancestors));
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(rounds, ROUNDS.stringValue(), CONTEXT_ID,
+                partsOfContext(Map.of(TRUST_TOPIC, trust, PARAGRAPH, approval, TOPIC, person)));
+        assertEquals(List.of(TRUST_TOPIC.stringValue()), ids(ancestors));
+    }
+
+    @Test
+    void partsOfPartsOfPartsAreAllShown() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        IRI section = vf.createIRI("https://example.com/np/RAsection/approval-section");
+        Nanopub rounds = nanopubWith(ROUNDS, DCTERMS.IS_PART_OF, section);
+        Nanopub sectionNp = nanopubWith(section, DCTERMS.IS_PART_OF, TRUST_TOPIC, section, RDFS.LABEL, "Approval rounds");
+        Nanopub trust = nanopubWith(TRUST_TOPIC, DCTERMS.IS_PART_OF, TOPIC, TRUST_TOPIC, RDFS.LABEL, "Trust and approval");
+        Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(rounds, ROUNDS.stringValue(), CONTEXT_ID,
+                partsOfContext(Map.of(section, sectionNp, TRUST_TOPIC, trust, TOPIC, person)));
+        assertEquals(List.of(TOPIC.stringValue(), TRUST_TOPIC.stringValue(), section.stringValue()), ids(ancestors));
+        assertEquals(List.of("Person", "Trust and approval", "Approval rounds"), labels(ancestors));
     }
 
     @Test
     void declaredParentsThatAreNoPartsOfTheContextAreSkipped() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub approval = nanopubWith(
-                PARAGRAPH, SCHEMA_ABOUT, OTHER_TOPIC,
+                PARAGRAPH, DCTERMS.IS_PART_OF, OTHER_TOPIC,
                 PARAGRAPH, DCTERMS.IS_PART_OF, TOPIC);
         Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(partPageParams(PARAGRAPH.stringValue(), null, null),
-                approval, PARAGRAPH.stringValue(), CONTEXT_ID, partsOfContext(Map.of(TOPIC, person)));
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(approval, PARAGRAPH.stringValue(), CONTEXT_ID,
+                partsOfContext(Map.of(TOPIC, person)));
         assertEquals(List.of(TOPIC.stringValue()), ids(ancestors));
     }
 
     @Test
-    void incomingPartWithoutLabelTakesItsDeclaredLabel() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_TITLE, "Approval");
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(partPageParams(ROUNDS.stringValue(), PARAGRAPH.stringValue(), null),
-                null, ROUNDS.stringValue(), CONTEXT_ID, partsOfContext(Map.of(PARAGRAPH, approval)));
-        assertEquals(List.of("Approval"), labels(ancestors));
-    }
-
-    @Test
-    void unresolvableIncomingPartIsShownWithItsShortName() {
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(partPageParams(ROUNDS.stringValue(), PARAGRAPH.stringValue(), null),
-                null, ROUNDS.stringValue(), CONTEXT_ID, partsOfContext(Map.of()));
-        assertEquals(List.of(PARAGRAPH.stringValue()), ids(ancestors));
-        assertEquals(List.of(Utils.getShortNameFromURI(PARAGRAPH.stringValue())), labels(ancestors));
-    }
-
-    @Test
-    void noAncestorsWithoutIncomingOrDeclaredParent() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void noAncestorsForATopLevelPart() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
-        assertTrue(ResourcePartPage.getAncestorRefs(partPageParams(TOPIC.stringValue(), null, null), person, TOPIC.stringValue(), CONTEXT_ID,
+        assertTrue(ResourcePartPage.getAncestorRefs(person, TOPIC.stringValue(), CONTEXT_ID,
                 partsOfContext(Map.of())).isEmpty());
-        assertTrue(ResourcePartPage.getAncestorRefs(partPageParams(TOPIC.stringValue(), null, null), null, TOPIC.stringValue(), CONTEXT_ID,
+        assertTrue(ResourcePartPage.getAncestorRefs(null, TOPIC.stringValue(), CONTEXT_ID,
                 partsOfContext(Map.of())).isEmpty());
     }
 
     @Test
-    void incomingPartThatIsThePageItselfOrItsContextIsIgnored() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_ABOUT, TOPIC);
-        Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
-        Function<String, Nanopub> parts = partsOfContext(Map.of(TOPIC, person, PARAGRAPH, approval));
-        assertEquals(List.of(TOPIC.stringValue()), ids(ResourcePartPage.getAncestorRefs(
-                partPageParams(PARAGRAPH.stringValue(), PARAGRAPH.stringValue(), "Approval"), approval, PARAGRAPH.stringValue(), CONTEXT_ID, parts)));
-        assertEquals(List.of(TOPIC.stringValue()), ids(ResourcePartPage.getAncestorRefs(
-                partPageParams(PARAGRAPH.stringValue(), CONTEXT_ID, "Docs"), approval, PARAGRAPH.stringValue(), CONTEXT_ID, parts)));
+    void anAncestorWithoutALabelFallsBackToItsShortName() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub approval = nanopubWith(PARAGRAPH, DCTERMS.IS_PART_OF, TOPIC);
+        Nanopub person = nanopubWith(TOPIC, RDFS.SEEALSO, OTHER_TOPIC);
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(approval, PARAGRAPH.stringValue(), CONTEXT_ID,
+                partsOfContext(Map.of(TOPIC, person)));
+        assertEquals(List.of(Utils.getShortNameFromURI(TOPIC.stringValue())), labels(ancestors));
     }
 
     @Test
     void cyclicDeclaredParentsStopAtTheFirstRepeat() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        Nanopub approval = nanopubWith(PARAGRAPH, SCHEMA_ABOUT, TOPIC);
-        Nanopub person = nanopubWith(TOPIC, SCHEMA_ABOUT, PARAGRAPH, TOPIC, RDFS.LABEL, "Person");
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(partPageParams(PARAGRAPH.stringValue(), null, null),
-                approval, PARAGRAPH.stringValue(), CONTEXT_ID, partsOfContext(Map.of(TOPIC, person, PARAGRAPH, approval)));
+        Nanopub approval = nanopubWith(PARAGRAPH, DCTERMS.IS_PART_OF, TOPIC);
+        Nanopub person = nanopubWith(TOPIC, DCTERMS.IS_PART_OF, PARAGRAPH, TOPIC, RDFS.LABEL, "Person");
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(approval, PARAGRAPH.stringValue(), CONTEXT_ID,
+                partsOfContext(Map.of(TOPIC, person, PARAGRAPH, approval)));
         assertEquals(List.of(TOPIC.stringValue()), ids(ancestors));
     }
 
@@ -225,7 +182,7 @@ class ResourcePartPageParentTest {
         Nanopub childDefinition = null;
         for (int level = 0; level <= ResourcePartPage.MAX_ANCESTORS + 2; level++) {
             IRI parent = vf.createIRI("https://example.com/np/RAlevel/" + level);
-            Nanopub definition = nanopubWith(child, SCHEMA_ABOUT, parent);
+            Nanopub definition = nanopubWith(child, DCTERMS.IS_PART_OF, parent);
             if (child.equals(PARAGRAPH)) {
                 childDefinition = definition;
             } else {
@@ -234,18 +191,31 @@ class ResourcePartPageParentTest {
             child = parent;
         }
         chain.put(child, nanopubWith(child, RDFS.LABEL, "Top"));
-        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(partPageParams(PARAGRAPH.stringValue(), null, null),
-                childDefinition, PARAGRAPH.stringValue(), CONTEXT_ID, partsOfContext(chain));
+        List<NanodashPageRef> ancestors = ResourcePartPage.getAncestorRefs(childDefinition, PARAGRAPH.stringValue(), CONTEXT_ID,
+                partsOfContext(chain));
         assertEquals(ResourcePartPage.MAX_ANCESTORS, ancestors.size());
         assertEquals("https://example.com/np/RAlevel/0", ids(ancestors).get(ancestors.size() - 1));
     }
 
     @Test
-    void declaredParentCandidatesKeepTheStatedOrder() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void schemaAboutIsUsedOnlyWhenNoPartOfIsDeclared() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        // Parts published before the hierarchy was stated with dct:isPartOf still read correctly.
+        Nanopub both = nanopubWith(PARAGRAPH, SCHEMA_ABOUT, OTHER_TOPIC, PARAGRAPH, DCTERMS.IS_PART_OF, TOPIC);
+        assertEquals(List.of(TOPIC.stringValue(), OTHER_TOPIC.stringValue()),
+                ResourcePartPage.getDeclaredParentCandidates(both, PARAGRAPH.stringValue(), CONTEXT_ID));
+        Nanopub aboutOnly = nanopubWith(PARAGRAPH, SCHEMA_ABOUT_HTTP, TOPIC);
+        Nanopub person = nanopubWith(TOPIC, RDFS.LABEL, "Person");
+        assertEquals(List.of(TOPIC.stringValue()), ids(ResourcePartPage.getAncestorRefs(
+                aboutOnly, PARAGRAPH.stringValue(), CONTEXT_ID, partsOfContext(Map.of(TOPIC, person)))));
+    }
+
+    @Test
+    void declaredParentCandidatesPutPartOfFirstAndKeepTheStatedOrderWithin() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = nanopubWith(
                 PARAGRAPH, SCHEMA_ABOUT, TOPIC,
-                PARAGRAPH, DCTERMS.IS_PART_OF, OTHER_TOPIC);
-        assertEquals(List.of(TOPIC.stringValue(), OTHER_TOPIC.stringValue()),
+                PARAGRAPH, DCTERMS.IS_PART_OF, OTHER_TOPIC,
+                PARAGRAPH, DCTERMS.IS_PART_OF, TRUST_TOPIC);
+        assertEquals(List.of(OTHER_TOPIC.stringValue(), TRUST_TOPIC.stringValue(), TOPIC.stringValue()),
                 ResourcePartPage.getDeclaredParentCandidates(np, PARAGRAPH.stringValue(), CONTEXT_ID));
     }
 
