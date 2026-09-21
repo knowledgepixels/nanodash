@@ -1158,6 +1158,21 @@ public class Utils {
     }
 
     /**
+     * Gets the label a datatype is shown with beside a literal. The namespaces every
+     * nanopublication declares are abbreviated with the prefix they are written with; anything
+     * else is named by its full IRI, which is all there is to name it by.
+     *
+     * @param datatype the datatype IRI
+     * @return the label for the datatype, or an empty string if there is none
+     */
+    public static String getDatatypeLabel(IRI datatype) {
+        if (datatype == null) return "";
+        return datatype.stringValue()
+                .replace(XSD.NAMESPACE, "xsd:")
+                .replace(RDF.NAMESPACE, "rdf:");
+    }
+
+    /**
      * Gets a label for a URI.
      *
      * @param uri the URI to get the label from

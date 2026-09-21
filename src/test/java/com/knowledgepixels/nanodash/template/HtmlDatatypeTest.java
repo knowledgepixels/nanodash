@@ -249,6 +249,16 @@ public class HtmlDatatypeTest {
     }
 
     @Test
+    void theDatatypeIsNamedByItsPrefix() throws Exception {
+        // Beside the field, the datatype is written the way a nanopublication writes it,
+        // rather than as the full IRI.
+        mockTemplate(RDF.HTML);
+        String html = renderEditable();
+        assertTrue(html.contains("(rdf:HTML)"), html);
+        assertFalse(html.contains("22-rdf-syntax-ns#HTML"), html);
+    }
+
+    @Test
     void aLockedValueIsNotEditedInTheEditor() throws Exception {
         // The editor writes into a field a locked form doesn't read back (issue #678), so it
         // has to say as much rather than take input that goes nowhere.

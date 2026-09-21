@@ -482,7 +482,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 languageComp.setVisible(true);
             } else if (showDatatype) {
                 model.setObject("\"" + vs + "\"");
-                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+                datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
                 datatypeComp.setVisible(true);
             } else {
                 model.setObject("\"" + vs + "\"");
