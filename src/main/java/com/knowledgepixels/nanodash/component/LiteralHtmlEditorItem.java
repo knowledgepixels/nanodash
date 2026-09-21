@@ -1,26 +1,47 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.template.TemplateContext;
+import de.agilecoders.wicket.webjars.request.resource.WebjarsCssResourceReference;
+import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
+import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.eclipse.rdf4j.model.IRI;
-import org.wicketstuff.kendo.ui.widget.editor.Editor;
 
 /**
  * A rich-text editor for literals declared with the {@code rdf:HTML} datatype (issue #378).
  * Such a literal is rendered as HTML wherever it is shown, so it is also written as HTML
  * here, rather than leaving the author to type markup into a plain text area.
  * <p>
- * The markup the editor produces is sanitized when the value is finalized, with the same
- * policy that renders it later, so a nanopublication cannot carry markup that would be
- * dropped on display — and pasted content brings no scripting into the assertion. A
- * nanopublication cannot be edited after publication, which is why this happens before
- * signing rather than only at render time.
+ * The editor is Trix, which edits a normal hidden form field: it keeps the field in sync
+ * with what is typed, so the value reaches the form the way any other literal does. The
+ * formatting it offers — headings, bold, italic, strikethrough, links, lists, quotes and
+ * code — is what {@link Utils#sanitizeHtml(String)} keeps.
+ * <p>
+ * The markup is sanitized when the value is finalized, with the same policy that renders it
+ * later, so a nanopublication cannot carry markup that would be dropped on display — and
+ * pasted content brings no scripting into the assertion. A nanopublication cannot be edited
+ * after publication, which is why this happens before signing rather than only at render
+ * time.
  */
 public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
 
-    private Editor editor;
+    private static final WebjarsCssResourceReference TRIX_CSS =
+            new WebjarsCssResourceReference("trix/current/dist/trix.css");
+    private static final WebjarsJavaScriptResourceReference TRIX_JS =
+            new WebjarsJavaScriptResourceReference("trix/current/dist/trix.umd.min.js");
+    private static final JavaScriptResourceReference HTML_EDITOR_JS =
+            new JavaScriptResourceReference(WicketApplication.class, "script/html-editor.js");
+
+    private HiddenField<String> valueField;
 
     /**
      * Constructor for an HTML literal editor item.
@@ -32,6 +53,24 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
      */
     public LiteralHtmlEditorItem(String id, final IRI iri, boolean optional, TemplateContext context) {
         super(id, iri, optional, context);
+        add(createEditorElement(iri, context.getTemplate().getLabel(iri)));
+    }
+
+    /**
+     * Creates the editor element, pointed at the form field it edits.
+     *
+     * @param iri   the IRI of the literal placeholder
+     * @param label the placeholder's label, shown while the editor is empty, or null
+     * @return the editor element
+     */
+    private WebMarkupContainer createEditorElement(IRI iri, String label) {
+        WebMarkupContainer editorElement = new WebMarkupContainer("editor");
+        editorElement.add(AttributeModifier.replace("input", (IModel<String>) valueField::getMarkupId));
+        if (label != null) {
+            editorElement.add(AttributeModifier.replace("placeholder", label));
+        }
+        markAsLockedIfNeeded(editorElement, iri);
+        return editorElement;
     }
 
     /**
@@ -39,8 +78,9 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
      */
     @Override
     protected AbstractTextComponent<String> initTextComponent(IModel<String> model) {
-        editor = new Editor("textarea", model);
-        return editor;
+        valueField = new HiddenField<>("editorinput", model);
+        valueField.setOutputMarkupId(true);
+        return valueField;
     }
 
     /**
@@ -48,7 +88,21 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
      */
     @Override
     protected AbstractTextComponent<String> getTextComponent() {
-        return editor;
+        return valueField;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Adds the editor's own resources, so that a form without an HTML literal in it pays
+     * for none of them.
+     */
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        response.render(CssHeaderItem.forReference(TRIX_CSS));
+        response.render(JavaScriptHeaderItem.forReference(TRIX_JS));
+        response.render(JavaScriptHeaderItem.forReference(HTML_EDITOR_JS));
     }
 
     /**
@@ -58,7 +112,7 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
      */
     @Override
     public void finalizeValues() {
-        IModel<String> model = editor.getModel();
+        IModel<String> model = getTextComponent().getModel();
         String value = model.getObject();
         if (value != null && !value.isBlank()) {
             model.setObject(Utils.sanitizeHtml(value));

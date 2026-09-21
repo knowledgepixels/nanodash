@@ -1808,6 +1808,36 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   width: 350px;
 }
 
+/* The rich-text editor for rdf:HTML literals (#672). Formatted text is written in a block
+   of its own rather than in a field read at a glance, so it gets more room than a text
+   field and sits on its own line. The attach-a-file button is left out: a nanopublication
+   carries markup, and there is nowhere to keep a file it would point at. */
+.nanopub-html-editor {
+  display: inline-block;
+  vertical-align: top;
+  width: 500px;
+  max-width: 100%;
+}
+
+.nanopub-html-editor trix-editor {
+  background-color: #fff;
+}
+
+.nanopub-html-editor .trix-button-group--file-tools {
+  display: none;
+}
+
+/* A locked value (issue #678) is shown in the editor but not edited in it: what the editor
+   wrote would go into a field the form doesn't read back. The toolbar goes with it, since
+   there is nothing left for it to do. */
+.nanopub-html-editor trix-editor.locked-value {
+  pointer-events: none;
+}
+
+.nanopub-html-editor:has(trix-editor.locked-value) trix-toolbar {
+  display: none;
+}
+
 /* deactivate for now, because short textfields can currently also hold full URIs
 .nanopub-textfield.short {
   width: 250px;

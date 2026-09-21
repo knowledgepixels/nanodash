@@ -7,7 +7,10 @@
 <body>
 
 <wicket:panel>
-<textarea class="nanopub-html-editor" wicket:id="textarea" rows="8"></textarea>
+<span class="nanopub-html-editor">
+<input type="hidden" wicket:id="editorinput" />
+<trix-editor wicket:id="editor"></trix-editor>
+</span>
 <select wicket:id="langchoice" class="langtag-select"></select>
 <span wicket:id="language" class="litlang">language</span>
 <span wicket:id="datatype" class="litdatatype">datatype</span>

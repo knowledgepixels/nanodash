@@ -49,6 +49,19 @@
       <artifactId>wicketstuff-select2</artifactId>
       <version>${wicket.version}</version>
     </dependency>
+    <!-- The rich-text editor for rdf:HTML literals; the UMD build carries its own
+         copy of DOMPurify, so the webjar of that is not needed. -->
+    <dependency>
+      <groupId>org.webjars.npm</groupId>
+      <artifactId>trix</artifactId>
+      <version>2.1.15</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.webjars.npm</groupId>
+          <artifactId>dompurify</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>

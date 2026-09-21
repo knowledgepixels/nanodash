@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.WicketApplication;
+import de.agilecoders.wicket.webjars.request.resource.WebjarsCssResourceReference;
+import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.tester.WicketTester;
@@ -20,8 +22,14 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -177,7 +185,19 @@ public class HtmlDatatypeTest {
      * Renders the publish form for the template, the way an author sees it.
      */
     private String renderEditable() {
+        return renderEditable(false);
+    }
+
+    /**
+     * Renders the publish form for the template, the way an author sees it, with the field
+     * locked or free to fill.
+     */
+    private String renderEditable(boolean locked) {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        if (locked) {
+            context.setParam("comment", HTML_CONTENT);
+            context.setLocked("comment");
+        }
         context.initStatements();
         tester.startComponentInPage(context.getStatementItems().get(0));
         return tester.getLastResponseAsString();
@@ -190,23 +210,52 @@ public class HtmlDatatypeTest {
         mockTemplate(RDF.HTML);
         String html = renderEditable();
         assertTrue(html.contains("class=\"nanopub-html-editor\""), html);
+        assertTrue(html.contains("<trix-editor"), html);
         assertFalse(html.contains("class=\"nanopub-textfield\""), html);
     }
 
     @Test
-    void otherDatatypesKeepThePlainTextArea() throws Exception {
-        mockTemplate(XSD.STRING);
+    void theEditorIsPointedAtTheFieldThatIsSubmitted() throws Exception {
+        // Trix edits a hidden form field, named by the editor's "input" attribute; without
+        // that pairing the editor would show but nothing typed would reach the form.
+        mockTemplate(RDF.HTML);
         String html = renderEditable();
-        assertTrue(html.contains("class=\"nanopub-textfield\""), html);
-        assertFalse(html.contains("nanopub-html-editor"), html);
+        Matcher field = Pattern.compile("<input type=\"hidden\"[^>]*\\bid=\"([^\"]+)\"").matcher(html);
+        assertTrue(field.find(), html);
+        assertTrue(html.contains("input=\"" + field.group(1) + "\""), html);
+    }
+
+    /**
+     * Finds a webjar resource by the path a resource reference resolves to, which is where
+     * the webjar resource finder reads it from.
+     */
+    private URL shippedResource(String resolvedName) {
+        return getClass().getClassLoader().getResource("META-INF/resources/" + resolvedName.replaceFirst("^/", ""));
     }
 
     @Test
-    void undeclaredDatatypeKeepsThePlainTextArea() throws Exception {
-        mockTemplate(null);
-        String html = renderEditable();
-        assertTrue(html.contains("class=\"nanopub-textfield\""), html);
-        assertFalse(html.contains("nanopub-html-editor"), html);
+    void theEditorWidgetIsAmongTheResourcesWeShip() throws Exception {
+        // The editor this started out with turned out not to be in the library that was
+        // supposed to carry it, which nothing but the browser console said. So: the file
+        // the field asks for is on the classpath, and it defines the element the markup
+        // uses.
+        String editorJs = new WebjarsJavaScriptResourceReference("trix/current/dist/trix.umd.min.js").getName();
+        URL onClasspath = shippedResource(editorJs);
+        assertNotNull(onClasspath, editorJs + " is not on the classpath");
+        assertTrue(new String(onClasspath.openStream().readAllBytes(), StandardCharsets.UTF_8).contains("trix-editor"),
+                editorJs + " does not define the trix-editor element");
+        String editorCss = new WebjarsCssResourceReference("trix/current/dist/trix.css").getName();
+        assertNotNull(shippedResource(editorCss), editorCss + " is not on the classpath");
+    }
+
+    @Test
+    void aLockedValueIsNotEditedInTheEditor() throws Exception {
+        // The editor writes into a field a locked form doesn't read back (issue #678), so it
+        // has to say as much rather than take input that goes nowhere.
+        mockTemplate(RDF.HTML);
+        Matcher editorTag = Pattern.compile("<trix-editor[^>]*>").matcher(renderEditable(true));
+        assertTrue(editorTag.find(), "no editor rendered");
+        assertTrue(editorTag.group().contains("locked-value"), editorTag.group());
     }
 
     @Test

@@ -47,4 +47,18 @@ markup.
 | Datatype check | `Utils.isHtmlLiteral`, with `Utils.looksLikeHtml` as the legacy fallback |
 | Rendering | `LiteralItem`, `ReadonlyItem` |
 | Editing | `LiteralHtmlEditorItem`, chosen in `ValueItem` for `rdf:HTML` placeholders |
-| Editor widget | Kendo UI `Editor` from `wicketstuff-kendo-ui`, the dependency the date pickers already use |
+| Editor widget | [Trix](https://trix-editor.org/), from the `org.webjars.npm:trix` webjar |
+| Editor wiring | `script/html-editor.js`, loaded by the field itself, so a form without an HTML literal loads neither |
+
+The editor edits an ordinary hidden form field, which Trix keeps in sync with what is
+typed, so the value reaches the form the way any other literal does, and a locked value
+(#678) is shown in the editor without being edited there. Attachments are refused: a
+nanopublication carries markup, and there is nowhere to keep a file it would point at.
+
+The formatting Trix offers — headings, bold, italic, strikethrough, links, lists, quotes
+and code — is what `Utils.sanitizeHtml` keeps.
+
+The Kendo UI editor would have been the closer fit, since `wicketstuff-kendo-ui` is
+already a dependency for the date pickers, but the editor is not part of Kendo UI Core,
+which is the build that jar bundles: the widget is commercial, and the field rendered as
+a plain text area with `kendoEditor is not a function` in the browser console.
