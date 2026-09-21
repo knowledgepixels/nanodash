@@ -55,10 +55,32 @@ function friendlyRelative(date, absDateFallback) {
   return absDateFallback; // older than a week → absolute date
 }
 
+/* A date without a time ("2026-09-17", optionally with a zone as xsd:date allows) names a
+   calendar day, not an instant: new Date() would read it as midnight UTC, so a talk later
+   today showed as "8 hours ago". It is compared by day in the viewer's calendar instead. */
+function renderFriendlyDay(el, value) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})(Z|[+-]\d{2}:\d{2})?$/.exec(value);
+  if (!m) return false;
+  el.dataset.friendlyRendered = "1";
+  var d = new Date(+m[1], +m[2] - 1, +m[3]);
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var days = Math.round((d.getTime() - today.getTime()) / 86400000); // round absorbs DST shifts
+  var absDate = d.toLocaleDateString(undefined, { dateStyle: "medium" });
+  el.setAttribute("title", d.toLocaleDateString(undefined, { dateStyle: "full" }));
+  if (Math.abs(days) < 7 && typeof Intl !== "undefined" && Intl.RelativeTimeFormat) {
+    el.textContent = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(days, "day");
+  } else {
+    el.textContent = absDate;
+  }
+  return true;
+}
+
 function renderFriendlyDates(root) {
   var scope = root || document;
   scope.querySelectorAll("time.friendly-date[datetime]").forEach(function (el) {
     if (el.dataset.friendlyRendered === "1") return;
+    if (renderFriendlyDay(el, el.getAttribute("datetime"))) return;
     var d = new Date(el.getAttribute("datetime"));
     if (isNaN(d.getTime())) return; // unparseable → leave server-rendered text as-is
     el.dataset.friendlyRendered = "1";
