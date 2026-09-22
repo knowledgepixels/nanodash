@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.component.*;
@@ -21,6 +22,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Values;
+import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
@@ -29,8 +31,10 @@ import org.nanopub.extra.services.QueryRef;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * This class represents a page for a resource part in the context of a maintained resource, space, or user.
@@ -129,6 +133,167 @@ public class ResourcePartPage extends NanodashPage {
         return p.equals("http://schema.org/title") || p.equals("https://schema.org/title");
     }
 
+    /**
+     * Whether the given predicate names what a part belongs to: {@code dct:isPartOf}, or
+     * schema.org's {@code about} in either of its spellings, which parts published before
+     * the hierarchy was stated with {@code dct:isPartOf} use instead.
+     */
+    static boolean isParentPredicate(IRI predicate) {
+        return predicate.equals(DCTERMS.IS_PART_OF) || isSchemaAbout(predicate);
+    }
+
+    /**
+     * Whether the given predicate is schema.org's {@code about}, in either of its spellings.
+     */
+    private static boolean isSchemaAbout(IRI predicate) {
+        String p = predicate.stringValue();
+        return p.equals("http://schema.org/about") || p.equals("https://schema.org/about");
+    }
+
+    /**
+     * The label the given nanopublication declares for a resource: its {@code rdfs:label},
+     * else its {@code schema:title} (issue #701).
+     *
+     * @param nanopub    the nanopublication defining the resource
+     * @param resourceId the resource whose label to look up
+     * @return the declared label, or null if the nanopublication declares none
+     */
+    static String getDeclaredLabel(Nanopub nanopub, String resourceId) {
+        String schemaTitle = null;
+        for (Statement st : nanopub.getAssertion()) {
+            if (!st.getSubject().stringValue().equals(resourceId)) {
+                continue;
+            }
+            if (st.getPredicate().equals(RDFS.LABEL)) {
+                return st.getObject().stringValue();
+            }
+            if (schemaTitle == null && isSchemaTitle(st.getPredicate()) && !st.getObject().stringValue().isBlank()) {
+                schemaTitle = st.getObject().stringValue();
+            }
+        }
+        return schemaTitle;
+    }
+
+    /**
+     * The resources a part's defining nanopublication declares it to be about or part of,
+     * in the order they are stated, leaving out the part itself and the context it is
+     * shown under. These are only candidates: whether one is itself a part of the context
+     * has to be checked separately.
+     *
+     * @param nanopub   the nanopublication defining the part
+     * @param partId    the part resource id
+     * @param contextId the context resource id the part is shown under
+     * @return the candidate parent ids, possibly empty
+     */
+    static List<String> getDeclaredParentCandidates(Nanopub nanopub, String partId, String contextId) {
+        Set<String> declared = new LinkedHashSet<>();
+        Set<String> aboutOnly = new LinkedHashSet<>();
+        for (Statement st : nanopub.getAssertion()) {
+            if (!st.getSubject().stringValue().equals(partId) || !isParentPredicate(st.getPredicate())
+                    || !(st.getObject() instanceof IRI parent)) {
+                continue;
+            }
+            String parentId = parent.stringValue();
+            if (parentId.equals(partId) || parentId.equals(contextId)) {
+                continue;
+            }
+            (isSchemaAbout(st.getPredicate()) ? aboutOnly : declared).add(parentId);
+        }
+        declared.addAll(aboutOnly);
+        return new ArrayList<>(declared);
+    }
+
+    /**
+     * The most ancestors a part page's breadcrumb shows. The hierarchy is followed as deep
+     * as it goes, but parts of parts need not form a tree, so a bound keeps a long or
+     * malformed chain from making the page resolve parts without end.
+     */
+    static final int MAX_ANCESTORS = 20;
+
+    /**
+     * A part resolved while walking up its ancestors: its id, the label to show for it,
+     * and the nanopublication defining it, if one was found.
+     *
+     * @param id         the part resource id
+     * @param label      the label to show, or null to fall back to the part's short name
+     * @param definition the nanopublication defining the part, or null if none was found
+     */
+    record AncestorPart(String id, String label, Nanopub definition) {
+    }
+
+    /**
+     * The breadcrumbs between the context and this page's part, top-down (issue #718): the
+     * hierarchy the parts themselves declare, not the path the reader took to get here, so
+     * a part reads the same wherever it was opened from. It starts at the part this one
+     * declares to belong to and follows each part's own declared parent upwards, as deep as
+     * the hierarchy goes, stopping when a part declares none, when a part would repeat
+     * (parts of parts need not form a tree), or at {@link #MAX_ANCESTORS}.
+     *
+     * @param definition      the nanopublication defining this page's part, or null if none is known
+     * @param partId          this page's part resource id
+     * @param contextId       the context resource id this page is shown under
+     * @param partDefinitions returns the nanopublication defining a resource as a part of the context, or null if it is none
+     * @return the ancestors' page references, top-down, possibly empty
+     */
+    static List<NanodashPageRef> getAncestorRefs(Nanopub definition, String partId, String contextId,
+                                                 Function<String, Nanopub> partDefinitions) {
+        Set<String> visited = new HashSet<>(List.of(partId, contextId));
+        List<NanodashPageRef> ancestors = new ArrayList<>();
+        AncestorPart ancestor = getDeclaredParent(definition, partId, contextId, visited, partDefinitions);
+        while (ancestor != null && ancestors.size() < MAX_ANCESTORS) {
+            visited.add(ancestor.id());
+            ancestors.add(0, NavigationContext.getPartPageRef(ancestor.id(), ancestor.label(), contextId));
+            ancestor = getDeclaredParent(ancestor.definition(), ancestor.id(), contextId, visited, partDefinitions);
+        }
+        return ancestors;
+    }
+
+    /**
+     * The first part the given part declares to belong to (see
+     * {@link #getDeclaredParentCandidates}) that is itself a part of the context and not
+     * already in the chain.
+     *
+     * @param definition      the nanopublication defining the given part, or null if none is known
+     * @param childId         the part whose parent to find
+     * @param contextId       the context resource id the chain is shown under
+     * @param visited         the ids that may not appear again in the chain
+     * @param partDefinitions returns the nanopublication defining a resource as a part of the context, or null if it is none
+     * @return the declared parent, or null if there is none
+     */
+    private static AncestorPart getDeclaredParent(Nanopub definition, String childId, String contextId, Set<String> visited,
+                                                  Function<String, Nanopub> partDefinitions) {
+        if (definition == null) {
+            return null;
+        }
+        for (String parentId : getDeclaredParentCandidates(definition, childId, contextId)) {
+            if (visited.contains(parentId)) {
+                continue;
+            }
+            Nanopub parentDefinition = partDefinitions.apply(parentId);
+            if (parentDefinition != null) {
+                return new AncestorPart(parentId, getDeclaredLabel(parentDefinition, parentId), parentDefinition);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The nanopublication defining the given resource as a part of the given context, as
+     * resolved for the part page itself.
+     *
+     * @param resourceId the resource to resolve
+     * @param contextId  the context resource id
+     * @param resource   the resolved context resource
+     * @return the defining nanopublication, or null if the resource is not a part of the context
+     */
+    private static Nanopub getPartDefinition(String resourceId, String contextId, AbstractResourceWithProfile resource) {
+        ApiResponse response = ApiCache.retrieveResponseSync(ViewDataFetcher.partDefinitionQueryRef(resourceId, contextId, resource), false);
+        if (response == null || response.getData().isEmpty()) {
+            return null;
+        }
+        return Utils.getAsNanopub(response.getData().iterator().next().get("np"));
+    }
+
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
 
@@ -137,6 +302,7 @@ public class ResourcePartPage extends NanodashPage {
         final String nanopubId;
         String label = parameters.get("label").isEmpty() ? Utils.getShortNameFromURI(id) : parameters.get("label").toString();
         Set<IRI> classes = new HashSet<>();
+        Nanopub definition = null;
 
         resourceWithProfile = MaintainedResourceRepository.get().findById(contextId);
         if (resourceWithProfile == null) {
@@ -156,26 +322,15 @@ public class ResourcePartPage extends NanodashPage {
             nanopubId = getDefResp.getData().iterator().next().get("np");
 
             Nanopub nanopub = Utils.getAsNanopub(nanopubId);
-            boolean hasRdfsLabel = false;
-            String schemaTitle = null;
+            definition = nanopub;
+            String declaredLabel = getDeclaredLabel(nanopub, id);
+            if (declaredLabel != null) {
+                label = declaredLabel;
+            }
             for (Statement st : nanopub.getAssertion()) {
-                if (!st.getSubject().stringValue().equals(id)) {
-                    continue;
-                }
-                if (st.getPredicate().equals(RDFS.LABEL)) {
-                    label = st.getObject().stringValue();
-                    hasRdfsLabel = true;
-                } else if (isSchemaTitle(st.getPredicate())) {
-                    schemaTitle = st.getObject().stringValue();
-                }
-                if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
+                if (st.getSubject().stringValue().equals(id) && st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
                     classes.add(objIri);
                 }
-            }
-            // Parts declared with a title rather than a label (paragraphs, say) are still
-            // named after it instead of after their IRI's last segment (issue #701).
-            if (!hasRdfsLabel && schemaTitle != null && !schemaTitle.isBlank()) {
-                label = schemaTitle;
             }
         } else {
             nanopubId = null;
@@ -199,6 +354,8 @@ public class ResourcePartPage extends NanodashPage {
             breadCrumb = new ArrayList<>();
             breadCrumb.add(new NanodashPageRef(UserPage.class, new PageParameters().add("id", contextId), resourceWithProfile.getLabel()));
         }
+        breadCrumb.addAll(getAncestorRefs(definition, id, contextId,
+                resourceId -> getPartDefinition(resourceId, contextId, resourceWithProfile)));
         breadCrumb.add(new NanodashPageRef(ResourcePartPage.class, new PageParameters().add("id", id).add("context", contextId).add("label", label), label));
         NanodashPageRef[] breadCrumbArray = breadCrumb.toArray(new NanodashPageRef[0]);
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
