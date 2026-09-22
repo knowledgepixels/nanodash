@@ -1808,6 +1808,61 @@ span.nanopub-assertion, span.nanopub-provenance, span.nanopub-pubinfo {
   width: 350px;
 }
 
+/* The rich-text editor for rdf:HTML literals (#672). Formatted text needs more room than a
+   value read at a glance, so the statement holding one is laid out as a row whose object
+   takes whatever width is left: the editor stays on the line with the rest of the statement
+   and reaches the right edge, instead of being a fixed-width box with empty space beside it.
+   The statement's own trailing icons then sit after the full stop rather than floating past
+   the editor. The attach-a-file button is left out: a nanopublication carries markup, and
+   there is nowhere to keep a file it would point at. */
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .valueitem.obj {
+  flex: 1 1 24em;
+  min-width: 0;
+}
+
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .nanopub-statement-float {
+  float: none;
+  flex: 0 0 auto;
+}
+
+/* The full stop closes the statement, so it sits at the end of it: at the foot of the editor
+   rather than beside its toolbar, where it read as belonging to the line above. */
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .fullstop,
+.nanopub-statement:has(> .valueitem .nanopub-html-editor) .nanopub-statement-float {
+  align-self: flex-end;
+}
+
+.nanopub-html-editor {
+  display: block;
+  width: 100%;
+}
+
+.nanopub-html-editor trix-editor {
+  background-color: #fff;
+}
+
+.nanopub-html-editor .trix-button-group--file-tools {
+  display: none;
+}
+
+/* A locked value (issue #678) is shown in the editor but not edited in it: what the editor
+   wrote would go into a field the form doesn't read back. The toolbar goes with it, since
+   there is nothing left for it to do. */
+.nanopub-html-editor trix-editor.locked-value {
+  pointer-events: none;
+}
+
+.nanopub-html-editor:has(trix-editor.locked-value) trix-toolbar {
+  display: none;
+}
+
 /* deactivate for now, because short textfields can currently also hold full URIs
 .nanopub-textfield.short {
   width: 250px;
@@ -2452,6 +2507,21 @@ span.internal {
   border-color: rgba(0, 0, 0, 0.15);
 }
 
+/* HTML content in a statement is a box standing on the line, not a run of text in it, so it
+   lines up with the values beside it at the top. Left to its own baseline it hangs a line
+   lower than everything else on the row, and the space its margins take reads as the box
+   being out of line. Content long enough to be cut off keeps the bottom alignment its
+   "show more" arrow is placed by (.long-literal). */
+.nanopub-statement .value-container:has(> span.internal),
+.nanopub-statement span.internal {
+  vertical-align: top;
+}
+
+.nanopub-statement span.internal {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .refresh-icon {
   display: inline-block;
   background-image: url("images/refresh.svg");
@@ -2715,6 +2785,37 @@ span.usertext {
   padding-bottom: 30px;
   padding-left: 20px;
   text-indent: 0;
+}
+
+/* HTML content stands on the statement's line as a box. Everything leading up to it -- the
+   subject, the predicate -- keeps to the top of the line, while what closes the statement --
+   the datatype and the full stop -- sits at the foot of the box, where the sentence ends,
+   rather than up beside its first line. */
+.nanopub-statement:has(.valueitem span.internal) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: 5px;
+}
+
+.nanopub-statement:has(.valueitem span.internal) > .valueitem.obj > span {
+  display: flex;
+  align-items: flex-end;
+  column-gap: 5px;
+}
+
+.nanopub-statement:has(.valueitem span.internal) .fullstop,
+.nanopub-statement:has(.valueitem span.internal) .nanopub-statement-float {
+  align-self: flex-end;
+  float: none;
+}
+
+/* Content that turns out to fit (see adjustLongLiterals in nanodash.js) is shown as it is:
+   no height limit, and none of the room the "show more" arrow was to sit in. */
+.long-literal.fits {
+  max-height: none;
+  padding-bottom: 8px;
+  padding-left: 8px;
 }
 
 .collapsed::after {

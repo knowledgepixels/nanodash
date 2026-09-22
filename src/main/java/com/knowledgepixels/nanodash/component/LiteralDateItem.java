@@ -171,7 +171,7 @@ public class LiteralDateItem extends AbstractContextComponent {
             throw new RuntimeException(e);
         }
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
             datatypeComp.setVisible(true);
         }
     }

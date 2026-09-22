@@ -163,7 +163,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
         zonedDateTimePicker.setModelObject(zdt);
 
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
             datatypeComp.setVisible(true);
         }
     }

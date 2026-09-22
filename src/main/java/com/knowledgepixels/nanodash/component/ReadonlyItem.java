@@ -32,6 +32,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -471,26 +472,57 @@ public class ReadonlyItem extends AbstractContextComponent {
                 linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
                 showMoreLabelLiteral.setVisible(true);
             }
+            boolean renderAsHtml = renderAsHtml(vL);
+            boolean showDatatype = !vL.getDatatype().equals(XSD.STRING);
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
                 languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
                 languageComp.setVisible(true);
-            } else if (!vL.getDatatype().equals(XSD.STRING)) {
+            } else if (showDatatype) {
                 model.setObject("\"" + vs + "\"");
-                datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+                datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
                 datatypeComp.setVisible(true);
             } else {
                 model.setObject("\"" + vs + "\"");
             }
-            if (Utils.looksLikeHtml(vs)) {
+            if (renderAsHtml) {
                 linkComp.setVisible(false);
                 extraModel.setObject(Utils.sanitizeHtml(vs));
                 extraComp.setEscapeModelStrings(false);
                 extraComp.setVisible(true);
                 showMoreLabelLiteral.setVisible(false);
-                showMoreLabelHTML.setVisible(true);
+                // Only content that is actually too long to show is cut off and given the
+                // "show more" arrow, and its length is the length of the text rather than of
+                // the markup carrying it. Whether it then really doesn't fit is settled in the
+                // browser, which is the only place that knows how many lines it takes
+                // (adjustLongLiterals in nanodash.js).
+                if (Utils.htmlToPlainText(vs).length() >= LONG_LITERAL_LENGTH) {
+                    extraComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+                    showMoreLabelHTML.setVisible(true);
+                }
             }
         }
+    }
+
+    /**
+     * Decides whether a literal's content is to be rendered as HTML rather than escaped.
+     *
+     * <p>The datatype decides: {@code rdf:HTML} on the literal itself, or declared by the
+     * template for this placeholder, means HTML. Only when the template declares no
+     * datatype at all do we fall back to the pattern heuristic, which covers nanopubs
+     * published before HTML content was tagged, and those made without a template
+     * (see issue #378).
+     *
+     * @param literal the literal to be displayed
+     * @return true if the content is to be rendered as HTML
+     */
+    private boolean renderAsHtml(Literal literal) {
+        if (Utils.isHtmlLiteral(literal)) return true;
+        // A language-tagged literal is an rdf:langString, so a datatype the template
+        // declares alongside the tag does not apply to it.
+        IRI declaredDatatype = literal.getLanguage().isPresent() ? null : template.getDatatype(iri);
+        if (declaredDatatype != null) return RDF.HTML.equals(declaredDatatype);
+        return Utils.looksLikeHtml(literal.stringValue());
     }
 
     /**

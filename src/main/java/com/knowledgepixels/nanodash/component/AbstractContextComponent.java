@@ -83,6 +83,29 @@ public abstract class AbstractContextComponent extends Panel implements ContextC
     }
 
     /**
+     * Makes an element that edits a locked placeholder without being a form component itself
+     * follow the same lock state: it is marked as locked and says so, and the stylesheet keeps
+     * it from taking input (issue #678). The form field behind it is locked by
+     * {@link #lockIfNeeded(FormComponent, IRI)} as usual, which is what actually holds.
+     *
+     * @param element the element standing in for the field
+     * @param iri     the placeholder IRI, including any repetition suffix
+     */
+    protected void markAsLockedIfNeeded(final Component element, final IRI iri) {
+        final TemplateContext c = context;
+        element.add(new Behavior() {
+
+            @Override
+            public void onComponentTag(Component component, ComponentTag tag) {
+                if (!c.isLocked(iri)) return;
+                tag.put("title", LOCKED_FIELD_MESSAGE);
+                tag.append("class", "locked-value", " ");
+            }
+
+        });
+    }
+
+    /**
      * Whether the tag renders as a control that browsers submit while readonly. Decided on the
      * rendered tag rather than on the Java class, because a choice field can be a text component
      * that renders as a {@code select} (the select2-based choice fields are).
