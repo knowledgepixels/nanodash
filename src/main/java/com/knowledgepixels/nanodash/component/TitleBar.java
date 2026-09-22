@@ -89,7 +89,7 @@ public class TitleBar extends Panel {
             breadcrumbPath.add(new AttributeAppender("class", " fullwidth"));
         }
         WebMarkupContainer breadcrumbLinks = new WebMarkupContainer("breadcrumblinks");
-        List<CrumbPart> crumbParts = withoutSiteHome(buildCrumbParts(pathRefs));
+        List<CrumbPart> crumbParts = withoutTrivialPath(withoutSiteHome(buildCrumbParts(pathRefs)));
         if (!crumbParts.isEmpty()) {
             CrumbPart first = crumbParts.get(0);
             breadcrumbLinks.add(first.ref().createComponent("firstpathelement", first.label()));
@@ -248,6 +248,19 @@ public class TitleBar extends Panel {
         int skip = 0;
         while (skip < crumbParts.size() && pointsToSiteHome(crumbParts.get(skip).ref())) skip++;
         return skip == 0 ? crumbParts : new ArrayList<>(crumbParts.subList(skip, crumbParts.size()));
+    }
+
+    /**
+     * Drops a path of a single crumb. Every path ends in the page it is shown on, so a
+     * single crumb only repeats the page's own title and says nothing about where the page
+     * sits; this happens on a site, where the site's space is left out of the path
+     * (issue #692), and wherever a resource's space is not known.
+     *
+     * @param crumbParts the crumbs
+     * @return the crumbs, or none if there was only one
+     */
+    static List<CrumbPart> withoutTrivialPath(List<CrumbPart> crumbParts) {
+        return crumbParts.size() == 1 ? List.of() : crumbParts;
     }
 
     /**

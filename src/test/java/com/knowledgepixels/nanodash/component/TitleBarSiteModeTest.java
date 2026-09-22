@@ -67,6 +67,30 @@ class TitleBarSiteModeTest {
         assertEquals(List.of("Other", "Sub"), labels(TitleBar.withoutSiteHome(parts)));
     }
 
+    /**
+     * A part of the site's space: with the space left out, only the part itself would be
+     * left, which is the page's own title.
+     */
+    @Test
+    void aPathOfTheSiteSpaceAndThePageItselfIsNotShown() {
+        envVars.set("NANODASH_SITE_SPACE", SITE);
+        List<CrumbPart> parts = TitleBar.buildCrumbParts(new NanodashPageRef[]{spaceRef(SITE, "My Site"), spaceRef(SUB, "Natural Science")});
+        assertEquals(List.of(), labels(TitleBar.withoutTrivialPath(TitleBar.withoutSiteHome(parts))));
+    }
+
+    @Test
+    void aPathOfTwoLevelsBelowTheSiteIsShown() {
+        envVars.set("NANODASH_SITE_SPACE", SITE);
+        List<CrumbPart> parts = TitleBar.buildCrumbParts(new NanodashPageRef[]{spaceRef(SITE, "My Site"), spaceRef(SUB, "Sub"), spaceRef(SUB + "/x", "Part")});
+        assertEquals(List.of("Sub", "Part"), labels(TitleBar.withoutTrivialPath(TitleBar.withoutSiteHome(parts))));
+    }
+
+    @Test
+    void aSingleCrumbIsNotShownOutsideSiteModeEither() {
+        List<CrumbPart> parts = TitleBar.buildCrumbParts(new NanodashPageRef[]{spaceRef(SUB, "Sub")});
+        assertEquals(List.of(), labels(TitleBar.withoutTrivialPath(parts)));
+    }
+
     @Test
     void aPathOfOnlyTheSiteSpaceBecomesEmpty() {
         envVars.set("NANODASH_SITE_SPACE", SITE);
