@@ -66,6 +66,17 @@ public class LiteralHtmlEditorItem extends LiteralTextfieldItem {
     public LiteralHtmlEditorItem(String id, final IRI iri, boolean optional, TemplateContext context) {
         super(id, iri, optional, context);
         add(createEditorElement(iri, context.getTemplate().getLabel(iri)));
+        hideDatatypeMarker();
+    }
+
+    /**
+     * Keeps the datatype out of the form. The field the template asks for is the editor, which
+     * is what an author sees and works in, the way a date placeholder is a date picker rather
+     * than a text field labelled "(xsd:dateTime)". On display, where the datatype says something
+     * about a published literal, it is shown.
+     */
+    private void hideDatatypeMarker() {
+        get("datatype").setVisible(false);
     }
 
     /**

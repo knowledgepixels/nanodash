@@ -2787,6 +2787,29 @@ span.usertext {
   text-indent: 0;
 }
 
+/* HTML content stands on the statement's line as a box. Everything leading up to it -- the
+   subject, the predicate -- keeps to the top of the line, while what closes the statement --
+   the datatype and the full stop -- sits at the foot of the box, where the sentence ends,
+   rather than up beside its first line. */
+.nanopub-statement:has(.valueitem span.internal) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: 5px;
+}
+
+.nanopub-statement:has(.valueitem span.internal) > .valueitem.obj > span {
+  display: flex;
+  align-items: flex-end;
+  column-gap: 5px;
+}
+
+.nanopub-statement:has(.valueitem span.internal) .fullstop,
+.nanopub-statement:has(.valueitem span.internal) .nanopub-statement-float {
+  align-self: flex-end;
+  float: none;
+}
+
 /* Content that turns out to fit (see adjustLongLiterals in nanodash.js) is shown as it is:
    no height limit, and none of the room the "show more" arrow was to sit in. */
 .long-literal.fits {

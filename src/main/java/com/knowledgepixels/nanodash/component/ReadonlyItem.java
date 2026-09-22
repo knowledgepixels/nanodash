@@ -473,9 +473,7 @@ public class ReadonlyItem extends AbstractContextComponent {
                 showMoreLabelLiteral.setVisible(true);
             }
             boolean renderAsHtml = renderAsHtml(vL);
-            // An rdf:HTML literal gets no datatype marker: the rendered content itself shows
-            // what it is, just as dates are shown without an "(xsd:date)" suffix.
-            boolean showDatatype = !vL.getDatatype().equals(XSD.STRING) && !renderAsHtml;
+            boolean showDatatype = !vL.getDatatype().equals(XSD.STRING);
             if (vL.getLanguage().isPresent()) {
                 model.setObject("\"" + vs + "\"");
                 languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");

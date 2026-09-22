@@ -9,8 +9,8 @@ A literal declared with the `rdf:HTML` datatype is content meant to be read as H
 string that happens to contain angle brackets. Nanodash decides by the datatype, the way it
 decides dates by `xsd:date`:
 
-- **Rendering:** such a literal is shown as HTML, sanitized, and without the surrounding
-  quotes or the datatype marker — the rendered content already shows what it is.
+- **Rendering:** such a literal is shown as HTML, sanitized and without the surrounding
+  quotes, with its datatype named beside it as any other non-string literal's is.
 - **Writing:** a placeholder whose template declares `nt:hasDatatype rdf:HTML` is filled
   with a rich-text editor rather than a plain text area, so the author writes formatted
   text instead of typing markup.
@@ -44,7 +44,9 @@ sanitizer gives each one, so the published literal reads as it was written.
 ## Showing it
 
 An HTML literal is shown as a box on the statement's line, lined up with the values beside
-it. Content whose *text* is longer than `ReadonlyItem.LONG_LITERAL_LENGTH` is a candidate
+it, with "(rdf:HTML)" beside it as an `xsd:dateTime` literal is shown with its datatype. In
+the publish form the datatype is not written out: what the template asks for is the editor,
+and that is what the author works in, the way a date placeholder is a date picker. Content whose *text* is longer than `ReadonlyItem.LONG_LITERAL_LENGTH` is a candidate
 for being cut off with a "show more" arrow, the same way a long plain literal is — the
 length of the text, not of the markup carrying it.
 

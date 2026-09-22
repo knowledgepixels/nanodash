@@ -127,10 +127,13 @@ public class HtmlDatatypeTest {
     }
 
     @Test
-    void htmlDatatypeGetsNoDatatypeMarker() throws Exception {
+    void htmlDatatypeIsNamedBesideTheContent() throws Exception {
+        // A published literal says what it is, the way an xsd:dateTime one does -- named by
+        // its prefix rather than by the full IRI.
         mockTemplate(RDF.HTML);
         String html = renderReadOnly(vf.createLiteral(HTML_CONTENT, RDF.HTML));
-        assertFalse(html.contains("rdf-syntax-ns#HTML"), "the rendered content already shows what it is: " + html);
+        assertTrue(html.contains("(rdf:HTML)"), html);
+        assertFalse(html.contains("22-rdf-syntax-ns#HTML"), html);
     }
 
     @Test
@@ -268,12 +271,12 @@ public class HtmlDatatypeTest {
     }
 
     @Test
-    void theDatatypeIsNamedByItsPrefix() throws Exception {
-        // Beside the field, the datatype is written the way a nanopublication writes it,
-        // rather than as the full IRI.
+    void theFormDoesNotNameTheDatatype() throws Exception {
+        // What the template asks for is the editor, and that is what the author gets; the
+        // datatype is no more written beside it than "(xsd:dateTime)" is beside a date picker.
         mockTemplate(RDF.HTML);
         String html = renderEditable();
-        assertTrue(html.contains("(rdf:HTML)"), html);
+        assertFalse(html.contains("rdf:HTML"), html);
         assertFalse(html.contains("22-rdf-syntax-ns#HTML"), html);
     }
 
