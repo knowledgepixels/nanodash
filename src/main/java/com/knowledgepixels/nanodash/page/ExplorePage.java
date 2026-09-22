@@ -268,6 +268,15 @@ public class ExplorePage extends NanodashPage {
             ResourcePartPage.forwardToContainingResource(new PageParameters(parameters).set("id", tempRef));
         }
 
+        // A site shows no page about what is not its own (issue #692): a term that none of the
+        // rules above placed in the site is sent on to itself. Links from a site's views come
+        // here for exactly this decision, since at link time nothing can tell a part of the
+        // site (which the rules above forward) from a foreign resource.
+        if (publishedNanopub == null && !isNanopubId && SiteMode.isEnabled() && !SiteMode.belongsToSite(tempRef)) {
+            String resolverUrl = Utils.getExternalResolverUrl(tempRef);
+            throw new RedirectToUrlException(resolverUrl != null ? resolverUrl : tempRef, 303);
+        }
+
         WebMarkupContainer nanopubSection = new WebMarkupContainer("nanopub-section");
 
         if (np == null) {
@@ -354,7 +363,7 @@ public class ExplorePage extends NanodashPage {
         } else {
             shortName = parameters.get("label").toString();
         }
-        add(new Label("pagetitle", shortName + " (explore) | nanodash"));
+        add(new Label("pagetitle", shortName + " (explore)" + titleSuffix()));
         add(new Label("termname", shortName));
 
         //add(new ExternalLink("urilink", ref, ref));

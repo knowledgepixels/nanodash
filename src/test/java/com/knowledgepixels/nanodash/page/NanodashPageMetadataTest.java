@@ -47,6 +47,15 @@ class NanodashPageMetadataTest {
     /**
      * Link previews read Open Graph and Twitter card tags rather than the description.
      */
+    /**
+     * Only a site marks its body: everywhere else the stylesheet's outbound-link rules stay off.
+     */
+    @Test
+    void doesNotMarkTheBodyAsASite() {
+        String document = renderedPage();
+        assertFalse(document.matches("(?s).*<body[^>]*class=.*"), document);
+    }
+
     @Test
     void rendersOpenGraphAndTwitterCardTags() {
         String document = renderedPage();

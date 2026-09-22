@@ -43,6 +43,26 @@ umamiWebsiteId: your-umami-website-id
 
 When configured, Nanodash logs `Umami analytics configured: <url>` at startup to confirm the setting was picked up.
 
+### Site mode
+
+An instance can present itself as the website of one space rather than as Nanodash: the
+space's page becomes the home page, the space is the context of everything, its name and
+logo replace Nanodash's, and links to what lies outside the space are plain links. Set the
+space, and optionally a name, a logo and a stylesheet:
+
+```yaml
+services:
+  nanodash:
+    environment:
+      - NANODASH_SITE_SPACE=https://w3id.org/spaces/my-space
+      - NANODASH_SITE_NAME=My Space
+      - NANODASH_SITE_LOGO=https://example.org/logo.svg
+      - NANODASH_SITE_CSS=https://example.org/site.css
+```
+
+Or in `~/.nanopub/nanodash-preferences.yml`: `siteSpace`, `siteName`, `siteLogo`, `siteCss`.
+See [docs/site-views.md](docs/site-views.md) for what changes and what does not.
+
 ### Screenshot
 
 This screenshot of Nanodash is showing its publishing feature with auto-complete-powered forms generated from semantic

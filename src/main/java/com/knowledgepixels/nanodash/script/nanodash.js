@@ -372,7 +372,23 @@ function trackAjaxUpdates() {
   });
 }
 
+/* Site mode (issue #692): a link that leaves the site opens in a new tab, so the site stays
+   where it was. In-app links are relative; an absolute address on another origin is one that
+   leaves. Decided at click time, on the document, so content loaded by AJAX is covered too. */
+function openOutboundLinksInNewTab() {
+  if (!document.body.classList.contains("site")) return;
+  document.addEventListener("click", function (event) {
+    var link = event.target.closest ? event.target.closest("a[href]") : null;
+    if (!link || link.target) return;
+    if (!/^https?:\/\//i.test(link.getAttribute("href"))) return;
+    if (link.origin === window.location.origin) return;
+    link.target = "_blank";
+    link.rel = "noopener";
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+  openOutboundLinksInNewTab();
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();

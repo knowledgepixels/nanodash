@@ -64,7 +64,7 @@ public class ProjectPage extends NanodashPage {
 
         add(new TitleBar("titlebar", this));
 
-        add(new Label("pagetitle", project.getLabel() + " (project) | nanodash"));
+        add(new Label("pagetitle", project.getLabel() + " (project)" + titleSuffix()));
         add(new Label("projectname", project.getLabel()));
         add(new ExternalLink("id", project.getId(), project.getId()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", np.getUri()))

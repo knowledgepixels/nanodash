@@ -8,6 +8,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -20,10 +21,13 @@ import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.ServiceHealth;
 import com.knowledgepixels.nanodash.ServiceMode;
+import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.SiteHomePage;
+import com.knowledgepixels.nanodash.page.SpacePage;
 
 /**
  * TitleBar is the top bar of the Nanodash application, which contains the
@@ -50,6 +54,16 @@ public class TitleBar extends Panel {
     public TitleBar(String id, NanodashPage page, NanodashPageRef... pathRefs) {
         super(id);
         add(new ProfileItem("profile", page));
+        // The instance's mark at the top left: Nanodash's logo, or in site mode the site's
+        // name with its logo, where it has one (issue #692).
+        boolean site = SiteMode.isEnabled();
+        String siteLogo = SiteMode.getLogoSrc();
+        add(new WebMarkupContainer("logo").setVisible(!site));
+        WebMarkupContainer siteLogoLink = new WebMarkupContainer("site-logo");
+        siteLogoLink.add(new ExternalImage("site-logo-image", siteLogo == null ? "" : siteLogo));
+        siteLogoLink.setVisible(site && siteLogo != null);
+        add(siteLogoLink);
+        add(new Label("site-name", site ? SiteMode.getName() : "").setVisible(site));
         // Centered title-bar message: the post-publish confirmation and/or the
         // always-on "you haven't published an introduction yet" warning.
         add(new JustPublishedMessagePanel("justPublishedMessage", page.getPageParameters()));
@@ -75,7 +89,7 @@ public class TitleBar extends Panel {
             breadcrumbPath.add(new AttributeAppender("class", " fullwidth"));
         }
         WebMarkupContainer breadcrumbLinks = new WebMarkupContainer("breadcrumblinks");
-        List<CrumbPart> crumbParts = buildCrumbParts(pathRefs);
+        List<CrumbPart> crumbParts = withoutSiteHome(buildCrumbParts(pathRefs));
         if (!crumbParts.isEmpty()) {
             CrumbPart first = crumbParts.get(0);
             breadcrumbLinks.add(first.ref().createComponent("firstpathelement", first.label()));
@@ -112,7 +126,7 @@ public class TitleBar extends Panel {
         breadcrumbPath.add(new EmptyPanel("tabs").setVisible(false));
         // The strip shows when there is a breadcrumb to display; setTabs() also
         // forces it visible so a tab strip shows even without a breadcrumb.
-        breadcrumbPath.setVisible(pathRefs.length > 0 || backCrumbVisible);
+        breadcrumbPath.setVisible(!crumbParts.isEmpty() || backCrumbVisible);
         add(breadcrumbPath);
     }
 
@@ -134,7 +148,7 @@ public class TitleBar extends Panel {
             contextId = page.getContextId();
             if (contextId == null) {
                 if (page instanceof HomePage) return null;
-                return new NanodashPageRef(HomePage.class, "Home");
+                return NavigationContext.homePageRef();
             }
         }
         // A resource part carried along names the page the user actually came from,
@@ -143,7 +157,8 @@ public class TitleBar extends Panel {
         NanodashPageRef partRef = NavigationContext.getPartPageRef(partId, page.getPartLabel(), contextId);
         if (partRef != null && !pointsToSelf(partRef, page, partId)) return partRef;
         NanodashPageRef ref = NavigationContext.getPageRef(contextId);
-        if (page instanceof HomePage && ref != null && HomePage.class.equals(ref.getPageClass())) return null;
+        Class<? extends NanodashPage> homePageClass = NavigationContext.homePageClass();
+        if (homePageClass.isInstance(page) && ref != null && homePageClass.equals(ref.getPageClass())) return null;
         if (ref == null) {
             // Stale or not-yet-loaded context id: link via the explore page, which
             // forwards known resources to their own pages once the caches are warm.
@@ -217,6 +232,32 @@ public class TitleBar extends Panel {
             }
         }
         return parts;
+    }
+
+    /**
+     * Drops the leading crumbs that point at the site's home (issue #692): on a site, the
+     * site's space is the top of every path, and the name at the top left already says so.
+     * The labels of the remaining crumbs were derived with it as their parent, so a child of
+     * the site's space keeps its short label. Does nothing outside site mode.
+     *
+     * @param crumbParts the crumbs as built
+     * @return the crumbs without the leading site-home ones
+     */
+    static List<CrumbPart> withoutSiteHome(List<CrumbPart> crumbParts) {
+        if (!SiteMode.isEnabled()) return crumbParts;
+        int skip = 0;
+        while (skip < crumbParts.size() && pointsToSiteHome(crumbParts.get(skip).ref())) skip++;
+        return skip == 0 ? crumbParts : new ArrayList<>(crumbParts.subList(skip, crumbParts.size()));
+    }
+
+    /**
+     * Whether the ref leads to the site's home: the home page itself, or the space page of
+     * the site's space.
+     */
+    private static boolean pointsToSiteHome(NanodashPageRef ref) {
+        if (SiteHomePage.class.equals(ref.getPageClass())) return true;
+        if (!SpacePage.class.equals(ref.getPageClass()) || ref.getParameters() == null) return false;
+        return SiteMode.isSiteSpace(ref.getParameters().get("id").toString(""));
     }
 
     /**

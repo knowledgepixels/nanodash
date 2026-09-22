@@ -89,7 +89,7 @@ public class ListPage extends NanodashPage {
         logger.info("Rendering ListPage with '{}' mode.", NanodashSession.get().getNanopubResultsViewMode().getValue());
 
         add(new TitleBar("titlebar", this));
-        add(new Label("pagetitle", "Nanopublication list | nanodash"));
+        add(new Label("pagetitle", "Nanopublication list" + titleSuffix()));
 
         WebMarkupContainer typeFilterContainer = new WebMarkupContainer("typeFilterContainer");
         WebMarkupContainer userFilterContainer = new WebMarkupContainer("userFilterContainer");

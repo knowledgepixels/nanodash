@@ -104,7 +104,7 @@ public class UserPage extends NanodashPage {
         }
 
         final String displayName = User.getShortDisplayName(userIri);
-        add(new Label("pagetitle", displayName + " (user) | nanodash"));
+        add(new Label("pagetitle", displayName + " (user)" + titleSuffix()));
         setMetaDescription("The Nanodash page of " + displayName + ", with their profile and nanopublications.");
         add(new Label("username", displayName));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));

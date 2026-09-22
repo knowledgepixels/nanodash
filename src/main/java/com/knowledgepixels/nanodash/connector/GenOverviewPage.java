@@ -358,7 +358,7 @@ public class GenOverviewPage extends ConnectorPage {
             }
         }
 
-        add(new Label("pagetitle", config.getJournalName() + " | nanodash"));
+        add(new Label("pagetitle", config.getJournalName() + "" + titleSuffix()));
         add(new Label("journal-name-title", config.getJournalName()));
         add(new ExternalLink("journal-link", config.getJournalUrl(), config.getJournalName()));
         add(new Label("extra-instructions", config.getExtraInstructions()).setEscapeModelStrings(false));

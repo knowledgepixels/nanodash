@@ -448,6 +448,59 @@ p.center {
   vertical-align: middle;
 }
 
+/* Site mode (issue #692): the site's logo and name take the place of the Nanodash logo. */
+#titlebar .site-logo img {
+  height: 8mm;
+  max-width: 40mm;
+  object-fit: contain;
+  vertical-align: middle;
+  margin: 2mm 2mm 2mm 0;
+}
+
+#titlebar .site-name {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 2mm 2mm 2mm 0;
+  line-height: 8mm;
+  font-weight: bold;
+  font-size: 13pt;
+  color: #333;
+}
+
+#titlebar .site-name:hover {
+  color: #0b73da;
+}
+
+/* A link that leaves the site says so, in a grey-blue away from the link blue and with an
+   arrow that is faint until the link is hovered. Links within the app are relative, so an
+   absolute http(s) address is one that leaves; buttons, image links and the links inside
+   the black hover boxes (white on black there) are left alone. */
+body.site a[href^="http://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *),
+body.site a[href^="https://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *) {
+  color: #5a6b7d;
+}
+
+body.site a[href^="http://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *):hover,
+body.site a[href^="https://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *):hover {
+  color: #8595a6;
+}
+
+body.site a[href^="http://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *)::after,
+body.site a[href^="https://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *)::after {
+  content: "\2197";
+  /* A text font, not the emoji font that leads the stacks in places: the arrow should look
+     the same everywhere. Inline (not inline-block) so it cannot wrap onto a line of its own. */
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.7em;
+  padding-left: 0.15em;
+  color: #d0d6dc;
+}
+
+body.site a[href^="http://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *):hover::after,
+body.site a[href^="https://"]:not(.button):not(:has(> img)):not(.tooltiptext):not(.tooltiptext *):hover::after {
+  color: inherit;
+}
+
 .title .orglogo {
   display: inline-block;
   background-image: url("images/by-kpxl.svg");

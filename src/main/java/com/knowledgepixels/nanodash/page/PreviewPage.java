@@ -49,17 +49,18 @@ public class PreviewPage extends NanodashPage {
 
     public PreviewPage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("pagetitle", "Preview Nanopublication" + titleSuffix()));
 
         add(new TitleBar("titlebar", this));
 
         String previewId = parameters.get("id").toString();
         if (previewId == null) {
-            throw new RestartResponseException(HomePage.class);
+            throw new RestartResponseException(NavigationContext.homePageClass());
         }
 
         NanodashSession.PreviewNanopub preview = NanodashSession.get().getPreviewNanopub(previewId);
         if (preview == null) {
-            throw new RestartResponseException(HomePage.class);
+            throw new RestartResponseException(NavigationContext.homePageClass());
         }
 
         Nanopub signedNp = preview.getNanopub();
@@ -104,7 +105,8 @@ public class PreviewPage extends NanodashPage {
                         throw new RedirectToUrlException(forwardUrl + "?" + paramString);
                     }
 
-                    String contextId = pageParams.get("context").toString("");
+                    String contextId = NavigationContext.getContextId(pageParams);
+                    if (contextId == null) contextId = "";
                     // Broaden the refresh: also force-refresh the context resource's own
                     // data so the page we redirect to reflects the just-published change,
                     // not only the specific view query that was acted on. Only for

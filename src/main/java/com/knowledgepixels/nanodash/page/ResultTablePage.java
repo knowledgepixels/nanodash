@@ -43,7 +43,7 @@ public class ResultTablePage extends NanodashPage {
         query = parameters.get("query").toString();
         add(new TitleBar("titlebar", this));
         final String shortName = query.replaceFirst("^.*/", "");
-        add(new Label("pagetitle", shortName + " (result table) | nanodash"));
+        add(new Label("pagetitle", shortName + " (result table)" + titleSuffix()));
 
         add(QueryResultTableBuilder.create("table", new QueryRef(query), new ViewDisplay(20)).build());
 

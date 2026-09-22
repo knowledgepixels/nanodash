@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.TitleBar;
@@ -219,7 +220,7 @@ public class ErrorPage extends NanodashPage {
         String address = getFailingAddress(containerRequest);
         String backUrl = getBackUrl(containerRequest);
 
-        add(new Label("pagetitle", kind.getHeading() + " | nanodash"));
+        add(new Label("pagetitle", kind.getHeading() + "" + titleSuffix()));
         add(new Label("heading", kind.getEmoji() + " " + kind.getHeading()));
         add(new Label("message", message).setVisible(!message.isBlank()));
         add(new Label("responsibility", kind.getResponsibility()));
@@ -228,7 +229,7 @@ public class ErrorPage extends NanodashPage {
         add(new Label("address", address).setVisible(kind == Kind.NOT_FOUND && address != null));
 
         add(new ExternalLink("back-link", backUrl).setVisible(backUrl != null));
-        add(new BookmarkablePageLink<Void>("home-link", HomePage.class));
+        add(new BookmarkablePageLink<Void>("home-link", NavigationContext.homePageClass()));
         add(new ExternalLink("report-link", getReportUrl(message, address, backUrl))
                 .setVisible(kind == Kind.MALFUNCTION));
     }

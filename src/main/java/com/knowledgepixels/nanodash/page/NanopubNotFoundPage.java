@@ -83,6 +83,7 @@ public class NanopubNotFoundPage extends NanodashPage {
      */
     public NanopubNotFoundPage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("pagetitle", "Nanopublication not found" + titleSuffix()));
         add(new TitleBar("titlebar", this));
 
         String id = parameters.get(ID_PARAM).toString("");
@@ -100,7 +101,7 @@ public class NanopubNotFoundPage extends NanodashPage {
         add(new BookmarkablePageLink<Void>("retry-link", ExplorePage.class, new PageParameters().set("id", id))
                 .add(NavigationContext.pageContextFallback())
                 .setVisible(!id.isEmpty()));
-        add(new BookmarkablePageLink<Void>("home-link", HomePage.class));
+        add(new BookmarkablePageLink<Void>("home-link", NavigationContext.homePageClass()));
     }
 
     /**

@@ -70,7 +70,7 @@ public class ChannelPage extends NanodashPage {
         add(new TitleBar("titlebar", this));
 
         final String displayName = User.getShortDisplayName(userIri);
-        add(new Label("pagetitle", displayName + " (channel) | nanodash"));
+        add(new Label("pagetitle", displayName + " (channel)" + titleSuffix()));
         add(new Label("username", displayName));
 
         ArrayList<String> pubKeyList = new ArrayList<>();

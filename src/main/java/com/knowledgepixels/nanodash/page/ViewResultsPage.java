@@ -46,6 +46,7 @@ public class ViewResultsPage extends NanodashPage {
      */
     public ViewResultsPage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("pagetitle", "View Results" + titleSuffix()));
 
         add(new TitleBar("titlebar", this));
 
