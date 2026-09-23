@@ -455,6 +455,29 @@ public class Template implements Serializable {
         String statementName = statementNumber + " (" + getLocalName(statementIri) + ")";
         collectPositionError(getDeclaredSubject(statementIri), "subject", statementName, errors);
         collectPositionError(getDeclaredPredicate(statementIri), "predicate", statementName, errors);
+        collectReservedNameError(getDeclaredSubject(statementIri), "subject", statementName, errors);
+        collectReservedNameError(getDeclaredPredicate(statementIri), "predicate", statementName, errors);
+        collectReservedNameError(getObject(statementIri), "object", statementName, errors);
+    }
+
+    /**
+     * Reports a resource the template mints under a name the nanopublication keeps for one of
+     * its own parts. Such a resource is not a resource of its own but the graph or signature
+     * whose name it took, and nothing published that way can be corrected afterwards, so the
+     * template is reported as invalid rather than filled in (issue #29).
+     *
+     * @param value         the value in this position, or null
+     * @param position      the position the value is in, for the message
+     * @param statementName the statement the value belongs to, for the message
+     * @param errors        the list the error is added to
+     */
+    private void collectReservedNameError(Value value, String position, String statementName, List<String> errors) {
+        if (!(value instanceof IRI iri) || !isLocalResource(iri)) return;
+        String localName = Utils.getUriPostfix(iri);
+        if (!TemplateContext.RESERVED_LOCAL_NAMES.contains(localName)) return;
+        errors.add(statementName + ": the " + position + " is minted as '" + localName + "', which is what a"
+                + " nanopublication calls one of its own parts, so the published resource would be that part"
+                + " rather than a resource of its own.");
     }
 
     private void collectPositionError(Value value, String position, String statementName, List<String> errors) {

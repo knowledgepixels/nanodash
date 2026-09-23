@@ -2249,6 +2249,13 @@ hr {
   margin: 8px 0;
 }
 
+/* A warning the page wants read before what follows it: the same box as a message, marked
+   as one to take notice of. */
+.message.warning {
+  background: #FDF6E3;
+  border-left: 4px solid #E0A800;
+}
+
 .message.plain {
   background: none;
   margin: 0;

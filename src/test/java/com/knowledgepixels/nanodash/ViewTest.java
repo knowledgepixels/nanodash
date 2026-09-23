@@ -62,6 +62,64 @@ class ViewTest {
      * that version can have been superseded since. Asking for the view to be refreshed has
      * to go back to the API, even where a resolution was memoized moments ago.
      */
+    /** The observers view's query, cut down to the pattern that pins the role. */
+    private static final String OBSERVERS_SPARQL = """
+            prefix npa: <http://purl.org/nanopub/admin/>
+            prefix gen: <https://w3id.org/kpxl/gen/terms/>
+            select ?user_iri where {
+              graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+              graph ?g {
+                ?ri a gen:RoleInstantiation ; npa:forSpace ?_space_multi_iri ; npa:forAgent ?user_iri ;
+                    gen:hasRole <https://w3id.org/np/RAqAgIgZHRhzOVArfNvPPGPPfQEUK_b_155d6vGPbMMbc/observer-role> .
+              }
+            }""";
+
+    @Test
+    void readsTheRoleAQueryIsPinnedTo() {
+        assertEquals(
+                List.of("https://w3id.org/np/RAqAgIgZHRhzOVArfNvPPGPPfQEUK_b_155d6vGPbMMbc/observer-role"),
+                View.rolesPinnedBy(OBSERVERS_SPARQL).stream().map(Object::toString).toList());
+    }
+
+    @Test
+    void readsEveryRoleAQueryNames() {
+        String sparql = """
+                prefix gen: <https://w3id.org/kpxl/gen/terms/>
+                select ?a where {
+                  { ?ri gen:hasRole <https://example.org/role-a> }
+                  union
+                  { ?ri gen:hasRole <https://example.org/role-b> }
+                  optional { ?ri gen:hasRole <https://example.org/role-a> }
+                }""";
+        assertEquals(List.of("https://example.org/role-a", "https://example.org/role-b"),
+                View.rolesPinnedBy(sparql).stream().map(Object::toString).toList());
+    }
+
+    @Test
+    void aQueryThatLeavesTheRoleOpenIsPinnedToNone() {
+        // A view listing every role-holder of a space works whichever roles it has, so there
+        // is nothing to warn about (issue #648).
+        String sparql = """
+                prefix gen: <https://w3id.org/kpxl/gen/terms/>
+                select ?a ?role where { ?ri gen:hasRole ?role ; gen:forAgent ?a }""";
+        assertTrue(View.rolesPinnedBy(sparql).isEmpty());
+    }
+
+    @Test
+    void anotherPredicateIsNotARole() {
+        String sparql = """
+                prefix gen: <https://w3id.org/kpxl/gen/terms/>
+                select ?a where { ?s gen:hasAdmin <https://example.org/not-a-role> }""";
+        assertTrue(View.rolesPinnedBy(sparql).isEmpty());
+    }
+
+    @Test
+    void sparqlThatCannotBeReadPinsNothing() {
+        assertTrue(View.rolesPinnedBy("select ?a where { this is not sparql").isEmpty());
+        assertTrue(View.rolesPinnedBy(null).isEmpty());
+        assertTrue(View.rolesPinnedBy("   ").isEmpty());
+    }
+
     @Test
     void refreshLatestVersionPicksUpASupersedingVersion() throws Exception {
         Nanopub v1 = load("np-header-view-v1.trig");
