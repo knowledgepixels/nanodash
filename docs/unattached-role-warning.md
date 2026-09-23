@@ -17,8 +17,11 @@ A space only holds such role instantiations once the role is attached to it
 nothing at all, however many grants of that role have been published — which reads as
 "nobody is an observer" rather than as "this space has no observer role".
 
-The About tab therefore says so, above everything else: one line per view and the role it
-is waiting for, linked so it can be looked at.
+The About tab therefore says so, right above the view displays it is about: one line per
+view and the role it is waiting for, linked so it can be looked at, and followed by the
+roles listing's own "add role" action — the same form, opened with the space and that role
+already filled in, so the warning can be acted on where it is read. That button is shown to
+whoever the roles listing would offer the action to, and to nobody else.
 
 ## How the role is found
 
@@ -40,3 +43,4 @@ reported.
 | Roles a view is pinned to | `View.getPinnedRoles()`, `View.rolesPinnedBy(String)` |
 | Comparison with the space | `AboutSpacePanel.unattachedRoles(Space, String)` |
 | The warning itself | `AboutSpacePanel.roleWarning(...)`, `AboutSpacePanel.html`, `.message.warning` |
+| The action beside it | `AboutSpacePanel.attachRoleAction(...)`, which reads the template, target field and visibility off the roles view's own `gen:ViewResultAction`, and `roleFieldOf` for the field that takes the role |

@@ -1,21 +1,20 @@
 <wicket:panel>
-  <div class="row-section" wicket:id="role-warning">
-    <div class="col-12">
-      <div class="message warning">
-        <p>⚠ These views list the holders of a role this space hasn't enabled, so they stay
-          empty however many such roles have been granted. Enabling the role in the roles
-          listing below lets their entries show up.</p>
-        <ul>
-          <li wicket:id="unattached-roles"><span wicket:id="view">view</span> — needs the role
-            <a wicket:id="role" href="#"><span wicket:id="rolelabel">role</span></a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
   <div class="row-section">
     <div class="col-12 section-header"><h3>📐 Structure</h3></div>
     <div wicket:id="info"></div>
     <div wicket:id="presets"></div>
+    <div class="col-12" wicket:id="role-warning">
+      <div class="message warning">
+        <p>⚠ These views list the holders of a role this space hasn't enabled, so they stay
+          empty however many such roles have been granted. Enabling the role lets their
+          entries show up.</p>
+        <ul>
+          <li wicket:id="unattached-roles"><span wicket:id="view">view</span> — needs the role
+            <a wicket:id="role" href="#"><span wicket:id="rolelabel">role</span></a>
+            <a wicket:id="attach" href="#" class="smallbutton button light"><span wicket:id="attachlabel">add role...</span></a></li>
+        </ul>
+      </div>
+    </div>
     <div wicket:id="viewdisplays"></div>
     <div wicket:id="roles"></div>
   </div>
