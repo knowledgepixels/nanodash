@@ -10,6 +10,12 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.QueryParserUtil;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.services.ApiResponse;
@@ -439,6 +445,7 @@ public class View implements Serializable {
     private String title = "View";
     private String description;
     private GrlcQuery query;
+    private Set<IRI> pinnedRoles;
     private String queryField = "resource";
     private Integer pageSize;
     private Integer displayWidth;
@@ -649,6 +656,55 @@ public class View implements Serializable {
      */
     public GrlcQuery getQuery() {
         return query;
+    }
+
+    /**
+     * The roles this view's query is pinned to: the role IRIs it matches on with
+     * {@code gen:hasRole}. A space has to have such a role attached for the view to list
+     * anything at all, however many grants of it exist (issue #648).
+     *
+     * @return the role IRIs the query names, empty when it names none or cannot be read
+     */
+    public Set<IRI> getPinnedRoles() {
+        if (pinnedRoles == null) {
+            pinnedRoles = query == null ? Set.of() : rolesPinnedBy(query.getSparql());
+        }
+        return pinnedRoles;
+    }
+
+    /**
+     * Reads the roles a query is pinned to out of its SPARQL: the objects of every
+     * {@code gen:hasRole} pattern that names one rather than leaving it open as a variable.
+     *
+     * @param sparql the query's SPARQL, which may be null or unparseable
+     * @return the role IRIs the query names, in the order they appear
+     */
+    static Set<IRI> rolesPinnedBy(String sparql) {
+        if (sparql == null || sparql.isBlank()) return Set.of();
+        ParsedQuery parsed;
+        try {
+            parsed = QueryParserUtil.parseQuery(QueryLanguage.SPARQL, sparql, null);
+        } catch (RuntimeException ex) {
+            // A query whose SPARQL doesn't parse can't run either, so it has nothing to say
+            // about roles; whoever runs it reports the syntax error.
+            logger.debug("Could not read the roles of a query: {}", ex.getMessage());
+            return Set.of();
+        }
+        Set<IRI> roles = new LinkedHashSet<>();
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
+
+            @Override
+            public void meet(StatementPattern pattern) {
+                Var predicate = pattern.getPredicateVar();
+                Var object = pattern.getObjectVar();
+                if (predicate.hasValue() && KPXL_TERMS.HAS_ROLE.equals(predicate.getValue())
+                        && object.hasValue() && object.getValue() instanceof IRI role) {
+                    roles.add(role);
+                }
+            }
+
+        });
+        return roles;
     }
 
     /**
