@@ -10,11 +10,12 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests that a site's Explore page sends a foreign term on to itself (issue #692), rather
- * than showing a page about it inside the site.
+ * Tests what a site's Explore page makes of a foreign term (issue #692): a page that names
+ * the term's own address and nothing of what the network knows about it.
  */
 @ExtendWith(SystemStubsExtension.class)
 class ExplorePageSiteModeTest {
@@ -30,15 +31,23 @@ class ExplorePageSiteModeTest {
     @BeforeEach
     void setUp() {
         envVars.set("NANODASH_SITE_SPACE", SITE);
+        envVars.set("NANODASH_SITE_NAME", "Test Site");
         tester = new WicketTester(new WicketApplication());
     }
 
+    /**
+     * A foreign term gets a page that names its address and says it is not the site's, and
+     * nothing of what the network knows about it: no tabs, no info or references sections.
+     */
     @Test
-    void aForeignTermIsSentOnToItself() {
+    void aForeignTermGetsAPageWithNothingButItsAddress() {
         tester.startPage(ExplorePage.class, new PageParameters().set("id", ELSEWHERE));
-        // A 303 is written as status plus Location header, not as a servlet redirect.
-        assertEquals(303, tester.getLastResponse().getStatus());
-        assertEquals(ELSEWHERE, tester.getLastResponse().getHeader("Location"));
+        tester.assertRenderedPage(ExplorePage.class);
+        String document = tester.getLastResponse().getDocument();
+        assertTrue(document.contains("This is not part of Test Site. Follow the address above to open it."), document);
+        assertTrue(document.contains("href=\"" + ELSEWHERE + "\""), document);
+        assertFalse(document.contains("tabs-container"), document);
+        assertFalse(document.contains("references-section"), document);
     }
 
 }

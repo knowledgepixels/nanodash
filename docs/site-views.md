@@ -63,10 +63,12 @@ else asks it.
   affordable per link. So an IRI listed by one of the site's views (a query-result cell,
   `NanodashLink`'s view-context constructor) is linked inside the site whatever it is, as
   outside site mode, and `ExplorePage` settles it on click: a part of the site forwards to its
-  part page as always, and anything else is sent on to itself with a 303. The site therefore
-  never shows a page about a foreign resource. The price is that a foreign IRI in a view — a
-  DOI in a "source" column — looks like an inside link and leaves the site after one hop.
-  IRIs met anywhere else (a nanopublication's statements) follow the render-time rule above.
+  part page as always, and anything else gets a page that names the term's address, says it
+  is not the site's, and shows nothing of what the network knows about it (no tabs, info or
+  references). No kind of term is exempt from this — any term can be a part — so a foreign IRI
+  in a view, a DOI in a "source" column or `rdfs:label` in a definition table, looks like an
+  inside link and leads to that page. IRIs met anywhere else (a nanopublication's
+  statements) follow the render-time rule above.
 - **Outbound links look and behave differently.** In-app links are relative, so an absolute
   `http(s)` address is one that leaves the site: `style.css` marks such links with a ↗ (keyed
   on `body.site`, which `NanodashPage` sets; buttons and image links excepted), and
