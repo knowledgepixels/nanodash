@@ -692,7 +692,7 @@ public class PublishForm extends Panel {
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
-                    if (!areNewUrisUnused()) {
+                    if (!areNewUrisUnused() || !noReservedIdentifiers()) {
                         return;
                     }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
@@ -1162,7 +1162,7 @@ public class PublishForm extends Panel {
                     Nanopub np = createNanopub();
                     // Checked here too: the preview page publishes the nanopublication it
                     // was given, without coming back through this form.
-                    if (!areNewUrisUnused()) {
+                    if (!areNewUrisUnused() || !noReservedIdentifiers()) {
                         return;
                     }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
@@ -1550,6 +1550,7 @@ public class PublishForm extends Panel {
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
         assertionContext.getNewUriIris().clear();
+        assertionContext.getReservedIris().clear();
         assertionContext.getRolePropertyPins().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
@@ -1728,6 +1729,53 @@ public class PublishForm extends Panel {
         }
         feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
         return false;
+    }
+
+    private boolean noReservedIdentifiers() {
+        IRI reserved = findReservedIdentifier(assertionContext);
+        if (reserved == null) {
+            return true;
+        }
+        String part = reserved.stringValue().replaceFirst("^.*/", "");
+        feedbackPanel.error("The identifier " + reserved.stringValue() + " is one this nanopublication uses for"
+                + " itself (its " + part + "), so it cannot also name something the nanopublication is about."
+                + " Pick a different name.");
+        return false;
+    }
+
+    /**
+     * Returns the first identifier the given assertion context mints under one of the names a
+     * nanopublication keeps for its own parts (issue #29), or null if there is none.
+     * <p>
+     * A name the superseded or overridden nanopublication already used is not one of them: it
+     * is published and cannot be taken back, and a new version keeps the shape of the old one.
+     * A legacy template, whose template node is its own assertion graph, is republished this
+     * way.
+     *
+     * @param assertionContext the assertion context, after its values have been processed
+     * @return the first reserved identifier minted here, or null if there is none
+     */
+    static IRI findReservedIdentifier(TemplateContext assertionContext) {
+        FillMode fillMode = assertionContext.getFillMode();
+        Nanopub source = (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
+                ? assertionContext.getReferenceNanopub() : null;
+        for (IRI reserved : assertionContext.getReservedIris()) {
+            if (source != null && isUsedIn(source, sameNameIn(source, reserved))) continue;
+            return reserved;
+        }
+        return null;
+    }
+
+    /**
+     * The IRI the given nanopublication uses for the same local name, so that a name carried
+     * over from it is recognised though the new version mints it afresh.
+     *
+     * @param nanopub the nanopublication to read the name under
+     * @param iri     the IRI minted here
+     * @return the same local name under the given nanopublication
+     */
+    private static IRI sameNameIn(Nanopub nanopub, IRI iri) {
+        return vf.createIRI(nanopub.getUri().stringValue() + "/" + iri.stringValue().replaceFirst("^.*/", ""));
     }
 
     private boolean areNewUrisUnused() {

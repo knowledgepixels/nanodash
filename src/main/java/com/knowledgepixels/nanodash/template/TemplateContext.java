@@ -45,6 +45,7 @@ public class TemplateContext implements Serializable {
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
     private Set<IRI> newUriIris = new LinkedHashSet<>();
+    private final Set<IRI> reservedIris = new LinkedHashSet<>();
     private Map<IRI, IRI> rolePropertyPins = new LinkedHashMap<>();
     private List<StatementItem> statementItems;
     private Set<IRI> iriSet = new HashSet<>();
@@ -650,6 +651,7 @@ public class TemplateContext implements Serializable {
                     if (Utils.isUriValue(v)) {
                         processedValue = vf.createIRI(v);
                         recordIfNewUri(iri, (IRI) processedValue);
+                        recordIfReserved((IRI) processedValue);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
                     }
@@ -684,6 +686,7 @@ public class TemplateContext implements Serializable {
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     processedValue = vf.createIRI(v);
                     recordIfNewUri(iri, (IRI) processedValue);
+                    recordIfReserved((IRI) processedValue);
                 }
             }
         } else if (template.isIntroducedResource(iri)
@@ -771,6 +774,52 @@ public class TemplateContext implements Serializable {
             if (directionPin != null) rolePropertyPins.put(pvIri, directionPin);
         }
         return processedValue;
+    }
+
+    /**
+     * The local names a nanopublication keeps for itself: the four graphs
+     * {@link org.nanopub.NanopubCreator} names, and the signature element
+     * {@code org.nanopub.extra.security.SignatureUtils} adds when it signs. A resource minted
+     * under one of these names is not a resource of its own but the graph or the signature it
+     * collides with (issue #29).
+     */
+    public static final Set<String> RESERVED_LOCAL_NAMES = Set.of("Head", "assertion", "provenance", "pubinfo", "sig");
+
+    /**
+     * Whether an IRI names one of the parts a nanopublication is made of, rather than
+     * something the nanopublication is about. True only for the nanopublication being
+     * published here: the same local name under any other namespace collides with nothing.
+     *
+     * @param iri the IRI a value was formed into
+     * @return true if the IRI is one this nanopublication already uses for itself
+     */
+    public boolean isReservedIri(IRI iri) {
+        if (iri == null) return false;
+        String value = iri.stringValue();
+        if (!value.startsWith(targetNamespace)) return false;
+        return RESERVED_LOCAL_NAMES.contains(value.substring(targetNamespace.length()));
+    }
+
+    /**
+     * The IRIs formed here that the nanopublication already uses for one of its own parts, in
+     * the order they were formed. Cleared and refilled whenever the values are processed, like
+     * the other records this context keeps.
+     *
+     * @return the reserved IRIs a value was formed into
+     */
+    public Set<IRI> getReservedIris() {
+        return reservedIris;
+    }
+
+    /**
+     * Records an IRI that turned out to name one of the nanopublication's own parts, so that
+     * the publish form can refuse it (issue #29). Recorded rather than rejected here, because
+     * this runs while the form is being filled and a value is not wrong until it is published.
+     *
+     * @param iri the IRI that was just formed
+     */
+    private void recordIfReserved(IRI iri) {
+        if (isReservedIri(iri)) reservedIris.add(iri);
     }
 
     /**

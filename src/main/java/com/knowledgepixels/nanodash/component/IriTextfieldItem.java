@@ -115,6 +115,17 @@ public class IriTextfieldItem extends AbstractContextComponent {
             textfield.add(new AttributeAppender("class", " short"));
         }
         textfield.add(new Validator(iri, template, prefixModel, context));
+        // Kept out of the Validator above, which also decides whether an existing value unifies
+        // with this placeholder: a value already published is a fact rather than a proposal,
+        // and a legacy template's node really is its own assertion graph (issue #29).
+        textfield.add((IValidator<String>) v -> {
+            String name = v.getValue();
+            if (context.isToBeMinted(iri, name) && TemplateContext.RESERVED_LOCAL_NAMES.contains(name)) {
+                v.error(new ValidationError("'" + name + "' is what this nanopublication calls one of its own"
+                        + " parts, so a resource of that name would be that part rather than something the"
+                        + " nanopublication is about. Pick a different name."));
+            }
+        });
         context.getComponents().add(textfield);
         lockIfNeeded(textfield, iri);
         if (template.getLabel(iri) != null) {
