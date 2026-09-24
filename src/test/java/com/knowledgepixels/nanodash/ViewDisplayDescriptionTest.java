@@ -11,7 +11,10 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
 
 /**
@@ -39,7 +42,9 @@ class ViewDisplayDescriptionTest {
         Nanopub withDescription = load("np-view-display-with-description.trig");
         Nanopub plain = load("np-view-display-plain.trig");
         Nanopub undescribedView = load("np-header-view-v1.trig");
-        try (MockedStatic<Utils> utils = mockStatic(Utils.class);
+        // CALLS_REAL_METHODS: the descriptions go through the real Utils.sanitizeHtml, which
+        // is what is being checked here; only the nanopub lookups are stood in for.
+        try (MockedStatic<Utils> utils = mockStatic(Utils.class, CALLS_REAL_METHODS);
              MockedStatic<QueryApiAccess> api = mockStatic(QueryApiAccess.class);
              MockedStatic<ApiCache> cache = mockStatic(ApiCache.class)) {
             utils.when(() -> Utils.getAsNanopub(VIEW_NP)).thenReturn(view);
@@ -54,13 +59,21 @@ class ViewDisplayDescriptionTest {
         void run() throws Exception;
     }
 
+    /**
+     * A description may carry markup, as descriptions elsewhere do, and is sanitized where
+     * it is read rather than where it is shown — so every consumer gets safe markup.
+     */
     @Test
-    void aViewsOwnDescriptionIsRead() throws Exception {
+    void aViewsOwnDescriptionIsReadAsSanitizedMarkup() throws Exception {
         withFixtures(() -> {
             View view = View.get(VIEW, false);
-            assertEquals("What this view is for.", view.getDescription());
+            String description = view.getDescription();
+            assertTrue(description.contains("<em>emphasis</em>"), description);
+            assertTrue(description.contains("href=\"https://example.org/more\""), description);
+            assertFalse(description.contains("<script"), description);
+            assertFalse(description.contains("alert(1)"), description);
             // A display that adds nothing of its own answers with the view's text.
-            assertEquals("What this view is for.", new ViewDisplay(view).getDescription());
+            assertEquals(description, new ViewDisplay(view).getDescription());
         });
     }
 
@@ -70,7 +83,7 @@ class ViewDisplayDescriptionTest {
             ViewDisplay display = ViewDisplay.get(DISPLAY_WITH_DESCRIPTION_NP + "/display", VIEW);
             assertEquals("What this view is for on this page.", display.getDescription());
             // The view itself is untouched by the override.
-            assertEquals("What this view is for.", display.getView().getDescription());
+            assertTrue(display.getView().getDescription().contains("<em>emphasis</em>"));
         });
     }
 
@@ -78,7 +91,7 @@ class ViewDisplayDescriptionTest {
     void aDisplayWithoutOneFallsBackToTheView() throws Exception {
         withFixtures(() -> {
             ViewDisplay display = ViewDisplay.get(DISPLAY_PLAIN_NP + "/display", VIEW);
-            assertEquals("What this view is for.", display.getDescription());
+            assertEquals(display.getView().getDescription(), display.getDescription());
             // The title override still works the same way, which is the pattern followed.
             assertEquals("A title of its own", display.getTitle());
         });

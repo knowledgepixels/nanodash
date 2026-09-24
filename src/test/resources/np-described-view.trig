@@ -22,7 +22,7 @@ sub:assertion {
   sub:view a gen:ResourceView, gen:HeaderView;
     rdfs:label "described-view";
     dct:title "A described view";
-    dct:description "What this view is for." .
+    dct:description "What this view is for, with <em>emphasis</em> and a <a href=\"https://example.org/more\">link</a>.<script>alert(1)</script>" .
 }
 
 sub:provenance {
