@@ -39,6 +39,7 @@ public class TemplateContext implements Serializable {
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
     private final Set<String> lockedParams = new HashSet<>();
+    private final Set<IRI> paramFilledIris = new HashSet<>();
     private final Set<String> lockedStatements = new HashSet<>();
     private List<Component> components = new ArrayList<>();
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
@@ -249,6 +250,28 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasParam(String name) {
         return params.containsKey(name);
+    }
+
+    /**
+     * Records that the field of the given placeholder was pre-filled from a parameter.
+     *
+     * @param iri the placeholder IRI, including any repetition suffix
+     */
+    public void setParamFilled(IRI iri) {
+        paramFilledIris.add(iri);
+    }
+
+    /**
+     * Checks whether the field of the given placeholder was pre-filled from a parameter. Such a
+     * value takes precedence over the one carried by the nanopublication this context is filled
+     * from: the statement it appears in is still matched and consumed, but the field keeps the
+     * parameter's value (issue #73).
+     *
+     * @param iri the placeholder IRI, including any repetition suffix
+     * @return true if the field was pre-filled from a parameter
+     */
+    public boolean isParamFilled(IRI iri) {
+        return paramFilledIris.contains(iri);
     }
 
     /**

@@ -83,6 +83,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
         // trailing path is.
         if (modelIsNew && dynamicPrefixToken == null && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
+            context.setParamFilled(iri);
         }
         prefixModel = new PrefixModel(iri, context);
         // The navigation context takes precedence; only when it determines no base does the

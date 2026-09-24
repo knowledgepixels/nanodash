@@ -74,6 +74,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
             String zoncontext = context.getParam(postfix);
             if (zoncontext != null) {
                 model.setObject(ZonedDateTime.parse(zoncontext));
+                context.setParamFilled(iri);
             } else {
                 model.setObject(null);
             }

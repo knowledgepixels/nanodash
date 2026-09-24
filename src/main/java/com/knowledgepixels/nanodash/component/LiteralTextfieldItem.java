@@ -66,6 +66,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
+            context.setParamFilled(iri);
         }
         AbstractTextComponent<String> tc = initTextComponent(model);
         if (!optional) tc.setRequired(true);
