@@ -62,6 +62,7 @@ public class QueryResultTable extends QueryResult {
             add(new Label("label").setVisible(false));
             add(new Label("np").setVisible(false));
             showViewDisplayMenu = false;
+            hideDescription();
         } else {
             String label = grlcQuery.getLabel();
             if (viewDisplay.getTitle() != null) {

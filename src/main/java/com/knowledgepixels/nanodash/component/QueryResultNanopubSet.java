@@ -62,6 +62,7 @@ public class QueryResultNanopubSet extends QueryResult {
         }
         emptyTitle = (titleLabel == null || titleLabel.isEmpty());
         add(new Label("title", titleLabel));
+        if (emptyTitle) hideDescription();
 
         TextField<String> filterField = new TextField<>("filter", filterModel);
         filterField.setOutputMarkupId(true);
