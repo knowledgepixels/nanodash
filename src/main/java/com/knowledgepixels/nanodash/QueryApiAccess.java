@@ -306,16 +306,17 @@ public class QueryApiAccess {
     // RAVsaIwA) adds a member_label column, sourced like the observers query above.
     public static final String LIST_SPACE_NON_APPROVED_REF = "RA8r_O22FL53frfrmudFKMB-g7S-H0HU78O7uDiOx4WZ4/list-space-non-approved";
 
-    // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
+    // Ref-scoped variants of three About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
     // (root_np), resolves the ref via npa:rootNanopub, and scopes by npa:forSpaceRef (members,
-    // roles) or the ref-level npa:hasSubSpace / npa:hasMaintainedResource edge (sub-spaces,
-    // maintained resources), so a ?root=-pinned space page shows only that one ref's listings
-    // rather than merging all refs claiming the IRI. Column-compatible with the IRI-keyed view
-    // queries, so they drive the existing view nanopubs unchanged (the observers pattern). Used
-    // by AboutSpacePanel with an IRI-keyed fallback when the ref root is unknown. Published
-    // independently (no npx:supersedes). Sources at docs/queries/list-*-ref.trig. See
-    // docs/space-ref-identity.md.
+    // roles) or the ref-level npa:hasSubSpace edge (sub-spaces), so a ?root=-pinned space page
+    // shows only that one ref's listings rather than merging all refs claiming the IRI. (The
+    // maintained-resources listing did the same with the npa:hasMaintainedResource edge until
+    // its view's own query took the space plus an optional root_np, so it is view-driven now.)
+    // Column-compatible with the IRI-keyed view queries, so they drive the existing view
+    // nanopubs unchanged (the observers pattern). Used by AboutSpacePanel with an IRI-keyed
+    // fallback when the ref root is unknown. Published independently (no npx:supersedes).
+    // Sources at docs/queries/list-*-ref.trig. See docs/space-ref-identity.md.
     // v3 (RApyKS9D): reads each membership's tier directly off the materialized gen:RoleInstantiation
     // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
     // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
@@ -327,7 +328,6 @@ public class QueryApiAccess {
     public static final String LIST_SPACE_MEMBERS_REF = "RAroCpts3CpuUpSsuPpccRbyKkwkOvVNQSjoY0ZYAVvBg/list-space-members";
     public static final String LIST_SPACE_ROLES_REF = "RAYOsITlBsY5vmlPmZuMnsJQvwIss9DfjdWW0VjgLkMjE/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
-    public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
 
     // View-displays listing queries are no longer referenced here: the About-tab view-displays
     // tables are view-driven (gen:hasViewQuery on the space/user/maintained view nanopubs), and the

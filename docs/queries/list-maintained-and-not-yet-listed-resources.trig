@@ -1,0 +1,178 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix grlc: <https://w3id.org/kpxl/grlc/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication ;
+    np:hasAssertion sub:assertion ;
+    np:hasProvenance sub:provenance ;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:list-maintained-and-not-yet-listed-resources a grlc:grlc-query ;
+    rdfs:label "List maintained and not yet listed resources of a space" ;
+    dct:description "Lists the resources a space maintains, preceded by the kinds of the definitions (views, templates and the like) that say they are governed by the space but that the space does not list as maintained resources yet, marked as not listed yet. The maintained resources are those of the space ref whose root nanopublication is given (root_np) or, without it, of every ref of the space IRI (space), as in list-maintained-resources. A not-yet-listed kind is shown with the label it would get when listed; its row points to the kind's newest version that declares gen:governedBy <space>, embedded in a nanopublication signed by a current admin, maintainer or member of the space and not invalidated by its own key. Left out are kinds the space already maintains, kinds that were re-minted (the nanopublication minting the kind supersedes a version of another kind), and versions whose latest verdict by an admin of the space is npx:disapprovesOf (a later npx:approvesOf brings them back), as in list-maintained-resources-pending-approval. Hidden columns pre-fill the admin actions on the not-yet-listed rows and are empty on the others: list_* for listing the kind as a maintained resource of the space, dismiss_target and dismiss_choice for dismissing the version, which only takes it off the list. Hosted on the full repo; the space state comes from the spaces repo in two federated calls that each run once." ;
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0> ;
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/full> ;
+    grlc:sparql """prefix np: <http://www.nanopub.org/nschema#>
+prefix npa: <http://purl.org/nanopub/admin/>
+prefix npx: <http://purl.org/nanopub/x/>
+prefix dct: <http://purl.org/dc/terms/>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix gen: <https://w3id.org/kpxl/gen/terms/>
+prefix nt: <https://w3id.org/np/o/ntemplate/>
+
+select ?resource ?resource_label ?status ?np ('^' as ?np_label)
+       ?list_resource ?list_label ?list_description ?list_type ?dismiss_target ?dismiss_choice
+where {
+  {
+    # The resources the space ref lists as maintained resources (all refs of the space IRI
+    # when no root_np is given).
+    service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+      select ?resource (sample(?label) as ?resource_label) (sample(?viaNp) as ?np) where {
+        graph npa:spacesGraph { ?spaceRef npa:spaceIri ?_space_iri . }
+        optional {
+          values ?__root_np_multi_iri {}
+          graph npa:spacesGraph { ?passedRef npa:rootNanopub ?__root_np_multi_iri . }
+        }
+        filter(!bound(?passedRef) || ?spaceRef = ?passedRef)
+        graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?g . }
+        graph ?g { ?spaceRef npa:hasMaintainedResource ?resource . }
+        graph ?ag { ?resource a gen:MaintainedResource ; rdfs:label ?label . }
+        graph npa:graph {
+          ?defNp np:hasAssertion ?ag ; npa:hasValidSignatureForPublicKey ?pubkey .
+          filter not exists { ?inv npx:invalidates ?defNp ; npa:hasValidSignatureForPublicKey ?pubkey . }
+        }
+        optional { graph npa:spacesGraph { ?d a npa:MaintainedResourceDeclaration ; npa:resourceIri ?resource ; npa:maintainerSpace ?_space_iri ; npa:viaNanopub ?viaNp } }
+      }
+      group by ?resource
+    }
+    bind(1 as ?listed)
+  }
+  union
+  {
+    {
+      select (?kind as ?resource) (sample(?klabel) as ?resource_label) ?np
+             (str(?kind) as ?list_resource) (sample(?klabel) as ?list_label) (sample(?kdesc) as ?list_description)
+             (sample(?atype) as ?list_type) (str(?np) as ?dismiss_target) (str(npx:disapprovesOf) as ?dismiss_choice)
+      where {
+        # The space's current state in one row: the keys of its admins, of all its admins,
+        # maintainers and members, and the resources it already maintains.
+        {
+          select (sample(?mk) as ?memberKeys) (sample(?ak) as ?adminKeys) (sample(?mr) as ?maintained) where {
+            service <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> {
+              select (group_concat(distinct ?pk; separator=' ') as ?mk)
+                     (group_concat(distinct ?apk; separator=' ') as ?ak)
+                     (group_concat(distinct str(?r); separator=' ') as ?mr) where {
+                graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?sg . }
+                graph ?sg {
+                  { ?ri a gen:RoleInstantiation ; npa:forSpace ?_space_iri ; npa:hasRoleType ?tier ; npa:forAgent ?agent .
+                    filter(?tier in (gen:AdminRole, gen:MaintainerRole, gen:MemberRole))
+                    ?acct a npa:AccountState ; npa:agent ?agent ; npa:pubkey ?pk . }
+                  union
+                  { ?ria a gen:RoleInstantiation ; npa:forSpace ?_space_iri ; npa:hasRoleType gen:AdminRole ; npa:forAgent ?admin .
+                    ?aacct a npa:AccountState ; npa:agent ?admin ; npa:pubkey ?apk . }
+                  union
+                  { ?r npa:isMaintainedBy ?_space_iri . }
+                }
+              }
+            }
+          }
+        }
+        # Versions naming this space as governing, signed by one of its members, not
+        # invalidated, whose kind the space does not maintain yet.
+        graph ?a { ?definition gen:governedBy ?_space_iri ; dct:isVersionOf ?kind . }
+        graph npa:graph {
+          ?np np:hasAssertion ?a ; npx:embeds ?definition ; dct:created ?date ;
+              npa:hasValidSignatureForPublicKeyHash ?pubkey .
+          filter not exists { ?inv npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+        }
+        filter(contains(?memberKeys, ?pubkey))
+        filter(!contains(concat(' ', ?maintained, ' '), concat(' ', str(?kind), ' ')))
+        # Only the newest such version of each kind.
+        optional {
+          graph ?a2 { ?d2 gen:governedBy ?_space_iri ; dct:isVersionOf ?kind . }
+          graph npa:graph {
+            ?np2 np:hasAssertion ?a2 ; npx:embeds ?d2 ; dct:created ?date2 ;
+                 npa:hasValidSignatureForPublicKeyHash ?pubkey2 .
+            filter not exists { ?inv2 npx:invalidates ?np2 ; npa:hasValidSignatureForPublicKeyHash ?pubkey2 . }
+          }
+          filter(contains(?memberKeys, ?pubkey2) && concat(str(?date2), '>', str(?np2)) > concat(str(?date), '>', str(?np)))
+        }
+        filter(!bound(?np2))
+        # Not a re-minted kind: the nanopublication minting it must not supersede a version of
+        # another kind.
+        optional {
+          graph npa:graph { ?kn npx:introduces ?kind . }
+          filter(strstarts(str(?kind), concat(str(?kn), '/')))
+          graph npa:networkGraph { ?kn npx:supersedes ?old . }
+          graph npa:graph { ?old np:hasAssertion ?oa . }
+          graph ?oa { ?ov dct:isVersionOf ?oldKind . }
+          filter(?oldKind != ?kind)
+        }
+        filter(!bound(?oldKind))
+        # Admin verdicts on this version, for the latest one to decide below: a version whose
+        # latest admin verdict is a disapproval drops out.
+        optional {
+          values ?vpred { npx:approvesOf npx:disapprovesOf }
+          graph ?va { ?vagent ?vpred ?np . }
+          graph npa:graph {
+            ?vnp np:hasAssertion ?va ; dct:created ?vdate ; npa:hasValidSignatureForPublicKeyHash ?vpk .
+            filter not exists { ?vinv npx:invalidates ?vnp ; npa:hasValidSignatureForPublicKeyHash ?vpk . }
+          }
+          filter(contains(?adminKeys, ?vpk))
+          bind(concat(str(?vdate), '>', if(?vpred = npx:disapprovesOf, 'd', 'a')) as ?verdict)
+        }
+        # The label the kind gets when listed, and what the list action pre-fills.
+        optional { graph ?a { ?definition dct:title ?title . } }
+        optional { graph ?a { ?definition rdfs:label ?label . } }
+        optional { graph ?a { ?definition dct:description ?description . } }
+        optional { graph ?a { ?definition a ?rdftype . filter(?rdftype in (gen:ResourceView, nt:AssertionTemplate, nt:ProvenanceTemplate, nt:PubinfoTemplate, gen:Preset)) } }
+        optional { graph ?a { ?definition a ?atype . filter(?atype = nt:AssertionTemplate) } }
+        bind(coalesce(if(?rdftype = gen:ResourceView, 'view', if(?rdftype = nt:AssertionTemplate, 'assertion template',
+             if(?rdftype = nt:ProvenanceTemplate, 'provenance template', if(?rdftype = nt:PubinfoTemplate, 'pubinfo template',
+             if(?rdftype = gen:Preset, 'preset', 'definition'))))), 'definition') as ?dtype)
+        bind(coalesce(?title, ?label, str(?definition)) as ?dlabel)
+        bind(coalesce(?label, ?title, str(?kind)) as ?baseLabel)
+        bind(if(?dtype = 'view', concat(str(?baseLabel), ' kind'), concat(str(?baseLabel), ' (', ?dtype, ' kind)')) as ?klabel)
+        bind(coalesce(?description, concat('The kind of the ', ?dtype, ' «', str(?dlabel), '», maintained by this space so that any of its members can publish the next version.')) as ?kdesc)
+      }
+      group by ?kind ?np
+      having (coalesce(!strends(max(?verdict), 'd'), true))
+    }
+    bind(0 as ?listed)
+    bind('⏳ not listed yet' as ?status)
+  }
+}
+order by ?listed lcase(str(?resource_label))""" .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-09-24T14:43:13Z"^^xsd:dateTime ;
+    dct:creator orcid:0000-0002-1267-0234 ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    rdfs:label "List maintained and not yet listed resources of a space" ;
+    npx:embeds sub:list-maintained-and-not-yet-listed-resources ;
+    prov:wasDerivedFrom <https://w3id.org/np/RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM>,
+      <https://w3id.org/np/RAACDhEU3OF8BF52aaHDMfs-djySEp_i-yv1Yb5We6zxc> ;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> ;
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU> ;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI> .
+}
