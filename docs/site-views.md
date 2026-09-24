@@ -10,7 +10,7 @@ website that happens to run on nanopublications.
 
 The feature comes in two stages. **Stage A** (implemented) makes a whole deployment the site
 of one space: one instance, one space, one domain. **Stage B** (proposed) serves several such
-sites from one instance under `/site/<shorthand>` and, later, from custom domains.
+sites from one instance, each on its own host name.
 
 ## Stage A: single-space site mode
 
@@ -116,19 +116,51 @@ network-wide results from views that show them.
 
 ## Stage B: several sites on one instance
 
-Serve sites under `/site/<shorthand>`, where the shorthand stands for a space, and later
-from custom domains.
+Give each site its own host name — `<site>.space.nanodash.net`, and a site's own domain where
+it has one — and resolve the site from the `Host` header of the request.
 
-- **Site registry.** Where `<shorthand>` → space comes from: the preferences file first; a
-  shorthand declared by the space in a nanopublication later.
-- **URL prefix.** One `IRequestMapper` decorator around Wicket's root mapper: strip
-  `/site/<shorthand>` on the way in, keep the site in the request cycle, put the prefix back
-  on every URL Wicket renders. Every existing bookmarkable link then stays inside the site
-  without call-site changes. Shared resources (`style.css`, images, webjars) must not get the
-  prefix; `Utils.absolutePageUrl` must (the RDF content-negotiation redirects and calendar
-  feeds depend on it); `/mcp` is outside the Wicket filter.
-- **Per-site branding and context** become per-request rather than per-instance: `SiteMode`
-  answers from the request cycle instead of the preferences.
-- **Custom domains.** The same mapper keyed on the `Host` header, a `check-domain` endpoint
-  for on-demand TLS, and per-domain OAuth redirect URIs; see
-  [custom-domains](custom-domains.md).
+### Why the host and not a path prefix
+
+The obvious alternative, serving sites under `/site/<shorthand>`, costs much more. Wicket
+renders in-app links relative to the request, so a path prefix has to be stripped on the way
+in and put back on every URL the application renders: one `IRequestMapper` decorator around
+the root mapper, with exceptions for the shared resources (`style.css`, images, webjars),
+for `/mcp` (outside the Wicket filter) and for `Utils.absolutePageUrl`, which must carry the
+prefix because the RDF content-negotiation redirects and the calendar feeds are fetched from
+outside. The host name needs none of that: the browser keeps it, every relative link stays
+correct, and nothing is rewritten.
+
+It is also the same mechanism a custom domain uses, so custom domains stop being a stage of
+their own (see [custom-domains](custom-domains.md)). And it gives each site its own origin,
+which makes the sessions, the browser storage and the "leaves the site" test in
+`nanodash.js` per site rather than shared.
+
+### Steps
+
+Each is useful on its own, and Stage A's single-space mode stays as the host-independent case
+underneath:
+
+1. **A site registry**: host to site configuration (space, name, logo, stylesheet, link
+   policy), from the preferences file first, from a shorthand the space declares in a
+   nanopublication later.
+2. **Host to site resolution** in an `IRequestCycleListener`, kept in the request cycle;
+   `SiteMode` answers from there instead of from the preferences. Everything Stage A built on
+   `SiteMode` — the context fallback, the branding, the link policy — becomes per request
+   without further change.
+3. **`Utils.absolutePageUrl`** takes the host from `X-Forwarded-Host`/`X-Forwarded-Proto`
+   rather than from the single configured `websiteUrl`, and the reverse proxy passes them on.
+4. **ORCID login through the main domain.** ORCID matches redirect URIs exactly and accepts
+   no wildcards, so a site sends the user to the main domain to log in and gets them back with
+   a short-lived token. This is the one piece a path prefix would not have needed.
+5. **Wildcard DNS and TLS** for `*.space.nanodash.net`: a wildcard certificate needs the
+   DNS-01 challenge, i.e. Caddy or certbot with a plugin for the DNS provider.
+6. **Custom domains** then follow from the registry: another host in the same lookup, plus the
+   `check-domain` endpoint that lets on-demand TLS issue a certificate only for a registered
+   domain.
+
+### What it costs
+
+Sessions are per host, so a user logs in per site. Shorthands become DNS labels
+(`[a-z0-9-]`, at most 63 characters). Each origin caches `style.css` separately, and analytics
+needs the extra host names registered. A `/site/<shorthand>` path could still be added later
+as a redirect to the host name, for discoverability.
