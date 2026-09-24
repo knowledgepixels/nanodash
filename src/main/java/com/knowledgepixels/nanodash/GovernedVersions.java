@@ -27,6 +27,11 @@ import java.util.Set;
  * retracted versions skipped) all happen server-side in the
  * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query; this class only
  * assembles its inputs and reads its single row.
+ * <p>
+ * The declaration only takes effect once the kind is a maintained resource of the
+ * space. Until then the same query resolves the pinned version like an ungoverned
+ * one, along its own same-key supersedes chain, so declaring {@code gen:governedBy}
+ * ahead of the registration no longer freezes the pin.
  */
 public class GovernedVersions {
 
@@ -34,17 +39,20 @@ public class GovernedVersions {
     } // no instances allowed
 
     /**
-     * The {@code (kind, space)} pair a governed definition version declares, as
-     * plain strings so it can be held by Wicket components across serialization.
+     * The {@code (kind, space)} pair a governed definition version declares, along with
+     * the nanopublication declaring it, as plain strings so it can be held by Wicket
+     * components across serialization.
      */
     public static class GovernedRef implements Serializable {
 
         private final String kind;
         private final String space;
+        private final String nanopubId;
 
-        private GovernedRef(String kind, String space) {
+        private GovernedRef(String kind, String space, String nanopubId) {
             this.kind = kind;
             this.space = space;
+            this.nanopubId = nanopubId;
         }
 
         /**
@@ -59,6 +67,14 @@ public class GovernedVersions {
          */
         public String getSpace() {
             return space;
+        }
+
+        /**
+         * @return the nanopublication declaring the pair, which is the pin the
+         * governed-version query resolves from
+         */
+        public String getNanopubId() {
+            return nanopubId;
         }
 
     }
@@ -95,48 +111,52 @@ public class GovernedVersions {
         // thing we produce; taking the first match is enough.
         for (Map.Entry<String, String> kind : kinds.entrySet()) {
             String space = spaces.get(kind.getKey());
-            if (space != null) return new GovernedRef(kind.getValue(), space);
+            if (space != null) return new GovernedRef(kind.getValue(), space, np.getUri().stringValue());
         }
         return null;
     }
 
     /**
-     * Builds the query reference resolving the current governed version of a
-     * {@code (kind, space)} pair.
+     * Builds the query reference resolving the current version of a governed pin: the
+     * newest version of its {@code (kind, space)} pair if the kind is a maintained
+     * resource of the space, otherwise the head of the pin's own supersedes chain.
      *
      * @param kindIri  the definition kind (the {@code dct:isVersionOf} target)
      * @param spaceIri the governing space
+     * @param pinId    the nanopublication of the pinned version
      * @return the query reference
      */
-    public static QueryRef getQueryRef(String kindIri, String spaceIri) {
+    public static QueryRef getQueryRef(String kindIri, String spaceIri, String pinId) {
         Multimap<String, String> params = ArrayListMultimap.create();
         params.put("kind", kindIri);
         params.put("space", spaceIri);
+        params.put("pin", pinId);
         return new QueryRef(QueryApiAccess.GET_LATEST_GOVERNED_VERSION, params);
     }
 
     /**
-     * Builds the query reference resolving the current governed version for the
-     * given pair.
+     * Builds the query reference resolving the current version for the given pair,
+     * pinned at the nanopublication it was read off.
      *
      * @param ref the kind/space pair
      * @return the query reference
      */
     public static QueryRef getQueryRef(GovernedRef ref) {
-        return getQueryRef(ref.getKind(), ref.getSpace());
+        return getQueryRef(ref.getKind(), ref.getSpace(), ref.getNanopubId());
     }
 
     /**
-     * Resolves the current governed version of a {@code (kind, space)} pair,
-     * blocking on the query if it isn't cached yet.
+     * Resolves the current version of a governed pin, blocking on the query if it
+     * isn't cached yet.
      *
      * @param kindIri  the definition kind (the {@code dct:isVersionOf} target)
      * @param spaceIri the governing space
-     * @return the definition IRI of the current governed version, or null if
-     * there is no valid floating candidate (the caller then keeps its pin)
+     * @param pinId    the nanopublication of the pinned version
+     * @return the definition IRI of the current version, or null if there is no valid
+     * candidate (the caller then keeps its pin)
      */
-    public static String getLatestVersionIriSync(String kindIri, String spaceIri) {
-        return getVersionIri(ApiCache.retrieveResponseSync(getQueryRef(kindIri, spaceIri), false));
+    public static String getLatestVersionIriSync(String kindIri, String spaceIri, String pinId) {
+        return getVersionIri(ApiCache.retrieveResponseSync(getQueryRef(kindIri, spaceIri, pinId), false));
     }
 
     /**

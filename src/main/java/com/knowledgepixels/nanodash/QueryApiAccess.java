@@ -175,13 +175,23 @@ public class QueryApiAccess {
     // decided client-side. Source at docs/queries/list-space-claimants.trig.
     public static final String LIST_SPACE_CLAIMANTS = "RApsQhJnK7MV5fHzFQe4GsnsUdf_HvPT186E02JE-4CTY/list-space-claimants";
     // Space-governed view-version resolution: given a definition kind (dct:isVersionOf
-    // target) and its governing space, returns at most one row -- the newest version
+    // target), its governing space and the pinned version's nanopub (pin), returns at most
+    // one row. With the kind validated as maintained by the space: the newest version
     // declaring gen:governedBy that space, signed by a current member+ of the space's
-    // governing ref, with the kind validated as maintained by the space. Empty result =
-    // the caller keeps its pinned version (the pin is the floor). Source at
+    // governing ref; empty result = the caller keeps its pinned version (the pin is the
+    // floor). With the kind not registered: the single current head of the pin's own
+    // same-key supersedes chain, as GET_LATEST_VERSION_OF_NP resolves it, so that a
+    // gen:governedBy declared ahead of the registration no longer freezes the pin.
+    // RAyB49tP supersedes RA833rrc, which superseded RAPSWgzH: RAPSWgzH took no pin and
+    // returned nothing for an unregistered kind, and both it and RA833rrc looked up the
+    // versions once per member row, starting from every nanopub signed by a member key
+    // (up to a minute for spaces whose members have signed many nanopubs). RAyB49tP
+    // gathers the member keys into one row and starts the full-repo lookup from the kind,
+    // so it runs once; results validated identical across all governed pairs, registered
+    // median 0.5s -> 0.2s, worst case 20-60s -> about 1s. Source at
     // docs/queries/get-latest-governed-version.trig; see
     // docs/views-and-presets-as-maintained-resources.md.
-    public static final String GET_LATEST_GOVERNED_VERSION = "RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw/get-latest-governed-version";
+    public static final String GET_LATEST_GOVERNED_VERSION = "RAyB49tPLdgMjwmG9alOjtK2wSvxLGPunfncFk57elB-Q/get-latest-governed-version";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
     public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
