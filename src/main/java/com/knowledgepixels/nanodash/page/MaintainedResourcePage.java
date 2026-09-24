@@ -92,7 +92,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
-        add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
+        add(new Label("pagetitle", resource.getLabel() + " (resource)" + titleSuffix()));
         // Optional profile picture, left of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the resource declares none.

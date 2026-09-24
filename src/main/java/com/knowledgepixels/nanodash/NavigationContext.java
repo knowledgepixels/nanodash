@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
+import com.knowledgepixels.nanodash.page.SiteHomePage;
 import com.knowledgepixels.nanodash.page.SpacePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
@@ -68,9 +69,32 @@ public class NavigationContext {
      * @return the context resource id, or null if not set
      */
     public static String getContextId(PageParameters params) {
-        if (params == null) return null;
-        String contextId = params.get(CONTEXT_PARAM).toString("");
-        return contextId.isEmpty() ? null : contextId;
+        String contextId = params == null ? "" : params.get(CONTEXT_PARAM).toString("");
+        // In site mode the site's space is the context of everything that names none of its
+        // own: the site's pages, forms and links all act within it (issue #692).
+        return contextId.isEmpty() ? SiteMode.getSpaceId() : contextId;
+    }
+
+    /**
+     * The class of the home page: Nanodash's own, or the site's space page when this instance
+     * is a site (issue #692). Pages that send the user home go here rather than to
+     * {@link HomePage}, which is not served in site mode.
+     *
+     * @return the home page class
+     */
+    public static Class<? extends NanodashPage> homePageClass() {
+        return SiteMode.isEnabled() ? SiteHomePage.class : HomePage.class;
+    }
+
+    /**
+     * A page reference (link target + label) for the home page, named after the site when
+     * this instance is one.
+     *
+     * @return the page reference
+     */
+    public static NanodashPageRef homePageRef() {
+        if (SiteMode.isEnabled()) return new NanodashPageRef(SiteHomePage.class, SiteMode.getName());
+        return new NanodashPageRef(HomePage.class, "Home");
     }
 
     /**
@@ -122,7 +146,7 @@ public class NavigationContext {
      * @return the page class, or null if the resource is null
      */
     public static Class<? extends NanodashPage> getPageClass(AbstractResourceWithProfile resource) {
-        if (resource instanceof Space) return SpacePage.class;
+        if (resource instanceof Space) return SiteMode.isSiteSpace(resource.getId()) ? SiteHomePage.class : SpacePage.class;
         if (resource instanceof MaintainedResource) return MaintainedResourcePage.class;
         if (resource instanceof IndividualAgent) return UserPage.class;
         return null;
@@ -136,6 +160,8 @@ public class NavigationContext {
      * @return true if it is the home resource
      */
     public static boolean isHomeResource(String contextId) {
+        // A site's home page is its space's page; Nanodash's home resource is not shown there.
+        if (SiteMode.isEnabled()) return false;
         return contextId != null && contextId.equals(NanodashPreferences.get().getHomeResource());
     }
 
@@ -146,8 +172,8 @@ public class NavigationContext {
      * @return the page reference, or null if the id cannot be resolved
      */
     public static NanodashPageRef getPageRef(String contextId) {
-        if (isHomeResource(contextId)) {
-            return new NanodashPageRef(HomePage.class, "Home");
+        if (isHomeResource(contextId) || SiteMode.isSiteSpace(contextId)) {
+            return homePageRef();
         }
         AbstractResourceWithProfile resource = resolve(contextId);
         if (resource == null) return null;
@@ -308,17 +334,19 @@ public class NavigationContext {
             if (isHomeResource(contextId)) {
                 throw new RestartResponseException(HomePage.class, redirectParams);
             }
-            redirectParams.set("id", contextId);
             // Return to the tab the action asked for (e.g. "about" for a
             // space's About-tab role actions); default is the Content tab.
             String postpubTab = pageParams.get("postpub-tab").toString("");
             if (!postpubTab.isEmpty()) redirectParams.set("tab", postpubTab);
             AbstractResourceWithProfile resource = resolve(contextId);
             if (resource != null) {
-                throw new RestartResponseException(getPageClass(resource), redirectParams);
+                Class<? extends NanodashPage> pageClass = getPageClass(resource);
+                // The site's home page needs no id: it is its space's page.
+                if (pageClass != SiteHomePage.class) redirectParams.set("id", contextId);
+                throw new RestartResponseException(pageClass, redirectParams);
             }
         }
-        throw new RestartResponseException(HomePage.class, new PageParameters().set("just-published", npUri));
+        throw new RestartResponseException(homePageClass(), new PageParameters().set("just-published", npUri));
     }
 
     /**
@@ -372,6 +400,10 @@ public class NavigationContext {
             found = declaredResourceExists(isSpaceNanopub, targetId);
         }
         if (!found) return;
+        // A site's pages are its own: a nanopublication that declares a space or resource
+        // outside the site does not forward there (issue #692). It has been published all the
+        // same, and the normal forward's title-bar message links to it.
+        if (SiteMode.isEnabled() && !SiteMode.belongsToSite(targetId)) return;
         PageParameters redirectParams = new PageParameters()
                 .set("id", targetId)
                 .set("just-published", signedNp.getUri().stringValue());

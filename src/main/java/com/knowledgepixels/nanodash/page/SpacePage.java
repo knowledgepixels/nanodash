@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
@@ -110,7 +111,8 @@ public class SpacePage extends NanodashPage {
             ).setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         }
 
-        add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
+        // The site's own space is the site: its page is titled with nothing but the site's name.
+        add(new Label("pagetitle", SiteMode.isSiteSpace(spaceId) ? SiteMode.getName() : space.getLabel() + " (space)" + titleSuffix()));
         setMetaDescription(spaceMetaDescription(space));
         // Optional profile picture, right of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
@@ -321,13 +323,22 @@ public class SpacePage extends NanodashPage {
     /**
      * Resolves the {@link Space} from the repository, or redirects as needed.
      *
-     * @param parameters page parameters containing the space {@code id}
+     * @param parameters page parameters containing the space {@code id}; in site mode it may be
+     *                   left out, meaning the site's space
      * @return the resolved {@link Space}; never {@code null}
-     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource} or to a part within one
+     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource} or to a part within one,
+     *                                  or the site's space is not loaded yet
      * @throws IllegalArgumentException if the id cannot be resolved to any known resource
      */
     private Space resolveSpace(PageParameters parameters) {
         String id = parameters.get("id").toString();
+        if (id == null && SiteMode.isEnabled()) {
+            // The site's home page names no space: it is the site's. While the repository does
+            // not know that space yet (a cold start), there is a page saying so (issue #692).
+            Space site = SiteMode.getSpace();
+            if (site == null) throw new RestartResponseException(SiteLoadingPage.class);
+            return site;
+        }
         Space resolved = SpaceRepository.get().findById(id);
         if (resolved == null) {
             if (MaintainedResourceRepository.get().findById(id) != null) {

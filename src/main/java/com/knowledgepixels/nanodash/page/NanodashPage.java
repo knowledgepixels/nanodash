@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
@@ -13,6 +14,7 @@ import com.knowledgepixels.nanodash.component.ClaudeChatPanel;
 import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
@@ -20,6 +22,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.head.StringHeaderItem;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -66,7 +69,7 @@ public abstract class NanodashPage extends WebPage {
 
     private static final int MAX_META_DESCRIPTION_LENGTH = 300;
 
-    private String metaDescription = SITE_META_DESCRIPTION;
+    private String metaDescription = defaultMetaDescription();
 
     private static final PolicyFactory TEXT_ONLY_POLICY = new HtmlPolicyBuilder().toFactory();
 
@@ -82,6 +85,39 @@ public abstract class NanodashPage extends WebPage {
     public abstract String getMountPath();
 
     /**
+     * What this instance calls itself: Nanodash, or the site's name when it is a site
+     * (issue #692).
+     *
+     * @return the site name
+     */
+    protected static String siteName() {
+        return SiteMode.isEnabled() ? SiteMode.getName() : SITE_NAME;
+    }
+
+    /**
+     * The ending of a page title, naming the site the page is on: {@code " | nanodash"}, or
+     * the site's name in site mode.
+     *
+     * @return the title suffix, including its separator
+     */
+    protected static String titleSuffix() {
+        return " | " + (SiteMode.isEnabled() ? SiteMode.getName() : "nanodash");
+    }
+
+    /**
+     * The description of a page that has none of its own: what Nanodash is, or in site mode
+     * what the site's space says about itself.
+     */
+    private static String defaultMetaDescription() {
+        if (!SiteMode.isEnabled()) return SITE_META_DESCRIPTION;
+        Space space = SiteMode.getSpace();
+        if (space != null && space.getDescription() != null && !space.getDescription().isBlank()) {
+            return space.getDescription();
+        }
+        return SiteMode.getName() + ": browse and publish nanopublications.";
+    }
+
+    /**
      * Constructor for NanodashPage.
      *
      * @param parameters the page parameters
@@ -93,6 +129,12 @@ public abstract class NanodashPage extends WebPage {
         // A session built while a service was unavailable holds no profile information
         // (issue #684); this picks it up once the service answers.
         NanodashSession.get().refreshProfileInfoIfIncomplete();
+        // In site mode the body says so, for the stylesheet and script to tell links that
+        // leave the site from those that stay (issue #692). Transparent, so that the page's
+        // own components resolve through it as before.
+        TransparentWebMarkupContainer body = new TransparentWebMarkupContainer("body");
+        if (SiteMode.isEnabled()) body.add(new AttributeAppender("class", "site"));
+        add(body);
         add(new ClaudeChatPanel("claudechat", true) {
 
             @Override
@@ -280,7 +322,8 @@ public abstract class NanodashPage extends WebPage {
     @Override
     protected void onRender() {
         if (hasAutoRefreshEnabled() && state < lastRefresh) {
-            throw new RedirectToUrlException(getMountPath() + "?" + Utils.getPageParametersAsString(getPageParameters()));
+            String query = Utils.getPageParametersAsString(getPageParameters());
+            throw new RedirectToUrlException(getMountPath() + (query.isEmpty() ? "" : "?" + query));
         }
         super.onRender();
     }
@@ -394,9 +437,9 @@ public abstract class NanodashPage extends WebPage {
      */
     protected String getMetaTitle() {
         Component pageTitle = get(PAGE_TITLE_ID);
-        if (pageTitle == null) return SITE_NAME;
+        if (pageTitle == null) return siteName();
         Object title = pageTitle.getDefaultModelObject();
-        return title == null ? SITE_NAME : title.toString();
+        return title == null ? siteName() : title.toString();
     }
 
     /**
@@ -473,7 +516,7 @@ public abstract class NanodashPage extends WebPage {
         response.render(headTag("meta", "name", "description", "content", description));
         response.render(headTag("link", "rel", "canonical", "href", url));
         response.render(headTag("meta", "property", "og:type", "content", "website"));
-        response.render(headTag("meta", "property", "og:site_name", "content", SITE_NAME));
+        response.render(headTag("meta", "property", "og:site_name", "content", siteName()));
         response.render(headTag("meta", "property", "og:title", "content", title));
         response.render(headTag("meta", "property", "og:description", "content", description));
         response.render(headTag("meta", "property", "og:url", "content", url));
@@ -524,7 +567,15 @@ public abstract class NanodashPage extends WebPage {
         super.renderHead(response);
         renderPageMetadata(response);
         renderRdfLinks(response);
+        // A site's logo is its icon too; otherwise it is Nanodash's (issue #692).
+        String siteLogo = SiteMode.getLogoSrc();
+        response.render(siteLogo != null
+                ? headTag("link", "rel", "icon", "href", siteLogo)
+                : headTag("link", "rel", "icon", "type", "image/svg+xml", "href", "images/favicon.svg"));
         response.render(CssHeaderItem.forUrl(getStyleSheetUrl()));
+        // A site's own stylesheet comes after Nanodash's, so that it wins where they meet.
+        String siteCss = SiteMode.isEnabled() ? NanodashPreferences.get().getSiteCss() : null;
+        if (siteCss != null) response.render(CssHeaderItem.forUrl(siteCss));
         response.render(JavaScriptHeaderItem.forReference(getApplication().getJavaScriptLibrarySettings().getJQueryReference()));
         response.render(JavaScriptReferenceHeaderItem.forReference(nanodashJs));
         String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();

@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
@@ -49,7 +50,24 @@ import java.util.*;
 public class NanodashLink extends Panel {
 
     public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label) {
-        this(id, uri, np, templateClass, label, null);
+        this(id, uri, np, templateClass, label, null, false);
+    }
+
+    /**
+     * Creates a link to an IRI listed by a view: a cell of a query result, bound to the view's
+     * context. What a site's views list is the site's content, so in site mode such a link
+     * stays inside the site even for an IRI that nothing else places there (issue #692); the
+     * Explore page then decides, on click, whether it is a part of the site.
+     *
+     * @param id            the Wicket component ID
+     * @param uri           the URI of the nanopublication or IRI
+     * @param np            the nanopublication, or null if the link is not to a nanopublication
+     * @param templateClass the template class of the nanopublication, or null if the link is not to a nanopublication
+     * @param label         the label to display for the link, or null to derive it from the nanopublication or IRI
+     * @param contextId     the context resource the view is bound to, or null
+     */
+    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label, String contextId) {
+        this(id, uri, np, templateClass, label, contextId, true);
     }
 
     /**
@@ -60,8 +78,10 @@ public class NanodashLink extends Panel {
      * @param np            the nanopublication, or null if the link is not to a nanopublication
      * @param templateClass the template class of the nanopublication, or null if the link is not to a nanopublication
      * @param label         the label to display for the link, or null to derive it from the nanopublication or IRI
+     * @param contextId     the context resource id to carry along, or null
+     * @param listedByView  whether the IRI is listed by a view, which keeps it inside a site
      */
-    public NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label, String contextId) {
+    private NanodashLink(String id, String uri, Nanopub np, IRI templateClass, String label, String contextId, boolean listedByView) {
         super(id);
 
         final List<Template> templates = new ArrayList<>();
@@ -150,7 +170,7 @@ public class NanodashLink extends Panel {
                 }
             }
             String shortLabel = label.replaceFirst(" - [\\s\\S]*$", "");
-            add(createLink("link", uri, shortLabel, contextId, explicitLabel));
+            add(createLink("link", uri, shortLabel, contextId, explicitLabel, listedByView));
             String description = "";
             if (np != null && uri.startsWith(np.getUri().stringValue())) {
                 description = "This is a local identifier that was minted when the nanopublication was created.";
@@ -179,7 +199,26 @@ public class NanodashLink extends Panel {
      * labels are shown in full; only derived labels are truncated for display.
      */
     public static Component createLink(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
-        Component link = createLinkComponent(markupId, uri, label, contextId, explicitLabel);
+        return createLink(markupId, uri, label, contextId, explicitLabel, false);
+    }
+
+    /**
+     * Like {@link #createLink(String, String, String, String, boolean)}, with a flag telling
+     * whether the IRI is listed by a view. In site mode a listed IRI is linked inside the site
+     * whatever it is, since what the site's views list is the site's content, and the Explore
+     * page settles on click whether it is a part of the site (issue #692); an IRI met anywhere
+     * else, in a nanopublication's statements say, is linked as itself when it is not the site's.
+     *
+     * @param markupId      the Wicket component id
+     * @param uri           the IRI to link to
+     * @param label         the label to show
+     * @param contextId     the context resource id to carry along, or null
+     * @param explicitLabel whether the label was explicitly provided
+     * @param listedByView  whether the IRI is listed by a view
+     * @return the link component
+     */
+    public static Component createLink(String markupId, String uri, String label, String contextId, boolean explicitLabel, boolean listedByView) {
+        Component link = createLinkComponent(markupId, uri, label, contextId, explicitLabel, listedByView);
         // Fall back to the page's navigation context when the caller didn't supply one
         // (e.g. nanopub cards), so the target page's back-link still points back here.
         if (link instanceof BookmarkablePageLink) {
@@ -188,7 +227,7 @@ public class NanodashLink extends Panel {
         return link;
     }
 
-    private static Component createLinkComponent(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
+    private static Component createLinkComponent(String markupId, String uri, String label, String contextId, boolean explicitLabel, boolean listedByView) {
         // An ipfs:/did:/at: resource goes to its external resolver, the same as in
         // getPageUrl (issue #655). Checked first because the lookups below all assume an
         // http(s) identifier, and because the Explore page fallback at the end has nothing
@@ -196,6 +235,13 @@ public class NanodashLink extends Panel {
         String resolverUrl = Utils.getExternalResolverUrl(uri);
         if (resolverUrl != null) {
             return new ExternalLink(markupId, resolverUrl, displayLabel(label, explicitLabel));
+        }
+        // What lies outside a site is linked as itself, not shown inside the site (issue #692).
+        // Not so for what the site's views list: that is the site's content as far as anyone
+        // can tell here, and the Explore page settles on click whether it is a part of the site.
+        if (!listedByView && SiteMode.rendersExternally(uri)) {
+            String shown = label == null || label.isBlank() ? Utils.getShortNameFromURI(uri) : label;
+            return new ExternalLink(markupId, uri, displayLabel(shown, explicitLabel));
         }
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         PageParameters params = new PageParameters().set("id", uri);
@@ -264,6 +310,8 @@ public class NanodashLink extends Panel {
         // because the lookups below all assume an http(s) identifier.
         String resolverUrl = Utils.getExternalResolverUrl(uri);
         if (resolverUrl != null) return resolverUrl;
+        // What lies outside a site is linked as itself (issue #692).
+        if (SiteMode.rendersExternally(uri)) return uri;
         if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
             return UserPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
         } else if (SpaceRepository.get().findById(uri) != null) {

@@ -382,4 +382,43 @@ class NanodashPreferencesTest {
         assertTrue(preferences.getNanopubActions().isEmpty());
     }
 
+    @Test
+    void siteSettingsAreUnsetByDefault() {
+        NanodashPreferences preferences = get();
+        assertNull(preferences.getSiteSpace());
+        assertNull(preferences.getSiteName());
+        assertNull(preferences.getSiteLogo());
+        assertNull(preferences.getSiteCss());
+        assertTrue(preferences.isSiteExternalLinks());
+    }
+
+    @Test
+    void siteSettingsComeFromTheEnvironment() {
+        envVars.set("NANODASH_SITE_SPACE", "https://example.org/spaces/site");
+        envVars.set("NANODASH_SITE_NAME", "Site");
+        envVars.set("NANODASH_SITE_LOGO", "https://example.org/logo.png");
+        envVars.set("NANODASH_SITE_CSS", "https://example.org/site.css");
+        envVars.set("NANODASH_SITE_EXTERNAL_LINKS", "false");
+        NanodashPreferences preferences = get();
+        assertEquals("https://example.org/spaces/site", preferences.getSiteSpace());
+        assertEquals("Site", preferences.getSiteName());
+        assertEquals("https://example.org/logo.png", preferences.getSiteLogo());
+        assertEquals("https://example.org/site.css", preferences.getSiteCss());
+        assertFalse(preferences.isSiteExternalLinks());
+    }
+
+    @Test
+    void siteSettingsCanBeSet() {
+        NanodashPreferences preferences = get();
+        preferences.setSiteSpace("https://example.org/spaces/site");
+        preferences.setSiteName("Site");
+        preferences.setSiteExternalLinks(false);
+        assertEquals("https://example.org/spaces/site", preferences.getSiteSpace());
+        assertEquals("Site", preferences.getSiteName());
+        assertFalse(preferences.isSiteExternalLinks());
+        // Blank means unset, as for the environment variables.
+        preferences.setSiteSpace("  ");
+        assertNull(preferences.getSiteSpace());
+    }
+
 }

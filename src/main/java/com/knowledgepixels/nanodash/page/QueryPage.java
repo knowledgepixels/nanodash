@@ -107,7 +107,7 @@ public class QueryPage extends NanodashPage {
         }
 
         add(new TitleBar("titlebar", this));
-        add(new Label("pagetitle", "Query Info | nanodash"));
+        add(new Label("pagetitle", "Query Info" + titleSuffix()));
         add(new Label("querylabel", q.getLabel()));
         add(new BookmarkablePageLink<Void>("np", ExplorePage.class, new PageParameters().set("id", q.getNanopub().getUri().stringValue()))
                 .add(NavigationContext.pageContextFallback()));

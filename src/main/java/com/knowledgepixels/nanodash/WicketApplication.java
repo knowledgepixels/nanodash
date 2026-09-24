@@ -138,12 +138,14 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
     }
 
     /**
-     * Returns the home page class for the application.
+     * Returns the home page class for the application: Nanodash's own home page, or the
+     * site's space page when this instance is a site (issue #692). Wicket asks on every
+     * request, so the answer can follow the configuration.
      *
-     * @return The HomePage class.
+     * @return The home page class.
      */
-    public Class<HomePage> getHomePage() {
-        return HomePage.class;
+    public Class<? extends NanodashPage> getHomePage() {
+        return SiteMode.isEnabled() ? SiteHomePage.class : HomePage.class;
     }
 
     /**
@@ -216,6 +218,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(DownloadRdfPage.MOUNT_PATH, DownloadRdfPage.class);
         mountPage(DownloadDocPage.MOUNT_PATH, DownloadDocPage.class);
         mountPage(CalendarFeedPage.MOUNT_PATH, CalendarFeedPage.class);
+        mountPage(SiteLoadingPage.MOUNT_PATH, SiteLoadingPage.class);
 
         getCspSettings().blocking().disabled();
         getStoreSettings().setMaxSizePerSession(Bytes.megabytes(100));
@@ -271,6 +274,10 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 logger.error("Startup user-data warm-up failed", ex);
             }
         });
+
+        if (SiteMode.isEnabled()) {
+            logger.info("Site mode: this instance is the site of space {}", SiteMode.getSpaceId());
+        }
 
         String umamiScriptUrl = NanodashPreferences.get().getUmamiScriptUrl();
         if (umamiScriptUrl != null && !umamiScriptUrl.isBlank()) {

@@ -715,7 +715,8 @@ public class PublishForm extends Panel {
                     if (!toRefresh.isEmpty()) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
                     }
-                    String contextId = pageParams.get("context").toString("");
+                    String contextId = NavigationContext.getContextId(pageParams);
+                    if (contextId == null) contextId = "";
                     // Broaden the refresh: also force-refresh the context resource's own
                     // data (e.g. a space's roles/members) so the page we redirect to —
                     // typically its Content tab — reflects the just-published change, not

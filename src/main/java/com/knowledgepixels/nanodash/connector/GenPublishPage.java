@@ -39,7 +39,7 @@ public class GenPublishPage extends ConnectorPage {
      */
     public GenPublishPage(final PageParameters parameters) {
         super(parameters);
-        add(new Label("pagetitle", getConfig().getJournalName() + ": Publish Nanopublication | nanodash"));
+        add(new Label("pagetitle", getConfig().getJournalName() + ": Publish Nanopublication" + titleSuffix()));
 
         PageParameters journalParam = new PageParameters().set("journal", getConnectorId());
         add(new TitleBar("titlebar", this,

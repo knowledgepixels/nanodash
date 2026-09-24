@@ -41,7 +41,7 @@ public class GenSelectPage extends ConnectorPage {
      */
     public GenSelectPage(PageParameters params) {
         super(params);
-        add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication | nanodash"));
+        add(new Label("pagetitle", getConfig().getJournalName() + ": Create Nanopublication" + titleSuffix()));
         PageParameters journalParam = new PageParameters().set("journal", getConnectorId());
         add(new TitleBar("titlebar", this,
                 new NanodashPageRef(GenOverviewPage.class, journalParam, getConfig().getJournalName()),

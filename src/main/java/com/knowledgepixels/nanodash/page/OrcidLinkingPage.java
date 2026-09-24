@@ -31,6 +31,7 @@ public class OrcidLinkingPage extends NanodashPage {
      */
     public OrcidLinkingPage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("pagetitle", "Linking your ORCID Account" + titleSuffix()));
 
         add(new TitleBar("titlebar", this));
         if (!NanodashSession.get().isProfileComplete()) {

@@ -42,7 +42,7 @@ public class ReferencesPage extends NanodashPage {
             shortName = parameters.get("label").toString();
         }
 
-        add(new Label("pagetitle", shortName + " (references) | nanodash"));
+        add(new Label("pagetitle", shortName + " (references)" + titleSuffix()));
         add(new Label("termname", shortName));
         add(new ExternalLinkWithActionsPanel("urilink", Model.of(ref)));
         add(new BookmarkablePageLink<Void>("back-link", ExplorePage.class, new PageParameters().set("id", ref))
