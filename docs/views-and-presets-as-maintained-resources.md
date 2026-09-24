@@ -80,6 +80,16 @@ already-published versions resolve.) So R's admin, by pinning a declared version
 update authority to the named space's members without ever risking a cross-space override;
 by pinning an undeclared version they delegate to the original publisher's key, as today.
 
+**An unregistered kind doesn't freeze the pin.** A declared `gen:governedBy` only takes effect
+once `<kind> gen:isMaintainedBy <space>` is validated. Until then — and again if the
+registration is withdrawn — the pinned version resolves like an undeclared one: along its own
+same-key `npx:supersedes` chain, with the same single-head rule as `get-latest-version-of-np`.
+Only a registered kind switches to space-based resolution, where the pin is the floor. (The
+first resolver returned nothing for an unregistered kind, so the pin stood even against
+same-key supersedes, and declaring `gen:governedBy` ahead of the registration was worse than
+not declaring it. `get-latest-governed-version` now takes the pinned nanopub as a third
+parameter and answers both cases.)
+
 **"Latest" is a claim by the space, not a verifiable ordering.** Without a supersedes chain,
 any member+ of the governing space can republish older content with a fresh timestamp and win
 resolution. That is inside the stated trust boundary — members speak for the space — and the

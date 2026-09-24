@@ -2,7 +2,10 @@
 
 **Status:** partly implemented — embedded identity (rollout steps 1–2) merged in PR #545;
 governed resolution (steps 3–4) live: the generalized `get-latest-governed-version` query
-(`RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw`, serving views and templates), the
+(`RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw`, serving views and templates; since
+superseded by `RAyB49tPLdgMjwmG9alOjtK2wSvxLGPunfncFk57elB-Q`, which also takes the pinned
+nanopub, follows its supersedes chain while the kind isn't registered, and looks up the
+versions once instead of once per space member), the
 `gen:governedBy` resolution branch in `TemplateData`, and a first governed test pair
 (template `RAiK3l4D…`, kind registered maintained-by knowledgepixels via `RAnUJSnd…`).
 Server-side type inference confirmed to list new-style templates. The three template

@@ -4,51 +4,112 @@
 @prefix grlc: <https://w3id.org/kpxl/grlc/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix npx: <http://purl.org/nanopub/x/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix orcid: <https://orcid.org/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-sub:Head { this: a np:Nanopublication; np:hasAssertion sub:assertion; np:hasProvenance sub:provenance; np:hasPublicationInfo sub:pubinfo . }
+
+sub:Head {
+  this: a np:Nanopublication ;
+    np:hasAssertion sub:assertion ;
+    np:hasProvenance sub:provenance ;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
 sub:assertion {
-  sub:get-latest-governed-version a grlc:grlc-query;
-    dct:description "Resolves the canonical (latest authorized) version of a space-governed definition -- a resource view, an assertion/provenance/pubinfo template, or any other definition whose versions follow the embeds/isVersionOf/governedBy convention -- per docs/views-and-presets-as-maintained-resources.md and docs/template-identity-and-governance.md in the nanodash repo. Takes the definition's kind IRI (its dct:isVersionOf target; kind) and the governing space IRI (space) and returns at most one row: the newest version whose nanopub (a) npx:embeds the version IRI, which declares dct:isVersionOf <kind> plus gen:governedBy <space> in the assertion, and (b) is signed by a pubkey of a CURRENT member+ (admin/maintainer/member, not observer) of that space's governing ref -- with the kind validated as a maintained resource of the space (npa:isMaintainedBy + npa:hasGoverningSpaceRef in the materialized state graph; the two anchors that make gen:governedBy a label, not a grant). The RoleInstantiation's npa:forSpace/npa:forSpaceRef pair ties the governing ref to the given space IRI, so a multi-maintainer kind never floats across pairs. An empty result means no valid floating candidate: the caller keeps its pinned version (the pin is the floor and is not re-validated here). Versions retracted by their own signing key are skipped. Hosted on the spaces repo; the version/pubkey lookup federates to the full repo with kind and space as text-substituted constants, so the federated scan stays narrow (entry via dct:isVersionOf <kind>). This version generalizes the previous view-specific one (which federated to the gen:ResourceView type repo) to definitions of any type, so the same resolver serves views and templates alike.";
-    dct:license <http://www.apache.org/licenses/LICENSE-2.0>;
-    rdfs:label "Get latest governed version";
-    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces>;
+  sub:get-latest-governed-version a grlc:grlc-query ;
+    rdfs:label "Get latest governed version" ;
+    dct:description "Resolves which version a reference to a space-governed definition should use: a resource view, an assertion/provenance/pubinfo template, or any other definition whose versions follow the embeds/isVersionOf/governedBy convention (docs/views-and-presets-as-maintained-resources.md and docs/template-identity-and-governance.md in the nanodash repo). Takes the definition's kind (its dct:isVersionOf target; kind), the space named by the pinned version's gen:governedBy (space), and the nanopublication URI of the pinned version (pin). If the kind is registered as a maintained resource of the space (npa:isMaintainedBy in the current space state), the result is the newest version of the (kind, space) pair: a nanopublication that npx:embeds the version, which declares dct:isVersionOf <kind> and gen:governedBy <space>, is signed by a current member+ (admin/maintainer/member, not observer) of the space's governing ref, and is not invalidated by its own key (mode 'governed'). Without such a version the result is empty and the caller keeps its pin, which is not re-validated here. If the kind is not registered for the space, gen:governedBy has no effect and the pin resolves like an ungoverned version (mode 'supersedes'): the single current head of its npx:supersedes chain, signed with the pin's own key and not invalidated by it. This is the same rule as get-latest-version-of-np, so a chain that has forked into several heads yields no row. Returns at most one row: version (the embedded definition IRI, or the nanopublication URI if it embeds none), date, np and mode. Hosted on the spaces repo; the version lookups federate to the full repo with kind, space and pin as text-substituted constants. For a registered kind, the member keys are gathered into a single row and the full-repo lookup starts from the kind and shares no variables with them, so it runs once and only touches the kind's own versions. Supersedes RA833rrc, which answered the same but looked up the versions once per member of the space, starting from every nanopublication signed by a member key: several seconds, up to a minute, for spaces whose members have signed many nanopublications." ;
+    dct:license <http://www.apache.org/licenses/LICENSE-2.0> ;
+    grlc:endpoint <https://w3id.org/np/l/nanopub-query-1.1/repo/spaces> ;
     grlc:sparql """prefix np: <http://www.nanopub.org/nschema#>
 prefix npa: <http://purl.org/nanopub/admin/>
 prefix npx: <http://purl.org/nanopub/x/>
 prefix dct: <http://purl.org/dc/terms/>
 prefix gen: <https://w3id.org/kpxl/gen/terms/>
 
-select distinct ?version ?date ?np ("^" as ?np_label) where {
-  graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
-  graph ?stateG {
-    ?_kind_iri npa:isMaintainedBy ?_space_iri ; npa:hasGoverningSpaceRef ?ref .
-    ?ri a gen:RoleInstantiation ; npa:forSpace ?_space_iri ; npa:forSpaceRef ?ref ;
-        npa:hasRoleType ?tier ; npa:forAgent ?agent .
-    filter(?tier = gen:AdminRole || ?tier = gen:MaintainerRole || ?tier = gen:MemberRole)
-    ?acct a npa:AccountState ; npa:agent ?agent ; npa:pubkey ?pubkey .
-  }
-  service <https://w3id.org/np/l/nanopub-query-1.1/repo/full> {
-    graph npa:graph {
-      ?np npa:hasValidSignatureForPublicKeyHash ?pubkey ;
-          dct:created ?date ;
-          npx:embeds ?version ;
-          np:hasAssertion ?a .
-      filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?pubkey . }
+select distinct ?version ?date ?np ('^' as ?np_label) ?mode where {
+  {
+    # Kind registered for the space: newest version of the (kind, space) pair signed by a current member+.
+    # The member keys are gathered into one row, and the version lookup starts from the kind and shares
+    # no variables with it, so the federated call runs once instead of once per member row.
+    {
+      select (group_concat(distinct ?pubkey; separator=' ') as ?memberKeys) where {
+        graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateG . }
+        graph ?stateG {
+          ?_kind_iri npa:isMaintainedBy ?_space_iri ; npa:hasGoverningSpaceRef ?ref .
+          ?ri a gen:RoleInstantiation ; npa:forSpace ?_space_iri ; npa:forSpaceRef ?ref ;
+              npa:hasRoleType ?tier ; npa:forAgent ?agent .
+          filter(?tier = gen:AdminRole || ?tier = gen:MaintainerRole || ?tier = gen:MemberRole)
+          ?acct a npa:AccountState ; npa:agent ?agent ; npa:pubkey ?pubkey .
+        }
+      }
     }
-    graph ?a {
-      ?version dct:isVersionOf ?_kind_iri ;
-               gen:governedBy ?_space_iri .
+    {
+      select ?np ?date ?version ?versionKey where {
+        service <https://w3id.org/np/l/nanopub-query-1.1/repo/full> {
+          graph ?a {
+            ?version dct:isVersionOf ?_kind_iri ;
+                     gen:governedBy ?_space_iri .
+          }
+          graph npa:graph {
+            ?np np:hasAssertion ?a ;
+                npx:embeds ?version ;
+                dct:created ?date ;
+                npa:hasValidSignatureForPublicKeyHash ?versionKey .
+            filter not exists { ?npx npx:invalidates ?np ; npa:hasValidSignatureForPublicKeyHash ?versionKey . }
+          }
+        }
+      }
     }
+    filter(contains(?memberKeys, ?versionKey))
+    bind('governed' as ?mode)
+  } union {
+    # Kind not registered for the space: governedBy has no effect; follow the pin's same-key supersedes chain.
+    graph npa:graph { npa:thisRepo npa:hasCurrentSpaceState ?stateU . }
+    filter not exists { graph ?stateU { ?_kind_iri npa:isMaintainedBy ?_space_iri . } }
+    service <https://w3id.org/np/l/nanopub-query-1.1/repo/full> {
+      {
+        select (count(distinct ?h) as ?heads) (sample(?h) as ?np) where {
+          graph npa:networkGraph { ?h (npx:supersedes)* ?_pin_iri . }
+          graph npa:graph {
+            ?_pin_iri npa:hasValidSignatureForPublicKeyHash ?pinKey .
+            ?h npa:hasValidSignatureForPublicKeyHash ?pinKey .
+            filter not exists { ?hx npx:invalidates ?h ; npa:hasValidSignatureForPublicKeyHash ?pinKey . }
+          }
+        }
+      }
+      filter(?heads = 1)
+      graph npa:graph {
+        ?np dct:created ?date .
+        optional { ?np npx:embeds ?embedded . }
+      }
+      bind(coalesce(?embedded, ?np) as ?version)
+    }
+    bind('supersedes' as ?mode)
   }
 }
 order by desc(?date) desc(?np) limit 1""" .
 }
-sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
 sub:pubinfo {
   orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
-  this: dct:created "2026-07-08T10:58:59Z"^^xsd:dateTime; dct:creator orcid:0000-0002-1267-0234; dct:license <https://creativecommons.org/licenses/by/4.0/>; npx:supersedes <https://w3id.org/np/RABmOzHjDWhpqoRJsD4XinfDoxDOxKJ8NgJA826O_I-OI>; npx:embeds sub:get-latest-governed-version .
+
+  this: dct:created "2026-09-24T11:01:39Z"^^xsd:dateTime ;
+    dct:creator orcid:0000-0002-1267-0234 ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    rdfs:label "Get latest governed version" ;
+    npx:embeds sub:get-latest-governed-version ;
+    npx:supersedes <https://w3id.org/np/RA833rrcvetgt-JpGur9yiM03UNBZXIbRBrS-ozxqr9_A> ;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAEFAt-QcFK0ZhqfvlsmS10BnzGJA0xwOICZXkO-ai87k> ;
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU> ;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>,
+      <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw> .
 }

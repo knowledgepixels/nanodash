@@ -172,7 +172,9 @@ public class TemplateData implements Serializable {
      * governing space, checked server-side by the
      * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query, with the pinned
      * version as the floor on an empty result or failure. A version without it
-     * follows the supersedes chain of the containing nanopublication. Accepts
+     * follows the supersedes chain of the containing nanopublication, and so does
+     * a governed version whose kind isn't a maintained resource of the space yet
+     * (answered by the same governed-version query). Accepts
      * either ID form (nanopublication URI or embedded template-node IRI) and
      * returns the latest version's canonical ID ({@link Template#getId()}) — so
      * even when there is no newer version, the given ID is normalized to canonical
@@ -197,13 +199,15 @@ public class TemplateData implements Serializable {
 
     /**
      * Resolves the latest space-governed version of the pinned template's
-     * (kind, space) pair, or null if no valid floating candidate is found (the
-     * caller then keeps the pin).
+     * (kind, space) pair, or, if the kind isn't a maintained resource of the space,
+     * the head of the pin's own supersedes chain; null if there is no valid candidate
+     * (the caller then keeps the pin).
      */
     private String resolveGovernedTemplateId(Template pinned) {
         try {
             String latestId = GovernedVersions.getLatestVersionIriSync(
-                    pinned.getTemplateKindIri().stringValue(), pinned.getGoverningSpace().stringValue());
+                    pinned.getTemplateKindIri().stringValue(), pinned.getGoverningSpace().stringValue(),
+                    pinned.getNanopub().getUri().stringValue());
             if (latestId != null) {
                 Template resolved = getTemplate(latestId);
                 if (resolved != null) return resolved.getId();
