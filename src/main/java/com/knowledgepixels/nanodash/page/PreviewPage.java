@@ -33,6 +33,7 @@ import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
+import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 
@@ -185,7 +186,10 @@ public class PreviewPage extends NanodashPage {
         discardButton.setDefaultFormProcessing(false);
         form.add(discardButton);
 
-        if (Utils.isNanopubOfClass(signedNp, NTEMPLATE.ASSERTION_TEMPLATE)) {
+        // Only a nanopublication that carries a template body can be shown as a form. One
+        // that merely types a resource as a template — a template-kind registration, say —
+        // has the type but nothing to render (issue #597).
+        if (Utils.isNanopubOfClass(signedNp, NTEMPLATE.ASSERTION_TEMPLATE) && Template.hasFullTemplateDefinition(signedNp)) {
             WebMarkupContainer section = new WebMarkupContainer("template-form-preview-section");
             try {
                 section.add(new TemplateFormPreview("template-form-preview", signedNp));

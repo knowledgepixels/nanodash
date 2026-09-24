@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.NanopubLookup;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
+import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -80,7 +81,10 @@ public class ViewPage extends NanodashPage {
         page.add(new Label("heading", isPreview ? "Preview Nanopublication" : "Nanopublication"));
         page.add(new NanopubItem("nanopub", NanopubElement.get(np), templateId).setProvenanceHidden(!showProv).setPubinfoHidden(!showPubinfo).setHeaderHidden(!showHeader).setFooterHidden(!showFooter));
 
-        if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE)) {
+        // Only a nanopublication that carries a template body can be shown as a form. One
+        // that merely types a resource as a template — a template-kind registration, say —
+        // has the type but nothing to render (issue #597).
+        if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE) && Template.hasFullTemplateDefinition(np)) {
             WebMarkupContainer section = new WebMarkupContainer("template-form-preview-section");
             try {
                 section.add(new TemplateFormPreview("template-form-preview", np));
