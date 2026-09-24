@@ -112,14 +112,15 @@ public class AboutSpacePanel extends Panel {
 
     /**
      * View listing the definitions (views, templates and the like) whose versions say they
-     * are governed by the space but whose kind the space does not maintain yet, so their
-     * gen:governedBy has no effect: the newest member-signed version per kind, built on the
-     * list-maintained-resources-pending-approval query. Its admin actions approve one
-     * (declaring its kind a maintained resource of the space) or disapprove of it (which only
-     * takes that version off the list). The view is itself governed by
-     * knowledgepixels/nanodash, so any member of that space can publish its next version.
+     * are governed by the space but whose kind the space does not list as a maintained
+     * resource yet, so their gen:governedBy has no effect: the newest member-signed version
+     * per kind, built on the list-maintained-resources-pending-approval query. Its admin
+     * actions list one as a maintained resource (declaring its kind a maintained resource of
+     * the space) or unlist it (which only takes that version off the list). The view is
+     * itself governed by knowledgepixels/nanodash, so any member of that space can publish
+     * its next version.
      */
-    public static final String MAINTAINED_RESOURCES_PENDING_APPROVAL_VIEW = "https://w3id.org/np/RAPc8wsyFJNfNKEjfWmJZGW2NKCjQL29XyBXsXkk7ivQU/view";
+    public static final String NOT_YET_LISTED_MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAPc8wsyFJNfNKEjfWmJZGW2NKCjQL29XyBXsXkk7ivQU/view";
 
     /**
      * Every view this panel resolves through {@link View#get(String)} when it is built.
@@ -140,7 +141,7 @@ public class AboutSpacePanel extends Panel {
             OBSERVERS_VIEW,
             SUB_SPACES_VIEW,
             MAINTAINED_RESOURCES_VIEW,
-            MAINTAINED_RESOURCES_PENDING_APPROVAL_VIEW,
+            NOT_YET_LISTED_MAINTAINED_RESOURCES_VIEW,
     };
 
     /**
@@ -287,14 +288,14 @@ public class AboutSpacePanel extends Panel {
         ViewDisplay maintainedResourcesDisplay = new ViewDisplay(maintainedResourcesView);
         add(anchors.anchor(QueryResultListBuilder.create("maintainedresources", maintainedResourcesQuery, maintainedResourcesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), maintainedResourcesDisplay));
 
-        // Governed definitions whose kind the space doesn't maintain yet, with the admin actions
-        // to approve (declare the kind a maintained resource) or disapprove (take it off this
-        // list). postPublishTab returns the admin to the About tab, where an approved kind has
-        // moved on to the maintained resources.
-        View pendingMaintainedResourcesView = View.get(MAINTAINED_RESOURCES_PENDING_APPROVAL_VIEW);
-        QueryRef pendingMaintainedResourcesQuery = new QueryRef(pendingMaintainedResourcesView.getQuery().getQueryId(), "space", space.getId());
-        ViewDisplay pendingMaintainedResourcesDisplay = new ViewDisplay(pendingMaintainedResourcesView);
-        add(anchors.anchor(QueryResultTableBuilder.create("pendingmaintainedresources", pendingMaintainedResourcesQuery, pendingMaintainedResourcesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), pendingMaintainedResourcesDisplay));
+        // Governed definitions whose kind the space doesn't list as a maintained resource yet,
+        // with the admin actions to list one (declare its kind a maintained resource) or unlist
+        // it (take it off this list). postPublishTab returns the admin to the About tab, where a
+        // listed kind has moved on to the maintained resources.
+        View notYetListedMaintainedResourcesView = View.get(NOT_YET_LISTED_MAINTAINED_RESOURCES_VIEW);
+        QueryRef notYetListedMaintainedResourcesQuery = new QueryRef(notYetListedMaintainedResourcesView.getQuery().getQueryId(), "space", space.getId());
+        ViewDisplay notYetListedMaintainedResourcesDisplay = new ViewDisplay(notYetListedMaintainedResourcesView);
+        add(anchors.anchor(QueryResultTableBuilder.create("notyetlistedmaintainedresources", notYetListedMaintainedResourcesQuery, notYetListedMaintainedResourcesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), notYetListedMaintainedResourcesDisplay));
     }
 
     /**

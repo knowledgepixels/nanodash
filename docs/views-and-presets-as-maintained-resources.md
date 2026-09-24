@@ -91,18 +91,21 @@ space didn't maintain, so the pin stood even against same-key supersedes, and de
 `get-latest-governed-version` now takes the pinned nanopub as a third parameter and answers
 both cases.)
 
-**Maintained resources pending approval.** A space's About tab lists the definitions whose
-versions name the space in `gen:governedBy` but whose kind the space doesn't maintain yet
-(view `RAPc8wsyFJNfNKEjfWmJZGW2NKCjQL29XyBXsXkk7ivQU`, query
+**Not yet listed as maintained resources.** A space's About tab lists the definitions whose
+versions name the space in `gen:governedBy` but whose kind the space doesn't list as a
+maintained resource yet (view `RAPc8wsyFJNfNKEjfWmJZGW2NKCjQL29XyBXsXkk7ivQU`, query
 `RAACDhEU3OF8BF52aaHDMfs-djySEp_i-yv1Yb5We6zxc/list-maintained-resources-pending-approval`):
 the newest version of each kind signed by a member of the space, leaving out kinds a version
-re-minted (whose minting nanopub supersedes a version of another kind). Admins either approve
-one — the "Defining a maintained resource" form, pre-filled with the kind, its label and
-description, declares it a maintained resource of the space — or disapprove of it with the
-general "Approving or disapproving of a nanopublication" template, which only takes that
+re-minted (whose minting nanopub supersedes a version of another kind). An admin either lists
+one as a maintained resource — the "Defining a maintained resource" form, pre-filled with the
+kind, its label and description, declares it a maintained resource of the space, so its
+`gen:governedBy` takes effect — or unlists it, which records an `npx:disapprovesOf` verdict with
+the general "Approving or disapproving of a nanopublication" template and only takes that
 version off the list: only admins' verdicts count, the latest one wins, and a newer version of
 the kind shows up again. Members and bots can publish governed versions, but only an admin can
-make the space maintain their kind, so this list is where such versions wait.
+list their kind as a maintained resource of the space, so this list is where such versions
+wait. The space's "🧩 Maintained templates" and "🖼️ Maintained views" listings mark the same
+kinds as not listed yet and offer the same action.
 
 **"Latest" is a claim by the space, not a verifiable ordering.** Without a supersedes chain,
 any member+ of the governing space can republish older content with a fresh timestamp and win
