@@ -97,7 +97,9 @@ public abstract class QueryResult extends Panel {
         // that declares none, and one rendered without its title row, show nothing (see
         // hideDescription).
         String description = viewDisplay == null ? null : viewDisplay.getDescription();
+        // Markup is allowed and was sanitized when the view was read, as elsewhere.
         descriptionLabel = new Label("description", description);
+        descriptionLabel.setEscapeModelStrings(false);
         descriptionLabel.setVisible(description != null && !description.isBlank());
         add(descriptionLabel);
     }

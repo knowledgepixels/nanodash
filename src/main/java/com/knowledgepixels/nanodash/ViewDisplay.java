@@ -171,7 +171,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                    description = st.getObject().stringValue();
+                    // Sanitized on the way in, as in View and Template.
+                    description = Utils.sanitizeHtml(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_OF_VIEW) && st.getObject() instanceof IRI objIri) {
                     if (view != null) {
                         throw new IllegalArgumentException("View already set: " + objIri);
