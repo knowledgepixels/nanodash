@@ -179,15 +179,15 @@ public class QueryApiAccess {
     // one row. With the kind validated as maintained by the space: the newest version
     // declaring gen:governedBy that space, signed by a current member+ of the space's
     // governing ref; empty result = the caller keeps its pinned version (the pin is the
-    // floor). With the kind not registered: the single current head of the pin's own
+    // floor). With the kind not maintained by the space: the single current head of the pin's own
     // same-key supersedes chain, as GET_LATEST_VERSION_OF_NP resolves it, so that a
-    // gen:governedBy declared ahead of the registration no longer freezes the pin.
+    // gen:governedBy declared before the space maintains the kind no longer freezes the pin.
     // RAyB49tP supersedes RA833rrc, which superseded RAPSWgzH: RAPSWgzH took no pin and
-    // returned nothing for an unregistered kind, and both it and RA833rrc looked up the
+    // returned nothing for a kind the space doesn't maintain, and both it and RA833rrc looked up the
     // versions once per member row, starting from every nanopub signed by a member key
     // (up to a minute for spaces whose members have signed many nanopubs). RAyB49tP
     // gathers the member keys into one row and starts the full-repo lookup from the kind,
-    // so it runs once; results validated identical across all governed pairs, registered
+    // so it runs once; results validated identical across all governed pairs, maintained-kind
     // median 0.5s -> 0.2s, worst case 20-60s -> about 1s. Source at
     // docs/queries/get-latest-governed-version.trig; see
     // docs/views-and-presets-as-maintained-resources.md.

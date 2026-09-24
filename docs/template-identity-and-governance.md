@@ -4,7 +4,7 @@
 governed resolution (steps 3–4) live: the generalized `get-latest-governed-version` query
 (`RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw`, serving views and templates; since
 superseded by `RAyB49tPLdgMjwmG9alOjtK2wSvxLGPunfncFk57elB-Q`, which also takes the pinned
-nanopub, follows its supersedes chain while the kind isn't registered, and looks up the
+nanopub, follows its supersedes chain while the space doesn't maintain the kind, and looks up the
 versions once instead of once per space member), the
 `gen:governedBy` resolution branch in `TemplateData`, and a first governed test pair
 (template `RAiK3l4D…`, kind registered maintained-by knowledgepixels via `RAnUJSnd…`).
