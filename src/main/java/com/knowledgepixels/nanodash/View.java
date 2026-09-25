@@ -1,8 +1,18 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.template.Template;
-import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -18,19 +28,15 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.QueryParserUtil;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
-import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-
-import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
-import java.util.concurrent.TimeUnit;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 /**
  * A class representing a Resource View.
@@ -45,6 +51,7 @@ public class View implements Serializable {
             KPXL_TERMS.NANOPUB_SET_VIEW,
             KPXL_TERMS.ITEM_LIST_VIEW,
             KPXL_TERMS.SVG_VIEW,
+            KPXL_TERMS.THREAD_VIEW,
             KPXL_TERMS.HEADER_VIEW
     );
 
@@ -66,27 +73,27 @@ public class View implements Serializable {
     }
 
     private static final Cache<String, View> views = CacheBuilder.newBuilder()
-        .maximumSize(5_000)
-        .expireAfterAccess(24, TimeUnit.HOURS)
-        .build();
+            .maximumSize(5_000)
+            .expireAfterAccess(24, TimeUnit.HOURS)
+            .build();
 
     /**
-     * Memo of latest-version resolutions: view id (as passed to {@link #get(String)})
-     * to the resolution time and the View it resolved to. Entries are served as
-     * long as they live; one older than {@link #REFRESH_RESOLUTION_AFTER_MS} is
-     * served stale while a background re-resolution runs (stale-while-revalidate,
-     * like {@link ApiCache}), so a superseding view nanopub is picked up on a
-     * later render without {@link #get(String)} ever blocking on the network
-     * once an entry exists.
+     * Memo of latest-version resolutions: view id (as passed to
+     * {@link #get(String)}) to the resolution time and the View it resolved to.
+     * Entries are served as long as they live; one older than
+     * {@link #REFRESH_RESOLUTION_AFTER_MS} is served stale while a background
+     * re-resolution runs (stale-while-revalidate, like {@link ApiCache}), so a
+     * superseding view nanopub is picked up on a later render without
+     * {@link #get(String)} ever blocking on the network once an entry exists.
      */
     private static final Cache<String, Pair<Long, View>> latestResolvedViews = CacheBuilder.newBuilder()
-        .maximumSize(5_000)
-        .expireAfterAccess(24, TimeUnit.HOURS)
-        .build();
+            .maximumSize(5_000)
+            .expireAfterAccess(24, TimeUnit.HOURS)
+            .build();
 
     /**
-     * Age after which a memoized latest-version resolution is re-resolved in the
-     * background; mirrors the freshness window of
+     * Age after which a memoized latest-version resolution is re-resolved in
+     * the background; mirrors the freshness window of
      * {@link QueryApiAccess#getLatestVersionId(String)}.
      */
     private static final long REFRESH_RESOLUTION_AFTER_MS = 1000 * 60;
@@ -112,11 +119,12 @@ public class View implements Serializable {
     }
 
     /**
-     * The current latest-version resolution memo, for persisting across restarts (issue
-     * #570; see {@link ApiCachePersistence}). Restoring it is what lets pages build their
-     * view panels synchronously right after a restart — {@link #isCached(String)} decides
-     * that — and the stale-while-revalidate handling re-resolves the restored entries in
-     * the background as they are used.
+     * The current latest-version resolution memo, for persisting across
+     * restarts (issue #570; see {@link ApiCachePersistence}). Restoring it is
+     * what lets pages build their view panels synchronously right after a
+     * restart — {@link #isCached(String)} decides that — and the
+     * stale-while-revalidate handling re-resolves the restored entries in the
+     * background as they are used.
      *
      * @return a copy of the memoized resolutions
      */
@@ -125,11 +133,13 @@ public class View implements Serializable {
     }
 
     /**
-     * The current exact-version view cache, for persisting across restarts (issue #570; see
-     * {@link ApiCachePersistence}). These are the constructed View objects the view displays
-     * hand out; rebuilding one involves governed-version lookups and query construction, so
-     * restoring them is what makes a page's views renderable right after a restart. Keyed by
-     * the exact (immutable) version id, so a restored entry can never be out of date.
+     * The current exact-version view cache, for persisting across restarts
+     * (issue #570; see {@link ApiCachePersistence}). These are the constructed
+     * View objects the view displays hand out; rebuilding one involves
+     * governed-version lookups and query construction, so restoring them is
+     * what makes a page's views renderable right after a restart. Keyed by the
+     * exact (immutable) version id, so a restored entry can never be out of
+     * date.
      *
      * @return a copy of the cached views
      */
@@ -138,8 +148,8 @@ public class View implements Serializable {
     }
 
     /**
-     * Restores previously exported views into the exact-version cache, skipping any that are
-     * already cached. Meant to run once at startup.
+     * Restores previously exported views into the exact-version cache, skipping
+     * any that are already cached. Meant to run once at startup.
      *
      * @param map the views to restore
      * @return the number of restored views
@@ -147,8 +157,12 @@ public class View implements Serializable {
     static int importViews(Map<String, View> map) {
         int count = 0;
         for (Map.Entry<String, View> e : map.entrySet()) {
-            if (e.getKey() == null || e.getValue() == null) continue;
-            if (views.getIfPresent(e.getKey()) != null) continue;
+            if (e.getKey() == null || e.getValue() == null) {
+                continue;
+            }
+            if (views.getIfPresent(e.getKey()) != null) {
+                continue;
+            }
             views.put(e.getKey(), e.getValue());
             count++;
         }
@@ -156,12 +170,13 @@ public class View implements Serializable {
     }
 
     /**
-     * Restores previously exported latest-version resolutions, keeping their original
-     * resolution times so the normal re-resolution age logic takes over. Entries already
-     * memoized are left alone, as are entries older than the given maximum age or carrying
-     * a timestamp from the future. Meant to run once at startup.
+     * Restores previously exported latest-version resolutions, keeping their
+     * original resolution times so the normal re-resolution age logic takes
+     * over. Entries already memoized are left alone, as are entries older than
+     * the given maximum age or carrying a timestamp from the future. Meant to
+     * run once at startup.
      *
-     * @param map      the resolutions to restore
+     * @param map the resolutions to restore
      * @param maxAgeMs entries resolved further back than this are dropped
      * @return the number of restored entries
      */
@@ -169,10 +184,16 @@ public class View implements Serializable {
         long timeNow = System.currentTimeMillis();
         int count = 0;
         for (Map.Entry<String, Pair<Long, View>> e : map.entrySet()) {
-            if (e.getKey() == null || e.getValue() == null || e.getValue().getLeft() == null || e.getValue().getRight() == null) continue;
+            if (e.getKey() == null || e.getValue() == null || e.getValue().getLeft() == null || e.getValue().getRight() == null) {
+                continue;
+            }
             long t = e.getValue().getLeft();
-            if (t > timeNow || timeNow - t > maxAgeMs) continue;
-            if (latestResolvedViews.getIfPresent(e.getKey()) != null) continue;
+            if (t > timeNow || timeNow - t > maxAgeMs) {
+                continue;
+            }
+            if (latestResolvedViews.getIfPresent(e.getKey()) != null) {
+                continue;
+            }
             latestResolvedViews.put(e.getKey(), e.getValue());
             count++;
         }
@@ -225,7 +246,9 @@ public class View implements Serializable {
         Set<String> freshScope = freshlyResolved.get();
         if (freshScope != null && freshScope.add(id)) {
             View refreshed = refreshLatestVersion(id);
-            if (refreshed != null) return refreshed;
+            if (refreshed != null) {
+                return refreshed;
+            }
         }
         Pair<Long, View> memo = latestResolvedViews.getIfPresent(id);
         if (memo != null) {
@@ -242,28 +265,33 @@ public class View implements Serializable {
     }
 
     /**
-     * The ids already re-resolved in the current fresh-resolution scope, or null outside
-     * one. Thread-confined: a scope covers one build on one thread (see
-     * {@link #withFreshResolution}).
+     * The ids already re-resolved in the current fresh-resolution scope, or
+     * null outside one. Thread-confined: a scope covers one build on one thread
+     * (see {@link #withFreshResolution}).
      */
     private static final ThreadLocal<Set<String>> freshlyResolved = new ThreadLocal<>();
 
     /**
-     * Runs the given build with every latest-version resolution it makes going back to the
-     * query API instead of answering from the memo — what a page-level "refresh now" asks
-     * for (issue #654). Which id a view is looked up by is the caller's business (a display
-     * resolves the version its nanopub references, a built-in view the id hard-coded for
-     * it), so the scope covers the whole build rather than a list of ids guessed in advance;
-     * each id is re-resolved once, and what that leaves memoized serves the rest of it.
+     * Runs the given build with every latest-version resolution it makes going
+     * back to the query API instead of answering from the memo — what a
+     * page-level "refresh now" asks for (issue #654). Which id a view is looked
+     * up by is the caller's business (a display resolves the version its
+     * nanopub references, a built-in view the id hard-coded for it), so the
+     * scope covers the whole build rather than a list of ids guessed in
+     * advance; each id is re-resolved once, and what that leaves memoized
+     * serves the rest of it.
      * <p>
-     * The lookups block, so this belongs on a background thread, never on a request thread.
+     * The lookups block, so this belongs on a background thread, never on a
+     * request thread.
      *
      * @param build the build to run
-     * @param <T>   what it returns
+     * @param <T> what it returns
      * @return what the build returns
      */
     public static <T> T withFreshResolution(Supplier<T> build) {
-        if (freshlyResolved.get() != null) return build.get();
+        if (freshlyResolved.get() != null) {
+            return build.get();
+        }
         freshlyResolved.set(new HashSet<>());
         try {
             return build.get();
@@ -273,22 +301,26 @@ public class View implements Serializable {
     }
 
     /**
-     * Re-resolves the latest version of a view, going back to the query API instead of
-     * trusting what is memoized. This is what lets a view display's "refresh now" bring the
-     * <em>view</em> up to date and not just its results (issue #654): a memoized resolution
-     * is only re-checked once a minute in the background, and a display whose view was
-     * resolved server-side by the {@code get-view-displays} query carries an exact version
-     * that is never re-checked at all, so a newly published version of the view would
-     * otherwise not show up until the page's structure happened to be refreshed.
+     * Re-resolves the latest version of a view, going back to the query API
+     * instead of trusting what is memoized. This is what lets a view display's
+     * "refresh now" bring the
+     * <em>view</em> up to date and not just its results (issue #654): a
+     * memoized resolution is only re-checked once a minute in the background,
+     * and a display whose view was resolved server-side by the
+     * {@code get-view-displays} query carries an exact version that is never
+     * re-checked at all, so a newly published version of the view would
+     * otherwise not show up until the page's structure happened to be
+     * refreshed.
      * <p>
-     * Every memoized resolution leading to the given version is dropped along with the
-     * lookups behind it, so that pages reaching this view by another id — a built-in view is
-     * looked up by the id hard-coded for it, not by the version that id resolves to —
-     * re-resolve it on their next render too.
+     * Every memoized resolution leading to the given version is dropped along
+     * with the lookups behind it, so that pages reaching this view by another
+     * id — a built-in view is looked up by the id hard-coded for it, not by the
+     * version that id resolves to — re-resolve it on their next render too.
      *
      * @param id the id of the view version currently shown
-     * @return the view's current latest version, which is the given one when there is no
-     * newer version or the lookup fails, or null if the view cannot be loaded at all
+     * @return the view's current latest version, which is the given one when
+     * there is no newer version or the lookup fails, or null if the view cannot
+     * be loaded at all
      */
     public static View refreshLatestVersion(String id) {
         // The ids whose lookups are to be forgotten: the given one, plus every memo key
@@ -302,7 +334,9 @@ public class View implements Serializable {
                 staleIds.add(memo.getKey());
             }
         }
-        for (String staleId : staleIds) forgetLatestVersionLookup(staleId);
+        for (String staleId : staleIds) {
+            forgetLatestVersionLookup(staleId);
+        }
         View resolved = resolveLatestVersion(id, toNanopubId(id));
         if (resolved != null) {
             latestResolvedViews.put(id, Pair.of(System.currentTimeMillis(), resolved));
@@ -311,10 +345,11 @@ public class View implements Serializable {
     }
 
     /**
-     * Marks the version lookup behind a view id as outdated, so that the next resolution
-     * asks the API instead of answering from what it holds: the governed-version query for
-     * a view that floats within its space, the supersedes-chain lookup (its memo and its
-     * cached response both) for one that does not.
+     * Marks the version lookup behind a view id as outdated, so that the next
+     * resolution asks the API instead of answering from what it holds: the
+     * governed-version query for a view that floats within its space, the
+     * supersedes-chain lookup (its memo and its cached response both) for one
+     * that does not.
      */
     private static void forgetLatestVersionLookup(String viewId) {
         String npId = toNanopubId(viewId);
@@ -328,8 +363,9 @@ public class View implements Serializable {
     }
 
     /**
-     * The id of the nanopub a view id belongs to: the view id up to and including its
-     * artifact code. An id that is already a nanopub id is returned unchanged.
+     * The id of the nanopub a view id belongs to: the view id up to and
+     * including its artifact code. An id that is already a nanopub id is
+     * returned unchanged.
      */
     private static String toNanopubId(String viewId) {
         return viewId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
@@ -393,7 +429,9 @@ public class View implements Serializable {
             if (latestId != null && !latestId.equals(pinned.getId())) {
                 String latestNpId = toNanopubId(latestId);
                 View resolved = getExactVersion(latestId, latestNpId);
-                if (resolved != null) return resolved;
+                if (resolved != null) {
+                    return resolved;
+                }
             }
         } catch (Exception ex) {
             logger.error("Error resolving governed version for view: {}", pinned.getId(), ex);
@@ -435,7 +473,9 @@ public class View implements Serializable {
      * {@link #REFRESH_RESOLUTION_AFTER_MS} rather than on every render.
      */
     private static void triggerResolutionRefresh(String id, String npId) {
-        if (!refreshingViews.add(id)) return;
+        if (!refreshingViews.add(id)) {
+            return;
+        }
         NanodashThreadPool.submit(() -> {
             try {
                 View resolved = resolveLatestVersion(id, npId);
@@ -481,6 +521,7 @@ public class View implements Serializable {
     private Map<IRI, List<String>> actionFillQueryMappingsMap = new HashMap<>();
     private Map<IRI, String> actionFillQueryTargetFieldMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
+    private Map<IRI, String> actionResponseRelationMap = new HashMap<>();
     private IRI viewType;
     private boolean queryForm = false;
     private Map<IRI, Set<IRI>> actionVisibleToMap = new HashMap<>();
@@ -566,6 +607,8 @@ public class View implements Serializable {
                 }
             } else if (st.getPredicate().equals(KPXL_TERMS.HAS_ACTION_FILL_QUERY_TARGET_FIELD)) {
                 putUnlessVoid(actionFillQueryTargetFieldMap, (IRI) st.getSubject(), st.getObject().stringValue());
+            } else if (st.getPredicate().equals(KPXL_TERMS.HAS_RESPONSE_RELATION)) {
+                putUnlessVoid(actionResponseRelationMap, (IRI) st.getSubject(), st.getObject().stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.IS_VISIBLE_TO) && st.getObject() instanceof IRI objIri) {
                 // Per-action visibility: gen:isVisibleTo on an action node restricts
                 // that action button to viewers holding the given role tier or
@@ -586,18 +629,23 @@ public class View implements Serializable {
                 viewResultActionList.add(actionIri);
             }
         }
-        if (!viewTypeFound) throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
+        if (!viewTypeFound) {
+            throw new IllegalArgumentException("Not a proper resource view nanopub: " + id);
+        }
         // Header views are the one display type without a query (issue #572).
-        if (query == null && !KPXL_TERMS.HEADER_VIEW.equals(viewType)) throw new IllegalArgumentException("Query not found: " + id);
+        if (query == null && !KPXL_TERMS.HEADER_VIEW.equals(viewType)) {
+            throw new IllegalArgumentException("Query not found: " + id);
+        }
     }
 
     /**
      * Stores an action-field value unless it is the {@code "void"} sentinel.
-     * View-creation templates can't leave a statement optional inside a repeated
-     * action group, so views carry every action field, with {@code "void"} for the
-     * not-applicable ones (its presence is what lets Nanodash repopulate the action
-     * group when superseding a view). It is treated here as absent — so e.g. a
-     * "void" part field never becomes a bogus {@code param_void}.
+     * View-creation templates can't leave a statement optional inside a
+     * repeated action group, so views carry every action field, with
+     * {@code "void"} for the not-applicable ones (its presence is what lets
+     * Nanodash repopulate the action group when superseding a view). It is
+     * treated here as absent — so e.g. a "void" part field never becomes a
+     * bogus {@code param_void}.
      */
     private static void putUnlessVoid(Map<IRI, String> map, IRI key, String value) {
         if (value != null && !value.equals("void")) {
@@ -628,9 +676,10 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the space governing this view version's {@code (kind, space)} pair via
-     * {@code gen:governedBy}, or null if the version doesn't opt into space
-     * governance (in which case latest-version resolution stays supersedes-based).
+     * Gets the space governing this view version's {@code (kind, space)} pair
+     * via {@code gen:governedBy}, or null if the version doesn't opt into space
+     * governance (in which case latest-version resolution stays
+     * supersedes-based).
      *
      * @return the governing space IRI, or null
      */
@@ -657,8 +706,8 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the description of the View ({@code dct:description}), shown below the
-     * title for header views.
+     * Gets the description of the View ({@code dct:description}), shown below
+     * the title for header views.
      *
      * @return the description, or null if none is declared
      */
@@ -708,6 +757,7 @@ public class View implements Serializable {
             return Set.of();
         }
         Set<IRI> roles = new LinkedHashSet<>();
+        
         parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
 
             @Override
@@ -752,12 +802,14 @@ public class View implements Serializable {
 
     /**
      * Gets the visibility restriction declared on a given action node via
-     * {@code gen:isVisibleTo}: the set of role-tier or specific-role IRIs a viewer
-     * must hold for that action button to be shown. An empty set means the action
-     * is visible to everyone (subject to the existing button-list routing).
+     * {@code gen:isVisibleTo}: the set of role-tier or specific-role IRIs a
+     * viewer must hold for that action button to be shown. An empty set means
+     * the action is visible to everyone (subject to the existing button-list
+     * routing).
      *
      * @param actionIri the action IRI (a result or entry action of this view)
-     * @return the set of {@code gen:isVisibleTo} IRIs for that action (never null)
+     * @return the set of {@code gen:isVisibleTo} IRIs for that action (never
+     * null)
      */
     public Set<IRI> getActionVisibleTo(IRI actionIri) {
         return actionVisibleToMap.getOrDefault(actionIri, Collections.emptySet());
@@ -801,13 +853,14 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the query mappings declared for an action: each is {@code "col:target"},
-     * mapping result column {@code col} to template parameter {@code param_target}
-     * — or, when {@code target} begins with {@code @}, to the raw URL parameter
-     * {@code target} (without the {@code param_} prefix), used for fill-mode keys
-     * such as {@code @derive-a} / {@code @supersede}. An entry action applies all
-     * of these per row; a result action passes them whole to the publish form, which
-     * applies them against every row of the view's query. See docs/magic-query-params.md.
+     * Gets the query mappings declared for an action: each is
+     * {@code "col:target"}, mapping result column {@code col} to template
+     * parameter {@code param_target} — or, when {@code target} begins with
+     * {@code @}, to the raw URL parameter {@code target} (without the
+     * {@code param_} prefix), used for fill-mode keys such as {@code @derive-a}
+     * / {@code @supersede}. An entry action applies all of these per row; a
+     * result action passes them whole to the publish form, which applies them
+     * against every row of the view's query. See docs/magic-query-params.md.
      *
      * @param actionIri the action IRI
      * @return the list of mappings (never null; empty if none)
@@ -821,10 +874,10 @@ public class View implements Serializable {
     }
 
     /**
-     * Splits a query-mapping literal into individual {@code "col:target"} mappings
-     * on whitespace. Multiple mappings share a single literal because a
-     * view-creation template cannot repeat a statement inside its repeated action
-     * group — e.g. {@code "np:nanopubToBeRetracted"} or
+     * Splits a query-mapping literal into individual {@code "col:target"}
+     * mappings on whitespace. Multiple mappings share a single literal because
+     * a view-creation template cannot repeat a statement inside its repeated
+     * action group — e.g. {@code "np:nanopubToBeRetracted"} or
      * {@code "derive_target:@derive-a local_pubkey:public-key__.1"}.
      *
      * @param literal the mapping literal (may be null/blank/"void")
@@ -832,16 +885,20 @@ public class View implements Serializable {
      */
     public static List<String> parseMappingLiteral(String literal) {
         List<String> mappings = new ArrayList<>();
-        if (literal == null || literal.isBlank()) return mappings;
+        if (literal == null || literal.isBlank()) {
+            return mappings;
+        }
         for (String m : literal.trim().split("\\s+")) {
-            if (!m.isEmpty() && !"void".equals(m)) mappings.add(m);
+            if (!m.isEmpty() && !"void".equals(m)) {
+                mappings.add(m);
+            }
         }
         return mappings;
     }
 
     /**
-     * Gets the set of query result columns that serve only as <em>sources</em> for
-     * this view's action query mappings (the {@code col} part of each
+     * Gets the set of query result columns that serve only as <em>sources</em>
+     * for this view's action query mappings (the {@code col} part of each
      * {@code "col:target"} mapping, across all actions). These columns carry
      * action data — conditional targets, the local-key bundle — not row content, so
      * the result builders skip them when rendering visible columns. A column that
@@ -886,18 +943,20 @@ public class View implements Serializable {
      * named by {@link #getFillQueryTargetFieldForAction}.
      *
      * @param actionIri the action IRI
-     * @return the fill query, or null if the action declares none (or it failed to load)
+     * @return the fill query, or null if the action declares none (or it failed
+     * to load)
      */
     public GrlcQuery getFillQueryForAction(IRI actionIri) {
         return actionFillQueryMap.get(actionIri);
     }
 
     /**
-     * Gets the fill-query mappings of an action, each {@code "col:field"} — result column
-     * {@code col} of the fill query to template field {@code field}, or {@code !field} to
-     * also lock the field. Same literal syntax as the query mappings
-     * ({@link #parseMappingLiteral}), but the columns are the <em>fill</em> query's, so
-     * these never count as {@link #getActionMappingSourceColumns}.
+     * Gets the fill-query mappings of an action, each {@code "col:field"} —
+     * result column {@code col} of the fill query to template field
+     * {@code field}, or {@code !field} to also lock the field. Same literal
+     * syntax as the query mappings ({@link #parseMappingLiteral}), but the
+     * columns are the <em>fill</em> query's, so these never count as
+     * {@link #getActionMappingSourceColumns}.
      *
      * @param actionIri the action IRI
      * @return the mappings (never null; empty if none)
@@ -911,8 +970,8 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the fill-query placeholder the action's target IRI is bound to, or null for
-     * the default ({@code resource}).
+     * Gets the fill-query placeholder the action's target IRI is bound to, or
+     * null for the default ({@code resource}).
      *
      * @param actionIri the action IRI
      * @return the placeholder name, or null
@@ -944,8 +1003,8 @@ public class View implements Serializable {
     public record ActionMapping(String column, String key, boolean rawKey, boolean locked) {
 
         /**
-         * Parses one mapping. The split is on the <em>first</em> colon: neither a result
-         * column nor a field name may contain one.
+         * Parses one mapping. The split is on the <em>first</em> colon: neither
+         * a result column nor a field name may contain one.
          *
          * @param mapping the {@code "col:target"} mapping
          * @return the parsed mapping, or null if it has no colon
@@ -963,13 +1022,17 @@ public class View implements Serializable {
 
         public static ActionMapping parse(String mapping) {
             int sep = mapping.indexOf(':');
-            if (sep < 0) return null;
+            if (sep < 0) {
+                return null;
+            }
             String column = mapping.substring(0, sep);
             String target = mapping.substring(sep + 1);
             boolean rawKey = target.startsWith("@");
             String key = rawKey ? target.substring(1) : target;
             boolean locked = !rawKey && key.startsWith("!");
-            if (locked) key = key.substring(1);
+            if (locked) {
+                key = key.substring(1);
+            }
             return new ActionMapping(column, key, rawKey, locked);
         }
     }
@@ -980,17 +1043,38 @@ public class View implements Serializable {
      * @param actionIri the action IRI
      * @return the label for the action IRI
      */
+    public DiscussionThread.Relation getResponseRelationForAction(IRI actionIri) {
+        String declared = actionResponseRelationMap.get(actionIri);
+        if (declared != null) {
+            return DiscussionThread.Relation.parse(declared);
+        }
+        String label = labelMap.get(actionIri);
+        if (label == null) {
+            return null;
+        }
+        String word = label.replaceAll("\\.\\.\\.$", "").replaceAll("^[^\\p{L}]+", "").trim();
+        DiscussionThread.Relation relation = DiscussionThread.Relation.parse(word);
+        if (relation == null || relation == DiscussionThread.Relation.RESPONDS) {
+            return null;
+        }
+        return relation;
+    }
+
     public String getLabelForAction(IRI actionIri) {
         return labelMap.get(actionIri);
     }
 
     public boolean appliesTo(String resourceId, Set<IRI> classes) {
         for (IRI namespace : appliesToNamespaces) {
-            if (resourceId.startsWith(namespace.stringValue())) return true;
+            if (resourceId.startsWith(namespace.stringValue())) {
+                return true;
+            }
         }
         if (classes != null) {
             for (IRI c : classes) {
-                if (appliesToClasses.contains(c)) return true;
+                if (appliesToClasses.contains(c)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -1030,10 +1114,11 @@ public class View implements Serializable {
     }
 
     /**
-     * Whether this view is additionally typed {@code gen:QueryFormView}: on a resource
-     * page it renders as a form for the query placeholders not auto-filled from the
-     * page context, whose submission leads to the full results page. Orthogonal to
-     * {@link #getViewType()}, which then determines how those results render.
+     * Whether this view is additionally typed {@code gen:QueryFormView}: on a
+     * resource page it renders as a form for the query placeholders not
+     * auto-filled from the page context, whose submission leads to the full
+     * results page. Orthogonal to {@link #getViewType()}, which then determines
+     * how those results render.
      *
      * @return true if this is a query-form view
      */

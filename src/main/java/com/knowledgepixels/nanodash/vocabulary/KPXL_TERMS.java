@@ -10,7 +10,7 @@ import org.nanopub.vocabulary.VocabUtils;
 public class KPXL_TERMS {
 
     public static final String NAMESPACE = "https://w3id.org/kpxl/gen/terms/";
-    public static final String PREFIX = "kpxl_terms";
+    public static final String PREFIX = "gen";
     public static final Namespace NS = VocabUtils.createNamespace(PREFIX, NAMESPACE);
 
     public static final IRI ACTIVATED_VIEW_DISPLAY = VocabUtils.createIRI(NAMESPACE, "ActivatedViewDisplay");
@@ -35,6 +35,8 @@ public class KPXL_TERMS {
      * rendering (issue #592); see {@link com.knowledgepixels.nanodash.OntoSvg}.
      */
     public static final IRI SVG_VIEW = VocabUtils.createIRI(NAMESPACE, "SvgView");
+
+    public static final IRI THREAD_VIEW = VocabUtils.createIRI(NAMESPACE, "ThreadView");
 
     /**
      * A view that renders just a section header at its structural position — a title,
@@ -116,6 +118,8 @@ public class KPXL_TERMS {
     public static final IRI HAS_ACTION_FILL_QUERY_MAPPING = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryMapping");
     public static final IRI HAS_ACTION_FILL_QUERY_TARGET_FIELD = VocabUtils.createIRI(NAMESPACE, "hasActionFillQueryTargetField");
     public static final IRI HAS_PAGE_SIZE = VocabUtils.createIRI(NAMESPACE, "hasPageSize");
+
+    public static final IRI HAS_RESPONSE_RELATION = VocabUtils.createIRI(NAMESPACE, "hasResponseRelation");
     public static final IRI HAS_STRUCTURAL_POSITION = VocabUtils.createIRI(NAMESPACE, "hasStructuralPosition");
     public static final IRI IS_DISPLAY_OF_VIEW = VocabUtils.createIRI(NAMESPACE, "isDisplayOfView");
     public static final IRI IS_DISPLAY_FOR = VocabUtils.createIRI(NAMESPACE, "isDisplayFor");

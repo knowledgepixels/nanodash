@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+</head>
+<body>
+
+<wicket:panel>
+  <div class="thread-node">
+
+    <div wicket:id="collapsedLine" class="thread-collapsed">
+      <a wicket:id="expand" class="thread-toggle" title="Expand">&#9656;</a>
+      <span wicket:id="collapsedBadge" class="thread-badge">badge</span>
+      <span wicket:id="collapsedSummary" class="thread-collapsed-summary">summary</span>
+    </div>
+
+    <div wicket:id="card" class="thread-card">
+      <div class="thread-cardhead">
+        <a wicket:id="collapse" class="thread-toggle" title="Collapse">&#9662;</a>
+        <span wicket:id="badge" class="thread-badge">badge</span>
+        <span wicket:id="count" class="thread-count">0 responses</span>
+      </div>
+      <div class="thread-statement"><span wicket:id="statement">[statement]</span></div>
+      <div class="thread-meta">
+        <span wicket:id="author">[author]</span>
+        <span wicket:id="date" class="thread-date">[date]</span>
+      </div>
+      <div wicket:id="actionsContainer" class="thread-actions">
+        <span wicket:id="actions"><a wicket:id="action" class="thread-action"><span
+                wicket:id="actionLabel">action</span></a></span>
+      </div>
+    </div>
+
+    <div wicket:id="responseForm" class="thread-form"></div>
+
+    <div wicket:id="childrenArea" class="thread-children">
+      <div wicket:id="children"></div>
+      <a wicket:id="loadMore" class="thread-loadmore"><span wicket:id="loadMoreLabel">+ load more</span></a>
+      <a wicket:id="continueThread" class="thread-continue"><span
+              wicket:id="continueLabel">continue this thread</span></a>
+    </div>
+
+  </div>
+</wicket:panel>
+
+</body>
+
+</html>
