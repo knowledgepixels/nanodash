@@ -487,7 +487,7 @@ class ViewActionMappings {
         if (partId != null && contextId != null && !partId.equals(contextId)) {
             params.set("part", partId);
         }
-        if (!applyEntryMappings(view, actionIri, node.getRow(), params)) {
+        if (!applyEntryMappings(view, actionIri, node.getRow(), params, queryRef)) {
             return null;
         }
         if (targetField != null) {
