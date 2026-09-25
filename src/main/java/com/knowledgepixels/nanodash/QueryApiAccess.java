@@ -21,14 +21,9 @@ public class QueryApiAccess {
     // Query IDs (full id = RA.../query-name)
     public static final String GET_LATEST_NANOPUBS_FROM_PUBKEYS = "RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-latest-nanopubs-from-pubkeys";
     public static final String GET_LATEST_NANOPUBS_FROM_USERID = "RAuy4N1h4vZ1wgBUMvTiWw2y_Y0_5oFYRTwdq-xj2qqNM/get-latest-nanopubs-from-userid";
-    public static final String GET_USER_STATS_FROM_PUBKEYS = "RAiCBvPL2hRGzI8g5L68O-C9yEXryC_vG35GdEm5jtH_s/get-user-stats-from-pubkeys";
-    public static final String GET_USER_STATS_FROM_USERID = "RA3U23LL3xbNwsu92fAqsKb0kagOud4f9TlRQq3evNJck/get-user-stats-from-userid";
-    public static final String GET_TOP_CREATORS_LAST30D = "RAcNvmEiUNUb2a7O4fwRvy2x2BCN640AC880fTzFworr8/get-top-creators-last30d";
     public static final String GET_LATEST_USERS = "RAr27GmRUKQmvPbfmB34N9l9lX-xYK7nQhvOMbQCk3byI/get-latest-users";
     public static final String GET_MOST_RECENT_NANOPUBS = "RAYNg6rfvXIVvJY2u8oS0EEjxnVvimLLVZG1rOar_nWIY/get-most-recent-nanopubs";
     public static final String GET_PUBLISHER_VERSION = "RAPGhXDRzeGu-Qk0AkjleEtxMxqAvJ-dZn7985gzAbyhs/get-publisher-version";
-    public static final String GET_MOST_USED_TEMPLATES_LAST30D = "RAvL7pe2ppsfq4mVWTdJjssYGsjrmliNd_sZO2ytLvg1Y/get-most-used-templates-last30d";
-    public static final String GET_LATEST_NANOPUBS_BY_TYPE = "RANn4Mu8r8bqJA9KJMGXTQAEGAEvtNKGFsuhRIC6BRIOo/get-latest-nanopubs-by-type";
     public static final String GET_LATEST_VERSION_OF_NP = "RAiRsB2YywxjsBMkVRTREJBooXhf2ZOHoUs5lxciEl37I/get-latest-version-of-np";
     // Minimal single-lookup probe for whether a given nanopub has been loaded by the
     // answering Nanopub Query instance; used to time post-publish refreshes (issue #629).
@@ -42,29 +37,15 @@ public class QueryApiAccess {
     // space's picture. Ordered newest first; the first row wins.
     public static final String GET_RESOURCE_PROFILE_PICTURE = "RALK8_WQPtAbMUv2IvHeZyUU1WjD77V4a3hb0KsiZI0tI/get-resource-profile-picture";
     public static final String GET_ALL_USER_DEFAULT_LICENSE = "RA-_IwzReR2_HfTLz4YcNM6Mh3Vt16y0RUS12tpJTN9FI/get-all-user-default-license";
-    public static final String GET_SUGGESTED_TEMPLATES_TO_GET_STARTED = "RA-tlMmQA7iT2wR2aS3PlONrepX7vdXbkzeWluea7AECg/get-suggested-templates-to-get-started";
     public static final String GET_MONTHLY_TYPE_OVERVIEW_BY_PUBKEYS = "RAhI-C2KsqS_IvnxwyBrbMFsoj65dhLWE_CBo_KtcVEVA/get-monthly-type-overview-by-pubkeys";
-    public static final String GET_APPROVED_NANOPUBS = "RAn3agwsH2yk-8132RJApGYxdPSHHCXDAIYiCaSBBo6tg/get-approved-nanopubs";
-    public static final String FIND_URI_REFERENCES = "RAz1ogtMxSTKSOYwHAfD5M3Y-vd1vd46OZta_vvbqh8kY/find-uri-references";
-    public static final String GET_NANOPUBS_BY_TYPE = "RAE35dYJQlpnqim7VeKuu07E9I1LQUZpkdYQR4RvU3KMU/get-nanopubs-by-type";
     public static final String GET_INTRODUCING_NANOPUB = "RALZXWg5lZoJoQ0VHL5mpDgNxYpqU6FoDLWGp4rs8A6b8/get-introducing-nanopub";
     public static final String FULLTEXT_SEARCH = "RAxdh5xkc6K6SMLY23yKu__zTWJPXeRFc0qgNNxkbOkpY/fulltext-search";
     public static final String FIND_THINGS = "RAyMrQ89RECTi9gZK5q7gjL1wKTiP8StkLy0NIkkCiyew/find-things";
-    public static final String GET_INSTANCES = "RAjt1H9rCSr6A9VGzlhye00zPdH69JdGc3kd_2VjDmzVg/get-instances";
-    public static final String GET_CLASSES_FOR_THING = "RAH06iUwnvj_pRARY15ayJAY5tuJau3rCvHhPPhe49fVI/get-classes-for-thing";
-    public static final String FIND_REFERENCING_NANOPUBS = "RAJStXEm1wZcg34ZLPqe00VPSzIVCwC2rrxdj_JR8v5DY/find-referencing-nanopubs";
-    public static final String GET_LABELS_FOR_THING = "RAtftxAXJubB4rlm9fOvvHNVIkXvWQLC6Ag_MiV7HL0ow/get-labels-for-thing";
-    public static final String GET_TEMPLATES_WITH_URI = "RARtWHRzNY5hh31X2VB5eOCJAdp9Cjv4CakA0Idqz69MI/get-templates-with-uri";
     public static final String GET_NEWER_VERSIONS_OF_NP = "RAqmmNSxQaRNWRYH0o4Da3GSOwvoFLObhXfAGUCOqEtfw/get-newer-versions-of-np";
-    public static final String GET_QUERIES = "RAQqjXQYlxYQeI4Y3UQy9OrD5Jx1E3PJ8KwKKQlWbiYSw/get-queries";
     public static final String GET_LATEST_THING_NANOPUB = "RAzXDzCHoZmJITgYYquLwDDkSyNf3eKKQz9NfQPYB1cyE/get-latest-thing-nanopub";
     public static final String GET_PROJECTS = "RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects";
     public static final String GET_OWNERS = "RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners";
     public static final String GET_MEMBERS = "RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members";
-    // Reads the part-of relation as (dct:partOf|dct:isPartOf), so that terms published with
-    // the legacy spelling keep being found alongside correctly written ones; derived from
-    // RAJmZoM0, which matched dct:partOf alone (#511).
-    public static final String GET_PARTS = "RAaJUR8YijcD0BnYQkIvjmA2EJxWTeQNzTke9quasmj-8/get-parts";
     // Node-anchored variants (label/tag/unlisted read off the typed template node, so
     // templates with embedded identity list correctly); derived from, not superseding,
     // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
@@ -82,7 +63,6 @@ public class QueryApiAccess {
     public static final String GET_ASSERTION_TEMPLATES = "RAi6EPio6sbvJ06mqfYm_QBmisWQnJ8cvzm-DKRHKPGUg/get-assertion-templates";
     public static final String GET_PROVENANCE_TEMPLATES = "RA4ynLpmZXQjnMQzvm7OPt-q8uPPXU8qMxSHm4oSxlw5Y/get-provenance-templates";
     public static final String GET_PUBINFO_TEMPLATES = "RAxzYV8Pr9vgTcajVMKrZ4GRO8xjxYgEzHCLN_BE0FQfs/get-pubinfo-templates";
-    public static final String GET_FILTERED_NANOPUB_LIST = "RAeoXI4vBzLV_BM2lfI5DWkFSfm6y1z3fOk4E1IncXWUo/get-filtered-nanopub-list";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
     public static final String GET_LATEST_ACCEPTED_DS = "RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds";
@@ -133,26 +113,11 @@ public class QueryApiAccess {
     // (validated identical across standalone, preset, governed, self-page and maintained-resource
     // cases).
     public static final String GET_VIEW_DISPLAYS = "RAwkiytrR_PaBVqUjfUtoTEBAVwNWq7QxHJbAshQ1dD9g/get-view-displays";
-    // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
-    // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
-    // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
-    // rendered Content views match the space ref shown. Both params concrete so the 4-SERVICE
-    // federation propagates. Column-identical to get-view-displays. Source at
-    // docs/queries/get-view-displays-ref.trig. See docs/space-ref-identity.md.
-    // RAny-yPb (supersedes RA8iqtd) gates the view-version-resolution npx:invalidates filters on
-    // the version nanopub's own signing pubkey (issue #487; the row-level filters were already
-    // gated). No-regression verified against RA8iqtd across spaces.
-    // RAtZbUry (supersedes RAIpgHc6): same hasGoverningSpaceRef gate as get-view-displays, with the
-    // governing ref pinned to ?passedRef so authority cannot bleed across rival refs (issue #510).
-    // RActfK6C (supersedes RAtZbUry) adds space-governed version resolution (gen:governedBy;
-    // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
-    // governing space resolves to the newest member+-signed version of its (kind, space)
-    // pair via a run-once governed sub-select, falling back to the pinned version.
-    public static final String GET_VIEW_DISPLAYS_REF = "RActfK6Cb1qEPe6in0Ug7IThR_ckkgdNl0mKqF_HOGkqM/get-view-displays";
     // Test head for dropping the server-side view-version resolution (its run-once resolution
     // sub-select was the query's dominant cost, linear in the repo-wide view count; see
-    // nanopub-query doc/design-view-head-materialization.md): same inputs as GET_VIEW_DISPLAYS_REF
-    // and same columns plus ?viewKind and ?governedBySpace, but ?view carries the referenced
+    // nanopub-query doc/design-view-head-materialization.md): ref-scoped like the retired
+    // GET_VIEW_DISPLAYS_REF (RActfK6C) it replaced -- same inputs (resource + root_np) and the
+    // same columns plus ?viewKind and ?governedBySpace -- but ?view carries the referenced
     // version UNRESOLVED — except for gen:governedBy pins, where it is the space-governed
     // resolution. Supersedes-head resolution happens caller-side per view (View.get with
     // resolveLatest=true, memoized), which also covers the governed case, so the extra columns
@@ -165,10 +130,6 @@ public class QueryApiAccess {
     public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAt7dfZOYAqtuR_7o0Q1ogzLtnvuvmzMRfnzOT_nq8r6I/get-view-displays-unresolved";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
-    // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
-    // to this release stay pinned on it, and the roll-out fork-merge will supersede both
-    // it and v3. No longer fetched by SpaceRepository (now uses GET_SPACES_REF).
-    public static final String GET_SPACES = "RAxGboS_juHuMyJQghGV3elEgZmQTew5oyw_aC9O9FFQI/get-spaces";
     // v3: ref-aware get-spaces (adds ?ref + ?root so the client can key one space per
     // ref). Published as an independent nanopub (no npx:supersedes). Active query used by
     // SpaceRepository. Source at docs/queries/get-spaces-ref.trig. See
