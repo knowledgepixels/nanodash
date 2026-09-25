@@ -44,9 +44,10 @@ public class AboutSpacePanel extends Panel {
      * dates, latest and root definition). Also shown on the Content tab; surfaced
      * here at the top of the About tab. Its query needs both the space IRI
      * ({@code space}) and the space's nanopub ({@code spaceNp}) so it can scope to
-     * a single space-ref.
+     * a single space-ref. It has to name a view, not the view's kind, which
+     * {@link View#get(String)} can't load as a view.
      */
-    public static final String SPACE_INFO_VIEW = "https://w3id.org/np/RAIh3Cq4K99abRiL2xZphMYTjByvZYATK-d--dI3DD05g/space-info-view-kind";
+    public static final String SPACE_INFO_VIEW = "https://w3id.org/np/RAFXDMbb0zePnt3IWM_nj7MdzvOhZVoeTOtc8x2ltNg5E/space-info-view";
 
     /**
      * View that lists all assigned view displays of a resource (built on the

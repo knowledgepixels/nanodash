@@ -18,9 +18,9 @@ public class AboutResourcePanel extends Panel {
     /**
      * The "ℹ️ Info" view for a maintained resource: key-value facts (type,
      * namespace, maintaining space). Also shown on the Content tab; surfaced here
-     * at the top of the About tab.
+     * at the top of the About tab. It has to name a view, not the view's kind.
      */
-    public static final String MAINTAINED_RESOURCE_INFO_VIEW = "https://w3id.org/np/RAqKkqvOFWWCDJ4LOa6rrgQJMFbDnoaG56zkIBN5AMBZw/maintained-resource-info-view-kind";
+    public static final String MAINTAINED_RESOURCE_INFO_VIEW = "https://w3id.org/np/RAg-DnFaNwHlzWZRgeZVL6GT8zkZdDo4eDZlP5zWsp4fI/maintained-resource-info-view";
 
     /**
      * View listing a maintained resource's configured view displays. Mirrors the space
