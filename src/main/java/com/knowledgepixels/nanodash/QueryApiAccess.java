@@ -125,7 +125,14 @@ public class QueryApiAccess {
     // displays already have via view kind. Purely additive; every other column is unchanged
     // (validated identical across standalone, preset, governed, self-page and maintained-resource
     // cases).
-    public static final String GET_VIEW_DISPLAYS = "RAwkiytrR_PaBVqUjfUtoTEBAVwNWq7QxHJbAshQ1dD9g/get-view-displays";
+    // RAvPNGog (supersedes RAwkiytr) is a performance rewrite with identical results (validated
+    // across 40 resources): the authority gate becomes a single-row key string tested with
+    // contains(), since joining its ?pubkey rows let rdf4j start from the signing keys and walk
+    // every nanopub they signed; the latest-version resolution becomes a bound lookup per
+    // referenced view instead of a run-once sub-select over every view in the repository; and
+    // the governed winners are computed once as a single string instead of a per-row
+    // SERVICE sub-select. ~0.3-0.8s instead of 3.5-12s, and 502s at the 60s cap under load.
+    public static final String GET_VIEW_DISPLAYS = "RAvPNGogj0GqBiBYBxqvympNd_RHXoxMHKs19bBymAelo/get-view-displays";
     // Ref-scoped get-view-displays (the Content-tab renderer query): takes the space IRI (resource)
     // AND the ref's root nanopub (root_np) as two concrete params, gating the authorised signers on
     // that ref's admins/maintainers (npa:forSpaceRef) instead of the IRI merged across refs, so the
@@ -155,7 +162,9 @@ public class QueryApiAccess {
     // local joins instead of one federated round-trip per view under a nested-loop join.
     // RAt7dfZO (supersedes RAkIkmSi) adds the same ?presetKind column as GET_VIEW_DISPLAYS
     // (issue #607); no other change.
-    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RAt7dfZOYAqtuR_7o0Q1ogzLtnvuvmzMRfnzOT_nq8r6I/get-view-displays-unresolved";
+    // RA1Pm-iK (supersedes RAt7dfZO) applies the same authority-gate and governed-winner
+    // rewrites as GET_VIEW_DISPLAYS above; results identical across 35 space/root pairs.
+    public static final String GET_VIEW_DISPLAYS_UNRESOLVED = "RA1Pm-iKXwZRA0Hl9eDXHts2JBhseuZQJDci9VvixqylA/get-view-displays-unresolved";
 
     // Spaces-repo queries (endpoint: nanopub-query .../repo/spaces)
     // v2: IRI-keyed get-spaces. Prior client head, retained for reference; deployments up
