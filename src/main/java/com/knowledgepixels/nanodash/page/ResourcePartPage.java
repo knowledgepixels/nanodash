@@ -9,8 +9,10 @@ import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -37,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * This class represents a page for a resource part in the context of a maintained resource, space, or user.
@@ -302,6 +305,52 @@ public class ResourcePartPage extends NanodashPage {
     }
 
     /**
+     * Whether the given id names an individual agent: a known user or software agent, or a
+     * well-formed ORCID that is not (yet) one. The same pair of checks decides elsewhere
+     * that a link to an agent belongs on its user page (see {@code NanodashLink}).
+     *
+     * @param id the resource id to check
+     * @return true if the id names an individual agent
+     */
+    static boolean isIndividualAgent(String id) {
+        return IndividualAgent.isUser(id) || IndividualAgent.isOrcidIri(id);
+    }
+
+    /**
+     * The classes a part is an instance of: those its defining nanopublication states with
+     * {@code rdf:type}, plus {@code gen:IndividualAgent} when the part is an agent.
+     * <p>
+     * An agent is typed here rather than read out of the data because nothing in the data
+     * says it. An agent's defining nanopublication is its key introduction, whose assertion
+     * holds a {@code foaf:name} and its key declarations and gives the agent IRI no type at
+     * all. The agent's own page does not consult the data either —
+     * {@code IndividualAgent.getOwnClasses()} returns {@code gen:IndividualAgent} outright,
+     * as {@code Space} and {@code MaintainedResource} do for their kinds. Without this, a
+     * view targeting {@code gen:IndividualAgent} could render on a user page and never on a
+     * part page, so a person clicked in a space's diagram opened a page with nothing on it.
+     *
+     * @param definition        the nanopublication defining the part, or null if none is known
+     * @param partId            the part resource id
+     * @param isIndividualAgent tells whether an id names an agent
+     * @return the part's classes, possibly empty
+     */
+    static Set<IRI> getPartClasses(Nanopub definition, String partId, Predicate<String> isIndividualAgent) {
+        Set<IRI> classes = new HashSet<>();
+        if (isIndividualAgent.test(partId)) {
+            classes.add(KPXL_TERMS.INDIVIDUAL_AGENT);
+        }
+        if (definition != null) {
+            for (Statement st : definition.getAssertion()) {
+                if (st.getSubject().stringValue().equals(partId) && st.getPredicate().equals(RDF.TYPE)
+                        && st.getObject() instanceof IRI objIri) {
+                    classes.add(objIri);
+                }
+            }
+        }
+        return classes;
+    }
+
+    /**
      * Resolves the maintained resource, space or user the given context id names.
      *
      * @param contextId the id of the resource this page's part belongs to
@@ -322,7 +371,7 @@ public class ResourcePartPage extends NanodashPage {
         final String contextId = parameters.get("context").toString();
         final String nanopubId;
         String label = parameters.get("label").isEmpty() ? Utils.getShortNameFromURI(id) : parameters.get("label").toString();
-        Set<IRI> classes = new HashSet<>();
+        final Set<IRI> classes;
         Nanopub definition = null;
 
         resourceWithProfile = resolveResourceWithProfile(contextId);
@@ -350,13 +399,15 @@ public class ResourcePartPage extends NanodashPage {
             if (declaredLabel != null) {
                 label = declaredLabel;
             }
-            for (Statement st : nanopub.getAssertion()) {
-                if (st.getSubject().stringValue().equals(id) && st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
-                    classes.add(objIri);
-                }
-            }
         } else {
             nanopubId = null;
+        }
+        classes = getPartClasses(definition, id, ResourcePartPage::isIndividualAgent);
+        // An agent's key introduction declares a foaf:name and no rdfs:label, so the name we
+        // already know is what names the page; a caller's label (an ORCID number, say) is kept
+        // only where we know none. This is the precedence a link to an agent uses elsewhere.
+        if (classes.contains(KPXL_TERMS.INDIVIDUAL_AGENT) && User.getName(Values.iri(id)) != null) {
+            label = User.getShortDisplayName(Values.iri(id));
         }
         definitionNanopubId = nanopubId;
 //        if (getDefResp == null || getDefResp.getData().isEmpty()) {
@@ -389,7 +440,7 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part)" + titleSuffix()));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
-        add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
+        add(PageTitleMenu.forPart("titlemenu", resourceWithProfile, id, label));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
