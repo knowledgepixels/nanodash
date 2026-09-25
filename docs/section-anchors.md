@@ -75,7 +75,7 @@ exactly that id, so the anchor survives the swap.
 Done so far for the About tab of a space (`AboutSpacePanel`) and the Explore
 tab (`ExplorePanel`, which is the Explore tab of every resource type). Still
 uncovered: the standalone explore/references/result-table/query pages,
-`ProjectPage`, `ListPage`, and `ViewResultsPage`. (The user/space/query list
+`ListPage`, and `ViewResultsPage`. (The user/space/query list
 pages that were early adopters have been retired; their content lives on the
 home page as regular `ViewList` sections now.)
 

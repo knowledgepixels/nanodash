@@ -148,20 +148,6 @@ public class KPXL_TERMS {
     public static final IRI HAS_ADMIN = VocabUtils.createIRI(NAMESPACE, "hasAdmin");
 
     /**
-     * The predicate for pinned templates in the space.
-     */
-    public static final IRI HAS_PINNED_TEMPLATE = VocabUtils.createIRI(NAMESPACE, "hasPinnedTemplate");
-
-    /**
-     * The predicate for pinned queries in the space.
-     */
-    public static final IRI HAS_PINNED_QUERY = VocabUtils.createIRI(NAMESPACE, "hasPinnedQuery");
-
-    /**
-     * The IRI for the "hasOwner" predicate.
-     */
-    public static final IRI HAS_OWNER = VocabUtils.createIRI(NAMESPACE, "hasOwner");
-    /**
      * The IRI for the "hasAdmin" predicate.
      */
     public static final IRI HAS_ADMIN_PREDICATE = VocabUtils.createIRI(NAMESPACE, "hasAdmin");

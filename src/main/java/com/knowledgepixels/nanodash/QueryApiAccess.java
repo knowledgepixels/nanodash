@@ -43,9 +43,6 @@ public class QueryApiAccess {
     public static final String FIND_THINGS = "RAyMrQ89RECTi9gZK5q7gjL1wKTiP8StkLy0NIkkCiyew/find-things";
     public static final String GET_NEWER_VERSIONS_OF_NP = "RAqmmNSxQaRNWRYH0o4Da3GSOwvoFLObhXfAGUCOqEtfw/get-newer-versions-of-np";
     public static final String GET_LATEST_THING_NANOPUB = "RAzXDzCHoZmJITgYYquLwDDkSyNf3eKKQz9NfQPYB1cyE/get-latest-thing-nanopub";
-    public static final String GET_PROJECTS = "RAnpimW7SPwaum2fefdS6_jpzYxcTRGjE-pmgNTL_BBJU/get-projects";
-    public static final String GET_OWNERS = "RApiw7Z0NeP3RaLiqX6Q7Ml5CfEWbt-PysUbMNljuiLJw/get-owners";
-    public static final String GET_MEMBERS = "RASyFJyADTtG-l_Qe3a5PE_e2yUJR-PydXfkZjjrBuV7U/get-members";
     // Node-anchored variants (label/tag/unlisted read off the typed template node, so
     // templates with embedded identity list correctly); derived from, not superseding,
     // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
