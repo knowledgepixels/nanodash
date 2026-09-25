@@ -34,7 +34,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     private List<AbstractLink> buttons = new ArrayList<>();
     private List<AbstractLink> memberButtons = new ArrayList<>();
     private List<AbstractLink> adminButtons = new ArrayList<>();
-    private AbstractResourceWithProfile resourceWithProfile;
+    private IModel<? extends AbstractResourceWithProfile> resourceWithProfile;
     private boolean finalized = false;
     private boolean lazyLoading = false;
     private ReadyFunction readyFunction;
@@ -160,7 +160,8 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     // TODO Improve this (member/admin) button handling:
     public ItemListPanel<T> addButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (resourceWithProfile != null) parameters.set("context", resourceWithProfile.getId());
+        AbstractResourceWithProfile resource = getResourceWithProfile();
+        if (resource != null) parameters.set("context", resource.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         buttons.add(button);
@@ -169,7 +170,8 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> addMemberButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (resourceWithProfile != null) parameters.set("context", resourceWithProfile.getId());
+        AbstractResourceWithProfile resource = getResourceWithProfile();
+        if (resource != null) parameters.set("context", resource.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         memberButtons.add(button);
@@ -178,16 +180,34 @@ public class ItemListPanel<T extends Serializable> extends Panel {
 
     public ItemListPanel<T> addAdminButton(String label, Class<? extends NanodashPage> pageClass, PageParameters parameters) {
         if (parameters == null) parameters = new PageParameters();
-        if (resourceWithProfile != null) parameters.set("context", resourceWithProfile.getId());
+        AbstractResourceWithProfile resource = getResourceWithProfile();
+        if (resource != null) parameters.set("context", resource.getId());
         AbstractLink button = new BookmarkablePageLink<NanodashPage>("button", pageClass, parameters);
         button.setBody(Model.of(label));
         adminButtons.add(button);
         return this;
     }
 
-    public ItemListPanel<T> setResourceWithProfile(AbstractResourceWithProfile resourceWithProfile) {
+    /**
+     * States which resource this list belongs to, so that its buttons carry the page context and
+     * the member-only and admin-only ones are shown to whoever may use them.
+     *
+     * <p>The resource is kept as a model rather than as an object, so a page restored from the page
+     * store reads the resource the repositories hold now (issue #459).
+     *
+     * @param resourceWithProfile the resource this list belongs to
+     * @return this panel
+     */
+    public ItemListPanel<T> setResourceWithProfile(IModel<? extends AbstractResourceWithProfile> resourceWithProfile) {
         this.resourceWithProfile = resourceWithProfile;
         return this;
+    }
+
+    /**
+     * @return the resource this list belongs to as it is now, or null when it belongs to none
+     */
+    private AbstractResourceWithProfile getResourceWithProfile() {
+        return resourceWithProfile == null ? null : resourceWithProfile.getObject();
     }
 
     public ItemListPanel<T> setReadyFunction(ReadyFunction readyFunction) {
@@ -199,7 +219,7 @@ public class ItemListPanel<T extends Serializable> extends Panel {
     protected void onBeforeRender() {
         if (!finalized) {
             add(new Label("description", description).setVisible(description != null));
-            if (resourceWithProfile != null && readyFunction != null && !readyFunction.get()) {
+            if (getResourceWithProfile() != null && readyFunction != null && !readyFunction.get()) {
                 add(new AjaxLazyLoadPanel<Component>("buttons") {
 
                     @Override
