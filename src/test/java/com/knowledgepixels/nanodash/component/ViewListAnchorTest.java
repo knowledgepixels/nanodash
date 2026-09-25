@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ class ViewListAnchorTest {
 
         // The mocked view displays have no view attached, so each section body renders as
         // the inline error; the anchor is set before that and is what matters here.
-        tester.startComponentInPage(new ViewList("views", resource, List.of(
+        tester.startComponentInPage(new ViewList("views", Model.of(resource), List.of(
                 viewDisplay("Highlightings", "4.4.highlightings"),
                 viewDisplay("💬 Messages", "4.5.messages"))));
 
