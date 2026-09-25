@@ -121,11 +121,21 @@ public class HomePage extends NanodashPage {
             return;
         }
 
+        // Resolve the repository singleton inside the anonymous classes rather than
+        // capturing it: MaintainedResourceRepository is not Serializable, and a
+        // captured reference makes the whole page fail to serialize to the page store.
+        final IModel<MaintainedResource> homeResourceModel = new LoadableDetachableModel<MaintainedResource>() {
+            @Override
+            protected MaintainedResource load() {
+                return MaintainedResourceRepository.get().findLastKnownById(homeResourceId);
+            }
+        };
+
         if (homeResource != null) {
             homeResource.triggerDataUpdate();
             if (homeResource.isDataInitialized()) {
                 add(RefreshingStructurePanel.of("views", homeResource, markupId -> {
-                    ViewList viewList = new ViewList(markupId, homeResource);
+                    ViewList viewList = new ViewList(markupId, homeResourceModel);
                     viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
                     return viewList;
                 }));
@@ -139,22 +149,12 @@ public class HomePage extends NanodashPage {
         // data resolves, rather than declaring a hard "not found" on a transient null. If
         // the repository ends up holding resources without the configured id among them,
         // the misconfig notice is shown then.
-        // Resolve the repository singleton inside the anonymous classes rather than
-        // capturing it: MaintainedResourceRepository is not Serializable, and a
-        // captured reference makes the whole page fail to serialize to the page store.
-        final IModel<MaintainedResource> homeResourceModel = new LoadableDetachableModel<MaintainedResource>() {
-            @Override
-            protected MaintainedResource load() {
-                return MaintainedResourceRepository.get().findLastKnownById(homeResourceId);
-            }
-        };
-
         add(new LazyContentPanel("views", markupId -> {
             MaintainedResource r = homeResourceModel.getObject();
             if (r == null) {
                 return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
             }
-            ViewList viewList = new ViewList(markupId, r);
+            ViewList viewList = new ViewList(markupId, homeResourceModel);
             viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
             return viewList;
         }) {

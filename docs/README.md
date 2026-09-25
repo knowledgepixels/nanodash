@@ -7,6 +7,7 @@ Status legend: ✅ Implemented · 🚧 In progress · 📋 Proposed
 
 | Doc | Status | Summary |
 | --- | --- | --- |
+| [resource-models](resource-models.md) | ✅ Implemented | `ViewList`, `ButtonList`, `SpaceUserList` and `ItemListPanel` take the resource as an `IModel` and derive from it at render time, so a page restored on browser refresh is current ([#459](https://github.com/knowledgepixels/nanodash/issues/459)) |
 | [userlist-views](userlist-views.md) | ✅ Implemented | Human / Software / Non-Approved user lists as published views (now displayed on the home page; `UserListPage` retired) |
 | [presets](presets.md) | ✅ Implemented | Publishable bundles of default views + roles, assignable to (and deactivatable on) resources ([#302](https://github.com/knowledgepixels/nanodash/issues/302)) |
 | [magic-query-params](magic-query-params.md) | ✅ Implemented | Session-bound view-query placeholders (`LOCALPUBKEY`, `SITEURL`, `CURRENTUSER`); replaced the custom introductions table with proper views (`ProfileIntroItem` removed) |

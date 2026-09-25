@@ -179,18 +179,18 @@ public class SpacePage extends NanodashPage {
             if (empty) {
                 contentContainer.add(new WebMarkupContainer("views").setVisible(false));
             } else {
-                contentContainer.add(new ViewList("views", space, viewDisplays, effectiveRoot));
+                contentContainer.add(new ViewList("views", spaceModel, viewDisplays, effectiveRoot));
             }
-            addUnconfiguredFallback(contentContainer, space, empty);
+            addUnconfiguredFallback(contentContainer, spaceModel, empty);
         } else if (space.isDataInitialized()) {
             boolean empty = space.getTopLevelViewDisplays().isEmpty();
             if (empty) {
                 contentContainer.add(new WebMarkupContainer("views").setVisible(false));
             } else {
                 contentContainer.add(RefreshingStructurePanel.of("views", space,
-                        markupId -> new ViewList(markupId, spaceModel.getObject())));
+                        markupId -> new ViewList(markupId, spaceModel)));
             }
-            addUnconfiguredFallback(contentContainer, space, empty);
+            addUnconfiguredFallback(contentContainer, spaceModel, empty);
         } else {
             // Data not yet loaded: render the views lazily, then reveal the unconfigured
             // notice + general-info fallback once we know whether any views exist.
@@ -199,12 +199,12 @@ public class SpacePage extends NanodashPage {
             unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
             contentContainer.add(unconfiguredNotice);
 
-            final ViewList generalInfoView = new ViewList("generalinfoview", space, List.of(generalInfoViewDisplay()));
+            final ViewList generalInfoView = new ViewList("generalinfoview", spaceModel, List.of(generalInfoViewDisplay()));
             generalInfoView.setVisible(false);
             generalInfoView.setOutputMarkupPlaceholderTag(true);
             contentContainer.add(generalInfoView);
 
-            contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, spaceModel.getObject())) {
+            contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, spaceModel)) {
 
                 @Override
                 protected boolean isContentReady() {
@@ -250,7 +250,7 @@ public class SpacePage extends NanodashPage {
      * Adds the "page not configured yet" notice and the general-information fallback view,
      * both visible only when the resource has no view displays.
      */
-    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, AbstractResourceWithProfile resource, boolean empty) {
+    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, IModel<? extends AbstractResourceWithProfile> resource, boolean empty) {
         contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
         if (empty) {
             contentContainer.add(new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay())));

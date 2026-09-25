@@ -17,6 +17,8 @@ import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -183,18 +185,26 @@ public class UserPage extends NanodashPage {
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
             IndividualAgent individualAgent = IndividualAgent.get(userIriString);
+            final IModel<IndividualAgent> individualAgentModel = new LoadableDetachableModel<IndividualAgent>() {
+
+                @Override
+                protected IndividualAgent load() {
+                    return IndividualAgent.get(userIriString);
+                }
+
+            };
             if (individualAgent.isDataInitialized()) {
                 boolean empty = individualAgent.getTopLevelViewDisplays().isEmpty();
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
                     contentContainer.add(RefreshingStructurePanel.of("views", individualAgent,
-                            markupId -> new ViewList(markupId, IndividualAgent.get(userIriString))));
+                            markupId -> new ViewList(markupId, individualAgentModel)));
                 }
                 contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
                 if (empty) {
                     ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
-                    contentContainer.add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay)));
+                    contentContainer.add(new ViewList("latestnanopubsview", individualAgentModel, List.of(defaultViewDisplay)));
                 } else {
                     contentContainer.add(new EmptyPanel("latestnanopubsview").setVisible(false));
                 }
@@ -205,12 +215,12 @@ public class UserPage extends NanodashPage {
                 contentContainer.add(unconfiguredNotice);
 
                 ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
-                final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay));
+                final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgentModel, List.of(defaultViewDisplay));
                 latestNanopubsView.setVisible(false);
                 latestNanopubsView.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(latestNanopubsView);
 
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, individualAgent)) {
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, individualAgentModel)) {
 
                     @Override
                     protected boolean isContentReady() {
