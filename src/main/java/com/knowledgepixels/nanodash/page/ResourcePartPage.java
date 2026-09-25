@@ -440,7 +440,7 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part)" + titleSuffix()));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
-        add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
+        add(PageTitleMenu.forPart("titlemenu", resourceWithProfile, id, label));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
 
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;

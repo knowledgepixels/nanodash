@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
@@ -9,8 +10,10 @@ import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.calendar.CalendarEvent;
 import com.knowledgepixels.nanodash.calendar.CalendarUrls;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.CalendarFeedPage;
+import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
 import com.knowledgepixels.nanodash.template.Template;
@@ -175,6 +178,86 @@ public class PageTitleMenu extends Panel {
         return build(id, new ArrayList<>(), new ArrayList<>(), resource);
     }
 
+    /**
+     * The title menu for a part page: what {@link #forResource} offers, plus an entry
+     * opening the part's own page when the part is itself a resource that has one — an
+     * agent, a space, a maintained resource. A person reached by clicking their node in a
+     * space's diagram is the case this exists for: their part page shows what they did in
+     * that space, and this is the way on to their profile.
+     * <p>
+     * The entry is an ordinary internal link carrying the part page's navigation context,
+     * not a redirect, which is what makes the trip round: a context page reached under a
+     * <em>different</em> context shows a back-link to the part rather than ending the trail
+     * (issue #697, see {@code TitleBar.createBackContextRef}).
+     * <p>
+     * The menu itself stays built on the context resource, whose display set the part
+     * page's views come from, so "refresh now" keeps refreshing the right thing.
+     *
+     * @param id        the Wicket component id
+     * @param context   the resource the part belongs to
+     * @param partId    the part resource id
+     * @param partLabel the part's label, carried so the back-link can name it
+     * @return the menu, or an invisible {@link EmptyPanel}
+     */
+    public static Component forPart(String id, AbstractResourceWithProfile context, String partId, String partLabel) {
+        List<AbstractLink> extraEntries = new ArrayList<>();
+        // Resolved rather than merely recognised: an id that only looks like an agent — a
+        // well-formed ORCID nobody has introduced — has no page worth offering, and this
+        // returns null for it, where the looser test behind an inline link to an agent
+        // would send the reader to an unconfigured profile.
+        AbstractResourceWithProfile own = NavigationContext.resolve(partId);
+        Class<? extends NanodashPage> ownPageClass = NavigationContext.getPageClass(own);
+        if (ownPageClass != null && context != null) {
+            extraEntries.add(pageLink(ownPageIcon(own), ownPageLabel(own), ownPageClass,
+                    ownPageParameters(partId, partLabel, context.getId())));
+        }
+        return build(id, new ArrayList<>(), extraEntries, context);
+    }
+
+    /**
+     * The parameters of the link to a part's own page: the part as that page's resource,
+     * plus the context and the part it is reached under, which is what gives that page its
+     * back-link.
+     * <p>
+     * The part is set here rather than through {@link NavigationContext#withPart}, which
+     * refuses a link whose target id is the part itself. That rule is right for links
+     * <em>within</em> a context, where such a target is the part page and its back-link
+     * would point at itself. This link goes to another page of the same resource — the
+     * agent's own page — which is a context page in its own right, so it lands with an
+     * incoming context differing from its own and the part page is exactly what it should
+     * offer to go back to.
+     *
+     * @param partId    the part resource id
+     * @param partLabel the part's label, or null if none is known
+     * @param contextId the context resource id the part is shown under
+     * @return the link parameters
+     */
+    static PageParameters ownPageParameters(String partId, String partLabel, String contextId) {
+        PageParameters params = new PageParameters().set("id", partId);
+        NavigationContext.withContext(params, contextId);
+        if (contextId != null && !contextId.isEmpty()) {
+            params.set(NavigationContext.PART_PARAM, partId);
+            if (partLabel != null && !partLabel.isBlank()) {
+                params.set(NavigationContext.PART_LABEL_PARAM, partLabel);
+            }
+        }
+        return params;
+    }
+
+    /** The menu icon for the page of the given resource. */
+    private static String ownPageIcon(AbstractResourceWithProfile resource) {
+        if (resource instanceof IndividualAgent) return "👤";
+        if (resource instanceof Space) return "🏠";
+        return "📦";
+    }
+
+    /** The menu label for the page of the given resource. */
+    private static String ownPageLabel(AbstractResourceWithProfile resource) {
+        if (resource instanceof IndividualAgent) return "open user page";
+        if (resource instanceof Space) return "open space page";
+        return "open resource page";
+    }
+
     private static Component build(String id, List<Group> groups, List<AbstractLink> extraEntries, AbstractResourceWithProfile resource) {
         boolean canRefresh = resource != null && NanodashSession.get().getUserIri() != null;
         if (groups.isEmpty() && extraEntries.isEmpty() && !canRefresh) {
@@ -288,6 +371,14 @@ public class PageTitleMenu extends Panel {
         externalLink.setBody(Model.of("<span class=\"actionmenu-icon\">" + icon + "</span>" + label))
                 .setEscapeModelStrings(false);
         return externalLink;
+    }
+
+    /** An entry leading to another page of this Nanodash instance. */
+    private static AbstractLink pageLink(String icon, String label, Class<? extends NanodashPage> pageClass, PageParameters params) {
+        BookmarkablePageLink<Void> pageLink = new BookmarkablePageLink<>("link", pageClass, params);
+        pageLink.setBody(Model.of("<span class=\"actionmenu-icon\">" + icon + "</span>" + label))
+                .setEscapeModelStrings(false);
+        return pageLink;
     }
 
     /** An entry leading to a third-party web calendar, opened in a new tab. */
