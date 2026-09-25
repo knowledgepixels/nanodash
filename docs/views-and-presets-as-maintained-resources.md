@@ -80,15 +80,35 @@ already-published versions resolve.) So R's admin, by pinning a declared version
 update authority to the named space's members without ever risking a cross-space override;
 by pinning an undeclared version they delegate to the original publisher's key, as today.
 
-**An unregistered kind doesn't freeze the pin.** A declared `gen:governedBy` only takes effect
-once `<kind> gen:isMaintainedBy <space>` is validated. Until then — and again if the
-registration is withdrawn — the pinned version resolves like an undeclared one: along its own
-same-key `npx:supersedes` chain, with the same single-head rule as `get-latest-version-of-np`.
-Only a registered kind switches to space-based resolution, where the pin is the floor. (The
-first resolver returned nothing for an unregistered kind, so the pin stood even against
-same-key supersedes, and declaring `gen:governedBy` ahead of the registration was worse than
-not declaring it. `get-latest-governed-version` now takes the pinned nanopub as a third
-parameter and answers both cases.)
+**A kind the space doesn't maintain doesn't freeze the pin.** A declared `gen:governedBy`
+only takes effect once `<kind> gen:isMaintainedBy <space>` is validated. Until then — and
+again if that declaration is withdrawn — the pinned version resolves like an undeclared one:
+along its own same-key `npx:supersedes` chain, with the same single-head rule as
+`get-latest-version-of-np`. Only a kind the space maintains switches to space-based
+resolution, where the pin is the floor. (The first resolver returned nothing for a kind the
+space didn't maintain, so the pin stood even against same-key supersedes, and declaring
+`gen:governedBy` before the space maintained the kind was worse than not declaring it.
+`get-latest-governed-version` now takes the pinned nanopub as a third parameter and answers
+both cases.)
+
+**Not yet listed as maintained resources.** A space's About tab lists, first in its "📦
+Maintained resources" list (view `RAid3m--zOJ1OL4eNfDz3JpoSfhodtYsG2_1gz_cSrx48`, query
+`RAWZab2iKc3cB6TwqHdUEn1ZgMh817nfiwFKAVMrypVlI/list-maintained-and-not-yet-listed-resources`,
+sources in `docs/queries/`), the kinds whose versions name the space in `gen:governedBy` but that
+the space doesn't list as maintained resources yet, marked "⏳ not listed yet": the newest version
+of each kind signed by a member of the space, leaving out kinds a version re-minted (whose minting
+nanopub supersedes a version of another kind). Each shows the label it gets when listed. An admin
+either lists one as a maintained resource — the "Defining a maintained resource" form, pre-filled
+with the kind (locked), its label and description, declares it a maintained resource of the
+space, so its `gen:governedBy` takes effect and the row loses its marker — or dismisses it, which
+records an `npx:disapprovesOf` verdict with the general "Approving or disapproving of a
+nanopublication" template and only takes that version off the list: only admins' verdicts count,
+the latest one wins, and a newer version of the kind shows up again. (The form is the prefix-free
+`RAuoIiBP…` version: the governed one mints under `~~SPACE~~/r/`, and a dynamic prefix ignores a
+pre-filled IRI.) Members and bots can publish governed versions, but only an admin can list their
+kind as a maintained resource of the space, so this is where such versions wait. The space's "🧩
+Maintained templates" and "🖼️ Maintained views" listings mark the same kinds as not listed yet and
+offer the same action.
 
 **"Latest" is a claim by the space, not a verifiable ordering.** Without a supersedes chain,
 any member+ of the governing space can republish older content with a fresh timestamp and win

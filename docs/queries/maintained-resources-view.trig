@@ -1,0 +1,73 @@
+@prefix this: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix sub: <https://w3id.org/np/ARTIFACTCODE-PLACEHOLDER> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix gen: <https://w3id.org/kpxl/gen/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication ;
+    np:hasAssertion sub:assertion ;
+    np:hasProvenance sub:provenance ;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  sub:add-maintained-resource a gen:ViewResultAction ;
+    rdfs:label "add maintained resource" ;
+    gen:hasActionTemplate <https://w3id.org/np/RAw91C9LMpYXs1IJd3iAFOv-_x8XlkEOhWUbYtv8nNFmk> ;
+    gen:hasActionTemplatePartField "void" ;
+    gen:hasActionTemplateQueryMapping "void" ;
+    gen:hasActionTemplateTargetField "space" ;
+    gen:isVisibleTo gen:AdminRole .
+
+  sub:list-action a gen:ViewEntryAction ;
+    rdfs:label "📦 list as maintained resource..." ;
+    gen:hasActionTemplate <https://w3id.org/np/RAuoIiBPtkpMCALeI5AWNlQHoXdBfqZwqj_sVHiBGbfQo> ;
+    gen:hasActionTemplateTargetField "space" ;
+    gen:hasActionTemplateQueryMapping "list_resource:!resource list_label:label list_description:description list_type:type" ;
+    gen:isVisibleTo gen:AdminRole .
+
+  sub:dismiss-action a gen:ViewEntryAction ;
+    rdfs:label "✖ dismiss..." ;
+    gen:hasActionTemplate <https://w3id.org/np/RAkhTlKa-i0miq_DN3V4HSv-btlDgwzg8qPUesrsJ0k9Q/template> ;
+    gen:hasActionTemplateQueryMapping "dismiss_target:nanopub dismiss_choice:approveOrDisapprove" ;
+    gen:isVisibleTo gen:AdminRole .
+
+  sub:maintained-resources-view a gen:ListView, gen:ResourceView ;
+    dct:isVersionOf <https://w3id.org/np/RA9lZA-e3b3oMS9XHhbGOeV_Fvs2q9yFBQ7c4xcG2JNkE/maintained-resources-view-kind> ;
+    gen:governedBy <https://w3id.org/spaces/knowledgepixels/nanodash> ;
+    dct:title "📦 Maintained resources" ;
+    rdfs:label "Maintained resources view" ;
+    dct:description "The resources this space maintains. Listed first, marked as not listed yet, are the kinds of views, templates and other definitions whose versions say they are governed by this space but that the space does not list as maintained resources yet; until it does, their governed-by has no effect. Admins can list such a kind as a maintained resource, or dismiss it, which only takes that version off this list." ;
+    gen:appliesToInstancesOf gen:Space ;
+    gen:hasDisplayWidth gen:ColumnWidth06of12 ;
+    gen:hasStructuralPosition "3.4.maintainedResources" ;
+    gen:hasViewQuery <https://w3id.org/np/RAWZab2iKc3cB6TwqHdUEn1ZgMh817nfiwFKAVMrypVlI/list-maintained-and-not-yet-listed-resources> ;
+    gen:hasViewQueryTargetField "space" ;
+    gen:hasViewAction sub:add-maintained-resource, sub:list-action, sub:dismiss-action .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+
+  this: dct:created "2026-09-24T14:44:56Z"^^xsd:dateTime ;
+    dct:creator orcid:0000-0002-1267-0234 ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    npx:embeds sub:maintained-resources-view ;
+    prov:wasDerivedFrom <https://w3id.org/np/RAPUs5_CXMs_13QpU0RQch8LB28MN61p-j0945_STg8BE> ;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RAJfQoTn4f7e8qHl0MYmn15qiHydwhr4F8Ow7agpMkWsE/template> ;
+    nt:wasCreatedFromProvenanceTemplate <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU> ;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw> .
+}

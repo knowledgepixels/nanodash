@@ -203,8 +203,8 @@ public class View implements Serializable {
      *                      A version declaring {@code gen:governedBy} still gets the
      *                      governed-version resolution here even with false: the
      *                      caller's server-side resolution covers neither its
-     *                      space-based float nor, while its kind isn't registered
-     *                      with the space, the supersedes chain the query then
+     *                      space-based float nor, while the space doesn't maintain
+     *                      its kind, the supersedes chain the query then
      *                      follows instead.
      * @return the View object
      */
@@ -217,7 +217,7 @@ public class View implements Serializable {
             }
             // fall through to the memoized latest path, which resolves a governed
             // pin through the governed-version query (space-based, or along the pin's
-            // own supersedes chain while its kind isn't registered with the space)
+            // own supersedes chain while the space doesn't maintain its kind)
         }
         // Inside a fresh-resolution scope (a page-level "refresh now", see
         // withFreshResolution) the memo is not to be trusted at all: go back to the API
@@ -343,7 +343,7 @@ public class View implements Serializable {
      * resolves space-based (authority-scoped latest-wins within its
      * {@code (kind, space)} pair) once its kind is a maintained resource of the
      * space; one that doesn't follows the supersedes chain as before, and so does
-     * a governed version whose kind isn't registered yet (resolved by the same
+     * a governed version whose kind the space doesn't maintain yet (resolved by the same
      * governed-version query). See docs/views-and-presets-as-maintained-resources.md.
      */
     private static View resolveLatestVersion(String id, String npId) {

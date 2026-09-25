@@ -162,15 +162,15 @@ public class QueryApiAccess {
     // one row. With the kind validated as maintained by the space: the newest version
     // declaring gen:governedBy that space, signed by a current member+ of the space's
     // governing ref; empty result = the caller keeps its pinned version (the pin is the
-    // floor). With the kind not registered: the single current head of the pin's own
+    // floor). With the kind not maintained by the space: the single current head of the pin's own
     // same-key supersedes chain, as GET_LATEST_VERSION_OF_NP resolves it, so that a
-    // gen:governedBy declared ahead of the registration no longer freezes the pin.
+    // gen:governedBy declared before the space maintains the kind no longer freezes the pin.
     // RAyB49tP supersedes RA833rrc, which superseded RAPSWgzH: RAPSWgzH took no pin and
-    // returned nothing for an unregistered kind, and both it and RA833rrc looked up the
+    // returned nothing for a kind the space doesn't maintain, and both it and RA833rrc looked up the
     // versions once per member row, starting from every nanopub signed by a member key
     // (up to a minute for spaces whose members have signed many nanopubs). RAyB49tP
     // gathers the member keys into one row and starts the full-repo lookup from the kind,
-    // so it runs once; results validated identical across all governed pairs, registered
+    // so it runs once; results validated identical across all governed pairs, maintained-kind
     // median 0.5s -> 0.2s, worst case 20-60s -> about 1s. Source at
     // docs/queries/get-latest-governed-version.trig; see
     // docs/views-and-presets-as-maintained-resources.md.
@@ -292,16 +292,17 @@ public class QueryApiAccess {
     // RAVsaIwA) adds a member_label column, sourced like the observers query above.
     public static final String LIST_SPACE_NON_APPROVED_REF = "RA8r_O22FL53frfrmudFKMB-g7S-H0HU78O7uDiOx4WZ4/list-space-non-approved";
 
-    // Ref-scoped variants of the four About-tab *view* display queries (distinct from the
+    // Ref-scoped variants of three About-tab *view* display queries (distinct from the
     // GET_SPACE_*_REF client-authority queries above). Each takes the ref's root nanopub
     // (root_np), resolves the ref via npa:rootNanopub, and scopes by npa:forSpaceRef (members,
-    // roles) or the ref-level npa:hasSubSpace / npa:hasMaintainedResource edge (sub-spaces,
-    // maintained resources), so a ?root=-pinned space page shows only that one ref's listings
-    // rather than merging all refs claiming the IRI. Column-compatible with the IRI-keyed view
-    // queries, so they drive the existing view nanopubs unchanged (the observers pattern). Used
-    // by AboutSpacePanel with an IRI-keyed fallback when the ref root is unknown. Published
-    // independently (no npx:supersedes). Sources at docs/queries/list-*-ref.trig. See
-    // docs/space-ref-identity.md.
+    // roles) or the ref-level npa:hasSubSpace edge (sub-spaces), so a ?root=-pinned space page
+    // shows only that one ref's listings rather than merging all refs claiming the IRI. (The
+    // maintained-resources listing did the same with the npa:hasMaintainedResource edge until
+    // its view's own query took the space plus an optional root_np, so it is view-driven now.)
+    // Column-compatible with the IRI-keyed view queries, so they drive the existing view
+    // nanopubs unchanged (the observers pattern). Used by AboutSpacePanel with an IRI-keyed
+    // fallback when the ref root is unknown. Published independently (no npx:supersedes).
+    // Sources at docs/queries/list-*-ref.trig. See docs/space-ref-identity.md.
     // v3 (RApyKS9D): reads each membership's tier directly off the materialized gen:RoleInstantiation
     // (npa:hasRoleType) and its role (gen:hasRole) in the current space state, now that nanopub-query
     // persists tier on the instantiation (nanopub-query#125 + #127). Simplifies away the earlier
@@ -313,7 +314,6 @@ public class QueryApiAccess {
     public static final String LIST_SPACE_MEMBERS_REF = "RAroCpts3CpuUpSsuPpccRbyKkwkOvVNQSjoY0ZYAVvBg/list-space-members";
     public static final String LIST_SPACE_ROLES_REF = "RAYOsITlBsY5vmlPmZuMnsJQvwIss9DfjdWW0VjgLkMjE/list-space-roles";
     public static final String LIST_SUB_SPACES_REF = "RA-j0DFqkNUHxF_WIds8wWJix6DkDFBmUBWmKXfG24XYQ/list-sub-spaces";
-    public static final String LIST_MAINTAINED_RESOURCES_REF = "RAPthUMRDXiJeD2BrOsZigTsbA0LktBc-HC4alDSfVNKM/list-maintained-resources";
 
     // View-displays listing queries are no longer referenced here: the About-tab view-displays
     // tables are view-driven (gen:hasViewQuery on the space/user/maintained view nanopubs), and the

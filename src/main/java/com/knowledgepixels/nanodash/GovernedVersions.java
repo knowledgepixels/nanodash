@@ -31,7 +31,7 @@ import java.util.Set;
  * The declaration only takes effect once the kind is a maintained resource of the
  * space. Until then the same query resolves the pinned version like an ungoverned
  * one, along its own same-key supersedes chain, so declaring {@code gen:governedBy}
- * ahead of the registration no longer freezes the pin.
+ * before the space maintains the kind no longer freezes the pin.
  */
 public class GovernedVersions {
 

@@ -106,9 +106,15 @@ public class AboutSpacePanel extends Panel {
 
     /**
      * View listing the resources maintained by a space, built on the
-     * list-maintained-resources query.
+     * list-maintained-and-not-yet-listed-resources query. It lists first, marked as not
+     * listed yet, the kinds of the definitions (views, templates and the like) whose versions
+     * say they are governed by the space but that the space does not list as maintained
+     * resources yet, so their gen:governedBy has no effect. Its admin actions on those rows
+     * list one as a maintained resource or dismiss it (which only takes that version off the
+     * list). The view is itself governed by knowledgepixels/nanodash, so any member of that
+     * space can publish its next version.
      */
-    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAPUs5_CXMs_13QpU0RQch8LB28MN61p-j0945_STg8BE/maintained-resources-view";
+    public static final String MAINTAINED_RESOURCES_VIEW = "https://w3id.org/np/RAid3m--zOJ1OL4eNfDz3JpoSfhodtYsG2_1gz_cSrx48/maintained-resources-view";
 
     /**
      * Every view this panel resolves through {@link View#get(String)} when it is built.
@@ -259,8 +265,8 @@ public class AboutSpacePanel extends Panel {
         // returns the user here, where the new entry shows up.
 
         // Both sub-unit tables are ref-scoped via the ref-level npa:hasSubSpace /
-        // npa:hasMaintainedResource edges (subject = the ref), falling back to their IRI-keyed
-        // queries when the ref root is unknown. The view nanopubs are left untouched.
+        // npa:hasMaintainedResource edges (subject = the ref), falling back to the IRI-keyed
+        // listing when the ref root is unknown. The sub-spaces view nanopub is left untouched.
         View subSpacesView = View.get(SUB_SPACES_VIEW);
         QueryRef subSpacesQuery = (refRoot != null && !refRoot.isEmpty())
                 ? new QueryRef(QueryApiAccess.LIST_SUB_SPACES_REF, "root_np", refRoot)
@@ -268,10 +274,16 @@ public class AboutSpacePanel extends Panel {
         ViewDisplay subSpacesDisplay = new ViewDisplay(subSpacesView);
         add(anchors.anchor(QueryResultListBuilder.create("subspaces", subSpacesQuery, subSpacesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), subSpacesDisplay));
 
+        // The maintained-resources view's own query takes the space and, when known, the ref's
+        // root nanopub, like the view displays above: it lists that ref's maintained resources
+        // (every ref's when no root is given), preceded by the governed kinds the space doesn't
+        // list as maintained resources yet, whose admin actions list or dismiss them.
+        // postPublishTab returns the admin here, where a listed kind has lost its marker.
         View maintainedResourcesView = View.get(MAINTAINED_RESOURCES_VIEW);
-        QueryRef maintainedResourcesQuery = (refRoot != null && !refRoot.isEmpty())
-                ? new QueryRef(QueryApiAccess.LIST_MAINTAINED_RESOURCES_REF, "root_np", refRoot)
-                : new QueryRef(maintainedResourcesView.getQuery().getQueryId(), "space", space.getId());
+        Multimap<String, String> maintainedResourcesParams = ArrayListMultimap.create();
+        maintainedResourcesParams.put("space", space.getId());
+        if (refRoot != null && !refRoot.isEmpty()) maintainedResourcesParams.put("root_np", refRoot);
+        QueryRef maintainedResourcesQuery = new QueryRef(maintainedResourcesView.getQuery().getQueryId(), maintainedResourcesParams);
         ViewDisplay maintainedResourcesDisplay = new ViewDisplay(maintainedResourcesView);
         add(anchors.anchor(QueryResultListBuilder.create("maintainedresources", maintainedResourcesQuery, maintainedResourcesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), maintainedResourcesDisplay));
     }
