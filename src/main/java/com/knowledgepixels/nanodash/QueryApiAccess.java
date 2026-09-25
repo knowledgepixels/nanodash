@@ -72,9 +72,16 @@ public class QueryApiAccess {
     // gen:governedBy is listed only if it is its (kind, space) pair's current governed
     // winner (in-SPARQL Option A of the listing-dedup problem; the nanopub-query#138
     // canonical-version edge would replace these arms).
-    public static final String GET_ASSERTION_TEMPLATES = "RAoEo6jLZlH6sJeI6Lw3CIBfirDOscT8dI8Mab58BS8Sc/get-assertion-templates";
-    public static final String GET_PROVENANCE_TEMPLATES = "RAl2C9PT3mFS7qADWmzZcxPkWlVjjaGkNE-TAll3yPUk4/get-provenance-templates";
-    public static final String GET_PUBINFO_TEMPLATES = "RAGxzVO9RO7wIoI5rPy3T33CcpbJ44pgdVgpbOPXmDmwY/get-pubinfo-templates";
+    // v4 (RAi6EPio/RA4ynLpm/RAxzYV8P, superseding RAoEo6jL/RAl2C9PT/RAGxzVO9) keeps the same
+    // semantics but materializes the governed winners once, in a single-row group_concat
+    // sub-select that shares no variables with the outer query, and tests membership by string
+    // containment. The v3 arms joined that sub-select under an optional: correct only because
+    // RDF4J's left join is non-standard (under strict SPARQL semantics the unbound cross-join
+    // would drop every non-governed template), and at risk of re-evaluating the federated
+    // spaces-repo SERVICE per row. Verified identical row counts (656/26/38) against v3.
+    public static final String GET_ASSERTION_TEMPLATES = "RAi6EPio6sbvJ06mqfYm_QBmisWQnJ8cvzm-DKRHKPGUg/get-assertion-templates";
+    public static final String GET_PROVENANCE_TEMPLATES = "RA4ynLpmZXQjnMQzvm7OPt-q8uPPXU8qMxSHm4oSxlw5Y/get-provenance-templates";
+    public static final String GET_PUBINFO_TEMPLATES = "RAxzYV8Pr9vgTcajVMKrZ4GRO8xjxYgEzHCLN_BE0FQfs/get-pubinfo-templates";
     public static final String GET_FILTERED_NANOPUB_LIST = "RAeoXI4vBzLV_BM2lfI5DWkFSfm6y1z3fOk4E1IncXWUo/get-filtered-nanopub-list";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
@@ -168,12 +175,18 @@ public class QueryApiAccess {
     // docs/space-ref-identity.md.
     // v4 (RAyXmrfs, supersedes RAD5KmWO) gates the npx:invalidates filter on a shared signing
     // pubkey between invalidator and the space-definition nanopub (issue #487).
-    public static final String GET_SPACES_REF = "RAyXmrfs8HeSJWGxz2dFX7qhMIsvTMzWro0J6EyBvsNu8/get-spaces";
+    // RALHRpoL (supersedes RAyXmrfs) is that same query re-published with correct provenance:
+    // v4 went out signed by the placeholder orcid:0000-0000-0000-0000 and without
+    // nt:wasCreatedFrom*Template links. The SPARQL is byte-identical (296 rows either way).
+    public static final String GET_SPACES_REF = "RALHRpoLzFDvEPk_9MWKk4IkQ_BC841f8cs0uXtQnVU4w/get-spaces";
     // Disambiguation claimants: one row per ref (root definition) claiming a space IRI, with that
     // ref's validated admins (admins_multi_iri). Pass the space IRI; replaces the per-ref
     // get-space-admins fan-out with a single fetch. Which ref is the representative (default) is
     // decided client-side. Source at docs/queries/list-space-claimants.trig.
-    public static final String LIST_SPACE_CLAIMANTS = "RApsQhJnK7MV5fHzFQe4GsnsUdf_HvPT186E02JE-4CTY/list-space-claimants";
+    // RAYU2MLE (supersedes RApsQhJn) is that same query re-published with correct provenance
+    // (the original was signed by the placeholder orcid:0000-0000-0000-0000 and carried no
+    // nt:wasCreatedFrom*Template links); the SPARQL is byte-identical.
+    public static final String LIST_SPACE_CLAIMANTS = "RAYU2MLEEkLhSfkRYbE9olhuBq19e6g3QY-jfJTmqh0OI/list-space-claimants";
     // Space-governed view-version resolution: given a definition kind (dct:isVersionOf
     // target), its governing space and the pinned version's nanopub (pin), returns at most
     // one row. With the kind validated as maintained by the space: the newest version
@@ -224,7 +237,10 @@ public class QueryApiAccess {
     // them. Published independently. Source at docs/queries/get-space-members-ref.trig.
     // RA2eGba0 (supersedes RAqp9TSM) gates the npx:invalidates filter on a shared signing pubkey
     // between invalidator and the member declaration (issue #487).
-    public static final String GET_SPACE_MEMBERS_REF = "RA2eGba0_0GLtyFWPH2PZe76G0d8azkHaojNCgacifTyI/get-space-members";
+    // RAPYJ7HL (supersedes RA2eGba0) is that same query re-published with correct provenance
+    // (RA2eGba0 was signed by the placeholder orcid:0000-0000-0000-0000 and carried no
+    // nt:wasCreatedFrom*Template links); the SPARQL is byte-identical.
+    public static final String GET_SPACE_MEMBERS_REF = "RAPYJ7HL7UiPQA1vHocyHYL99bKuaaKddfefrgW2zyA-Y/get-space-members";
     // Ref-scoped observers (Stage 2): takes the ref's root nanopub (root_np), lists observers
     // INCLUDING un-introduced self-declared ones (not in the validated state), each flagged
     // via a headerless ?unverified_noheader column (⚠️ when unvalidated). Drives the existing
