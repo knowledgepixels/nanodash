@@ -19,6 +19,12 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.QueryParserUtil;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.extra.services.QueryRef;
@@ -207,15 +213,19 @@ public class View implements Serializable {
     /**
      * Get a View by its ID.
      *
-     * @param id the ID of the View
-     * @param resolveLatest if true, follow the supersedes chain to load the
-     * latest version of the view; if false, load exactly the given version
-     * without a latest-version lookup. Pass false when the caller already holds
-     * a latest-resolved IRI (e.g. from the get-view-displays query, which now
-     * resolves it server-side) to avoid a redundant network round-trip. A
-     * version declaring {@code gen:governedBy} still gets the space-based
-     * resolution here even with false: its float is not supersedes-based, so
-     * the caller's server-side resolution doesn't cover it.
+     * @param id            the ID of the View
+     * @param resolveLatest if true, follow the supersedes chain to load the latest
+     *                      version of the view; if false, load exactly the given
+     *                      version without a latest-version lookup. Pass false when
+     *                      the caller already holds a latest-resolved IRI (e.g. from
+     *                      the get-view-displays query, which now resolves it
+     *                      server-side) to avoid a redundant network round-trip.
+     *                      A version declaring {@code gen:governedBy} still gets the
+     *                      governed-version resolution here even with false: the
+     *                      caller's server-side resolution covers neither its
+     *                      space-based float nor, while its kind isn't registered
+     *                      with the space, the supersedes chain the query then
+     *                      follows instead.
      * @return the View object
      */
     public static View get(String id, boolean resolveLatest) {
@@ -226,7 +236,8 @@ public class View implements Serializable {
                 return exact;
             }
             // fall through to the memoized latest path, which resolves a governed
-            // version space-based (never supersedes-based) for this pin
+            // pin through the governed-version query (space-based, or along the pin's
+            // own supersedes chain while its kind isn't registered with the space)
         }
         // Inside a fresh-resolution scope (a page-level "refresh now", see
         // withFreshResolution) the memo is not to be trusted at all: go back to the API
@@ -343,8 +354,7 @@ public class View implements Serializable {
         String npId = toNanopubId(viewId);
         View pinned = getExactVersion(viewId, npId);
         if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
-            ApiCache.clearCache(GovernedVersions.getQueryRef(
-                    pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue()), 0);
+            ApiCache.clearCache(governedQueryRef(pinned), 0);
         } else {
             QueryApiAccess.forgetLatestVersion(npId);
             ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_LATEST_VERSION_OF_NP, "np", npId), 0);
@@ -366,8 +376,10 @@ public class View implements Serializable {
      * single embedded view IRI. This is the network-touching part of
      * {@link #get(String)}. A version that declares {@code gen:governedBy}
      * resolves space-based (authority-scoped latest-wins within its
-     * {@code (kind, space)} pair); one that doesn't follows the supersedes
-     * chain as before. See docs/views-and-presets-as-maintained-resources.md.
+     * {@code (kind, space)} pair) once its kind is a maintained resource of the
+     * space; one that doesn't follows the supersedes chain as before, and so does
+     * a governed version whose kind isn't registered yet (resolved by the same
+     * governed-version query). See docs/views-and-presets-as-maintained-resources.md.
      */
     private static View resolveLatestVersion(String id, String npId) {
         View pinned = getExactVersion(id, npId);
@@ -401,17 +413,18 @@ public class View implements Serializable {
 
     /**
      * Resolves the latest space-governed version of the pinned view's
-     * {@code (kind, space)} pair: the newest version declaring the same kind
-     * and governing space, signed by a current member+ of that space, with the
-     * kind validated as maintained by the space — all checked server-side by
-     * the {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query. The pin is
-     * the floor: on an empty result (or any failure) the pinned version stands,
-     * un-revalidated.
+     * {@code (kind, space)} pair: the newest version declaring the same kind and
+     * governing space, signed by a current member+ of that space, with the kind
+     * validated as maintained by the space — all checked server-side by the
+     * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query. If the kind isn't
+     * a maintained resource of the space, the query answers with the head of the
+     * pin's own supersedes chain instead. The pin is the floor: on an empty result
+     * (or any failure) the pinned version stands, un-revalidated.
      */
     private static View resolveGovernedVersion(View pinned) {
         try {
-            String latestId = GovernedVersions.getLatestVersionIriSync(
-                    pinned.getViewKindIri().stringValue(), pinned.getGoverningSpace().stringValue());
+            String latestId = GovernedVersions.getVersionIri(
+                    ApiCache.retrieveResponseSync(governedQueryRef(pinned), false));
             if (latestId != null && !latestId.equals(pinned.getId())) {
                 String latestNpId = toNanopubId(latestId);
                 View resolved = getExactVersion(latestId, latestNpId);
@@ -423,6 +436,16 @@ public class View implements Serializable {
             logger.error("Error resolving governed version for view: {}", pinned.getId(), ex);
         }
         return pinned;
+    }
+
+    /**
+     * The governed-version lookup for a pinned view that declares {@code gen:governedBy}.
+     * Resolution and cache invalidation both build it here, so that they address the same
+     * cached response.
+     */
+    private static QueryRef governedQueryRef(View pinned) {
+        return GovernedVersions.getQueryRef(pinned.getViewKindIri().stringValue(),
+                pinned.getGoverningSpace().stringValue(), pinned.getNanopub().getUri().stringValue());
     }
 
     /**
@@ -476,6 +499,7 @@ public class View implements Serializable {
     private String title = "View";
     private String description;
     private GrlcQuery query;
+    private Set<IRI> pinnedRoles;
     private String queryField = "resource";
     private Integer pageSize;
     private Integer displayWidth;
@@ -527,7 +551,9 @@ public class View implements Serializable {
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                    description = st.getObject().stringValue();
+                    // Sanitized here rather than where it is shown, so that every consumer
+                    // gets safe markup, the way a template's description is handled.
+                    description = Utils.sanitizeHtml(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY)) {
                     query = GrlcQuery.get(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY_TARGET_FIELD)) {
@@ -698,6 +724,55 @@ public class View implements Serializable {
     }
 
     /**
+     * The roles this view's query is pinned to: the role IRIs it matches on with
+     * {@code gen:hasRole}. A space has to have such a role attached for the view to list
+     * anything at all, however many grants of it exist (issue #648).
+     *
+     * @return the role IRIs the query names, empty when it names none or cannot be read
+     */
+    public Set<IRI> getPinnedRoles() {
+        if (pinnedRoles == null) {
+            pinnedRoles = query == null ? Set.of() : rolesPinnedBy(query.getSparql());
+        }
+        return pinnedRoles;
+    }
+
+    /**
+     * Reads the roles a query is pinned to out of its SPARQL: the objects of every
+     * {@code gen:hasRole} pattern that names one rather than leaving it open as a variable.
+     *
+     * @param sparql the query's SPARQL, which may be null or unparseable
+     * @return the role IRIs the query names, in the order they appear
+     */
+    static Set<IRI> rolesPinnedBy(String sparql) {
+        if (sparql == null || sparql.isBlank()) return Set.of();
+        ParsedQuery parsed;
+        try {
+            parsed = QueryParserUtil.parseQuery(QueryLanguage.SPARQL, sparql, null);
+        } catch (RuntimeException ex) {
+            // A query whose SPARQL doesn't parse can't run either, so it has nothing to say
+            // about roles; whoever runs it reports the syntax error.
+            logger.debug("Could not read the roles of a query: {}", ex.getMessage());
+            return Set.of();
+        }
+        Set<IRI> roles = new LinkedHashSet<>();
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
+
+            @Override
+            public void meet(StatementPattern pattern) {
+                Var predicate = pattern.getPredicateVar();
+                Var object = pattern.getObjectVar();
+                if (predicate.hasValue() && KPXL_TERMS.HAS_ROLE.equals(predicate.getValue())
+                        && object.hasValue() && object.getValue() instanceof IRI role) {
+                    roles.add(role);
+                }
+            }
+
+        });
+        return roles;
+    }
+
+    /**
      * Gets the query field of the View.
      *
      * @return the query field
@@ -823,11 +898,16 @@ public class View implements Serializable {
      * Gets the set of query result columns that serve only as <em>sources</em>
      * for this view's action query mappings (the {@code col} part of each
      * {@code "col:target"} mapping, across all actions). These columns carry
-     * action data — conditional targets, the local-key bundle — not row
-     * content, so the result builders skip them when rendering visible columns.
-     * A column that happens to be both a display column and a mapping source
-     * would also be hidden; map a duplicated/aliased column instead if you need
-     * to show one.
+     * action data — conditional targets, the local-key bundle — not row content, so
+     * the result builders skip them when rendering visible columns. A column that
+     * happens to be both a display column and a mapping source would also be hidden;
+     * map a duplicated/aliased column instead if you need to show one.
+     * <p>
+     * Page sources ({@code @}-prefixed) are not result columns at all, so they are left
+     * out — except {@code @result.<column>}, which names one: it is the column's single
+     * view-wide value, so the column is action data like any other mapping source and is
+     * hidden the same way. That is what lets a query return a column purely for an action
+     * (an aliased {@code (?np as ?override_target)}, say) without it showing up in the table.
      *
      * @return the set of mapping-source column names (never null)
      */
@@ -835,9 +915,12 @@ public class View implements Serializable {
         Set<String> columns = new HashSet<>();
         for (IRI actionIri : actionTemplateQueryMappingsMap.keySet()) {
             for (String mapping : getTemplateQueryMappings(actionIri)) {
-                int idx = mapping.indexOf(':');
-                if (idx > 0) {
-                    columns.add(mapping.substring(0, idx));
+                ActionMapping m = ActionMapping.parse(mapping);
+                if (m == null) continue;
+                if (!m.pageSource()) {
+                    columns.add(m.column());
+                } else if (m.column().startsWith(RESULT_SOURCE_PREFIX)) {
+                    columns.add(m.column().substring(RESULT_SOURCE_PREFIX.length()));
                 }
             }
         }
@@ -845,11 +928,17 @@ public class View implements Serializable {
     }
 
     /**
-     * Gets the fill query of an action (issue #690): a query run against the
-     * action's target resource when the form opens, whose first result row
-     * pre-fills form fields per {@link #getFillQueryMappings}. The target's IRI
-     * is bound to the placeholder named by
-     * {@link #getFillQueryTargetFieldForAction}.
+     * Prefix of the page source that names a result column ({@code @result.<column>}); see
+     * {@link com.knowledgepixels.nanodash.component.ViewActionMappings#RESULT_PREFIX}, which
+     * resolves it.
+     */
+    private static final String RESULT_SOURCE_PREFIX = "@result.";
+
+    /**
+     * Gets the fill query of an action (issue #690): a query run against the action's
+     * target resource when the form opens, whose first result row pre-fills form fields
+     * per {@link #getFillQueryMappings}. The target's IRI is bound to the placeholder
+     * named by {@link #getFillQueryTargetFieldForAction}.
      *
      * @param actionIri the action IRI
      * @return the fill query, or null if the action declares none (or it failed
@@ -890,19 +979,23 @@ public class View implements Serializable {
     }
 
     /**
-     * One parsed {@code "col:target"} action mapping: the value of result
-     * column {@code column} goes to {@code key} — a template field (written to
-     * {@code param_<key>}) unless {@code rawKey}, in which case {@code key} is
-     * a raw publish-URL key (the target began with {@code @}). {@code locked}
-     * says the target began with {@code !}: the field is filled and then locked
-     * (docs/locked-prefilled-values.md). Only meaningful for a field, so never
-     * set together with {@code rawKey}.
+     * One parsed {@code "col:target"} action mapping: the value of result column
+     * {@code column} goes to {@code key} — a template field (written to
+     * {@code param_<key>}) unless {@code rawKey}, in which case {@code key} is a raw
+     * publish-URL key (the target began with {@code @}). {@code locked} says the target
+     * began with {@code !}: the field is filled and then locked
+     * (docs/locked-prefilled-values.md). Only meaningful for a field, so never set
+     * together with {@code rawKey}.
+     * <p>
+     * A {@code column} that itself begins with {@code @} names a <em>page source</em>
+     * rather than a result column: a value the page supplies, resolved by the action-link
+     * builder instead of read from a row (see
+     * {@link com.knowledgepixels.nanodash.component.ViewActionMappings} and
+     * docs/magic-query-params.md).
      *
-     * @param column the result column the value is read from
-     * @param key the template field or raw URL key, with its
-     * {@code @}/{@code !} marker stripped
-     * @param rawKey whether {@code key} is a raw URL key rather than a template
-     * field
+     * @param column the result column the value is read from, or an {@code @}-prefixed page source
+     * @param key    the template field or raw URL key, with its {@code @}/{@code !} marker stripped
+     * @param rawKey whether {@code key} is a raw URL key rather than a template field
      * @param locked whether the field is to be locked after filling
      */
     public record ActionMapping(String column, String key, boolean rawKey, boolean locked) {
@@ -914,6 +1007,17 @@ public class View implements Serializable {
          * @param mapping the {@code "col:target"} mapping
          * @return the parsed mapping, or null if it has no colon
          */
+        /**
+         * Whether {@link #column} names a page source (it begins with {@code @}) rather
+         * than a result column: its value comes from the page the view is shown on, not
+         * from a row.
+         *
+         * @return true if this mapping reads from a page source
+         */
+        public boolean pageSource() {
+            return column.startsWith("@");
+        }
+
         public static ActionMapping parse(String mapping) {
             int sep = mapping.indexOf(':');
             if (sep < 0) {

@@ -95,6 +95,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
+            context.setParamFilled(iri);
         }
         final List<String> possibleValues = new ArrayList<>();
         for (Value v : template.getPossibleValues(iri)) {

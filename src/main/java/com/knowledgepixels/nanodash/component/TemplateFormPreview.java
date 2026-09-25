@@ -35,8 +35,15 @@ public class TemplateFormPreview extends Panel {
 
         TemplateData td = TemplateData.get();
 
-        // Register the template from the nanopub so it can be looked up by TemplateContext
+        // Register the template from the nanopub so it can be looked up by TemplateContext.
+        // Registering answers with null for a nanopublication it cannot read as a template,
+        // which is a state worth saying out loud: the callers show what is thrown.
         Template template = td.registerTemplate(templateNanopub);
+        if (template == null) {
+            throw new IllegalArgumentException(
+                    "This nanopublication does not define a template that can be shown as a form: "
+                    + templateNanopub.getUri());
+        }
         String templateId = template.getId();
 
         String targetNamespace = template.getTargetNamespace();

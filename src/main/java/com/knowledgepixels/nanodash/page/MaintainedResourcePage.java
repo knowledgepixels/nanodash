@@ -23,6 +23,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
+import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +74,7 @@ public class MaintainedResourcePage extends NanodashPage {
 
         MaintainedResource resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
         resourceId = resource.getId();
+        redirectIfRdfRequested(new RdfSource("resource", resourceId, null, List.of()));
         resourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
@@ -90,7 +92,7 @@ public class MaintainedResourcePage extends NanodashPage {
                 superSpaces.stream().map(ss -> new NanodashPageRef(SpacePage.class, new PageParameters().add("id", ss.getId()), ss.getLabel())).toArray(NanodashPageRef[]::new)
         ).setTabs(new ResourceTabs("tabs", "resource", resource.getId(), activeTab)));
 
-        add(new Label("pagetitle", resource.getLabel() + " (resource) | nanodash"));
+        add(new Label("pagetitle", resource.getLabel() + " (resource)" + titleSuffix()));
         // Optional profile picture, left of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the resource declares none.
@@ -113,9 +115,9 @@ public class MaintainedResourcePage extends NanodashPage {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
                     contentContainer.add(RefreshingStructurePanel.of("views", resource,
-                            markupId -> new ViewList(markupId, resourceModel.getObject())));
+                            markupId -> new ViewList(markupId, resourceModel)));
                 }
-                addUnconfiguredFallback(contentContainer, resource, empty);
+                addUnconfiguredFallback(contentContainer, resourceModel, empty);
             } else {
                 // Data not yet loaded: render the views lazily, then reveal the unconfigured
                 // notice + general-info fallback once we know whether any views exist.
@@ -124,12 +126,12 @@ public class MaintainedResourcePage extends NanodashPage {
                 unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(unconfiguredNotice);
 
-                final ViewList generalInfoView = new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay()));
+                final ViewList generalInfoView = new ViewList("generalinfoview", resourceModel, List.of(generalInfoViewDisplay()));
                 generalInfoView.setVisible(false);
                 generalInfoView.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(generalInfoView);
 
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceModel.getObject())) {
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceModel)) {
 
                     @Override
                     protected boolean isContentReady() {
@@ -189,7 +191,7 @@ public class MaintainedResourcePage extends NanodashPage {
      * Adds the "page not configured yet" notice and the general-information fallback view,
      * both visible only when the resource has no view displays.
      */
-    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, AbstractResourceWithProfile resource, boolean empty) {
+    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, IModel<? extends AbstractResourceWithProfile> resource, boolean empty) {
         contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
         if (empty) {
             contentContainer.add(new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay())));
@@ -205,6 +207,18 @@ public class MaintainedResourcePage extends NanodashPage {
      */
     protected boolean hasAutoRefreshEnabled() {
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The resource's declaring nanopublication describes it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        MaintainedResource resource = resourceModel.getObject();
+        List<Nanopub> declarations = resource != null && resource.getNanopub() != null ? List.of(resource.getNanopub()) : List.of();
+        return new RdfSource("resource", resourceId, null, declarations);
     }
 
     /**

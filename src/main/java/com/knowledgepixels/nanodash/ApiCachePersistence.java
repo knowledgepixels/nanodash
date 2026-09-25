@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 
 /**
  * Persists the {@link ApiCache} content and the nanopub cache (see {@link Utils#getNanopub})
@@ -71,6 +73,8 @@ public class ApiCachePersistence {
     // which makes all entry-store operations no-ops.
     private static volatile File entryStoreDir;
 
+    private static final ReentrantReadWriteLock entryStoreLock = new ReentrantReadWriteLock();
+
     /**
      * The root object written to the snapshot file: the query cache content together with
      * the cached nanopubs. The nanopubs matter as much as the query responses for a warm
@@ -111,7 +115,7 @@ public class ApiCachePersistence {
             return;
         }
         snapshotFile = new File(path);
-        entryStoreDir = new File(path + ".d");
+        initEntryStore(new File(path + ".d"));
         load(snapshotFile);
         scheduler = Executors.newSingleThreadScheduledExecutor((r) -> {
             Thread t = new Thread(r, "nanodash-cache-persistence");
@@ -125,11 +129,15 @@ public class ApiCachePersistence {
     /**
      * Stops the periodic saving and writes a final snapshot. Meant to run once at application
      * shutdown.
+     * <p>
+     * Closing the per-entry store waits for the background writers still in it, so that no
+     * cache entry is written after this returns.
      */
     public static synchronized void shutdown() {
         if (scheduler == null) return;
         scheduler.shutdown();
         scheduler = null;
+        initEntryStore(null);
         save(snapshotFile);
     }
 
@@ -222,11 +230,42 @@ public class ApiCachePersistence {
     /**
      * Points the per-entry store at the given directory (null disables it). Normally set by
      * {@link #init()}; exposed for tests.
+     * <p>
+     * Waits for the writers currently in the store, so that once this returns nothing is
+     * written to the previous directory any more. A background refresh submitted long
+     * before can otherwise still be on its way into a directory nobody expects to be
+     * written to — which is how a cache write landed in a test's {@code @TempDir} while
+     * JUnit was deleting it (issue #668).
      *
      * @param dir the store directory, or null to disable the store
      */
     static void initEntryStore(File dir) {
-        entryStoreDir = dir;
+        entryStoreLock.writeLock().lock();
+        try {
+            entryStoreDir = dir;
+        } finally {
+            entryStoreLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Runs the given action on the store directory while holding the store open, and does
+     * nothing at all while the store is disabled.
+     * <p>
+     * Writers hold the store open together; only {@link #initEntryStore} excludes them,
+     * and it waits for the ones already inside.
+     *
+     * @param action what to do with the store directory
+     */
+    private static void withEntryStore(Consumer<File> action) {
+        entryStoreLock.readLock().lock();
+        try {
+            File dir = entryStoreDir;
+            if (dir == null) return;
+            action.accept(dir);
+        } finally {
+            entryStoreLock.readLock().unlock();
+        }
     }
 
     /**
@@ -242,8 +281,19 @@ public class ApiCachePersistence {
      * @param lastRefreshTime when the content was fetched
      */
     static void storeEntry(String cacheId, Serializable value, long lastRefreshTime) {
-        File dir = entryStoreDir;
-        if (dir == null) return;
+        withEntryStore(dir -> writeEntry(dir, cacheId, value, lastRefreshTime));
+    }
+
+    /**
+     * Writes one cache entry into the given store directory, atomically and ignoring any
+     * failure. Only called with the store held open by {@link #withEntryStore}.
+     *
+     * @param dir             the store directory
+     * @param cacheId         the cache id (the query's URL string)
+     * @param value           the response or map to store
+     * @param lastRefreshTime when the content was fetched
+     */
+    private static void writeEntry(File dir, String cacheId, Serializable value, long lastRefreshTime) {
         try {
             dir.mkdirs();
             File file = new File(dir, entryFileName(cacheId));
@@ -271,10 +321,10 @@ public class ApiCachePersistence {
      * @param lastRefreshTime when the content was fetched
      */
     static void storeEntryIfAbsent(String cacheId, Serializable value, long lastRefreshTime) {
-        File dir = entryStoreDir;
-        if (dir == null) return;
-        if (new File(dir, entryFileName(cacheId)).isFile()) return;
-        storeEntry(cacheId, value, lastRefreshTime);
+        withEntryStore(dir -> {
+            if (new File(dir, entryFileName(cacheId)).isFile()) return;
+            writeEntry(dir, cacheId, value, lastRefreshTime);
+        });
     }
 
     /**

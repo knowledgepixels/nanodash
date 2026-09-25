@@ -142,11 +142,13 @@ public class QueryResultItemList extends QueryResult {
                 }
                 String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : User.getShortDisplayName(userIri);
                 String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(value);
+                userUrl += linkNavParams(userUrl);
                 String html = "<img class=\"" + iconClass + "\" src=\"" + imgSrc + "\" /> <a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                 return new Label("listItem", html).setEscapeModelStrings(false);
             } else if (key.endsWith("template_iri")) {
                 String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : value;
-                String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest" + templateLinkContextParam();
+                String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";
+                templateUrl += linkNavParams(templateUrl);
                 String html = "<span class=\"form-icon\"></span> <a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                 return new Label("listItem", html).setEscapeModelStrings(false);
             } else if (Utils.isUriValue(value)) {

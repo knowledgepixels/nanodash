@@ -32,7 +32,7 @@ public class GenConnectPage extends ConnectorPage {
      */
     public GenConnectPage(Nanopub np, PageParameters params) {
         super(params);
-        add(new Label("pagetitle", getConfig().getJournalName() + ": Connect Nanopublication | nanodash"));
+        add(new Label("pagetitle", getConfig().getJournalName() + ": Connect Nanopublication" + titleSuffix()));
 
         PageParameters journalParam = new PageParameters().set("journal", getConnectorId());
         add(new TitleBar("titlebar", this,

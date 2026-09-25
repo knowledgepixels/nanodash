@@ -6,9 +6,30 @@ import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewAnchors;
 import com.knowledgepixels.nanodash.ViewDisplay;
+import com.knowledgepixels.nanodash.SpaceMemberRole;
+import com.knowledgepixels.nanodash.SpaceMemberRoleRef;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.page.ExplorePage;
+import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The "About" tab body for a space: its structure (assigned presets, roles, and
@@ -173,6 +194,10 @@ public class AboutSpacePanel extends Panel {
         ViewDisplay rolesDisplay = new ViewDisplay(rolesView);
         add(anchors.anchor(QueryResultTableBuilder.create("roles", rolesQuery, rolesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), rolesDisplay));
 
+        // Sits above the view displays, which is what it is about: a view listed there shows
+        // nothing until the role it asks for is attached, which the roles table below offers.
+        add(roleWarning("role-warning", space, effectiveRoot, rolesView, rolesQuery));
+
         // The view nanopub's hasViewQuery is the ref-scoped list-view-displays query (a federated
         // join gating authorised signers on the ref's admins/maintainers via npa:forSpaceRef); supply
         // the pinned-or-representative ref as root_np. View displays aren't materialised into the
@@ -249,6 +274,133 @@ public class AboutSpacePanel extends Panel {
                 : new QueryRef(maintainedResourcesView.getQuery().getQueryId(), "space", space.getId());
         ViewDisplay maintainedResourcesDisplay = new ViewDisplay(maintainedResourcesView);
         add(anchors.anchor(QueryResultListBuilder.create("maintainedresources", maintainedResourcesQuery, maintainedResourcesDisplay).resourceWithProfile(space).id(space.getId()).contextId(space.getId()).postPublishTab("about").refRoot(refRoot).build(), maintainedResourcesDisplay));
+    }
+
+    /**
+     * A view that lists the holders of one role shows nothing at all until that role is
+     * attached to the space, however many grants of it have been published — which reads as
+     * an empty view rather than as a missing role (issue #648). This says so.
+     *
+     * @param id            the Wicket markup id
+     * @param space         the space whose views and roles to compare
+     * @param effectiveRoot the pinned ref's root nanopub, or null for the representative ref
+     * @return the warning, invisible when every role the views are pinned to is attached
+     */
+    private WebMarkupContainer roleWarning(String id, Space space, String effectiveRoot, View rolesView, QueryRef rolesQuery) {
+        List<UnattachedRole> unattached = unattachedRoles(space, effectiveRoot);
+        WebMarkupContainer warning = new WebMarkupContainer(id);
+        warning.setVisible(!unattached.isEmpty());
+        warning.add(new ListView<UnattachedRole>("unattached-roles", unattached) {
+
+            @Override
+            protected void populateItem(ListItem<UnattachedRole> item) {
+                UnattachedRole unattachedRole = item.getModelObject();
+                item.add(new Label("view", unattachedRole.viewTitle()));
+                BookmarkablePageLink<Void> roleLink = new BookmarkablePageLink<>("role", ExplorePage.class,
+                        new PageParameters().add("id", unattachedRole.role()));
+                roleLink.add(new Label("rolelabel", Utils.getShortNameFromURI(unattachedRole.role())));
+                item.add(roleLink);
+                item.add(attachRoleAction("attach", space, effectiveRoot, rolesView, rolesQuery, unattachedRole.role()));
+            }
+
+        });
+        return warning;
+    }
+
+    /**
+     * The roles listing's own "add role" action, pointed at the role the view is waiting for:
+     * the same form, opened with the space and that role already filled in, so the warning
+     * can be acted on where it is read. Invisible to a viewer the roles listing would not
+     * offer the action to, and when the view declares none.
+     *
+     * @param id            the Wicket markup id
+     * @param space         the space the role would be attached to
+     * @param effectiveRoot the pinned ref's root nanopub, or null for the representative ref
+     * @param rolesView     the view whose action this is
+     * @param rolesQuery    the roles listing's query, refreshed once the role is attached
+     * @param role          the role to attach
+     * @return the link, or an invisible component when there is nothing to offer
+     */
+    private Component attachRoleAction(String id, Space space, String effectiveRoot, View rolesView, QueryRef rolesQuery, IRI role) {
+        IRI actionIri = null;
+        for (IRI candidate : rolesView.getViewResultActionList()) {
+            if (rolesView.getTemplateForAction(candidate) != null) {
+                actionIri = candidate;
+                break;
+            }
+        }
+        if (actionIri == null || !SpaceMemberRole.isViewerEntitled(rolesView.getActionVisibleTo(actionIri), space, effectiveRoot)) {
+            return new WebMarkupContainer(id).setVisible(false);
+        }
+        Template template = rolesView.getTemplateForAction(actionIri);
+        String targetField = rolesView.getTemplateTargetFieldForAction(actionIri);
+        if (targetField == null) targetField = "resource";
+        PageParameters params = new PageParameters()
+                .set("template", template.getId())
+                .set("template-version", "latest")
+                .set("param_" + targetField, space.getId())
+                .set("context", space.getId())
+                .set("postpub-tab", "about")
+                .set("refresh-upon-publish", rolesQuery.getAsUrlString());
+        String roleField = roleFieldOf(template);
+        if (roleField != null) params.set("param_" + roleField, role.stringValue());
+        String label = rolesView.getLabelForAction(actionIri);
+        BookmarkablePageLink<Void> link = new BookmarkablePageLink<>(id, PublishPage.class, params);
+        link.add(new Label("attachlabel", label == null ? "add role..." : label));
+        return link;
+    }
+
+    /**
+     * The name of the template field that takes the role, read off the statement that attaches
+     * one ({@code ?space gen:hasRole ?role}), so that the form opens with the missing role
+     * already chosen.
+     *
+     * @param template the role-attaching template
+     * @return the field name, or null if the template attaches no role
+     */
+    private static String roleFieldOf(Template template) {
+        for (IRI statement : template.getStatementIris()) {
+            if (KPXL_TERMS.HAS_ROLE.equals(template.getPredicate(statement))
+                    && template.getObject(statement) instanceof IRI placeholder
+                    && template.isPlaceholder(placeholder)) {
+                return Utils.getUriPostfix(placeholder);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Pairs every view shown for the space with the roles it is pinned to that the space has
+     * not attached.
+     *
+     * @param space         the space whose views and roles to compare
+     * @param effectiveRoot the pinned ref's root nanopub, or null for the representative ref
+     * @return one entry per view and unattached role, in the order the views are shown
+     */
+    static List<UnattachedRole> unattachedRoles(Space space, String effectiveRoot) {
+        Set<IRI> attached = new HashSet<>();
+        for (SpaceMemberRoleRef role : space.getRoles()) {
+            attached.add(role.getRole().getId());
+        }
+        List<UnattachedRole> unattached = new ArrayList<>();
+        for (ViewDisplay display : space.getTopLevelViewDisplays(effectiveRoot)) {
+            for (IRI role : display.getView().getPinnedRoles()) {
+                if (!attached.contains(role)) {
+                    unattached.add(new UnattachedRole(display.getView().getTitle(), role));
+                }
+            }
+        }
+        return unattached;
+    }
+
+    /**
+     * One view of this space and one role it lists the holders of, which the space has not
+     * attached.
+     *
+     * @param viewTitle the title the view is shown under
+     * @param role      the role IRI the view's query is pinned to
+     */
+    record UnattachedRole(String viewTitle, IRI role) implements Serializable {
     }
 
 }

@@ -22,10 +22,12 @@ import org.eclipse.rdf4j.common.net.ParsedIRI;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
@@ -933,11 +935,26 @@ public class Utils {
     /**
      * Checks if a given string is likely to be HTML content.
      *
+     * <p>This is a heuristic, needed wherever the RDF datatype is not available (query
+     * results arrive as flat strings). Where an actual literal is at hand, prefer
+     * {@link #isHtmlLiteral(Value)}, which relies on the declared datatype instead.
+     *
      * @param value the string to check
      * @return true if the given string is HTML content, false otherwise
      */
     public static boolean looksLikeHtml(String value) {
         return LEADING_TAG.matcher(value).find();
+    }
+
+    /**
+     * Checks whether a value is a literal explicitly tagged with the {@code rdf:HTML}
+     * datatype, i.e. whose content is meant to be rendered as HTML.
+     *
+     * @param value the value to check
+     * @return true if the value is an rdf:HTML literal, false otherwise
+     */
+    public static boolean isHtmlLiteral(Value value) {
+        return value instanceof Literal literal && RDF.HTML.equals(literal.getDatatype());
     }
 
     public static boolean isDate(String value) {
@@ -1138,6 +1155,21 @@ public class Utils {
             l = l.substring(0, 20) + "...";
         }
         return l;
+    }
+
+    /**
+     * Gets the label a datatype is shown with beside a literal. The namespaces every
+     * nanopublication declares are abbreviated with the prefix they are written with; anything
+     * else is named by its full IRI, which is all there is to name it by.
+     *
+     * @param datatype the datatype IRI
+     * @return the label for the datatype, or an empty string if there is none
+     */
+    public static String getDatatypeLabel(IRI datatype) {
+        if (datatype == null) return "";
+        return datatype.stringValue()
+                .replace(XSD.NAMESPACE, "xsd:")
+                .replace(RDF.NAMESPACE, "rdf:");
     }
 
     /**

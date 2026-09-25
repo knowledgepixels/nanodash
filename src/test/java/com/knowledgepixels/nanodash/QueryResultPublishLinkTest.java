@@ -52,4 +52,18 @@ class QueryResultPublishLinkTest {
         String html = "<a class=\"source\" href=\"/publish?a\">one</a>";
         assertEquals(html, QueryResult.withPublishLinksAsButtons(html));
     }
+
+    @Test
+    void linkTargetsAreRecognized() {
+        // Guards the part parameter on hand-built cell links: a link to the part itself,
+        // or up to the resource maintaining it, must not carry the part along.
+        String part = "https://example.com/resource/my-resource/part/my-part";
+        assertTrue(QueryResult.namesResource("/part?id=" + Utils.urlEncode(part), part));
+        // The sanitizer writes "=" as "&#61;".
+        assertTrue(QueryResult.namesResource("/part?id&#61;" + Utils.urlEncode(part), part));
+        assertFalse(QueryResult.namesResource("/user?id=" + Utils.urlEncode("https://orcid.org/0000-0002-1267-0234"), part));
+        assertFalse(QueryResult.namesResource("/space?context=" + Utils.urlEncode(part), part));
+        assertFalse(QueryResult.namesResource(null, part));
+    }
+
 }

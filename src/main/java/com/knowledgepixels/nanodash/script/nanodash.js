@@ -55,10 +55,32 @@ function friendlyRelative(date, absDateFallback) {
   return absDateFallback; // older than a week → absolute date
 }
 
+/* A date without a time ("2026-09-17", optionally with a zone as xsd:date allows) names a
+   calendar day, not an instant: new Date() would read it as midnight UTC, so a talk later
+   today showed as "8 hours ago". It is compared by day in the viewer's calendar instead. */
+function renderFriendlyDay(el, value) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})(Z|[+-]\d{2}:\d{2})?$/.exec(value);
+  if (!m) return false;
+  el.dataset.friendlyRendered = "1";
+  var d = new Date(+m[1], +m[2] - 1, +m[3]);
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var days = Math.round((d.getTime() - today.getTime()) / 86400000); // round absorbs DST shifts
+  var absDate = d.toLocaleDateString(undefined, { dateStyle: "medium" });
+  el.setAttribute("title", d.toLocaleDateString(undefined, { dateStyle: "full" }));
+  if (Math.abs(days) < 7 && typeof Intl !== "undefined" && Intl.RelativeTimeFormat) {
+    el.textContent = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(days, "day");
+  } else {
+    el.textContent = absDate;
+  }
+  return true;
+}
+
 function renderFriendlyDates(root) {
   var scope = root || document;
   scope.querySelectorAll("time.friendly-date[datetime]").forEach(function (el) {
     if (el.dataset.friendlyRendered === "1") return;
+    if (renderFriendlyDay(el, el.getAttribute("datetime"))) return;
     var d = new Date(el.getAttribute("datetime"));
     if (isNaN(d.getTime())) return; // unparseable → leave server-rendered text as-is
     el.dataset.friendlyRendered = "1";
@@ -350,11 +372,28 @@ function trackAjaxUpdates() {
   });
 }
 
+/* Site mode (issue #692): a link that leaves the site opens in a new tab, so the site stays
+   where it was. In-app links are relative; an absolute address on another origin is one that
+   leaves. Decided at click time, on the document, so content loaded by AJAX is covered too. */
+function openOutboundLinksInNewTab() {
+  if (!document.body.classList.contains("site")) return;
+  document.addEventListener("click", function (event) {
+    var link = event.target.closest ? event.target.closest("a[href]") : null;
+    if (!link || link.target) return;
+    if (!/^https?:\/\//i.test(link.getAttribute("href"))) return;
+    if (link.origin === window.location.origin) return;
+    link.target = "_blank";
+    link.rel = "noopener";
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+  openOutboundLinksInNewTab();
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
   addSectionAnchors();
+  adjustLongLiterals();
   startAnchorTracking();
   trackAjaxUpdates();
   // Re-run after Wicket AJAX calls complete (dynamically loaded content)
@@ -364,6 +403,7 @@ document.addEventListener("DOMContentLoaded", function() {
       wrapCellEmoji();
       renderFriendlyDates();
       addSectionAnchors();
+      adjustLongLiterals();
       scrollToAnchor();
     });
   }
@@ -388,6 +428,7 @@ function updateElements() {
   renderFriendlyDates();
   addSectionAnchors();
   adjustValueWidths();
+  adjustLongLiterals();
   setCollapseOverflow();
   collapseNanopubAssertions();
   scrollToAnchor();
@@ -594,6 +635,32 @@ function collapseNanopubAssertion(el) {
     }
   });
 }
+
+/* A long literal is cut off with a fade-out and a "show more" arrow. Whether it is long is
+   decided on the server by counting characters, which says nothing about how many lines they
+   take at this width: a sentence that fits on one line was being covered by the fade-out with
+   the arrow sitting on top of it. So whatever fits is shown whole, and only what really
+   doesn't fit is cut off. Re-run whenever the width changes, since that changes the answer. */
+function adjustLongLiterals() {
+  document.querySelectorAll('.long-literal').forEach(function (el) {
+    if (el.classList.contains('expanded')) return;
+    el.classList.remove('fits');
+    el.classList.add('collapsed');
+    var fits = el.scrollHeight <= el.clientHeight + 1;
+    if (fits) {
+      el.classList.remove('collapsed');
+      el.classList.add('fits');
+    }
+    var arrow = el.parentElement && el.parentElement.querySelector('.show-more');
+    if (arrow) arrow.style.display = fits ? 'none' : '';
+  });
+}
+
+var longLiteralAdjustment;
+window.addEventListener('resize', function () {
+  clearTimeout(longLiteralAdjustment);
+  longLiteralAdjustment = setTimeout(adjustLongLiterals, 150);
+});
 
 function showMore(el) {
   const $longLiteral = $(el).siblings('.long-literal');

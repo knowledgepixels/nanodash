@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.*;
 import com.knowledgepixels.nanodash.domain.ProfilePicture;
@@ -44,7 +45,7 @@ public class ProfileItem extends Panel {
             l.add(new Label("profiletext", "Login"));
             add(l);
         } else if (prefs.isReadOnlyMode()) {
-            BookmarkablePageLink<HomePage> l = new BookmarkablePageLink<>("profilelink", HomePage.class);
+            BookmarkablePageLink<Void> l = new BookmarkablePageLink<>("profilelink", NavigationContext.homePageClass());
             l.add(new WebMarkupContainer("profileimage").setVisible(false));
             l.add(new Label("profiletext", ""));
             add(l);

@@ -301,6 +301,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
             String postfix = Utils.getUriPostfix(iri);
             if (previous == null && context.hasParam(postfix)) {
                 model.setObject(context.getParam(postfix));
+                context.setParamFilled(iri);
             }
         }
 
@@ -394,7 +395,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
         }
 
         Label datatypeComp = new Label("datatype",
-                Model.of("(" + type.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")"));
+                Model.of("(" + Utils.getDatatypeLabel(type.getDatatype()) + ")"));
         add(datatypeComp);
     }
 
@@ -664,7 +665,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
      */
     @Override
     public String toString() {
-        return "[Literal " + type.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + " item]";
+        return "[Literal " + Utils.getDatatypeLabel(type.getDatatype()) + " item]";
     }
 
 }

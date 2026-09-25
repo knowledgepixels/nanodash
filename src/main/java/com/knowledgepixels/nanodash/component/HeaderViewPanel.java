@@ -41,8 +41,11 @@ public class HeaderViewPanel extends Panel {
         super(markupId);
         View view = viewDisplay.getView();
         add(new Label("title", viewDisplay.getTitle()));
-        String description = view.getDescription();
-        add(new Label("description", description).setVisible(description != null && !description.isBlank()));
+        // Through the display, so that it can override the view's own text (issue #735).
+        String description = viewDisplay.getDescription();
+        add(new Label("description", description)
+                .setEscapeModelStrings(false)
+                .setVisible(description != null && !description.isBlank()));
 
         // Result-level actions become the top entries of the view-display menu,
         // mirroring how the query-result components route their view-level actions.

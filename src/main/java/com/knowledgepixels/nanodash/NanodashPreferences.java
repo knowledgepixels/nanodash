@@ -62,6 +62,11 @@ public class NanodashPreferences implements Serializable {
     private String apiCacheFile;
     private String uriResolvers;
     private boolean protectedByDefault = false;
+    private String siteSpace;
+    private String siteName;
+    private String siteLogo;
+    private String siteCss;
+    private Boolean siteExternalLinks;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -506,6 +511,117 @@ public class NanodashPreferences implements Serializable {
      */
     public void setProtectedByDefault(boolean protectedByDefault) {
         this.protectedByDefault = protectedByDefault;
+    }
+
+    /**
+     * The space this instance is a site for (issue #692), from the {@code NANODASH_SITE_SPACE}
+     * environment variable or the preferences file. Setting it switches the instance into site
+     * mode (see {@link SiteMode}); unset, the instance is the general Nanodash interface.
+     *
+     * @return the space IRI, or null when this instance is not a site
+     */
+    public String getSiteSpace() {
+        return firstNonBlank(System.getenv("NANODASH_SITE_SPACE"), siteSpace);
+    }
+
+    /**
+     * Set the space this instance is a site for.
+     *
+     * @param siteSpace the space IRI, or null for the general Nanodash interface
+     */
+    public void setSiteSpace(String siteSpace) {
+        this.siteSpace = siteSpace;
+    }
+
+    /**
+     * The site's name, from {@code NANODASH_SITE_NAME} or the preferences file. Only used in
+     * site mode; when unset, the site is named after its space.
+     *
+     * @return the name, or null to use the space's label
+     */
+    public String getSiteName() {
+        return firstNonBlank(System.getenv("NANODASH_SITE_NAME"), siteName);
+    }
+
+    /**
+     * Set the site's name.
+     *
+     * @param siteName the name, or null to use the space's label
+     */
+    public void setSiteName(String siteName) {
+        this.siteName = siteName;
+    }
+
+    /**
+     * The site's logo, from {@code NANODASH_SITE_LOGO} or the preferences file: an image URL,
+     * or a {@code data:} URI. Only used in site mode; when unset, the space's own profile
+     * picture serves as the logo, if it has one.
+     *
+     * @return the image source, or null to use the space's profile picture
+     */
+    public String getSiteLogo() {
+        return firstNonBlank(System.getenv("NANODASH_SITE_LOGO"), siteLogo);
+    }
+
+    /**
+     * Set the site's logo.
+     *
+     * @param siteLogo the image source, or null to use the space's profile picture
+     */
+    public void setSiteLogo(String siteLogo) {
+        this.siteLogo = siteLogo;
+    }
+
+    /**
+     * A stylesheet loaded after Nanodash's own on every page, from {@code NANODASH_SITE_CSS} or
+     * the preferences file, so a site can restyle the interface (link colours, say). Only used
+     * in site mode.
+     *
+     * @return the stylesheet URL, or null for none
+     */
+    public String getSiteCss() {
+        return firstNonBlank(System.getenv("NANODASH_SITE_CSS"), siteCss);
+    }
+
+    /**
+     * Set the site's extra stylesheet.
+     *
+     * @param siteCss the stylesheet URL, or null for none
+     */
+    public void setSiteCss(String siteCss) {
+        this.siteCss = siteCss;
+    }
+
+    /**
+     * Whether, in site mode, links to what lies outside the site are plain links to the
+     * resource itself instead of links into this instance's general pages (issue #692). On
+     * unless {@code NANODASH_SITE_EXTERNAL_LINKS} or the preferences file says {@code false}.
+     *
+     * @return true if outside links leave the site
+     */
+    public boolean isSiteExternalLinks() {
+        String s = System.getenv("NANODASH_SITE_EXTERNAL_LINKS");
+        if (s != null && !s.isBlank()) return !"false".equalsIgnoreCase(s.trim());
+        return siteExternalLinks == null || siteExternalLinks;
+    }
+
+    /**
+     * Set whether, in site mode, links to what lies outside the site leave the site.
+     *
+     * @param siteExternalLinks false to keep such links inside this instance
+     */
+    public void setSiteExternalLinks(boolean siteExternalLinks) {
+        this.siteExternalLinks = siteExternalLinks;
+    }
+
+    /**
+     * The first of the given values that is set, trimmed, or null when none is.
+     */
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) return value.trim();
+        }
+        return null;
     }
 
 }

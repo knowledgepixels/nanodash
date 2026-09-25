@@ -39,11 +39,14 @@ public class TemplateContext implements Serializable {
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
     private final Set<String> lockedParams = new HashSet<>();
+    private final Set<IRI> paramFilledIris = new HashSet<>();
     private final Set<String> lockedStatements = new HashSet<>();
     private List<Component> components = new ArrayList<>();
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
     private Set<IRI> introducedIris = new HashSet<>();
     private Set<IRI> embeddedIris = new HashSet<>();
+    private Set<IRI> newUriIris = new LinkedHashSet<>();
+    private final Set<IRI> reservedIris = new LinkedHashSet<>();
     private Map<IRI, IRI> rolePropertyPins = new LinkedHashMap<>();
     private List<StatementItem> statementItems;
     private Set<IRI> iriSet = new HashSet<>();
@@ -247,6 +250,28 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasParam(String name) {
         return params.containsKey(name);
+    }
+
+    /**
+     * Records that the field of the given placeholder was pre-filled from a parameter.
+     *
+     * @param iri the placeholder IRI, including any repetition suffix
+     */
+    public void setParamFilled(IRI iri) {
+        paramFilledIris.add(iri);
+    }
+
+    /**
+     * Checks whether the field of the given placeholder was pre-filled from a parameter. Such a
+     * value takes precedence over the one carried by the nanopublication this context is filled
+     * from: the statement it appears in is still matched and consumed, but the field keeps the
+     * parameter's value (issue #73).
+     *
+     * @param iri the placeholder IRI, including any repetition suffix
+     * @return true if the field was pre-filled from a parameter
+     */
+    public boolean isParamFilled(IRI iri) {
+        return paramFilledIris.contains(iri);
     }
 
     /**
@@ -534,6 +559,25 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Returns the IRIs this context formed for placeholders the template marks as naming a
+     * resource that does not exist yet ({@link Template#NEW_URI_PLACEHOLDER}).
+     * <p>
+     * Such an identifier carries no artifact code, so nothing makes it unique: two people
+     * filling the same form with the same name arrive at the same IRI, and the second
+     * nanopublication silently extends the first one's resource. The publish form checks
+     * these against what has already been published (see #646).
+     * <p>
+     * Only the tag puts an IRI in here. How the value was formed makes no difference -- typed
+     * out in full, or a name placed under a prefix -- because whether a value names something
+     * new is the template author's call, not something to infer from the shape of the form.
+     *
+     * @return a set of IRIs for new resources, in the order they were processed
+     */
+    public Set<IRI> getNewUriIris() {
+        return newUriIris;
+    }
+
+    /**
      * Returns the role-instantiation direction pins collected in this context, mapping
      * each filled/constant role predicate to its pin class
      * ({@link com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS#INVERSE_ROLE_PROPERTY}
@@ -629,6 +673,8 @@ public class TemplateContext implements Serializable {
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     if (Utils.isUriValue(v)) {
                         processedValue = vf.createIRI(v);
+                        recordIfNewUri(iri, (IRI) processedValue);
+                        recordIfReserved((IRI) processedValue);
                     } else {
                         processedValue = vf.createLiteral(tfObject);
                     }
@@ -662,6 +708,8 @@ public class TemplateContext implements Serializable {
                 if (!unresolvedPrefix) {
                     if (v.matches("[^:# ]+")) v = targetNamespace + v;
                     processedValue = vf.createIRI(v);
+                    recordIfNewUri(iri, (IRI) processedValue);
+                    recordIfReserved((IRI) processedValue);
                 }
             }
         } else if (template.isIntroducedResource(iri)
@@ -749,6 +797,71 @@ public class TemplateContext implements Serializable {
             if (directionPin != null) rolePropertyPins.put(pvIri, directionPin);
         }
         return processedValue;
+    }
+
+    /**
+     * The local names a nanopublication keeps for itself: the four graphs
+     * {@link org.nanopub.NanopubCreator} names, and the signature element
+     * {@code org.nanopub.extra.security.SignatureUtils} adds when it signs. A resource minted
+     * under one of these names is not a resource of its own but the graph or the signature it
+     * collides with (issue #29).
+     */
+    public static final Set<String> RESERVED_LOCAL_NAMES = Set.of("Head", "assertion", "provenance", "pubinfo", "sig");
+
+    /**
+     * Whether an IRI names one of the parts a nanopublication is made of, rather than
+     * something the nanopublication is about. True only for the nanopublication being
+     * published here: the same local name under any other namespace collides with nothing.
+     *
+     * @param iri the IRI a value was formed into
+     * @return true if the IRI is one this nanopublication already uses for itself
+     */
+    public boolean isReservedIri(IRI iri) {
+        if (iri == null) return false;
+        String value = iri.stringValue();
+        if (!value.startsWith(targetNamespace)) return false;
+        return RESERVED_LOCAL_NAMES.contains(value.substring(targetNamespace.length()));
+    }
+
+    /**
+     * The IRIs formed here that the nanopublication already uses for one of its own parts, in
+     * the order they were formed. Cleared and refilled whenever the values are processed, like
+     * the other records this context keeps.
+     *
+     * @return the reserved IRIs a value was formed into
+     */
+    public Set<IRI> getReservedIris() {
+        return reservedIris;
+    }
+
+    /**
+     * Records an IRI that turned out to name one of the nanopublication's own parts, so that
+     * the publish form can refuse it (issue #29). Recorded rather than rejected here, because
+     * this runs while the form is being filled and a value is not wrong until it is published.
+     *
+     * @param iri the IRI that was just formed
+     */
+    private void recordIfReserved(IRI iri) {
+        if (isReservedIri(iri)) reservedIris.add(iri);
+    }
+
+    /**
+     * Records an IRI formed for a placeholder the template marks as naming a resource that
+     * does not exist yet, so that the publish form can check it against the identifiers
+     * already in use (#646).
+     * <p>
+     * An untagged placeholder records nothing and is never checked, whatever its value looks
+     * like. An IRI still sitting under the nanopublication's own namespace is left out as
+     * well: its artifact code is substituted at signing time, which both makes it unique and
+     * means the value seen here is not the one that gets published.
+     *
+     * @param placeholder the placeholder the value was entered into
+     * @param iri         the IRI that was just formed
+     */
+    private void recordIfNewUri(IRI placeholder, IRI iri) {
+        if (!template.isNewUriPlaceholder(placeholder)) return;
+        if (iri.stringValue().startsWith(targetNamespace)) return;
+        newUriIris.add(iri);
     }
 
     /**

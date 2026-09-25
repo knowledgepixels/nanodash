@@ -17,6 +17,7 @@ import org.nanopub.extra.services.QueryRef;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,14 @@ import java.util.regex.Pattern;
  * Abstract base class for displaying query results in different formats.
  */
 public abstract class QueryResult extends Panel {
+
+    /**
+     * Leaves the description out, for a view rendered without its title row: the paragraph
+     * explains a titled view, and on its own above bare results it reads as content.
+     */
+    protected void hideDescription() {
+        descriptionLabel.setVisible(false);
+    }
 
     /**
      * A view-level action, shown as a top entry of the view's dropdown menu.
@@ -47,6 +56,11 @@ public abstract class QueryResult extends Panel {
     protected AbstractResourceWithProfile pageResource;
     protected boolean showViewDisplayMenu = true;
     protected final GrlcQuery grlcQuery;
+
+    /**
+     * The view's description, shown below its title. See {@link #hideDescription()}.
+     */
+    private final Label descriptionLabel;
 
     /**
      * Constructor for QueryResult.
@@ -77,6 +91,17 @@ public abstract class QueryResult extends Panel {
         refreshIndicator.setOutputMarkupPlaceholderTag(true);
         refreshIndicator.setVisible(false);
         add(refreshIndicator);
+
+        // The view's explaining paragraph, below its title (issue #735). Every view kind
+        // shows it the same way, so it is added here rather than in each of them; a view
+        // that declares none, and one rendered without its title row, show nothing (see
+        // hideDescription).
+        String description = viewDisplay == null ? null : viewDisplay.getDescription();
+        // Markup is allowed and was sanitized when the view was read, as elsewhere.
+        descriptionLabel = new Label("description", description);
+        descriptionLabel.setEscapeModelStrings(false);
+        descriptionLabel.setVisible(description != null && !description.isBlank());
+        add(descriptionLabel);
     }
 
     private final WebMarkupContainer refreshIndicator;
@@ -93,6 +118,17 @@ public abstract class QueryResult extends Panel {
      */
     public QueryRef getQueryRef() {
         return queryRef;
+    }
+
+    /**
+     * The results this view is showing. Available to the action-link builder, which runs
+     * after the response has arrived, so a view-level action can take a value from the rows
+     * (see {@link com.knowledgepixels.nanodash.component.ViewActionMappings}).
+     *
+     * @return the API response
+     */
+    public ApiResponse getApiResponse() {
+        return response;
     }
 
     /**
@@ -257,31 +293,110 @@ public abstract class QueryResult extends Panel {
     }
 
     /**
-     * The {@code &context=...} URL suffix for template/query links in result cells.
-     * Empty string when no context is set. Only usable at render time (needs the page).
+     * The resource part to stamp on links in result cells, next to
+     * {@link #renderContextId()}: the part this view is bound to, else the part the page
+     * was reached under. A part only travels together with its own context (issue #697),
+     * so it is dropped when the links carry a different one. Only usable at render time.
      *
-     * @return the context URL parameter suffix, possibly empty
+     * @return the part id, or null if none applies
      */
-    protected String templateLinkContextParam() {
+    private String renderPartId() {
+        if (partId != null) return partId;
+        if (getPage() instanceof NanodashPage nanodashPage
+                && Objects.equals(renderContextId(), nanodashPage.getIncomingContextId())) {
+            return nanodashPage.getPartId();
+        }
+        return null;
+    }
+
+    /**
+     * The label to carry along with {@link #renderPartId()}, so the target page's
+     * back-link can name the part. Only known where the page is the part's own.
+     *
+     * @return the part label, or null if none is known
+     */
+    private String renderPartLabel() {
+        if (getPage() instanceof NanodashPage nanodashPage
+                && Objects.equals(renderPartId(), nanodashPage.getPartId())) {
+            return nanodashPage.getPartLabel();
+        }
+        return null;
+    }
+
+    /**
+     * A page reference for a result row's own resource part, reached from this view: the
+     * part page of the given IRI under this view's navigation context, carrying the given
+     * label as the page title where the part declares none, plus the part this page was
+     * reached under so the target's back-link can name it (issue #697). Only usable at
+     * render time (needs the page).
+     *
+     * @param partId the row's resource IRI
+     * @param label  the label to show for it, or null to fall back to its short name
+     * @return the page reference, or null when no navigation context is known (a part
+     * page cannot resolve a part without its maintaining resource)
+     */
+    protected NanodashPageRef partPageRef(String partId, String label) {
         String ctx = renderContextId();
-        return ctx == null ? "" : "&context=" + Utils.urlEncode(ctx);
+        NanodashPageRef ref = NavigationContext.getPartPageRef(partId, label, ctx);
+        if (ref == null) return null;
+        NavigationContext.withPart(ref.getParameters(), renderPartId(), renderPartLabel(), ctx);
+        return ref;
+    }
+
+    /**
+     * The navigation parameters to append to a hand-built app-internal link in a result
+     * cell: the {@code &context=...} suffix, plus the resource part the page was reached
+     * under where that applies (issue #697). Empty string when no context is set. Only
+     * usable at render time (needs the page).
+     *
+     * @param url the link the parameters are appended to, or null if not known yet
+     * @return the URL parameter suffix, possibly empty
+     */
+    protected String linkNavParams(String url) {
+        String ctx = renderContextId();
+        if (ctx == null) return "";
+        StringBuilder params = new StringBuilder("&context=").append(Utils.urlEncode(ctx));
+        String part = renderPartId();
+        // Not on a link to the part itself, nor on one up to the resource maintaining
+        // it: the part is then either the destination or behind the user.
+        if (part != null && !namesResource(url, part) && !namesResource(url, ctx)) {
+            params.append("&part=").append(Utils.urlEncode(part));
+            String partLabel = renderPartLabel();
+            if (partLabel != null && !partLabel.isBlank()) {
+                params.append("&part-label=").append(Utils.urlEncode(partLabel));
+            }
+        }
+        return params.toString();
+    }
+
+    /**
+     * Whether the given app-internal link points at the given resource, i.e. carries it
+     * as its {@code id}. The sanitizer writes "=" as "&#61;", so both spellings count.
+     *
+     * @param url        the link to check, or null
+     * @param resourceId the resource id to look for
+     * @return true if the link's id is that resource
+     */
+    static boolean namesResource(String url, String resourceId) {
+        if (url == null) return false;
+        String encoded = Utils.urlEncode(resourceId);
+        return url.contains("id=" + encoded) || url.contains("id&#61;" + encoded);
     }
 
     private static final Pattern INTERNAL_HREF_PATTERN = Pattern.compile("href=\"(/[^\"]*)\"");
 
     /**
-     * Appends the navigation context to app-internal links ({@code href="/..."}) inside
-     * sanitized result-cell HTML, so ready-made links coming from the query data itself
-     * (e.g. template or query links emitted by the SPARQL) also lead back to the
-     * current context. Links already carrying a context are left alone.
+     * Appends the navigation context, and the resource part where one applies, to
+     * app-internal links ({@code href="/..."}) inside sanitized result-cell HTML, so
+     * ready-made links coming from the query data itself (e.g. template or query links
+     * emitted by the SPARQL) also lead back to where the user came from. Links already
+     * carrying a context are left alone.
      *
      * @param sanitizedHtml the sanitized cell HTML, or null
      * @return the HTML with context-enriched internal links
      */
-    protected String withContextInHtmlLinks(String sanitizedHtml) {
-        String ctx = renderContextId();
-        if (ctx == null || sanitizedHtml == null) return sanitizedHtml;
-        String encodedCtx = Utils.urlEncode(ctx);
+    protected String withNavParamsInHtmlLinks(String sanitizedHtml) {
+        if (renderContextId() == null || sanitizedHtml == null) return sanitizedHtml;
         Matcher m = INTERNAL_HREF_PATTERN.matcher(sanitizedHtml);
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
@@ -290,7 +405,8 @@ public abstract class QueryResult extends Panel {
             // The sanitizer escapes "=" as "&#61;", so check both spellings.
             if (!url.contains("context=") && !url.contains("context&#61;")) {
                 String separator = url.contains("?") ? "&amp;" : "?";
-                replacement = "href=\"" + url + separator + "context=" + encodedCtx + "\"";
+                // The suffix starts with "&", which the separator replaces.
+                replacement = "href=\"" + url + separator + linkNavParams(url).substring(1).replace("&", "&amp;") + "\"";
             }
             m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
@@ -315,7 +431,7 @@ public abstract class QueryResult extends Panel {
      * @return the sanitized and enriched HTML
      */
     protected String cellHtml(String rawHtml) {
-        return withPublishLinksAsButtons(withContextInHtmlLinks(Utils.sanitizeHtml(rawHtml)));
+        return withPublishLinksAsButtons(withNavParamsInHtmlLinks(Utils.sanitizeHtml(rawHtml)));
     }
 
     /**

@@ -62,6 +62,7 @@ public class LiteralDateItem extends AbstractContextComponent {
         if (modelIsNew && context.hasParam(postfix)) {
             try {
                 model.setObject(format.parse(context.getParam(postfix)));
+                context.setParamFilled(iri);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -171,7 +172,7 @@ public class LiteralDateItem extends AbstractContextComponent {
             throw new RuntimeException(e);
         }
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
             datatypeComp.setVisible(true);
         }
     }

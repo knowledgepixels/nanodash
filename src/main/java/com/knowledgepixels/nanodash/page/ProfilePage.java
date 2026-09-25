@@ -46,6 +46,7 @@ public class ProfilePage extends NanodashPage {
      */
     public ProfilePage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("pagetitle", "Profile" + titleSuffix()));
 
         final NanodashSession session = NanodashSession.get();
         session.loadProfileInfo();

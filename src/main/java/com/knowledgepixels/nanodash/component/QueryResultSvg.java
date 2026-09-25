@@ -27,6 +27,10 @@ import java.util.List;
  * figure per result row, with an optional "title" column as the figure's heading.
  * The markup is sanitized to a static-SVG subset before rendering, so the query
  * fully controls the visual but cannot inject scripting or styling.
+ *
+ * <p>A CONSTRUCT query describing the figure in the OntoSVG vocabulary reaches this
+ * component the same way: its graph is serialized to markup and handed on as the
+ * "svg" column of one row per figure (issue #592).
  */
 public class QueryResultSvg extends QueryResult {
 
@@ -84,7 +88,7 @@ public class QueryResultSvg extends QueryResult {
                 }
                 item.add(header);
                 String svg = item.getModelObject().get("svg");
-                item.add(new Label("content", svg == null ? null : withContextInHtmlLinks(Utils.sanitizeSvg(svg))).setEscapeModelStrings(false));
+                item.add(new Label("content", svg == null ? null : withNavParamsInHtmlLinks(Utils.sanitizeSvg(svg))).setEscapeModelStrings(false));
             }
         });
         container.add(new Label("no-records", "(nothing found)").setVisible(response.getData().isEmpty()));

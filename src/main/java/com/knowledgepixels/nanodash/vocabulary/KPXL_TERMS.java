@@ -29,6 +29,10 @@ public class KPXL_TERMS {
      * optional {@code title} column as its heading). Unlike the other display types,
      * the query computes the visual itself — e.g. a diagram laid out in SPARQL from
      * the underlying data.
+     *
+     * <p>A CONSTRUCT query may instead describe the figure as RDF in the OntoSVG
+     * vocabulary, which is serialized to markup before the same sanitization and
+     * rendering (issue #592); see {@link com.knowledgepixels.nanodash.OntoSvg}.
      */
     public static final IRI SVG_VIEW = VocabUtils.createIRI(NAMESPACE, "SvgView");
 
@@ -213,5 +217,13 @@ public class KPXL_TERMS {
      * visible to everyone. See docs/role-specific-views.md.
      */
     public static final IRI IS_VISIBLE_TO = VocabUtils.createIRI(NAMESPACE, "isVisibleTo");
+
+    /**
+     * Declared on a space: the lowest role tier whose members' nanopublications count as
+     * definitions of the space's parts. The object is one of the tier IRIs
+     * ({@link #MEMBER_ROLE} and friends), as with {@link #IS_VISIBLE_TO}. Absent means what
+     * Nanodash has always done: every role-holder of the space, observers included.
+     */
+    public static final IRI HAS_PART_DEFINITION_TIER = VocabUtils.createIRI(NAMESPACE, "hasPartDefinitionTier");
 
 }

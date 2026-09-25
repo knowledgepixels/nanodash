@@ -74,6 +74,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
             String zoncontext = context.getParam(postfix);
             if (zoncontext != null) {
                 model.setObject(ZonedDateTime.parse(zoncontext));
+                context.setParamFilled(iri);
             } else {
                 model.setObject(null);
             }
@@ -163,7 +164,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
         zonedDateTimePicker.setModelObject(zdt);
 
         if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
             datatypeComp.setVisible(true);
         }
     }

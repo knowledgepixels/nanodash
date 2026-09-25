@@ -38,6 +38,7 @@ public class PublishPage extends NanodashPage {
      */
     public PublishPage(final PageParameters parameters) {
         super(parameters);
+        add(new Label("pagetitle", "Publish a new Nanopublication" + titleSuffix()));
 
         if (parameters.get("template").toString() == null) {
             // The template list formerly shown here lives on the home page now.

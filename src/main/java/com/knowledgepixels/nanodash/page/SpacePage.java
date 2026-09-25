@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPageRef;
+import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
@@ -24,6 +25,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +81,7 @@ public class SpacePage extends NanodashPage {
 
         Space space = resolveSpace(parameters);
         spaceId = space.getId();
+        redirectIfRdfRequested(new RdfSource("space", spaceId, null, List.of()));
         spaceModel = new LoadableDetachableModel<Space>() {
             @Override
             protected Space load() {
@@ -108,7 +111,9 @@ public class SpacePage extends NanodashPage {
             ).setTabs(new ResourceTabs("tabs", "space", space.getId(), null, activeTab, effectiveRoot)));
         }
 
-        add(new Label("pagetitle", space.getLabel() + " (space) | nanodash"));
+        // The site's own space is the site: its page is titled with nothing but the site's name.
+        add(new Label("pagetitle", SiteMode.isSiteSpace(spaceId) ? SiteMode.getName() : space.getLabel() + " (space)" + titleSuffix()));
+        setMetaDescription(spaceMetaDescription(space));
         // Optional profile picture, right of the title/URI block (issue #632). Shown
         // plainly, i.e. without the tilted-square mask that user icons get, and simply
         // omitted when the space declares none.
@@ -174,18 +179,18 @@ public class SpacePage extends NanodashPage {
             if (empty) {
                 contentContainer.add(new WebMarkupContainer("views").setVisible(false));
             } else {
-                contentContainer.add(new ViewList("views", space, viewDisplays, effectiveRoot));
+                contentContainer.add(new ViewList("views", spaceModel, viewDisplays, effectiveRoot));
             }
-            addUnconfiguredFallback(contentContainer, space, empty);
+            addUnconfiguredFallback(contentContainer, spaceModel, empty);
         } else if (space.isDataInitialized()) {
             boolean empty = space.getTopLevelViewDisplays().isEmpty();
             if (empty) {
                 contentContainer.add(new WebMarkupContainer("views").setVisible(false));
             } else {
                 contentContainer.add(RefreshingStructurePanel.of("views", space,
-                        markupId -> new ViewList(markupId, spaceModel.getObject())));
+                        markupId -> new ViewList(markupId, spaceModel)));
             }
-            addUnconfiguredFallback(contentContainer, space, empty);
+            addUnconfiguredFallback(contentContainer, spaceModel, empty);
         } else {
             // Data not yet loaded: render the views lazily, then reveal the unconfigured
             // notice + general-info fallback once we know whether any views exist.
@@ -194,12 +199,12 @@ public class SpacePage extends NanodashPage {
             unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
             contentContainer.add(unconfiguredNotice);
 
-            final ViewList generalInfoView = new ViewList("generalinfoview", space, List.of(generalInfoViewDisplay()));
+            final ViewList generalInfoView = new ViewList("generalinfoview", spaceModel, List.of(generalInfoViewDisplay()));
             generalInfoView.setVisible(false);
             generalInfoView.setOutputMarkupPlaceholderTag(true);
             contentContainer.add(generalInfoView);
 
-            contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, spaceModel.getObject())) {
+            contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, spaceModel)) {
 
                 @Override
                 protected boolean isContentReady() {
@@ -245,7 +250,7 @@ public class SpacePage extends NanodashPage {
      * Adds the "page not configured yet" notice and the general-information fallback view,
      * both visible only when the resource has no view displays.
      */
-    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, AbstractResourceWithProfile resource, boolean empty) {
+    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, IModel<? extends AbstractResourceWithProfile> resource, boolean empty) {
         contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
         if (empty) {
             contentContainer.add(new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay())));
@@ -291,15 +296,49 @@ public class SpacePage extends NanodashPage {
     }
 
     /**
+     * The description a space page gives search engines and link previews: the space's own
+     * description where it has one, and what the page shows otherwise.
+     *
+     * @param space the space this page shows
+     * @return the description
+     */
+    private static String spaceMetaDescription(Space space) {
+        String description = space.getDescription();
+        if (description != null && !description.isBlank()) return description;
+        return "The " + space.getLabel() + " space on Nanodash, with its nanopublications, members and views.";
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The space's root nanopublication declares it.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        Space space = spaceModel.getObject();
+        List<Nanopub> declarations = space != null && space.getNanopub() != null ? List.of(space.getNanopub()) : List.of();
+        return new RdfSource("space", spaceId, null, declarations);
+    }
+
+    /**
      * Resolves the {@link Space} from the repository, or redirects as needed.
      *
-     * @param parameters page parameters containing the space {@code id}
+     * @param parameters page parameters containing the space {@code id}; in site mode it may be
+     *                   left out, meaning the site's space
      * @return the resolved {@link Space}; never {@code null}
-     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource} or to a part within one
+     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource} or to a part within one,
+     *                                  or the site's space is not loaded yet
      * @throws IllegalArgumentException if the id cannot be resolved to any known resource
      */
     private Space resolveSpace(PageParameters parameters) {
         String id = parameters.get("id").toString();
+        if (id == null && SiteMode.isEnabled()) {
+            // The site's home page names no space: it is the site's. While the repository does
+            // not know that space yet (a cold start), there is a page saying so (issue #692).
+            Space site = SiteMode.getSpace();
+            if (site == null) throw new RestartResponseException(SiteLoadingPage.class);
+            return site;
+        }
         Space resolved = SpaceRepository.get().findById(id);
         if (resolved == null) {
             if (MaintainedResourceRepository.get().findById(id) != null) {

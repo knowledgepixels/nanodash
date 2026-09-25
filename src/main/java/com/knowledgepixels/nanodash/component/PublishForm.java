@@ -45,6 +45,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
@@ -691,6 +692,9 @@ public class PublishForm extends Panel {
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
+                    if (!areNewUrisUnused() || !noReservedIdentifiers()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
@@ -711,7 +715,8 @@ public class PublishForm extends Panel {
                     if (!toRefresh.isEmpty()) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
                     }
-                    String contextId = pageParams.get("context").toString("");
+                    String contextId = NavigationContext.getContextId(pageParams);
+                    if (contextId == null) contextId = "";
                     // Broaden the refresh: also force-refresh the context resource's own
                     // data (e.g. a space's roles/members) so the page we redirect to —
                     // typically its Content tab — reflects the just-published change, not
@@ -723,6 +728,14 @@ public class PublishForm extends Panel {
                             && AbstractResourceWithProfile.isResourceWithProfile(contextId)
                             && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
+                    }
+                    // On a part page, the nanopub the page shows is resolved before any view
+                    // runs, so a publication that introduces the part is invisible until that
+                    // lookup is re-run — the view queries are all keyed on the old one (#622).
+                    String partRefresh = PostPublishRefresh.partDefinitionRefreshTarget(
+                            signedNp, pageParams.get("part").toString(""), contextId);
+                    if (partRefresh != null) {
+                        WicketApplication.get().notifyNanopubPublished(signedNp, partRefresh, 5 * 1000);
                     }
                     if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {
                         // Forward to the context resource's page, or home if no context; always throws.
@@ -1148,6 +1161,11 @@ public class PublishForm extends Panel {
                     }
 
                     Nanopub np = createNanopub();
+                    // Checked here too: the preview page publishes the nanopublication it
+                    // was given, without coming back through this form.
+                    if (!areNewUrisUnused() || !noReservedIdentifiers()) {
+                        return;
+                    }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
                     String previewId = signedNp.getUri().stringValue();
@@ -1299,7 +1317,8 @@ public class PublishForm extends Panel {
      * to the field of the same name, as the listing-driven fill has always allowed in a
      * hand-written URL. A raw-key target ({@code "col:@key"}) has no meaning here: such keys
      * (the fill mode, the template) are read before any query runs, so they can only come
-     * from the link itself, as an entry action passes them.
+     * from the link itself, as an entry action passes them. Neither has a page source
+     * ({@code "@source:target"}), which is resolved where the link is built.
      *
      * @param mapping the mapping
      * @return the parsed mapping, or null if it cannot apply at this point
@@ -1309,6 +1328,12 @@ public class PublishForm extends Panel {
         if (m == null) return new View.ActionMapping(mapping, mapping, false, false);
         if (m.rawKey()) {
             logger.warn("Ignoring mapping {}: a raw key cannot be set from a query result at form time", mapping);
+            return null;
+        }
+        if (m.pageSource()) {
+            // A page source is resolved where the action link is built, against the page the
+            // view is on; the form has no page to read it from.
+            logger.warn("Ignoring mapping {}: a page source cannot be resolved at form time", mapping);
             return null;
         }
         return m;
@@ -1525,6 +1550,8 @@ public class PublishForm extends Panel {
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         assertionContext.getIntroducedIris().clear();
+        assertionContext.getNewUriIris().clear();
+        assertionContext.getReservedIris().clear();
         assertionContext.getRolePropertyPins().clear();
         NanopubCreator npCreator = new NanopubCreator(targetNamespace);
         npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
@@ -1702,6 +1729,122 @@ public class PublishForm extends Panel {
             return true;
         }
         feedbackPanel.error("The nanopublication you are trying to supersede or override is not the latest version.");
+        return false;
+    }
+
+    private boolean noReservedIdentifiers() {
+        IRI reserved = findReservedIdentifier(assertionContext);
+        if (reserved == null) {
+            return true;
+        }
+        String part = reserved.stringValue().replaceFirst("^.*/", "");
+        feedbackPanel.error("The identifier " + reserved.stringValue() + " is one this nanopublication uses for"
+                + " itself (its " + part + "), so it cannot also name something the nanopublication is about."
+                + " Pick a different name.");
+        return false;
+    }
+
+    /**
+     * Returns the first identifier the given assertion context mints under one of the names a
+     * nanopublication keeps for its own parts (issue #29), or null if there is none.
+     * <p>
+     * A name the superseded or overridden nanopublication already used is not one of them: it
+     * is published and cannot be taken back, and a new version keeps the shape of the old one.
+     * A legacy template, whose template node is its own assertion graph, is republished this
+     * way.
+     *
+     * @param assertionContext the assertion context, after its values have been processed
+     * @return the first reserved identifier minted here, or null if there is none
+     */
+    static IRI findReservedIdentifier(TemplateContext assertionContext) {
+        FillMode fillMode = assertionContext.getFillMode();
+        Nanopub source = (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
+                ? assertionContext.getReferenceNanopub() : null;
+        for (IRI reserved : assertionContext.getReservedIris()) {
+            if (source != null && isUsedIn(source, sameNameIn(source, reserved))) continue;
+            return reserved;
+        }
+        return null;
+    }
+
+    /**
+     * The IRI the given nanopublication uses for the same local name, so that a name carried
+     * over from it is recognised though the new version mints it afresh.
+     *
+     * @param nanopub the nanopublication to read the name under
+     * @param iri     the IRI minted here
+     * @return the same local name under the given nanopublication
+     */
+    private static IRI sameNameIn(Nanopub nanopub, IRI iri) {
+        return vf.createIRI(nanopub.getUri().stringValue() + "/" + iri.stringValue().replaceFirst("^.*/", ""));
+    }
+
+    private boolean areNewUrisUnused() {
+        IRI takenId = findTakenNewUri(assertionContext);
+        if (takenId == null) {
+            return true;
+        }
+        feedbackPanel.error("The identifier " + takenId.stringValue()
+                + " is already in use. Pick a different one, or use a template for describing"
+                + " an existing resource if that is what you mean to do.");
+        return false;
+    }
+
+    /**
+     * Returns the first identifier the given assertion context forms for a placeholder the
+     * template marks as naming a resource that does not exist yet -- the IRI of a new space,
+     * say -- that is already in use, or null if all of them are free.
+     * <p>
+     * Such an identifier carries no artifact code, so nothing makes it unique: filling the
+     * same form with the same name twice yields the same IRI, and the second nanopublication
+     * silently extends the first one's resource instead of defining a new one. A
+     * nanopublication cannot be edited afterwards, so the collision is worth catching before
+     * publishing rather than after (#646).
+     * <p>
+     * Only a placeholder the template tags with {@link com.knowledgepixels.nanodash.template.Template#NEW_URI_PLACEHOLDER} is
+     * checked; everything else publishes as before, whether or not its IRI already exists.
+     * <p>
+     * Superseding and overriding exempt the identifiers the source already carries, since a new
+     * version keeps the resource it is a version of, and finding that one in use is the expected
+     * answer rather than a collision. They are not exempt wholesale: a prefix-minted identifier
+     * carries no artifact code, so nothing re-mints it for the new version, and editing the name
+     * while superseding defines a genuinely new resource that can collide like any other. (An
+     * identifier minted under the nanopublication's own namespace does change with the new
+     * artifact code, but those never reach here -- see TemplateContext#recordIfNewUri.) With no
+     * source to compare against, nothing is checked, so an unrecognised fill leaves publishing
+     * exactly as it was.
+     *
+     * @param assertionContext the assertion context, after its values have been processed
+     * @return the first identifier for a new resource that is already in use, or null if none is
+     */
+    public static IRI findTakenNewUri(TemplateContext assertionContext) {
+        FillMode fillMode = assertionContext.getFillMode();
+        Nanopub source = null;
+        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
+            source = assertionContext.getReferenceNanopub();
+            if (source == null) return null;
+        }
+        for (IRI newUri : assertionContext.getNewUriIris()) {
+            if (source != null && isUsedIn(source, newUri)) continue;
+            if (QueryApiAccess.isUriIntroduced(newUri.stringValue())) return newUri;
+        }
+        return null;
+    }
+
+    /**
+     * Tells whether the given nanopublication already mentions the given IRI, which is how a
+     * superseding version says it is carrying the source's resource over rather than naming a
+     * new one. Every graph counts: the resource appears as a subject in the assertion and again
+     * under {@code npx:introduces} in the publication info.
+     *
+     * @param nanopub the nanopublication to look in
+     * @param iri     the identifier to look for
+     * @return true if the nanopublication uses the identifier
+     */
+    private static boolean isUsedIn(Nanopub nanopub, IRI iri) {
+        for (Statement st : NanopubUtils.getStatements(nanopub)) {
+            if (iri.equals(st.getSubject()) || iri.equals(st.getObject())) return true;
+        }
         return false;
     }
 

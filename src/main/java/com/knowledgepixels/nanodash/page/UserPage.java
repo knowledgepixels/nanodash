@@ -17,14 +17,19 @@ import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.Nanopub;
+import org.nanopub.extra.setting.IntroNanopub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,6 +78,7 @@ public class UserPage extends NanodashPage {
         if (parameters.get("id") == null) throw new RedirectToUrlException(ProfilePage.MOUNT_PATH);
         final String userIriString = parameters.get("id").toString();
         userIri = Utils.vf.createIRI(userIriString);
+        redirectIfRdfRequested(new RdfSource("user", userIriString, null, List.of()));
 
         for (String pk : User.getPubkeyhashes(userIri, null)) {
             pubkeyHashes += " " + pk;
@@ -100,7 +106,8 @@ public class UserPage extends NanodashPage {
         }
 
         final String displayName = User.getShortDisplayName(userIri);
-        add(new Label("pagetitle", displayName + " (user) | nanodash"));
+        add(new Label("pagetitle", displayName + " (user)" + titleSuffix()));
+        setMetaDescription("The Nanodash page of " + displayName + ", with their profile and nanopublications.");
         add(new Label("username", displayName));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(PageTitleMenu.forResource("titlemenu", IndividualAgent.get(userIriString)));
@@ -178,18 +185,26 @@ public class UserPage extends NanodashPage {
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
             IndividualAgent individualAgent = IndividualAgent.get(userIriString);
+            final IModel<IndividualAgent> individualAgentModel = new LoadableDetachableModel<IndividualAgent>() {
+
+                @Override
+                protected IndividualAgent load() {
+                    return IndividualAgent.get(userIriString);
+                }
+
+            };
             if (individualAgent.isDataInitialized()) {
                 boolean empty = individualAgent.getTopLevelViewDisplays().isEmpty();
                 if (empty) {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
                     contentContainer.add(RefreshingStructurePanel.of("views", individualAgent,
-                            markupId -> new ViewList(markupId, IndividualAgent.get(userIriString))));
+                            markupId -> new ViewList(markupId, individualAgentModel)));
                 }
                 contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
                 if (empty) {
                     ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
-                    contentContainer.add(new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay)));
+                    contentContainer.add(new ViewList("latestnanopubsview", individualAgentModel, List.of(defaultViewDisplay)));
                 } else {
                     contentContainer.add(new EmptyPanel("latestnanopubsview").setVisible(false));
                 }
@@ -200,12 +215,12 @@ public class UserPage extends NanodashPage {
                 contentContainer.add(unconfiguredNotice);
 
                 ViewDisplay defaultViewDisplay = new ViewDisplay(View.get("https://w3id.org/np/RAwktOZ3vwTZJcGRbueLpxIFSiOj7XmMG2-8rzPuDEpPc/latest-nanopubs-by-user"));
-                final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgent, List.of(defaultViewDisplay));
+                final ViewList latestNanopubsView = new ViewList("latestnanopubsview", individualAgentModel, List.of(defaultViewDisplay));
                 latestNanopubsView.setVisible(false);
                 latestNanopubsView.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(latestNanopubsView);
 
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, individualAgent)) {
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, individualAgentModel)) {
 
                     @Override
                     protected boolean isContentReady() {
@@ -235,6 +250,20 @@ public class UserPage extends NanodashPage {
                 });
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A user is declared by their approved introduction nanopublications.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        List<Nanopub> declarations = new ArrayList<>();
+        for (IntroNanopub intro : User.getIntroNanopubs(userIri)) {
+            if (User.isApproved(intro) && intro.getNanopub() != null) declarations.add(intro.getNanopub());
+        }
+        return new RdfSource("user", userIri.stringValue(), null, declarations);
     }
 
     /**

@@ -66,6 +66,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
+            context.setParamFilled(iri);
         }
         AbstractTextComponent<String> tc = initTextComponent(model);
         if (!optional) tc.setRequired(true);
@@ -123,7 +124,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
                 languageModel.setObject("(" + template.getLanguageTag(iri) + ")");
                 datatypeComp.setVisible(false);
             } else if (template.getDatatype(iri) != null && !template.getDatatype(iri).equals(XSD.STRING)) {
-                datatypeModel.setObject("(" + template.getDatatype(iri).stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+                datatypeModel.setObject("(" + Utils.getDatatypeLabel(template.getDatatype(iri)) + ")");
                 languageComp.setVisible(false);
             } else {
                 datatypeComp.setVisible(false);
@@ -310,7 +311,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
             languageComp.setVisible(true);
         } else if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + vL.getDatatype().stringValue().replace(XSD.NAMESPACE, "xsd:") + ")");
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
             datatypeComp.setVisible(true);
         }
     }

@@ -115,7 +115,7 @@ public final class DocumentModelBuilder {
 
         // Header views have no query (issue #572); they become a heading-only section.
         if (KPXL_TERMS.HEADER_VIEW.equals(view.getViewType())) {
-            return new Section(orEmpty(vd.getTitle()), view.getDescription(), List.of());
+            return new Section(orEmpty(vd.getTitle()), sectionDescription(vd), List.of());
         }
         // Query-form views are interactive and have no fixed result to export.
         if (view.hasQueryForm()) return null;
@@ -129,34 +129,34 @@ public final class DocumentModelBuilder {
         try {
             QueryRef queryRef = ViewDataFetcher.buildQueryRef(vd, resource, targetId, targetNpId);
             if (queryRef == null) {
-                return new Section(heading, null, List.of(Paragraph.of("(no data)")));
+                return new Section(heading, sectionDescription(vd), List.of(Paragraph.of("(no data)")));
             }
             ApiResponse response = ViewDataFetcher.retrieveResponseWithWait(queryRef);
             if (response == null) {
-                return new Section(heading, null, List.of(Paragraph.of("(no data)")));
+                return new Section(heading, sectionDescription(vd), List.of(Paragraph.of("(no data)")));
             }
             if (response.getData().isEmpty()) {
-                return new Section(heading, null, List.of(Paragraph.of("(nothing found)")));
+                return new Section(heading, sectionDescription(vd), List.of(Paragraph.of("(nothing found)")));
             }
             IRI viewType = view.getViewType();
             if (KPXL_TERMS.TABULAR_VIEW.equals(viewType)) {
-                return new Section(heading, null, List.of(buildTable(view, response)));
+                return new Section(heading, sectionDescription(vd), List.of(buildTable(view, response)));
             } else if (KPXL_TERMS.LIST_VIEW.equals(viewType)) {
-                return new Section(heading, null, List.of(buildList(view, response)));
+                return new Section(heading, sectionDescription(vd), List.of(buildList(view, response)));
             } else if (KPXL_TERMS.ITEM_LIST_VIEW.equals(viewType)) {
-                return new Section(heading, null, List.of(buildItemList(response)));
+                return new Section(heading, sectionDescription(vd), List.of(buildItemList(response)));
             } else if (KPXL_TERMS.PLAIN_PARAGRAPH_VIEW.equals(viewType)) {
-                return new Section(heading, null, buildParagraphBlocks(response));
+                return new Section(heading, sectionDescription(vd), buildParagraphBlocks(response));
             } else if (KPXL_TERMS.NANOPUB_SET_VIEW.equals(viewType)) {
                 return new Section(heading, null, List.of(buildNanopubList(response)));
             } else if (KPXL_TERMS.THREAD_VIEW.equals(viewType)) {
                 return new Section(heading, null, List.of(buildThread(response)));
             } else {
-                return new Section(heading, null, List.of(Paragraph.of("(view type not supported in document export)")));
+                return new Section(heading, sectionDescription(vd), List.of(Paragraph.of("(view type not supported in document export)")));
             }
         } catch (Exception ex) {
             logger.error("Error building document section for view display {}: {}", vd.getId(), ex.getMessage());
-            return new Section(heading, null, List.of(Paragraph.of("(no data)")));
+            return new Section(heading, sectionDescription(vd), List.of(Paragraph.of("(no data)")));
         }
     }
 
@@ -428,6 +428,19 @@ public final class DocumentModelBuilder {
             inlines.add(new Inline(", ", null));
         }
         inlines.add(inline);
+    }
+
+    /**
+     * A view's description as the document writers take it: plain text. The description
+     * may carry markup, which the page renders (issue #735), but a section heading's
+     * subtitle is written out as text in every export format.
+     *
+     * @param vd the view display
+     * @return the description as plain text, or null if there is none
+     */
+    private static String sectionDescription(ViewDisplay vd) {
+        String description = vd.getDescription();
+        return description == null ? null : plainText(description);
     }
 
     /**

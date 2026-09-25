@@ -100,6 +100,32 @@ overriding nanopublication").
 > root differ. If the two ever need to be told apart in queries, override would
 > need its own pubinfo predicate/template.
 
+## Parameters override the source (#73)
+
+A link can combine a fill with `param_<name>` (and `prparam_`, `piparam<n>_`)
+arguments: *"open this nanopub for superseding, but with this field saying
+that"*. The parameters are applied while the form's fields are built, before the
+source's statements are unified with them, so a parameter value that differs
+from the source's used to make the field **reject** the source's value, and the
+statement it belongs to fail to unify.
+
+`TemplateContext.fill` isolates each statement, so the failure no longer aborts
+the whole fill, but the rollback still cost more than the overridden value: the
+other fields of that statement's **repetition group** were emptied, and the
+statement was reported under *"Some content from the existing nanopublication
+could not be filled in:"* although it had been replaced on purpose.
+
+`StatementItem.RepetitionGroup.unifyPart` now lets a field that was pre-filled
+from a parameter match whatever the source carries, and keeps the parameter's
+value: the statement counts as consumed (so no leftover warning) and its
+siblings fill normally. Which fields those are is recorded by the items as they
+seed themselves (`TemplateContext.setParamFilled` / `isParamFilled`), so it
+covers every placeholder type and only fields a parameter actually filled —
+a placeholder whose parameter was ignored (e.g. a field under a
+space-dependent prefix) still unifies with the source as before.
+
+Regression test: `ParamOverridesFillTest`.
+
 ## The root-definition bug (#527)
 
 A template can mark one slot as the **root-nanopub placeholder**
@@ -152,6 +178,9 @@ external root value was migrated from the source.
 - **`component/PublishForm.java`** — `FillMode` enum; maps the URL params to a
   mode (§ lines ~137–176); attaches the `npx:supersedes` / `prov:wasDerivedFrom`
   pubinfo template; skips default-license seeding for all fill-from modes.
+- **`component/ViewActionMappings.java`** — a view action can open a fill mode from
+  the page it is shown on: mapping the `@sourceNp` page source to `@override` makes the
+  action reopen the nanopub the view is showing. See docs/magic-query-params.md.
 - **`template/ValueFiller.java`** — copies the source graph and rewrites URIs;
   `transform(Value)` keeps introduced IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints
   them otherwise.
@@ -164,3 +193,6 @@ external root value was migrated from the source.
 - **`action/{DeriveAction,UpdateAction,OverrideAction}.java`** — the nanopub
   action-menu entries that build these URLs; registered in
   `action/NanopubAction.java`.
+- **`component/StatementItem.java`** — `unifyPart` lets a parameter-filled field
+  override the source's value (#73); `component/ValueItem.java` answers
+  `holdsParamValue()` for it.
