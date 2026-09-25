@@ -115,9 +115,9 @@ public class MaintainedResourcePage extends NanodashPage {
                     contentContainer.add(new WebMarkupContainer("views").setVisible(false));
                 } else {
                     contentContainer.add(RefreshingStructurePanel.of("views", resource,
-                            markupId -> new ViewList(markupId, resourceModel.getObject())));
+                            markupId -> new ViewList(markupId, resourceModel)));
                 }
-                addUnconfiguredFallback(contentContainer, resource, empty);
+                addUnconfiguredFallback(contentContainer, resourceModel, empty);
             } else {
                 // Data not yet loaded: render the views lazily, then reveal the unconfigured
                 // notice + general-info fallback once we know whether any views exist.
@@ -126,12 +126,12 @@ public class MaintainedResourcePage extends NanodashPage {
                 unconfiguredNotice.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(unconfiguredNotice);
 
-                final ViewList generalInfoView = new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay()));
+                final ViewList generalInfoView = new ViewList("generalinfoview", resourceModel, List.of(generalInfoViewDisplay()));
                 generalInfoView.setVisible(false);
                 generalInfoView.setOutputMarkupPlaceholderTag(true);
                 contentContainer.add(generalInfoView);
 
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceModel.getObject())) {
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceModel)) {
 
                     @Override
                     protected boolean isContentReady() {
@@ -191,7 +191,7 @@ public class MaintainedResourcePage extends NanodashPage {
      * Adds the "page not configured yet" notice and the general-information fallback view,
      * both visible only when the resource has no view displays.
      */
-    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, AbstractResourceWithProfile resource, boolean empty) {
+    private void addUnconfiguredFallback(WebMarkupContainer contentContainer, IModel<? extends AbstractResourceWithProfile> resource, boolean empty) {
         contentContainer.add(new WebMarkupContainer("unconfigured-notice").setVisible(empty));
         if (empty) {
             contentContainer.add(new ViewList("generalinfoview", resource, List.of(generalInfoViewDisplay())));

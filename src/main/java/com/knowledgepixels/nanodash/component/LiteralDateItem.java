@@ -62,6 +62,7 @@ public class LiteralDateItem extends AbstractContextComponent {
         if (modelIsNew && context.hasParam(postfix)) {
             try {
                 model.setObject(format.parse(context.getParam(postfix)));
+                context.setParamFilled(iri);
             } catch (ParseException e) {
                 e.printStackTrace();
             }

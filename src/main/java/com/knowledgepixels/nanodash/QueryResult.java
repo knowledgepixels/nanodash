@@ -27,6 +27,14 @@ import java.util.regex.Pattern;
 public abstract class QueryResult extends Panel {
 
     /**
+     * Leaves the description out, for a view rendered without its title row: the paragraph
+     * explains a titled view, and on its own above bare results it reads as content.
+     */
+    protected void hideDescription() {
+        descriptionLabel.setVisible(false);
+    }
+
+    /**
      * A view-level action, shown as a top entry of the view's dropdown menu.
      */
     public record MenuAction(String label, Class<? extends NanodashPage> pageClass, PageParameters params) implements Serializable {
@@ -48,6 +56,11 @@ public abstract class QueryResult extends Panel {
     protected AbstractResourceWithProfile pageResource;
     protected boolean showViewDisplayMenu = true;
     protected final GrlcQuery grlcQuery;
+
+    /**
+     * The view's description, shown below its title. See {@link #hideDescription()}.
+     */
+    private final Label descriptionLabel;
 
     /**
      * Constructor for QueryResult.
@@ -78,6 +91,17 @@ public abstract class QueryResult extends Panel {
         refreshIndicator.setOutputMarkupPlaceholderTag(true);
         refreshIndicator.setVisible(false);
         add(refreshIndicator);
+
+        // The view's explaining paragraph, below its title (issue #735). Every view kind
+        // shows it the same way, so it is added here rather than in each of them; a view
+        // that declares none, and one rendered without its title row, show nothing (see
+        // hideDescription).
+        String description = viewDisplay == null ? null : viewDisplay.getDescription();
+        // Markup is allowed and was sanitized when the view was read, as elsewhere.
+        descriptionLabel = new Label("description", description);
+        descriptionLabel.setEscapeModelStrings(false);
+        descriptionLabel.setVisible(description != null && !description.isBlank());
+        add(descriptionLabel);
     }
 
     private final WebMarkupContainer refreshIndicator;

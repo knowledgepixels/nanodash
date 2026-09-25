@@ -511,7 +511,9 @@ public class View implements Serializable {
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
                 } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
-                    description = st.getObject().stringValue();
+                    // Sanitized here rather than where it is shown, so that every consumer
+                    // gets safe markup, the way a template's description is handled.
+                    description = Utils.sanitizeHtml(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY)) {
                     query = GrlcQuery.get(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.HAS_VIEW_QUERY_TARGET_FIELD)) {

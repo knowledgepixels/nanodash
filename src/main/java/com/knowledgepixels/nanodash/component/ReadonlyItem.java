@@ -88,6 +88,7 @@ public class ReadonlyItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
+            context.setParamFilled(iri);
         }
         if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getReferenceNanopub() == null) {
             model.setObject(LocalUri.of("nanopub").stringValue());

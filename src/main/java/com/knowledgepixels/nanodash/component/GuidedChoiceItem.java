@@ -112,6 +112,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 labelMap.put(objId, AbstractResourceWithProfile.get(objId).getLabel());
             }
             model.setObject(objId);
+            context.setParamFilled(iri);
         }
         final List<String> possibleValues = new ArrayList<>();
         for (Value v : template.getPossibleValues(iri)) {

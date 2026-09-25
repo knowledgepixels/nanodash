@@ -100,8 +100,8 @@ public class SpaceRepository {
      * and return the full set of ref roots per IRI for the (deferred) multi-ref
      * disambiguation UI. See docs/space-ref-identity.md.
      * <p>
-     * When rows carry no {@code ?ref} (the pre-v3 {@code GET_SPACES} query, e.g. a server
-     * that has not ingested v3) this degrades to dedup-by-IRI exactly as before, with
+     * When rows carry no {@code ?ref} (the pre-v3, IRI-keyed {@code get-spaces} query, e.g. a
+     * server that has not ingested v3) this degrades to dedup-by-IRI exactly as before, with
      * empty ref-root sets.
      */
     static RefReduction reduceByRef(List<ApiResponseEntry> rows) {

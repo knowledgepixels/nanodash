@@ -26,6 +26,7 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private View view;
     private IRI viewIri;
     private String title;
+    private String description;
     private Integer pageSize;
     private Integer displayWidth;
     private String structuralPosition;
@@ -169,6 +170,9 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
                     }
                 } else if (st.getPredicate().equals(DCTERMS.TITLE)) {
                     title = st.getObject().stringValue();
+                } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
+                    // Sanitized on the way in, as in View and Template.
+                    description = Utils.sanitizeHtml(st.getObject().stringValue());
                 } else if (st.getPredicate().equals(KPXL_TERMS.IS_DISPLAY_OF_VIEW) && st.getObject() instanceof IRI objIri) {
                     if (view != null) {
                         throw new IllegalArgumentException("View already set: " + objIri);
@@ -349,6 +353,20 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     public String getTitle() {
         if (title != null) return title;
         if (view != null) return view.getTitle();
+        return null;
+    }
+
+    /**
+     * The explaining paragraph shown below this view's title (issue #735), from this
+     * display's own {@code dct:description} where it declares one and from the view's
+     * otherwise — so a display can give a view a description of its own, or a different one,
+     * for the one resource it is for.
+     *
+     * @return the description, or null if neither declares one
+     */
+    public String getDescription() {
+        if (description != null) return description;
+        if (view != null) return view.getDescription();
         return null;
     }
 

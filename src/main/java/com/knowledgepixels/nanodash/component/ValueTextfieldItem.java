@@ -55,6 +55,7 @@ public class ValueTextfieldItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasParam(postfix)) {
             model.setObject(context.getParam(postfix));
+            context.setParamFilled(iri);
         }
         textfield = new TextField<>("textfield", model);
         if (!optional) textfield.setRequired(true);

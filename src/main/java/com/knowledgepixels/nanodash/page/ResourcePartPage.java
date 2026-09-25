@@ -17,6 +17,8 @@ import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.eclipse.rdf4j.model.IRI;
@@ -94,6 +96,11 @@ public class ResourcePartPage extends NanodashPage {
      * Resource with profile (Space or MaintainedResource) object with the data shown on this page.
      */
     private AbstractResourceWithProfile resourceWithProfile;
+
+    /**
+     * The same resource as a model, for the components that keep it beyond this request (issue #459).
+     */
+    private IModel<AbstractResourceWithProfile> resourceWithProfileModel;
 
     /**
      * The nanopublication defining this part, or null when none is known.
@@ -294,6 +301,20 @@ public class ResourcePartPage extends NanodashPage {
         return Utils.getAsNanopub(response.getData().iterator().next().get("np"));
     }
 
+    /**
+     * Resolves the maintained resource, space or user the given context id names.
+     *
+     * @param contextId the id of the resource this page's part belongs to
+     * @return the resource, or null when the id names none of the three
+     */
+    private static AbstractResourceWithProfile resolveResourceWithProfile(String contextId) {
+        AbstractResourceWithProfile resource = MaintainedResourceRepository.get().findById(contextId);
+        if (resource != null) return resource;
+        resource = SpaceRepository.get().findById(contextId);
+        if (resource != null) return resource;
+        return IndividualAgent.isUser(contextId) ? IndividualAgent.get(contextId) : null;
+    }
+
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
 
@@ -304,16 +325,18 @@ public class ResourcePartPage extends NanodashPage {
         Set<IRI> classes = new HashSet<>();
         Nanopub definition = null;
 
-        resourceWithProfile = MaintainedResourceRepository.get().findById(contextId);
+        resourceWithProfile = resolveResourceWithProfile(contextId);
         if (resourceWithProfile == null) {
-            if (SpaceRepository.get().findById(contextId) != null) {
-                resourceWithProfile = SpaceRepository.get().findById(contextId);
-            } else if (IndividualAgent.isUser(contextId)) {
-                resourceWithProfile = IndividualAgent.get(contextId);
-            } else {
-                throw new IllegalArgumentException("Not a resource, space, or user: " + contextId);
-            }
+            throw new IllegalArgumentException("Not a resource, space, or user: " + contextId);
         }
+        resourceWithProfileModel = new LoadableDetachableModel<AbstractResourceWithProfile>() {
+
+            @Override
+            protected AbstractResourceWithProfile load() {
+                return resolveResourceWithProfile(contextId);
+            }
+
+        };
         redirectIfRdfRequested(new RdfSource("part", id, contextId, List.of()));
 
         QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(id, contextId, resourceWithProfile);
@@ -392,9 +415,9 @@ public class ResourcePartPage extends NanodashPage {
             add(new EmptyPanel("otherTab").setVisible(false));
             if (resourceWithProfile.isDataInitialized()) {
                 contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile,
-                        markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)));
+                        markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes)));
             } else {
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfile, id, nanopubRef, classes)) {
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes)) {
 
                     @Override
                     protected boolean isContentReady() {

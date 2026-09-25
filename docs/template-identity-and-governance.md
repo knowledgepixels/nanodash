@@ -17,7 +17,13 @@ key; sources under docs/queries/. The v3 heads (`RAoEo6jL…`/`RAl2C9PT…`/`RAG
 additionally dedup governed version pairs in-SPARQL (a governed version lists only if
 it is its (kind, space) pair's current winner) — the interim Option A; nanopub-query#138
 (re-opened) would replace these per-query arms with one materialized canonical-version
-edge. Remaining: migration of real templates (only after production runs the new
+edge. The v4 heads (`RAi6EPio…`/`RA4ynLpm…`/`RAxzYV8P…`, superseding the v3 ones and
+pinned by `QueryApiAccess` since 2026-09-25) keep those semantics but materialize the
+winners once in a variable-disjoint `group_concat` sub-select tested by string
+containment, instead of joining the sub-select under an `optional` — which was correct
+only under RDF4J's non-standard left join (strict SPARQL would drop every non-governed
+template on the unbound cross-join) and risked per-row re-evaluation of the federated
+spaces-repo `SERVICE`. Remaining: migration of real templates (only after production runs the new
 parser); dedup arms for further listing surfaces as governance adoption grows (template
 views, view listings) — or #138.
 

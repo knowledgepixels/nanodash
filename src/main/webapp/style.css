@@ -301,6 +301,14 @@ details summary {
   color: #666;
 }
 
+/* The explaining paragraph a view can carry below its title (issue #735). Same voice as
+   a header view's description, indented with the panel's title and results. */
+p.view-description {
+  margin: 0 0 10px 0;
+  padding: 0 10px;
+  color: #666;
+}
+
 /* View groups (ViewList): lay the view panels out on a 12-column grid instead of
    floats, so panels of different heights don't leave float-drop whitespace gaps.
    Each .listview item wraps a single col-N view panel; the item mirrors the
