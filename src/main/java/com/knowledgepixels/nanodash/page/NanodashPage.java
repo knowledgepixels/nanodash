@@ -222,7 +222,6 @@ public abstract class NanodashPage extends WebPage {
                         Space.refresh();
                         MaintainedResource.refresh();
                         AbstractResourceWithProfile.refresh();
-                        Project.refresh();
                         logger.info("Refreshing data... done");
                         lastRefresh = System.currentTimeMillis();
                     } catch (Exception ex) {
