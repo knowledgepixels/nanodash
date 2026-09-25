@@ -827,8 +827,18 @@ public class StatementItem extends Panel {
          * Checks unifiability and, if unifiable, applies the binding. Returns false instead of throwing,
          * so the caller can backtrack. (A partial binding left behind here is rolled back by the caller's
          * model snapshot.)
+         * <p>
+         * A field pre-filled from a parameter matches whatever the source nanopublication carries and
+         * keeps the parameter's value: the parameter states what the user asked for, so it overrides
+         * the source rather than blocking the match, which would roll the whole statement back and
+         * empty the other fields of its repetition group (issue #73).
+         *
+         * @param item the item to bind
+         * @param v    the value to bind it to
+         * @return true if the item was bound, or holds a parameter value that overrides it
          */
         private boolean unifyPart(ValueItem item, Value v) {
+            if (item.holdsParamValue()) return true;
             if (!item.isUnifiableWith(v)) return false;
             try {
                 item.unifyWith(v);

@@ -133,6 +133,17 @@ public class ValueItem extends AbstractContextComponent {
     }
 
     /**
+     * Checks whether this item's field was pre-filled from a parameter of the link that opened
+     * the form. Such a value is the one the user asked for, so it overrides what the
+     * nanopublication being filled in says (issue #73).
+     *
+     * @return true if the field holds a value that came from a parameter
+     */
+    public boolean holdsParamValue() {
+        return value instanceof IRI && context.isParamFilled((IRI) value);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

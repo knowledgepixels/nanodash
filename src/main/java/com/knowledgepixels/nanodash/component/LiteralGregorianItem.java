@@ -301,6 +301,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
             String postfix = Utils.getUriPostfix(iri);
             if (previous == null && context.hasParam(postfix)) {
                 model.setObject(context.getParam(postfix));
+                context.setParamFilled(iri);
             }
         }
 
