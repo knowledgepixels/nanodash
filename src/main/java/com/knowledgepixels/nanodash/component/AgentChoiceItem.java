@@ -200,7 +200,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
 
         };
         textfield = new Select2Choice<String>("textfield", model, choiceProvider);
-        textfield.getSettings().getAjax(true).setDelay(500);
+        Utils.setSelect2SearchAsYouType(textfield);
         textfield.getSettings().setCloseOnSelect(true);
         String placeholder = template.getLabel(iri);
         if (placeholder == null) placeholder = "select user or type name/ORCID/URI";
