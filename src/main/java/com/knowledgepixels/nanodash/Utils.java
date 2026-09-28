@@ -1635,8 +1635,36 @@ public class Utils {
     private static final Pattern DATATYPE_SUFFIX = Pattern.compile("^\\^\\^<([^ ><\"^]+)>$");
 
     /**
-     * Scans a leading quoted string, in which a backslash may escape a backslash or a
-     * quote, and returns the index just past its closing quote.
+     * The characters a literal string escapes, each with the letter that follows the backslash
+     * for it: Turtle's short string escapes ({@code ECHAR}).
+     */
+    private static final Map<Character, Character> LITERAL_ESCAPE_LETTERS = Map.of(
+            '\\', '\\',
+            '"', '"',
+            '\n', 'n',
+            '\r', 'r',
+            '\t', 't',
+            '\b', 'b',
+            '\f', 'f');
+
+    /**
+     * The letters that may follow a backslash in a literal string, each with the character it
+     * stands for: the inverse of {@link #LITERAL_ESCAPE_LETTERS}, plus the single quote, which
+     * Turtle allows to be escaped but which never needs it here.
+     */
+    private static final Map<Character, Character> LITERAL_ESCAPED_CHARS = Map.of(
+            '\\', '\\',
+            '"', '"',
+            '\'', '\'',
+            'n', '\n',
+            'r', '\r',
+            't', '\t',
+            'b', '\b',
+            'f', '\f');
+
+    /**
+     * Scans a leading quoted string, in which a backslash starts one of Turtle's string
+     * escapes, and returns the index just past its closing quote.
      *
      * @param s the string to scan
      * @return the index just past the closing quote, or -1 if the string does not start
@@ -1650,7 +1678,7 @@ public class Utils {
             if (c == '\\') {
                 if (i + 1 >= s.length()) return -1;
                 char next = s.charAt(i + 1);
-                if (next != '\\' && next != '"') return -1;
+                if (!LITERAL_ESCAPED_CHARS.containsKey(next)) return -1;
                 i += 2;
             } else if (c == '"') {
                 return i + 1;
@@ -1713,23 +1741,59 @@ public class Utils {
     }
 
     /**
-     * Escapes quotes (") and slashes (/) of a literal string.
+     * Escapes a literal string the way Turtle does: backslashes, quotes and the control
+     * characters that have a short escape. A value field is a single line, which a browser
+     * strips line breaks from, so a newline has to be written as {@code \n} to survive it
+     * (issue #103).
      *
      * @param unescapedString un-escaped string
      * @return escaped string
      */
     public static String getEscapedLiteralString(String unescapedString) {
-        return unescapedString.replace("\\", "\\\\").replace("\"", "\\\"");
+        StringBuilder escaped = new StringBuilder(unescapedString.length());
+        for (char c : unescapedString.toCharArray()) {
+            Character escapeLetter = LITERAL_ESCAPE_LETTERS.get(c);
+            if (escapeLetter == null) {
+                escaped.append(c);
+            } else {
+                escaped.append('\\').append(escapeLetter.charValue());
+            }
+        }
+        return escaped.toString();
     }
 
     /**
-     * Un-escapes quotes (") and slashes (/) of a literal string.
+     * Un-escapes a literal string escaped the way Turtle does (see
+     * {@link #getEscapedLiteralString(String)}). A backslash before a character that has no
+     * escape is kept as it is.
      *
      * @param escapedString escaped string
      * @return un-escaped string
      */
     public static String getUnescapedLiteralString(String escapedString) {
-        return escapedString.replaceAll("\\\\(\\\\|\\\")", "$1");
+        StringBuilder unescaped = new StringBuilder(escapedString.length());
+        for (int i = 0; i < escapedString.length(); i++) {
+            Character escapedChar = escapedCharAt(escapedString, i);
+            if (escapedChar == null) {
+                unescaped.append(escapedString.charAt(i));
+            } else {
+                unescaped.append(escapedChar.charValue());
+                i++;
+            }
+        }
+        return unescaped.toString();
+    }
+
+    /**
+     * The character that an escape starting at the given index stands for.
+     *
+     * @param s     the escaped string
+     * @param index the index of a possible backslash
+     * @return the character, or null if no escape starts there
+     */
+    private static Character escapedCharAt(String s, int index) {
+        if (s.charAt(index) != '\\' || index + 1 >= s.length()) return null;
+        return LITERAL_ESCAPED_CHARS.get(s.charAt(index + 1));
     }
 
     /**
