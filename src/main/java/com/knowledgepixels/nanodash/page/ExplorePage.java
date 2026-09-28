@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -95,6 +96,8 @@ public class ExplorePage extends NanodashPage {
     }
 
     private Nanopub publishedNanopub = null;
+
+    private RdfSource rdfSource = null;
 
     /**
      * Constructor for ExplorePage.
@@ -362,6 +365,7 @@ public class ExplorePage extends NanodashPage {
             shortName = parameters.get("label").toString();
         }
         add(new Label("pagetitle", shortName + " (explore)" + titleSuffix()));
+        if (np != null && !outsideSite) describeNanopubToSearchEngines(np, ref);
         add(new Label("termname", shortName));
         add(new Label("outside-notice", outsideSite
                 ? "This is not part of " + SiteMode.getName() + ". Follow the address above to open it."
@@ -449,6 +453,31 @@ public class ExplorePage extends NanodashPage {
             NanopubNotFoundPage.forwardFor(NanopubLookup.lookUp(ref));
         }
         return null;
+    }
+
+    /**
+     * Gives the page what search engines and link previews read about the nanopublication
+     * it shows (issue #168): a description of its own instead of the one describing
+     * Nanodash, and the nanopublication's assertion as embedded JSON-LD.
+     *
+     * @param np         the nanopublication the page shows
+     * @param exploredId the IRI the page is about: the nanopublication's own, or that of a
+     *                   resource minted in it
+     */
+    private void describeNanopubToSearchEngines(Nanopub np, String exploredId) {
+        setMetaDescription(NanopubMetaDescription.describe(np, exploredId, User::getDisplayName));
+        rdfSource = new RdfSource("np", np.getUri().stringValue(), null, List.of(np));
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A nanopublication's page offers the nanopublication itself; a page about anything
+     * else offers nothing.
+     */
+    @Override
+    protected RdfSource getRdfSource() {
+        return rdfSource;
     }
 
     /**
