@@ -954,15 +954,9 @@ public class Template implements Serializable {
      * @return a list of possible values from the API, filtered by the search term.
      */
     public List<String> getPossibleValuesFromApi(IRI iri, String searchTerm, Map<String, String> labelMap) {
-        iri = transform(iri);
-        List<String> values = new ArrayList<>();
-        List<String> apiList = apiMap.get(iri);
-        if (apiList != null) {
-            for (String apiString : apiList) {
-                LookupApis.getPossibleValues(apiString, searchTerm, labelMap, values);
-            }
-        }
-        return values;
+        List<String> apiList = apiMap.get(transform(iri));
+        if (apiList == null || apiList.isEmpty()) return new ArrayList<>();
+        return LookupApis.lookUpAll(apiList, searchTerm, labelMap);
     }
 
     /**
