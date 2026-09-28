@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
@@ -32,6 +33,9 @@ import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2Choice;
+import org.wicketstuff.select2.StringTextChoiceProvider;
 
 import com.knowledgepixels.nanodash.utils.TestUtils;
 
@@ -1154,6 +1158,24 @@ class UtilsTest {
                         "asymmetric for '" + a + "' / '" + b + "'");
             }
         }
+    }
+
+    /**
+     * A dropdown that searches as the user types waits the shared, shortened delay (issue #88).
+     */
+    @Test
+    void searchAsYouTypeDropdownWaitsTheSharedDelay() {
+        new WicketTester(new WicketApplication());
+        Select2Choice<String> choice = new Select2Choice<>("choice", Model.of(""), new StringTextChoiceProvider() {
+
+            @Override
+            public void query(String term, int page, Response<String> response) {
+            }
+
+        });
+        Utils.setSelect2SearchAsYouType(choice);
+        assertEquals(Utils.SELECT2_SEARCH_DELAY_MS, choice.getSettings().getAjax().getDelay());
+        assertEquals(250, Utils.SELECT2_SEARCH_DELAY_MS);
     }
 
 }

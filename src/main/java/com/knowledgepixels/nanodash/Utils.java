@@ -1031,6 +1031,23 @@ public class Utils {
     }
 
     /**
+     * How long a dropdown that searches as the user types waits after the last keystroke before
+     * it searches. Its lookups run in parallel and are cached (issue #88), so this pause is most
+     * of what the user waits for; a request still running when the user types on is cancelled
+     * by Select2 in the browser.
+     */
+    public static final int SELECT2_SEARCH_DELAY_MS = 250;
+
+    /**
+     * Makes a Select2Choice search as the user types, after {@link #SELECT2_SEARCH_DELAY_MS}.
+     *
+     * @param selectItem the Select2Choice component that searches as the user types
+     */
+    public static void setSelect2SearchAsYouType(Select2Choice<?> selectItem) {
+        selectItem.getSettings().getAjax(true).setDelay(SELECT2_SEARCH_DELAY_MS);
+    }
+
+    /**
      * Sets a minimal escape markup function for a Select2Choice component.
      * This function replaces certain characters and formats the display of choices.
      *
