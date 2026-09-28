@@ -7,6 +7,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.rdf4j.model.IRI;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -1637,6 +1638,79 @@ class LookupApisTest {
                     "test", labelMap, values);
         }
         assertValuesWithLabels(labelMap, values);
+    }
+
+    // ---- lookUp, lookUpAll and mergeInto (issue #88) ----
+
+    private static final String GBIF_API = "https://api.gbif.org/v1/species/suggest?q=";
+
+    private static final String ROR_API = "https://api.ror.org/organizations?query=";
+
+    @BeforeEach
+    void clearLookupCache() {
+        LookupApis.clearCache();
+    }
+
+    @Test
+    void mergeIntoKeepsTheOrderOfTheApisAndDropsDuplicates() {
+        LookupApis.LookupResult first = new LookupApis.LookupResult(List.of("a", "b"), Map.of("a", "A", "b", "B"));
+        LookupApis.LookupResult second = new LookupApis.LookupResult(List.of("b", "c"), Map.of("c", "C"));
+        Map<String, String> labelMap = new HashMap<>();
+        assertEquals(List.of("a", "b", "c"), LookupApis.mergeInto(List.of(first, second), labelMap));
+        assertEquals(Map.of("a", "A", "b", "B", "c", "C"), labelMap);
+    }
+
+    @Test
+    void lookUpAnswersARepeatedSearchFromTheCache() throws Exception {
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(GBIF_FIXTURE)) {
+            LookupApis.LookupResult first = LookupApis.lookUp(GBIF_API, "homo");
+            LookupApis.LookupResult second = LookupApis.lookUp(GBIF_API, "homo");
+            assertEquals(List.of("https://www.gbif.org/species/2436436"), first.values());
+            assertSame(first, second);
+            http.verify(HttpClientBuilder::create, times(1));
+        }
+    }
+
+    @Test
+    void lookUpCachesEachSearchTermSeparately() throws Exception {
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(GBIF_FIXTURE)) {
+            LookupApis.lookUp(GBIF_API, "homo");
+            LookupApis.lookUp(GBIF_API, "canis");
+            http.verify(HttpClientBuilder::create, times(2));
+        }
+    }
+
+    @Test
+    void lookUpDoesNotCacheAFailure() throws Exception {
+        try (MockedStatic<HttpClientBuilder> http = mockHttp("not json")) {
+            assertTrue(LookupApis.lookUp(GBIF_API, "homo").values().isEmpty());
+            assertTrue(LookupApis.lookUp(GBIF_API, "homo").values().isEmpty());
+            http.verify(HttpClientBuilder::create, times(2));
+        }
+    }
+
+    @Test
+    void lookUpAllMergesTheApisInTheirOrder() throws Exception {
+        try (var ignored = mockHttp(GBIF_FIXTURE)) {
+            LookupApis.lookUp(GBIF_API, "term");
+        }
+        try (var ignored = mockHttp(ROR_FIXTURE)) {
+            LookupApis.lookUp(ROR_API, "term");
+        }
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = LookupApis.lookUpAll(List.of(ROR_API, GBIF_API), "term", labelMap);
+        assertEquals(List.of("https://ror.org/03vek6s52", "https://www.gbif.org/species/2436436"), values);
+        assertEquals("Harvard University", labelMap.get("https://ror.org/03vek6s52"));
+        assertEquals("Homo sapiens Linnaeus, 1758", labelMap.get("https://www.gbif.org/species/2436436"));
+    }
+
+    @Test
+    void lookUpAllWithOneApiLooksItUpDirectly() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        try (var ignored = mockHttp(ROR_FIXTURE)) {
+            assertEquals(List.of("https://ror.org/03vek6s52"), LookupApis.lookUpAll(List.of(ROR_API), "harvard", labelMap));
+        }
+        assertEquals("Harvard University", labelMap.get("https://ror.org/03vek6s52"));
     }
 
 }
