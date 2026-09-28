@@ -127,6 +127,9 @@ public class StatementItem extends Panel {
             boolean statementLocked = context.isStatementLocked(statementId);
             r.addRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && isLast && !statementLocked);
             r.removeRepetitionButton.setVisible(!context.isReadOnly() && isRepeatable() && !isOnly && !statementLocked);
+            boolean clearable = !context.isReadOnly() && isOptional() && !statementLocked && r.canBeCleared();
+            r.clearStatementButton.setVisible(clearable);
+            if (clearable) r.revealOwnFields();
             r.optionalMark.setVisible(isOnly);
             first = false;
         }
@@ -180,6 +183,16 @@ public class StatementItem extends Panel {
      */
     public int getRepetitionCount() {
         return repetitionGroups.size();
+    }
+
+    /**
+     * Returns one of the repetition groups of this statement item.
+     *
+     * @param index the index of the repetition group
+     * @return the repetition group
+     */
+    RepetitionGroup getRepetitionGroup(int index) {
+        return repetitionGroups.get(index);
     }
 
     /**
@@ -358,7 +371,7 @@ public class StatementItem extends Panel {
 
         private List<ValueItem> items = new ArrayList<>();
 
-        Label addRepetitionButton, removeRepetitionButton, optionalMark;
+        Label addRepetitionButton, removeRepetitionButton, clearStatementButton, optionalMark;
 
         /**
          * Constructor for creating a RepetitionGroup.
@@ -454,6 +467,24 @@ public class StatementItem extends Panel {
                     });
                 } else {
                     statement.add(new Label("remove-repetition", "").setVisible(false));
+                }
+                if (isFirstLine) {
+                    clearStatementButton = new Label("clear-statement", "×");
+                    clearStatementButton.add(new AttributeModifier("data-fields", this::getOwnFieldMarkupIds));
+                    clearStatementButton.add(new AttributeAppender("class", () -> hasFilledOwnPlaceholder() ? "" : "empty", " "));
+                    statement.add(clearStatementButton);
+                    clearStatementButton.add(new AjaxEventBehavior("click") {
+
+                        @Override
+                        protected void onEvent(AjaxRequestTarget target) {
+                            RepetitionGroup.this.clear();
+                            target.add(StatementItem.this);
+                            target.appendJavaScript("updateElements();");
+                        }
+
+                    });
+                } else {
+                    statement.add(new Label("clear-statement", "").setVisible(false));
                 }
             }
         }
@@ -592,6 +623,132 @@ public class StatementItem extends Panel {
                 vi.removeFromContext();
             }
             repetitionGroupsChanged = true;
+        }
+
+        /**
+         * The placeholders this repetition fills on its own, with its repetition suffix: those
+         * no other statement of the template uses. Clearing a placeholder another statement
+         * shares would empty that statement too, so those are left alone.
+         *
+         * @return the IRIs of the placeholders only this repetition fills
+         */
+        List<IRI> getOwnPlaceholderIris() {
+            List<IRI> own = new ArrayList<>();
+            for (IRI iriBase : iriSet) {
+                if (!context.hasNarrowScope(iriBase)) continue;
+                if (!getTemplate().isPlaceholder(iriBase)) continue;
+                own.add(vf.createIRI(iriBase + getRepeatSuffix()));
+            }
+            return own;
+        }
+
+        /**
+         * Whether this repetition has placeholders of its own and none of them is locked, so
+         * that clearing it empties the statement without touching a value the user may not change.
+         *
+         * @return true if this repetition can be cleared
+         */
+        boolean canBeCleared() {
+            List<IRI> own = getOwnPlaceholderIris();
+            return !own.isEmpty() && own.stream().noneMatch(context::isLocked);
+        }
+
+        /**
+         * The models of the placeholders this repetition fills on its own, including the
+         * language-tag model a literal placeholder may have next to its value.
+         *
+         * @return the models
+         */
+        private List<IModel<?>> getOwnModels() {
+            List<IModel<?>> models = new ArrayList<>();
+            for (IRI own : getOwnPlaceholderIris()) {
+                for (String derived : new String[]{"", TemplateContext.LANGUAGE_SUFFIX}) {
+                    IModel<?> model = (IModel<?>) context.getComponentModels().get(vf.createIRI(own + derived));
+                    if (model != null) models.add(model);
+                }
+            }
+            return models;
+        }
+
+        /**
+         * The form fields of the placeholders this repetition fills on its own.
+         *
+         * @return the form fields
+         */
+        private List<FormComponent<?>> getOwnFields() {
+            List<IModel<?>> ownModels = getOwnModels();
+            List<FormComponent<?>> fields = new ArrayList<>();
+            for (Component c : context.getComponents()) {
+                if (c instanceof FormComponent<?> field && isOneOf(field.getDefaultModel(), ownModels)) {
+                    fields.add(field);
+                }
+            }
+            return fields;
+        }
+
+        /**
+         * Whether a model is the very same object as one of the given models. Models compare
+         * equal by their values, so every empty model would count as any other empty one.
+         *
+         * @param model  the model to look for
+         * @param models the models to look among
+         * @return true if the model is one of them
+         */
+        private boolean isOneOf(IModel<?> model, List<IModel<?>> models) {
+            return models.stream().anyMatch(candidate -> candidate == model);
+        }
+
+        /**
+         * Gives the fields of this repetition's own placeholders an id in the page, so that the
+         * clear button can tell from them whether there is anything to clear. Called before the
+         * fields are rendered, as an id given afterwards would not make it into the page.
+         */
+        void revealOwnFields() {
+            for (FormComponent<?> field : getOwnFields()) {
+                field.setOutputMarkupId(true);
+            }
+        }
+
+        /**
+         * The page ids of the fields of this repetition's own placeholders, for the clear button
+         * to watch.
+         *
+         * @return the ids, separated by spaces
+         */
+        String getOwnFieldMarkupIds() {
+            List<String> ids = new ArrayList<>();
+            for (FormComponent<?> field : getOwnFields()) {
+                ids.add(field.getMarkupId());
+            }
+            return String.join(" ", ids);
+        }
+
+        /**
+         * Whether any placeholder this repetition fills on its own has a value, which is when the
+         * clear button has something to clear and is shown.
+         *
+         * @return true if one of its own placeholders is filled
+         */
+        boolean hasFilledOwnPlaceholder() {
+            for (IModel<?> model : getOwnModels()) {
+                Object value = model.getObject();
+                if (value != null && !value.toString().isBlank()) return true;
+            }
+            return false;
+        }
+
+        /**
+         * Empties the placeholders this repetition fills on its own (issue #145). An optional
+         * statement with an empty placeholder is left out of the nanopublication, so this
+         * removes the statement's content in one step, and leaves nothing behind that looks
+         * filled in but would not be published.
+         */
+        @SuppressWarnings("unchecked")
+        void clear() {
+            for (IModel<?> model : getOwnModels()) {
+                ((IModel<Object>) model).setObject(null);
+                clearInputForModel(model);
+            }
         }
 
         private void clearInputForModel(IModel<?> model) {

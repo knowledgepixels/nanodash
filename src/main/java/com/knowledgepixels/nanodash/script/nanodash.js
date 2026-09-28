@@ -422,7 +422,21 @@ function getMaxWidth(el, type, limit) {
 
 $(window).on('load', updateElements);
 
+function updateClearStatementButtons() {
+  $('.clear-statement').each(function () {
+    var ids = ($(this).attr('data-fields') || '').split(' ').filter(Boolean);
+    var filled = ids.some(function (id) {
+      var value = $(document.getElementById(id)).val();
+      return value !== null && value !== undefined && String(value).trim() !== '';
+    });
+    $(this).toggleClass('empty', !filled);
+  });
+}
+
+$(document).on('input change', 'input, textarea, select', updateClearStatementButtons);
+
 function updateElements() {
+  updateClearStatementButtons();
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();

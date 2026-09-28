@@ -1017,6 +1017,10 @@ span.prelink {
   color: #fff;
 }
 
+.smallbutton.clear-statement.empty {
+  display: none;
+}
+
 /* Breadcrumb (left) + Content | About | Raw tabs (right), sharing the grey
    breadcrumb strip; they sit on one line when they fit and wrap otherwise. */
 .breadcrumb-tab-row {
