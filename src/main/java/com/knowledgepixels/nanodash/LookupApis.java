@@ -34,7 +34,6 @@ import org.nanopub.extra.services.QueryTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.Strings;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.cache.Cache;
@@ -523,7 +522,7 @@ public class LookupApis {
         String extra = "*";
         expanded = expanded.replaceAll("\\n+", "\n").replaceAll("\"", "\\\\\\\"").trim();
         if (expanded.endsWith("\"") || insideQuotes) extra = "";
-        return "( " + Strings.join(" AND ", expanded.split("\n")) + extra + " )";
+        return "( " + String.join(" AND ", expanded.split("\n")) + extra + " )";
     }
 
 }
