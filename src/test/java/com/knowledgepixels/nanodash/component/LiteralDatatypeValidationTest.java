@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.TemplateTestUtil;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.util.tester.TagTester;
 import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.validation.IValidator;
@@ -152,6 +153,40 @@ class LiteralDatatypeValidationTest {
         item.unifyWith(vf.createLiteral("42", XSD.INT));
         tester.startComponentInPage(item);
         assertFalse(textfieldClass().contains("invalid"), textfieldClass());
+    }
+
+    @Test
+    void illTypedValueIsHighlightedWhileTyping() throws Exception {
+        LiteralTextfieldItem item = itemFor(XSD.INT);
+        tester.startComponentInPage(item);
+        type(item, "abc");
+        assertTrue(tester.getLastResponseAsString().contains("classList.toggle('invalid', true)"),
+                tester.getLastResponseAsString());
+    }
+
+    @Test
+    void correctedValueLosesItsHighlightWhileTyping() throws Exception {
+        LiteralTextfieldItem item = itemFor(XSD.INT);
+        tester.startComponentInPage(item);
+        type(item, "abc");
+        type(item, "42");
+        assertTrue(tester.getLastResponseAsString().contains("classList.toggle('invalid', false)"),
+                tester.getLastResponseAsString());
+        assertEquals("42", item.getTextComponent().getModelObject());
+    }
+
+    /**
+     * Sends a value the way the browser does on each keystroke, to the behavior that validates it.
+     *
+     * @param item  the literal field, already rendered
+     * @param value the value typed so far
+     */
+    private void type(LiteralTextfieldItem item, String value) {
+        tester.getRequest().getPostParameters().setParameterValue(item.getTextComponent().getInputName(), value);
+        tester.executeBehavior(item.getTextComponent().getBehaviors(OnChangeAjaxBehavior.class).stream()
+                .filter(b -> !(b instanceof ValueItem.KeepValueAfterRefreshBehavior))
+                .findFirst()
+                .orElseThrow());
     }
 
     private String textfieldClass() {

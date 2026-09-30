@@ -101,9 +101,16 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             tc.add(new DatatypeValidator(datatype));
         }
 
+        tc.setOutputMarkupId(true);
         tc.add(new OnChangeAjaxBehavior() {
             @Override
+            protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                InvalidityHighlighting.refresh(target, tc);
+            }
+
+            @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                InvalidityHighlighting.refresh(target, tc);
                 for (Component c : context.getComponents()) {
                     if (c == tc) continue;
                     if (c.getDefaultModel() == tc.getModel()) {
