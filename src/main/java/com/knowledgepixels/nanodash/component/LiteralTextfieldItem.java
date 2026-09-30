@@ -9,9 +9,12 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -21,6 +24,7 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.slf4j.Logger;
@@ -90,6 +94,11 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
                 String problem = SparqlSyntax.checkQuery(s.getValue());
                 if (problem != null) s.error(new ValidationError(problem));
             });
+        }
+
+        IRI datatype = template.getDatatype(iri);
+        if (DatatypeValidator.appliesTo(datatype)) {
+            tc.add(new DatatypeValidator(datatype));
         }
 
         tc.add(new OnChangeAjaxBehavior() {
@@ -242,6 +251,68 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             } else if (possibleTags != null && !possibleTags.contains(Literals.normalizeLanguageTag(tag))) {
                 s.error(new ValidationError("Language '" + tag + "' is not among the allowed languages"));
             }
+        }
+
+    }
+
+    /**
+     * Validator that rejects values that are not in the lexical space of a built-in XSD datatype,
+     * checked the same way nanopub-java checks literals before signing. It also highlights a field
+     * whose current value is ill-typed, so a value filled in from an existing nanopublication is
+     * marked before the form is submitted.
+     */
+    protected static class DatatypeValidator extends Behavior implements IValidator<String> {
+
+        private final IRI datatype;
+
+        /**
+         * Creates a validator for the given datatype.
+         *
+         * @param datatype a built-in XSD datatype
+         */
+        public DatatypeValidator(IRI datatype) {
+            this.datatype = datatype;
+        }
+
+        /**
+         * Tells whether values of the given datatype can be checked by this validator.
+         *
+         * @param datatype the datatype declared for a placeholder, or null
+         * @return true if the datatype is a built-in XSD datatype
+         */
+        public static boolean appliesTo(IRI datatype) {
+            return datatype != null && XMLDatatypeUtil.isBuiltInDatatype(datatype);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void validate(IValidatable<String> s) {
+            if (isIllTyped(s.getValue())) {
+                s.error(new ValidationError("'" + s.getValue() + "' is not a valid " + Utils.getDatatypeLabel(datatype)));
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void onComponentTag(Component c, ComponentTag tag) {
+            FormComponent<?> fc = (FormComponent<?>) c;
+            if (fc.isValid() && isIllTyped(fc.getDefaultModelObjectAsString())) {
+                tag.append("class", "invalid", " ");
+            }
+        }
+
+        /**
+         * Tells whether a non-empty value lies outside the lexical space of the datatype.
+         *
+         * @param value the value to check, or null
+         * @return true if the value is non-empty and not valid for the datatype
+         */
+        private boolean isIllTyped(String value) {
+            return value != null && !value.isEmpty() && !XMLDatatypeUtil.isValidValue(value, datatype);
         }
 
     }
