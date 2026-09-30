@@ -119,10 +119,10 @@ class LiteralDatatypeValidationTest {
     }
 
     @Test
-    void illTypedValueIsRejectedWithTheShortDatatypeName() throws Exception {
+    void illTypedValueIsRejectedNamingTheFieldAndDatatype() throws Exception {
         Validatable<String> v = validate(itemFor(XSD.INT), "abc");
         assertFalse(v.isValid());
-        assertEquals("'abc' is not a valid xsd:int", ((ValidationError) v.getErrors().getFirst()).getMessage());
+        assertEquals("Value 'abc' of 'value' is not a valid xsd:int", ((ValidationError) v.getErrors().getFirst()).getMessage());
     }
 
     @Test

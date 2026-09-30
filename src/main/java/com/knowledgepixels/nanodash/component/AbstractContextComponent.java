@@ -1,11 +1,13 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.string.Strings;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -127,6 +129,29 @@ public abstract class AbstractContextComponent extends Panel implements ContextC
     public AbstractContextComponent(String id, TemplateContext context) {
         super(id);
         this.context = context;
+    }
+
+    /**
+     * Returns the name by which the field of a placeholder is referred to in messages: the
+     * placeholder's label, or its local name if the template gives it no label.
+     *
+     * @param iri the placeholder IRI
+     * @return the name of the field
+     */
+    protected String getFieldLabel(IRI iri) {
+        String label = context.getTemplate().getLabel(iri);
+        return label != null ? label : Utils.getUriPostfix(iri);
+    }
+
+    /**
+     * Names a form field after its placeholder, so that messages such as the one for a missing
+     * required value say which field they are about.
+     *
+     * @param field the form field
+     * @param iri   the placeholder IRI the field fills in
+     */
+    protected void labelField(FormComponent<?> field, IRI iri) {
+        field.setLabel(Model.of(getFieldLabel(iri)));
     }
 
 }

@@ -74,13 +74,14 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         }
         AbstractTextComponent<String> tc = initTextComponent(model);
         if (!optional) tc.setRequired(true);
+        labelField(tc, iri);
         if (context.getTemplate().getLabel(iri) != null) {
             tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
         tc.add((IValidator<String>) s -> {
             if (regex != null) {
                 if (!s.getValue().matches(regex)) {
-                    s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+                    s.error(new ValidationError("Value '" + s.getValue() + "' of '" + getFieldLabel(iri) + "' doesn't match the pattern '" + regex + "'"));
                 }
             }
         });
@@ -98,7 +99,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
 
         IRI datatype = template.getDatatype(iri);
         if (DatatypeValidator.appliesTo(datatype)) {
-            tc.add(new DatatypeValidator(datatype));
+            tc.add(new DatatypeValidator(datatype, getFieldLabel(iri)));
         }
 
         tc.setOutputMarkupId(true);
@@ -185,8 +186,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
 
         };
         if (!optional) langChoice.setRequired(true);
-        String label = template.getLabel(iri);
-        langChoice.setLabel(Model.of("language" + (label == null ? "" : " of '" + label + "'")));
+        langChoice.setLabel(Model.of("language of " + getFieldLabel(iri)));
         langChoice.getSettings().setCloseOnSelect(true);
         langChoice.getSettings().setPlaceholder("language");
         langChoice.getSettings().setAllowClear(true);
@@ -254,9 +254,9 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             String tag = s.getValue();
             if (tag == null || tag.isEmpty()) return;
             if (!tag.matches("[a-zA-Z]{2,8}(-[0-9a-zA-Z]{1,8})*")) {
-                s.error(new ValidationError("'" + tag + "' is not a valid language tag"));
+                s.error(new ValidationError("'" + tag + "' is not a valid language tag for '" + getFieldLabel(iri) + "'"));
             } else if (possibleTags != null && !possibleTags.contains(Literals.normalizeLanguageTag(tag))) {
-                s.error(new ValidationError("Language '" + tag + "' is not among the allowed languages"));
+                s.error(new ValidationError("Language '" + tag + "' is not among the allowed languages for '" + getFieldLabel(iri) + "'"));
             }
         }
 
@@ -271,14 +271,17 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
     protected static class DatatypeValidator extends Behavior implements IValidator<String> {
 
         private final IRI datatype;
+        private final String fieldLabel;
 
         /**
          * Creates a validator for the given datatype.
          *
-         * @param datatype a built-in XSD datatype
+         * @param datatype   a built-in XSD datatype
+         * @param fieldLabel the name of the field, used in the error message
          */
-        public DatatypeValidator(IRI datatype) {
+        public DatatypeValidator(IRI datatype, String fieldLabel) {
             this.datatype = datatype;
+            this.fieldLabel = fieldLabel;
         }
 
         /**
@@ -297,7 +300,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         @Override
         public void validate(IValidatable<String> s) {
             if (isIllTyped(s.getValue())) {
-                s.error(new ValidationError("'" + s.getValue() + "' is not a valid " + Utils.getDatatypeLabel(datatype)));
+                s.error(new ValidationError("Value '" + s.getValue() + "' of '" + fieldLabel + "' is not a valid " + Utils.getDatatypeLabel(datatype)));
             }
         }
 

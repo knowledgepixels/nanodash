@@ -216,6 +216,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         textfield.getSettings().setAllowClear(true);
 
         if (!optional) textfield.setRequired(true);
+        labelField(textfield, iri);
         textfield.add(new AttributeAppender("class", " wide"));
         textfield.add(new Validator(iri, template, prefix, context));
         context.getComponents().add(textfield);
