@@ -1,7 +1,10 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
@@ -9,6 +12,7 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NPX;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -76,6 +80,129 @@ public class PostPublishRefresh {
     );
 
     /**
+     * Nanopub types that can change who holds which role in a space, and so which of its
+     * admins admit its view displays and those of the resources it maintains. A space
+     * definition names the space's root admins.
+     */
+    private static final Set<IRI> ROLE_TYPES = Set.of(
+            KPXL_TERMS.SPACE,
+            KPXL_TERMS.HAS_ROLE,
+            KPXL_TERMS.SPACE_MEMBER_ROLE,
+            KPXL_TERMS.ROLE_INSTANTIATION,
+            KPXL_TERMS.REVOKED_ROLE_INSTANTIATION,
+            KPXL_TERMS.DETACHED_ROLE
+    );
+
+    /**
+     * Nanopub types that can change the listing of spaces and their sub-space links. Role
+     * changes are among them, as the query service admits a space definition or a sub-space
+     * declaration by the admins who published it.
+     */
+    private static final Set<IRI> SPACE_LISTING_TYPES = union(ROLE_TYPES, KPXL_TERMS.IS_SUB_SPACE_OF);
+
+    /**
+     * Nanopub types that can change the listing of maintained resources. Role changes are
+     * among them, as the query service admits a maintained resource by the admins of its space.
+     */
+    private static final Set<IRI> MAINTAINED_RESOURCE_LISTING_TYPES =
+            union(ROLE_TYPES, KPXL_TERMS.MAINTAINED_RESOURCE, KPXL_TERMS.IS_MAINTAINED_BY);
+
+    /**
+     * Refreshes what a publication aimed at the given resource can have changed, and nothing
+     * else (issue #358): the resource itself, including the definitions of the views it shows
+     * (issue #654); the listings of spaces and of maintained resources, only if the publication
+     * can change them; and the other maintained resources of the resource's space, only if the
+     * publication can change who holds a role there, as their view displays are admitted by
+     * the space's admins.
+     *
+     * @param np         the just-published nanopub
+     * @param resource   the resource the publication was aimed at
+     * @param waitMillis the delay before the refreshed data is fetched, to let the
+     *                   publication be loaded by the query service
+     */
+    public static void refreshAfterPublication(Nanopub np, AbstractResourceWithProfile resource, long waitMillis) {
+        resource.requestViewDefinitionRefresh();
+        resource.forceRefresh(waitMillis);
+        Space space = resource.getSpace();
+        Set<IRI> types = spaceStateTypes(np, space);
+        if (containsAny(types, SPACE_LISTING_TYPES)) {
+            SpaceRepository.get().forceRootRefresh(waitMillis);
+        }
+        if (containsAny(types, MAINTAINED_RESOURCE_LISTING_TYPES)) {
+            MaintainedResourceRepository.get().forceRootRefresh(waitMillis);
+        }
+        if (space != null && containsAny(types, ROLE_TYPES)) {
+            refreshMaintainedResourcesOf(space, resource, waitMillis);
+        }
+    }
+
+    /**
+     * The types by which a publication can change the state of a space, in the sense of the
+     * query service's spaces extraction. A role assignment made with one of the space's own
+     * role predicates counts as a role instantiation. A retraction counts as whatever it
+     * retracts, or as everything if the retracted nanopub cannot be retrieved.
+     *
+     * @param np    the just-published nanopub
+     * @param space the space the publication was aimed at, or null
+     * @return the space-state types of the publication
+     */
+    static Set<IRI> spaceStateTypes(Nanopub np, Space space) {
+        Set<IRI> types = ownSpaceStateTypes(np, space);
+        for (IRI retractedId : retractedNanopubIds(np)) {
+            Nanopub retracted = Utils.getAsNanopub(retractedId.stringValue());
+            if (retracted == null) {
+                types.addAll(SPACE_LISTING_TYPES);
+                types.addAll(MAINTAINED_RESOURCE_LISTING_TYPES);
+            } else {
+                types.addAll(ownSpaceStateTypes(retracted, space));
+            }
+        }
+        return types;
+    }
+
+    private static Set<IRI> ownSpaceStateTypes(Nanopub np, Space space) {
+        Set<IRI> types = new HashSet<>(NanopubUtils.getTypes(np));
+        Set<IRI> rolePredicates = rolePredicatesOf(space);
+        for (Statement st : np.getAssertion()) {
+            if (rolePredicates.contains(st.getPredicate())) {
+                types.add(KPXL_TERMS.ROLE_INSTANTIATION);
+            }
+        }
+        return types;
+    }
+
+    private static Set<IRI> retractedNanopubIds(Nanopub np) {
+        Set<IRI> ids = new HashSet<>();
+        for (Statement st : np.getAssertion()) {
+            if (st.getPredicate().equals(NPX.RETRACTS) && st.getObject() instanceof IRI retractedId) {
+                ids.add(retractedId);
+            }
+        }
+        return ids;
+    }
+
+    private static void refreshMaintainedResourcesOf(Space space, AbstractResourceWithProfile alreadyRefreshed, long waitMillis) {
+        for (MaintainedResource maintainedResource : MaintainedResourceRepository.get().findResourcesBySpace(space)) {
+            if (maintainedResource != alreadyRefreshed) {
+                maintainedResource.forceRefresh(waitMillis);
+            }
+        }
+    }
+
+    private static boolean containsAny(Set<IRI> types, Set<IRI> wanted) {
+        for (IRI type : types) {
+            if (wanted.contains(type)) return true;
+        }
+        return false;
+    }
+
+    private static Set<IRI> union(Set<IRI> base, IRI... more) {
+        Set<IRI> union = new HashSet<>(base);
+        union.addAll(Set.of(more));
+        return Set.copyOf(union);
+    }
+
+    /**
      * Whether the publication can change the page structure of the given context resource:
      * the set of views the resource shows, or the roles that decide who sees them. When it
      * cannot, the publication only affects the contents of one or more views, and refreshing
@@ -140,6 +267,17 @@ public class PostPublishRefresh {
         if (contextId == null || contextId.isEmpty()) return Set.of();
         AbstractResourceWithProfile resource = AbstractResourceWithProfile.get(contextId);
         if (!(resource instanceof Space space)) return Set.of();
+        return rolePredicatesOf(space);
+    }
+
+    /**
+     * The role-assigning predicates declared by a space, in both directions.
+     *
+     * @param space the space, or null
+     * @return the role predicates to watch for, empty if there is no space
+     */
+    private static Set<IRI> rolePredicatesOf(Space space) {
+        if (space == null) return Set.of();
         Set<IRI> predicates = new java.util.HashSet<>();
         for (SpaceMemberRoleRef roleRef : space.getRoles()) {
             SpaceMemberRole role = roleRef.getRole();

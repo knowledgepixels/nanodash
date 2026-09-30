@@ -88,6 +88,16 @@ public class KPXL_TERMS {
      * maintained-resource-declaring nanopubs.
      */
     public static final IRI IS_MAINTAINED_BY = VocabUtils.createIRI(NAMESPACE, "isMaintainedBy");
+
+    /**
+     * Predicate connecting a space to its parent space in sub-space-declaring nanopubs.
+     */
+    public static final IRI IS_SUB_SPACE_OF = VocabUtils.createIRI(NAMESPACE, "isSubSpaceOf");
+
+    /**
+     * Type of the nanopubs that define a role members of a space can hold.
+     */
+    public static final IRI SPACE_MEMBER_ROLE = VocabUtils.createIRI(NAMESPACE, "SpaceMemberRole");
     public static final IRI INDIVIDUAL_AGENT = VocabUtils.createIRI(NAMESPACE, "IndividualAgent");
     public static final IRI EVENT = VocabUtils.createIRI(NAMESPACE, "Event");
 
