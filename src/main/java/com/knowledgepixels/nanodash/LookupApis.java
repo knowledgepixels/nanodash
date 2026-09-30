@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.lookup.LookupApiRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,7 +138,7 @@ public class LookupApis {
             lookupCache.put(key, result);
             return result;
         } catch (Exception ex) {
-            logger.error("Error fetching possible values from API: {}", apiString, ex);
+            logLookupFailure(apiString, ex);
             return LookupResult.EMPTY;
         }
     }
@@ -170,6 +171,22 @@ public class LookupApis {
         try {
             fetchPossibleValues(apiString, searchterm, labelMap, values);
         } catch (Exception ex) {
+            logLookupFailure(apiString, ex);
+        }
+    }
+
+    /**
+     * Logs a lookup that failed. An API that could not be reached or did not answer in time is
+     * an outage of that API rather than an error of Nanodash, so it is logged as a warning in
+     * one line; any other failure is logged as an error, with its stack trace.
+     *
+     * @param apiString the API endpoint URL
+     * @param ex        the reason the lookup failed
+     */
+    private static void logLookupFailure(String apiString, Exception ex) {
+        if (ex instanceof IOException) {
+            logger.warn("Could not get possible values from API {}: {}", apiString, ex.toString());
+        } else {
             logger.error("Error fetching possible values from API: {}", apiString, ex);
         }
     }

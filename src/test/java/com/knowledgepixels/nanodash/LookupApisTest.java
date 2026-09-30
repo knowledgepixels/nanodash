@@ -1642,4 +1642,42 @@ class LookupApisTest {
         assertEquals("Harvard University", labelMap.get("https://ror.org/03vek6s52"));
     }
 
+
+    // ---- blank search terms ----
+
+    @Test
+    void getPossibleValues_blankTermIsNotSentToAnHttpApi() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(EBI_OLS_FIXTURE)) {
+            LookupApis.getPossibleValues("https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=", "", labelMap, values);
+            LookupApis.getPossibleValues("https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=", "  ", labelMap, values);
+            http.verify(HttpClientBuilder::create, never());
+        }
+        assertTrue(values.isEmpty());
+    }
+
+    @Test
+    void getPossibleValues_termIsStillSentToAnHttpApi() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(EBI_OLS_FIXTURE)) {
+            LookupApis.getPossibleValues("https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=", "f", labelMap, values);
+            http.verify(HttpClientBuilder::create);
+        }
+        assertValuesWithLabels(labelMap, values);
+    }
+
+    @Test
+    void getPossibleValues_blankTermStillRunsANanopubQuery() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (var ignored = mockNanopubNetwork()) {
+            LookupApis.getPossibleValues(
+                    "https://w3id.org/np/l/nanopub-query-1.1/api/RAyMrQ89RECTi9gZK5q7gjL1wKTiP8StkLy0NIkkCiyew/find-things?type=https://w3id.org/kpxl/gen/terms/Space",
+                    "", labelMap, values);
+        }
+        assertEquals(List.of("https://example.org/thing1"), values);
+    }
+
 }
