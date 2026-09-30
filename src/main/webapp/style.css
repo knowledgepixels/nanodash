@@ -2084,6 +2084,17 @@ textarea.locked-value {
   padding: 4px 2px;
 }
 
+.statement-description {
+  margin: 6px 2px 2px 2px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 10pt;
+  line-height: 1.4;
+}
+
+.statement-description p {
+  margin: 0;
+}
+
 .nanopub-statement a {
   line-height: 26px;
   vertical-align: top;

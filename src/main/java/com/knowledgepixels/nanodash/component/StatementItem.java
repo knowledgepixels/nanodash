@@ -68,6 +68,7 @@ public class StatementItem extends Panel {
         }
 
         addRepetitionGroup();
+        add(newDescriptionLabel());
 
         ListView<WebMarkupContainer> v = new ListView<WebMarkupContainer>("statement-group", viewElements) {
 
@@ -79,6 +80,20 @@ public class StatementItem extends Panel {
         };
         v.setOutputMarkupId(true);
         add(v);
+    }
+
+    /**
+     * Creates the label that tells the user how to fill in this statement, shown only while the
+     * form is being filled in and only if the template describes the statement.
+     *
+     * @return the description label
+     */
+    private Label newDescriptionLabel() {
+        String description = getTemplate().getStatementDescription(statementId);
+        Label label = new Label("description", description);
+        label.setEscapeModelStrings(false);
+        label.setVisible(description != null && !context.isReadOnly());
+        return label;
     }
 
     /**
