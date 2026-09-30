@@ -77,7 +77,13 @@ class LookupApisTest {
 
     // ---- Mock helpers ----
 
+    private QueryRef lastNanopubQuery;
+
     private MockedStatic<HttpClientBuilder> mockHttp(String responseJson) throws Exception {
+        return mockHttp(responseJson, 200);
+    }
+
+    private MockedStatic<HttpClientBuilder> mockHttp(String responseJson, int statusCode) throws Exception {
         MockedStatic<HttpClientBuilder> mockedStatic = mockStatic(HttpClientBuilder.class);
         HttpClientBuilder builderMock = mock(HttpClientBuilder.class);
         CloseableHttpClient clientMock = mock(CloseableHttpClient.class);
@@ -89,7 +95,7 @@ class LookupApisTest {
         when(builderMock.build()).thenReturn(clientMock);
         when(clientMock.execute(any())).thenReturn(responseMock);
         when(responseMock.getStatusLine()).thenReturn(statusLineMock);
-        when(statusLineMock.getStatusCode()).thenReturn(200);
+        when(statusLineMock.getStatusCode()).thenReturn(statusCode);
         when(responseMock.getEntity()).thenReturn(entityMock);
         when(entityMock.getContent()).thenReturn(
                 new ByteArrayInputStream(responseJson.getBytes(StandardCharsets.UTF_8)));
@@ -113,7 +119,10 @@ class LookupApisTest {
         entry.add("label", "Mock Result");
         apiResponse.getData().add(entry);
         mockedApiCache.when(() -> ApiCache.retrieveResponseSync(any(QueryRef.class), anyBoolean()))
-                .thenReturn(apiResponse);
+                .thenAnswer(invocation -> {
+                    lastNanopubQuery = invocation.getArgument(0);
+                    return apiResponse;
+                });
 
         return () -> {
             mockedApiCache.close();
@@ -1640,6 +1649,84 @@ class LookupApisTest {
             assertEquals(List.of("https://ror.org/03vek6s52"), LookupApis.lookUpAll(List.of(ROR_API), "harvard", labelMap));
         }
         assertEquals("Harvard University", labelMap.get("https://ror.org/03vek6s52"));
+    }
+
+
+    // ---- blank search terms ----
+
+    @Test
+    void getPossibleValues_blankTermIsNotSentToAnHttpApi() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(EBI_OLS_FIXTURE)) {
+            LookupApis.getPossibleValues("https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=", "", labelMap, values);
+            LookupApis.getPossibleValues("https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=", "  ", labelMap, values);
+            http.verify(HttpClientBuilder::create, never());
+        }
+        assertTrue(values.isEmpty());
+    }
+
+    @Test
+    void getPossibleValues_termIsStillSentToAnHttpApi() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(EBI_OLS_FIXTURE)) {
+            LookupApis.getPossibleValues("https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=", "f", labelMap, values);
+            http.verify(HttpClientBuilder::create);
+        }
+        assertValuesWithLabels(labelMap, values);
+    }
+
+    @Test
+    void getPossibleValues_blankTermIsNotSentToANanopubQuery() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (var ignored = mockNanopubNetwork()) {
+            LookupApis.getPossibleValues(
+                    "https://w3id.org/np/l/nanopub-query-1.1/api/RAyMrQ89RECTi9gZK5q7gjL1wKTiP8StkLy0NIkkCiyew/find-things?type=https://w3id.org/kpxl/gen/terms/Space",
+                    "", labelMap, values);
+        }
+        assertNull(lastNanopubQuery);
+        assertTrue(values.isEmpty());
+    }
+
+    // ---- search parameter of nanopub queries ----
+
+    @Test
+    void getPossibleValues_searchTermReplacesTheEmptySearchParameterOfTheUrl() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (var ignored = mockNanopubNetwork()) {
+            LookupApis.getPossibleValues(
+                    "https://w3id.org/np/l/nanopub-query-1.1/api/RAB_utnJ83p9BqEo3Ndw5YWDrM0jP1UH1VA6AkQh7Yrow/find-fair-specifications?query=",
+                    "data", labelMap, values);
+        }
+        assertEquals(List.of("data"), List.copyOf(lastNanopubQuery.getParams().get("query")));
+    }
+
+    // ---- HTTP error status ----
+
+    @Test
+    void getPossibleValues_errorStatusGivesNoValues() throws Exception {
+        Map<String, String> labelMap = new HashMap<>();
+        List<String> values = new ArrayList<>();
+        try (var ignored = mockHttp("<html><body>502 Bad Gateway</body></html>", 502)) {
+            LookupApis.getPossibleValues("https://grlc.knowledgepixels.com/api-git/knowledgepixels/fairconnect-api/fsr_lookup?searchterm= %2A",
+                    "data", labelMap, values);
+        }
+        assertTrue(values.isEmpty());
+    }
+
+    @Test
+    void lookUp_errorStatusIsNotCached() throws Exception {
+        LookupApis.clearCache();
+        String api = "https://www.ebi.ac.uk/ols/api/select?ontology=envo&q=";
+        try (var ignored = mockHttp("<html>502</html>", 502)) {
+            assertTrue(LookupApis.lookUp(api, "forest").values().isEmpty());
+        }
+        try (var ignored = mockHttp(EBI_OLS_FIXTURE)) {
+            assertFalse(LookupApis.lookUp(api, "forest").values().isEmpty(), "the API is asked again once it is back");
+        }
     }
 
 }

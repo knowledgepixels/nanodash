@@ -20,7 +20,8 @@ import java.util.Map;
  * Looks up values with a query of the nanopub network, e.g.
  * {@code https://w3id.org/np/l/nanopub-query-1.1/api/RAyMrQ89.../find-things?type=...}, rather
  * than by calling the URL. The query is run through the query cache with the URL's parameters
- * and the search term, and the values are read from its {@code thing} column, their labels from
+ * and the search term, which replaces any value the URL gives the search parameter, e.g. the
+ * empty one of {@code ?query=}. The values are read from its {@code thing} column, their labels from
  * {@code label} and {@code description}. The legacy
  * {@code http://purl.org/nanopub/api/find_signed_things?} URLs run the find-things query. At
  * most ten results are read.
@@ -52,7 +53,7 @@ public class NanopubQueryLookup implements LookupApi {
             searchTerm = SearchTerms.expand(searchTerm);
         }
         Multimap<String, String> params = urlParams(apiUrl);
-        params.put(searchParamName(query), searchTerm);
+        params.replaceValues(searchParamName(query), List.of(searchTerm));
         ApiResponse response = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
         for (ApiResponseEntry entry : response.getData()) {
             if (values.size() >= MAX_RESULTS) return;

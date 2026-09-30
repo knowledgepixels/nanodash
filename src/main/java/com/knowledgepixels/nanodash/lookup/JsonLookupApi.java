@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.lookup;
 
+import com.knowledgepixels.nanodash.HttpStatusException;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
@@ -30,6 +31,8 @@ public abstract class JsonLookupApi implements LookupApi {
     private static final int SOCKET_TIMEOUT_MS = 8_000;
 
     private static final int METHOD_NOT_ALLOWED = 405;
+
+    private static final int FIRST_ERROR_STATUS = 400;
 
     private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom()
             .setConnectTimeout(CONNECT_TIMEOUT_MS)
@@ -92,6 +95,11 @@ public abstract class JsonLookupApi implements LookupApi {
                 HttpPost post = new HttpPost(apiUrl + encodedTerm);
                 post.setConfig(REQUEST_CONFIG);
                 resp = client.execute(post);
+            }
+            int status = resp.getStatusLine().getStatusCode();
+            if (status >= FIRST_ERROR_STATUS) {
+                EntityUtils.consume(resp.getEntity());
+                throw new HttpStatusException(status);
             }
             try (InputStream in = resp.getEntity().getContent()) {
                 return IOUtils.toString(in, StandardCharsets.UTF_8);
