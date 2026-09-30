@@ -1159,6 +1159,10 @@ a.actionlink {
   font-weight: bold;
 }
 
+.select2-results__option--disabled span.term {
+  font-weight: normal;
+}
+
 /* The note on a value that the nanopublication will mint itself: an aside about the value, not
    part of it, so it is set apart from the term next to it -- but only in weight and slant, since
    it sits on the same line and shares the rules above with that term (issue #652). */

@@ -47,12 +47,13 @@ public class GuidedChoiceItemTest {
     private static final String NP_URI = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE";
     private static final IRI THING = vf.createIRI(NP_URI + "/thing");
 
+    private WicketTester tester;
     private MockedStatic<TemplateData> templateDataMockedStatic;
     private MockedStatic<User> userMockedStatic;
 
     @BeforeEach
     void setUp() {
-        new WicketTester(new WicketApplication());
+        tester = new WicketTester(new WicketApplication());
         templateDataMockedStatic = mockStatic(TemplateData.class);
         // Building the form looks users up; keep the test off the network.
         userMockedStatic = mockStatic(User.class, CALLS_REAL_METHODS);
@@ -240,6 +241,37 @@ public class GuidedChoiceItemTest {
         TemplateContext context = guidedContext(null, false, vf.createIRI("http://example.com/apple"));
         assertNotEquals(Integer.valueOf(1), fieldOf(context).getSettings().getMinimumInputLength());
         assertTrue(suggestionsFor(context, null).contains("http://example.com/apple"));
+    }
+
+    @Test
+    void searchThatFindsNothingSaysSoAboveTheMintEntry() throws Exception {
+        assertEquals(List.of(GuidedChoiceItem.NO_RESULTS_ID, "xyzq"), suggestionsFor(guidedContext(null), "xyzq"));
+    }
+
+    @Test
+    void searchThatFindsSomethingDoesNotSayNothingWasFound() throws Exception {
+        TemplateContext context = guidedContext(null, false, vf.createIRI("http://example.com/apple"));
+        assertFalse(suggestionsFor(context, "apple").contains(GuidedChoiceItem.NO_RESULTS_ID));
+    }
+
+    @Test
+    void searchWithNothingToOfferIsLeftToSelect2sOwnMessage() throws Exception {
+        assertTrue(suggestionsFor(guidedContext(null, true), "xyzq").isEmpty());
+    }
+
+    @Test
+    void noResultsEntryIsLabelledAndCannotBeChosen() throws Exception {
+        Select2Choice<String> field = fieldOf(guidedContext(null));
+        assertEquals("No results found", field.getProvider().getDisplayValue(GuidedChoiceItem.NO_RESULTS_ID));
+        assertTrue(field.getProvider().toChoices(List.of(GuidedChoiceItem.NO_RESULTS_ID)).isEmpty());
+    }
+
+    @Test
+    void renderedFieldDisablesTheNoResultsEntry() throws Exception {
+        TemplateContext context = guidedContext(null);
+        tester.startComponentInPage(context.getStatementItems().get(0));
+        String processResults = fieldOf(context).getSettings().getAjax().getProcessResults();
+        assertTrue(processResults.contains(GuidedChoiceItem.NO_RESULTS_ID) && processResults.contains("disabled: true"), processResults);
     }
 
 }

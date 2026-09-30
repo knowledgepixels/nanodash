@@ -42,6 +42,22 @@ public class GuidedChoiceItem extends AbstractContextComponent {
      */
     private static final int SEARCH_MIN_INPUT_LENGTH = 1;
 
+    /**
+     * The ID of the entry that says a search found nothing. It is listed above the entry that
+     * mints the typed name, which would otherwise hide Select2's own message, and is shown
+     * disabled, so it cannot be chosen.
+     */
+    static final String NO_RESULTS_ID = "nanodash:no-results";
+
+    private static final String NO_RESULTS_LABEL = "No results found";
+
+    /**
+     * Select2's default way of reading the results, with the no-results entry disabled.
+     */
+    private static final String PROCESS_RESULTS_JS = "function(data, page) { return { results: data.items.map(function(item) {"
+            + " return item.id === '" + NO_RESULTS_ID + "' ? $.extend({}, item, {disabled: true}) : item; }),"
+            + " pagination: { more: data.more } }; }";
+
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
     private Label tooltipDescription;
@@ -152,6 +168,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             @Override
             public String getDisplayValue(String choiceId) {
                 if (choiceId == null || choiceId.isEmpty()) return "";
+                if (NO_RESULTS_ID.equals(choiceId)) return NO_RESULTS_LABEL;
                 // A value that has no identifier yet is shown as the local URI it will be minted
                 // into rather than as a bare word (issue #652).
                 if (context.isToBeMinted(iri, choiceId)) return Utils.getToBeMintedLabel(choiceId);
@@ -195,6 +212,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
                     if (!alreadyAddedMap.containsKey(v)) response.add(v);
                 }
+                boolean nothingFound = response.getResults().isEmpty();
 
                 // A guided choice only suggests values, it doesn't limit them, so a plain name for
                 // a resource that has no identifier yet can be entered as well (issue #652): it is
@@ -205,15 +223,33 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 if (!template.isExternalUriPlaceholder(iri) && Utils.isPlainName(typedTerm) && !response.getResults().contains(typedTerm)) {
                     response.add(typedTerm);
                 }
+                if (nothingFound && !response.getResults().isEmpty()) {
+                    listNoResultsFirst(response);
+                }
+            }
+
+            private void listNoResultsFirst(Response<String> response) {
+                List<String> results = new ArrayList<>();
+                results.add(NO_RESULTS_ID);
+                results.addAll(response.getResults());
+                response.setResults(results);
             }
 
             @Override
             public Collection<String> toChoices(Collection<String> ids) {
-                return ids;
+                return ids.stream().filter(id -> !NO_RESULTS_ID.equals(id)).toList();
             }
 
         };
-        textfield = new Select2Choice<String>("textfield", model, choiceProvider);
+        textfield = new Select2Choice<String>("textfield", model, choiceProvider) {
+
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                getSettings().getAjax(true).setProcessResults(PROCESS_RESULTS_JS);
+            }
+
+        };
         Utils.setSelect2SearchAsYouType(textfield);
         if (possibleValues.isEmpty()) {
             textfield.getSettings().setMinimumInputLength(SEARCH_MIN_INPUT_LENGTH);
