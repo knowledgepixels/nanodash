@@ -1,5 +1,15 @@
 package com.knowledgepixels.nanodash.lookup;
 
+import com.knowledgepixels.nanodash.lookup.parser.CanonicalParser;
+import com.knowledgepixels.nanodash.lookup.parser.CatalogueOfLifeParser;
+import com.knowledgepixels.nanodash.lookup.parser.GbifParser;
+import com.knowledgepixels.nanodash.lookup.parser.NameResolutionParser;
+import com.knowledgepixels.nanodash.lookup.parser.OlsParser;
+import com.knowledgepixels.nanodash.lookup.parser.OpenAireParser;
+import com.knowledgepixels.nanodash.lookup.parser.RorParser;
+import com.knowledgepixels.nanodash.lookup.parser.SparqlResultsParser;
+import com.knowledgepixels.nanodash.lookup.parser.VodexParser;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;

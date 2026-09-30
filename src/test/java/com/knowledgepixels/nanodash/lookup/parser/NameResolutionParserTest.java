@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.lookup;
+package com.knowledgepixels.nanodash.lookup.parser;
 
 import org.junit.jupiter.api.Test;
 

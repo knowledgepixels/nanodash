@@ -1,7 +1,9 @@
-package com.knowledgepixels.nanodash.lookup;
+package com.knowledgepixels.nanodash.lookup.parser;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import com.knowledgepixels.nanodash.lookup.JsonLookupApi;
+import com.knowledgepixels.nanodash.lookup.SearchTerms;
 
 import java.util.List;
 import java.util.Map;
