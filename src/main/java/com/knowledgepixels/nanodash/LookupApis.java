@@ -194,7 +194,8 @@ public class LookupApis {
     /**
      * Fetches possible values from an API with the lookup API registered for its URL, reporting
      * a failure to the caller instead of logging it, so that only a lookup that went through is
-     * cached.
+     * cached. A blank search term is not looked up: the APIs search by text, so they find nothing
+     * for it, and some take long to answer it.
      *
      * @param apiString  the API endpoint URL to query
      * @param searchterm the search term to use for querying the API
@@ -203,6 +204,7 @@ public class LookupApis {
      * @throws Exception if the API cannot be reached or its response cannot be read
      */
     private static void fetchPossibleValues(String apiString, String searchterm, Map<String, String> labelMap, List<String> values) throws Exception {
+        if (searchterm == null || searchterm.isBlank()) return;
         LookupApiRegistry.forUrl(apiString).lookUp(apiString, searchterm, labelMap, values);
     }
 

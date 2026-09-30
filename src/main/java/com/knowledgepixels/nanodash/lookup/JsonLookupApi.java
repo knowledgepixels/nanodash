@@ -22,9 +22,7 @@ import java.util.Map;
 /**
  * An API that is called over HTTP with the search term in its URL and answers in JSON. The
  * search term replaces a space in the API URL if there is one, and is appended to the URL
- * otherwise. An API that does not allow GET is called with POST. A blank search term is not
- * sent: such an API searches by text, so it has nothing to match it with, and some take
- * long to answer it.
+ * otherwise. An API that does not allow GET is called with POST.
  */
 public abstract class JsonLookupApi implements LookupApi {
 
@@ -46,7 +44,6 @@ public abstract class JsonLookupApi implements LookupApi {
      */
     @Override
     public void lookUp(String apiUrl, String searchTerm, Map<String, String> labels, List<String> values) throws Exception {
-        if (searchTerm == null || searchTerm.isBlank()) return;
         String response = fetch(apiUrl, prepareSearchTerm(searchTerm));
         parse(response, apiUrl, labels, values);
     }

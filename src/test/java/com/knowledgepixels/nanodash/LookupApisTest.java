@@ -1678,7 +1678,7 @@ class LookupApisTest {
     }
 
     @Test
-    void getPossibleValues_blankTermStillRunsANanopubQuery() throws Exception {
+    void getPossibleValues_blankTermIsNotSentToANanopubQuery() throws Exception {
         Map<String, String> labelMap = new HashMap<>();
         List<String> values = new ArrayList<>();
         try (var ignored = mockNanopubNetwork()) {
@@ -1686,7 +1686,8 @@ class LookupApisTest {
                     "https://w3id.org/np/l/nanopub-query-1.1/api/RAyMrQ89RECTi9gZK5q7gjL1wKTiP8StkLy0NIkkCiyew/find-things?type=https://w3id.org/kpxl/gen/terms/Space",
                     "", labelMap, values);
         }
-        assertEquals(List.of("https://example.org/thing1"), values);
+        assertNull(lastNanopubQuery);
+        assertTrue(values.isEmpty());
     }
 
     // ---- search parameter of nanopub queries ----
