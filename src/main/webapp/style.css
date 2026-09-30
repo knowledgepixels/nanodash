@@ -2084,6 +2084,11 @@ textarea.locked-value {
   padding: 4px 2px;
 }
 
+.nanopub-statement a {
+  line-height: 26px;
+  vertical-align: top;
+}
+
 .statement-description {
   margin: 6px 2px 2px 2px;
   color: rgba(0, 0, 0, 0.6);
@@ -2095,9 +2100,18 @@ textarea.locked-value {
   margin: 0;
 }
 
-.nanopub-statement a {
-  line-height: 26px;
-  vertical-align: top;
+.statement-description a {
+  color: #0b73da;
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+  padding: 0;
+  margin: 0;
+}
+
+.statement-description a:hover,
+.statement-description a:active {
+  color: #6eb2f7;
 }
 
 /*
