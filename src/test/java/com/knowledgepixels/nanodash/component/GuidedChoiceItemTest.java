@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
@@ -78,6 +79,15 @@ public class GuidedChoiceItemTest {
      * initialized context for it.
      */
     private TemplateContext guidedContext(String prefix, boolean external) throws Exception {
+        return guidedContext(prefix, external, null);
+    }
+
+    /**
+     * Builds a one-statement template whose object is a guided choice placeholder with the given
+     * prefix (none if null), optionally typed as an external URI placeholder and with a fixed
+     * possible value (none if null), and returns an initialized context for it.
+     */
+    private TemplateContext guidedContext(String prefix, boolean external, IRI possibleValue) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -96,6 +106,9 @@ public class GuidedChoiceItemTest {
         creator.addAssertionStatement(THING, RDFS.LABEL, vf.createLiteral("thing"));
         if (prefix != null) {
             creator.addAssertionStatement(THING, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
+        }
+        if (possibleValue != null) {
+            creator.addAssertionStatement(THING, NTEMPLATE.POSSIBLE_VALUE, possibleValue);
         }
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
@@ -215,6 +228,18 @@ public class GuidedChoiceItemTest {
         assertFalse(suggestions.contains("john"), "a restricted choice must not offer a made-up name");
         assertTrue(suggestions.isEmpty());
         assertEquals("john", fieldOf(context).getProvider().getDisplayValue("john"));
+    }
+
+    @Test
+    void fieldWithoutFixedValuesPromptsForASearchTermWhenOpened() throws Exception {
+        assertEquals(1, fieldOf(guidedContext(null)).getSettings().getMinimumInputLength());
+    }
+
+    @Test
+    void fieldWithFixedValuesListsThemWhenOpened() throws Exception {
+        TemplateContext context = guidedContext(null, false, vf.createIRI("http://example.com/apple"));
+        assertNotEquals(Integer.valueOf(1), fieldOf(context).getSettings().getMinimumInputLength());
+        assertTrue(suggestionsFor(context, null).contains("http://example.com/apple"));
     }
 
 }

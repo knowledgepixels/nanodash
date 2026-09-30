@@ -35,6 +35,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class GuidedChoiceItem extends AbstractContextComponent {
 
+    /**
+     * The number of characters a field without fixed values needs before it searches. Its values
+     * come only from lookup APIs, which find nothing without a search term, so an opened field
+     * prompts for one instead of reporting that nothing was found.
+     */
+    private static final int SEARCH_MIN_INPUT_LENGTH = 1;
+
     private Select2Choice<String> textfield;
     private ExternalLink tooltipLink;
     private Label tooltipDescription;
@@ -208,6 +215,9 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         };
         textfield = new Select2Choice<String>("textfield", model, choiceProvider);
         Utils.setSelect2SearchAsYouType(textfield);
+        if (possibleValues.isEmpty()) {
+            textfield.getSettings().setMinimumInputLength(SEARCH_MIN_INPUT_LENGTH);
+        }
         textfield.getSettings().setCloseOnSelect(true);
         String placeholder = template.getLabel(iri);
         if (placeholder == null) placeholder = "";
