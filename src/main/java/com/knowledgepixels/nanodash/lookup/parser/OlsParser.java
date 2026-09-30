@@ -3,8 +3,6 @@ package com.knowledgepixels.nanodash.lookup.parser;
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.knowledgepixels.nanodash.lookup.JsonLookupApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -16,8 +14,6 @@ import java.util.Map;
  */
 public class OlsParser extends JsonLookupApi {
 
-    private static final Logger logger = LoggerFactory.getLogger(OlsParser.class);
-
     /**
      * {@inheritDoc}
      */
@@ -27,18 +23,15 @@ public class OlsParser extends JsonLookupApi {
         for (int i = 0; i < docs.length(); i++) {
             JSONObject doc = docs.getJSONObject(i);
             String iri = doc.getString("iri");
-            addIfNew(iri, labelOf(doc, iri), labels, values);
+            addIfNew(iri, labelOf(doc), labels, values);
         }
     }
 
-    private static String labelOf(JSONObject doc, String iri) {
+    private static String labelOf(JSONObject doc) {
         String label = doc.getString("label");
-        try {
-            label += " - " + doc.getJSONArray("description").getString(0);
-        } catch (Exception ex) {
-            logger.error("No description found for {}", iri, ex);
-        }
-        return label;
+        JSONArray description = doc.optJSONArray("description");
+        if (description == null || description.length() == 0) return label;
+        return label + " - " + description.getString(0);
     }
 
 }
