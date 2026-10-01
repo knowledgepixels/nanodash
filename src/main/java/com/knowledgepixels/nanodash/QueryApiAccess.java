@@ -173,7 +173,16 @@ public class QueryApiAccess {
     // docs/views-and-presets-as-maintained-resources.md.
     public static final String GET_LATEST_GOVERNED_VERSION = "RAyB49tPLdgMjwmG9alOjtK2wSvxLGPunfncFk57elB-Q/get-latest-governed-version";
     public static final String GET_SUB_SPACE_LINKS = "RAWgoQbP9_B9h3Bnwd1FGYX1gLYPyZFOxaeqIeA3TTPSU/get-sub-space-links";
-    public static final String GET_MAINTAINED_RESOURCES = "RAOOq81R84exTUKUBQT3BbgCaSJyC2lqPDXIP2XaDTosM/get-maintained-resources";
+    // The label is the resource's own rdfs:label from the declaring nanopublication's
+    // assertion, falling back to that nanopublication's label. The previous version
+    // RAOOq81R read only the nanopublication's label, so a nanopublication declaring
+    // several maintained resources gave all of them the same name (one live nanopub
+    // declares six) even though each resource carries its own label in the assertion.
+    // Also one row per resource and space now, newest declaration by dct:created, rather
+    // than one row per declaration: not a behaviour change, since build() already keeps
+    // the first row per resource and the query already ordered by descending date, but it
+    // puts the newest-wins contract in the query rather than in the consumer.
+    public static final String GET_MAINTAINED_RESOURCES = "RAEdX-wzz7vfswC5Y6sbL7XeUyJrL2BKT-luDHPZZpmRY/get-maintained-resources";
     public static final String GET_SPACE_ADMINS = "RAaHOXMQ7Kq37T9syR9at0RqushclHenlPOFRwFDn0Cfs/get-space-admins";
     // Ref-scoped admins (Stage 2): takes the ref's root nanopub (root_np), matches admins
     // on npa:forSpaceRef, so multi-ref spaces don't merge admin sets across refs. Published

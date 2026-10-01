@@ -42,6 +42,10 @@ public class MaintainedResource extends AbstractResourceWithProfile {
     private void initialize(ApiResponseEntry resp, Space space) {
         initSpace(space);
         this.label = resp.get("label");
+        if (label == null || label.isBlank()) {
+            // No label in the data at all: show the short form of the IRI rather than "null".
+            label = Utils.getShortNameFromURI(getId());
+        }
         this.nanopubId = resp.get("np");
         this.namespace = resp.get("namespace");
         if (namespace != null && namespace.isBlank()) {
