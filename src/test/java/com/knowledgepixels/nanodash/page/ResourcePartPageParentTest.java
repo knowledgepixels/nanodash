@@ -254,6 +254,36 @@ class ResourcePartPageParentTest {
     }
 
     @Test
+    void declaredLabelPrefersSchemaTitleOverDctTitle() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub np = nanopubWith(
+                TOPIC, DCTERMS.TITLE, "Person (dct)",
+                TOPIC, SCHEMA_TITLE, "Person (schema)");
+        assertEquals("Person (schema)", ResourcePartPage.getDeclaredLabel(np, TOPIC.stringValue()));
+    }
+
+    @Test
+    void declaredLabelFallsBackToDctTitle() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub np = nanopubWith(TOPIC, DCTERMS.TITLE, "Person (dct)");
+        assertEquals("Person (dct)", ResourcePartPage.getDeclaredLabel(np, TOPIC.stringValue()));
+    }
+
+    @Test
+    void declaredLabelFallsBackToANonBlankDctTitle() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub np = nanopubWith(
+                TOPIC, DCTERMS.TITLE, " ",
+                TOPIC, DCTERMS.TITLE, "Person (dct)");
+        assertEquals("Person (dct)", ResourcePartPage.getDeclaredLabel(np, TOPIC.stringValue()));
+    }
+
+    @Test
+    void declaredLabelPrefersRdfsLabelOverDctTitle() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        Nanopub np = nanopubWith(
+                TOPIC, DCTERMS.TITLE, "Person (dct)",
+                TOPIC, RDFS.LABEL, "Person");
+        assertEquals("Person", ResourcePartPage.getDeclaredLabel(np, TOPIC.stringValue()));
+    }
+
+    @Test
     void noDeclaredLabelForAnotherSubject() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         Nanopub np = nanopubWith(OTHER_TOPIC, RDFS.LABEL, "Space");
         assertNull(ResourcePartPage.getDeclaredLabel(np, TOPIC.stringValue()));

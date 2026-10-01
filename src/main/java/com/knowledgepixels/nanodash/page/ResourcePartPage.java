@@ -162,7 +162,13 @@ public class ResourcePartPage extends NanodashPage {
 
     /**
      * The label the given nanopublication declares for a resource: its {@code rdfs:label},
-     * else its {@code schema:title} (issue #701).
+     * else its {@code schema:title} (issue #701), else its {@code dct:title}.
+     * <p>
+     * {@code dct:title} comes last so that no page whose title already resolved keeps a
+     * different one. It is needed because a vocabulary may state a resource's name with
+     * {@code dct:title} and nothing else: the MIRA schema does, and its shapes are closed,
+     * so an {@code rdfs:label} cannot simply be added alongside. Without this fallback such
+     * a part page is headed by the tail of its IRI.
      *
      * @param nanopub    the nanopublication defining the resource
      * @param resourceId the resource whose label to look up
@@ -170,6 +176,7 @@ public class ResourcePartPage extends NanodashPage {
      */
     static String getDeclaredLabel(Nanopub nanopub, String resourceId) {
         String schemaTitle = null;
+        String dctTitle = null;
         for (Statement st : nanopub.getAssertion()) {
             if (!st.getSubject().stringValue().equals(resourceId)) {
                 continue;
@@ -177,11 +184,17 @@ public class ResourcePartPage extends NanodashPage {
             if (st.getPredicate().equals(RDFS.LABEL)) {
                 return st.getObject().stringValue();
             }
-            if (schemaTitle == null && isSchemaTitle(st.getPredicate()) && !st.getObject().stringValue().isBlank()) {
+            if (st.getObject().stringValue().isBlank()) {
+                continue;
+            }
+            if (schemaTitle == null && isSchemaTitle(st.getPredicate())) {
                 schemaTitle = st.getObject().stringValue();
             }
+            if (dctTitle == null && st.getPredicate().equals(DCTERMS.TITLE)) {
+                dctTitle = st.getObject().stringValue();
+            }
         }
-        return schemaTitle;
+        return schemaTitle != null ? schemaTitle : dctTitle;
     }
 
     /**
