@@ -69,6 +69,7 @@ public class LiteralDateItem extends AbstractContextComponent {
         }
         DatePicker dateComponent = initDateComponent(model);
         if (!optional) dateComponent.setRequired(true);
+        labelField(dateComponent, iri);
         if (context.getTemplate().getLabel(iri) != null) {
             dateComponent.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }

@@ -129,9 +129,9 @@ public class IriTextfieldItem extends AbstractContextComponent {
         });
         context.getComponents().add(textfield);
         lockIfNeeded(textfield, iri);
+        labelField(textfield, iri);
         if (template.getLabel(iri) != null) {
             textfield.add(new AttributeModifier("placeholder", template.getLabel(iri).replaceFirst(" - .*$", "")));
-            textfield.setLabel(Model.of(template.getLabel(iri)));
         }
         textfield.add(new OnChangeAjaxBehavior() {
 

@@ -356,8 +356,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
                 return "choose day";
             }
         };
-        String label = template.getLabel(iri);
-        String of = (label == null) ? "" : " of '" + label + "'";
+        String of = " of " + getFieldLabel(iri);
         yearField.setLabel(Model.of("year" + of));
         monthField.setLabel(Model.of("month" + of));
         dayField.setLabel(Model.of("day" + of));
@@ -375,7 +374,7 @@ public class LiteralGregorianItem extends AbstractContextComponent {
             addValueCheck(v -> {
                 String candidate = candidateValue();
                 if (!candidate.isEmpty() && !candidate.matches(regex)) {
-                    v.error(new ValidationError("Value '" + candidate + "' doesn't match the pattern '" + regex + "'"));
+                    v.error(new ValidationError("Value '" + candidate + "' of '" + getFieldLabel(iri) + "' doesn't match the pattern '" + regex + "'"));
                 }
             });
         }
