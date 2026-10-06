@@ -62,9 +62,9 @@ public class ValueTextfieldItem extends AbstractContextComponent {
         textfield.add(new Validator(iri, template));
         context.getComponents().add(textfield);
         lockIfNeeded(textfield, iri);
+        labelField(textfield, iri);
         if (template.getLabel(iri) != null) {
             textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
-            textfield.setLabel(Model.of(template.getLabel(iri)));
         }
         textfield.add(new OnChangeAjaxBehavior() {
 

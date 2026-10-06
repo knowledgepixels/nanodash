@@ -9,9 +9,12 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.AbstractTextComponent;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -21,6 +24,7 @@ import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.slf4j.Logger;
@@ -70,13 +74,14 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         }
         AbstractTextComponent<String> tc = initTextComponent(model);
         if (!optional) tc.setRequired(true);
+        labelField(tc, iri);
         if (context.getTemplate().getLabel(iri) != null) {
             tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
         tc.add((IValidator<String>) s -> {
             if (regex != null) {
                 if (!s.getValue().matches(regex)) {
-                    s.error(new ValidationError("Value '" + s.getValue() + "' doesn't match the pattern '" + regex + "'"));
+                    s.error(new ValidationError("Value '" + s.getValue() + "' of '" + getFieldLabel(iri) + "' doesn't match the pattern '" + regex + "'"));
                 }
             }
         });
@@ -92,9 +97,21 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             });
         }
 
+        IRI datatype = template.getDatatype(iri);
+        if (DatatypeValidator.appliesTo(datatype)) {
+            tc.add(new DatatypeValidator(datatype, getFieldLabel(iri)));
+        }
+
+        tc.setOutputMarkupId(true);
         tc.add(new OnChangeAjaxBehavior() {
             @Override
+            protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                InvalidityHighlighting.refresh(target, tc);
+            }
+
+            @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                InvalidityHighlighting.refresh(target, tc);
                 for (Component c : context.getComponents()) {
                     if (c == tc) continue;
                     if (c.getDefaultModel() == tc.getModel()) {
@@ -169,8 +186,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
 
         };
         if (!optional) langChoice.setRequired(true);
-        String label = template.getLabel(iri);
-        langChoice.setLabel(Model.of("language" + (label == null ? "" : " of '" + label + "'")));
+        langChoice.setLabel(Model.of("language of " + getFieldLabel(iri)));
         langChoice.getSettings().setCloseOnSelect(true);
         langChoice.getSettings().setPlaceholder("language");
         langChoice.getSettings().setAllowClear(true);
@@ -238,10 +254,75 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             String tag = s.getValue();
             if (tag == null || tag.isEmpty()) return;
             if (!tag.matches("[a-zA-Z]{2,8}(-[0-9a-zA-Z]{1,8})*")) {
-                s.error(new ValidationError("'" + tag + "' is not a valid language tag"));
+                s.error(new ValidationError("'" + tag + "' is not a valid language tag for '" + getFieldLabel(iri) + "'"));
             } else if (possibleTags != null && !possibleTags.contains(Literals.normalizeLanguageTag(tag))) {
-                s.error(new ValidationError("Language '" + tag + "' is not among the allowed languages"));
+                s.error(new ValidationError("Language '" + tag + "' is not among the allowed languages for '" + getFieldLabel(iri) + "'"));
             }
+        }
+
+    }
+
+    /**
+     * Validator that rejects values that are not in the lexical space of a built-in XSD datatype,
+     * checked the same way nanopub-java checks literals before signing. It also highlights a field
+     * whose current value is ill-typed, so a value filled in from an existing nanopublication is
+     * marked before the form is submitted.
+     */
+    protected static class DatatypeValidator extends Behavior implements IValidator<String> {
+
+        private final IRI datatype;
+        private final String fieldLabel;
+
+        /**
+         * Creates a validator for the given datatype.
+         *
+         * @param datatype   a built-in XSD datatype
+         * @param fieldLabel the name of the field, used in the error message
+         */
+        public DatatypeValidator(IRI datatype, String fieldLabel) {
+            this.datatype = datatype;
+            this.fieldLabel = fieldLabel;
+        }
+
+        /**
+         * Tells whether values of the given datatype can be checked by this validator.
+         *
+         * @param datatype the datatype declared for a placeholder, or null
+         * @return true if the datatype is a built-in XSD datatype
+         */
+        public static boolean appliesTo(IRI datatype) {
+            return datatype != null && XMLDatatypeUtil.isBuiltInDatatype(datatype);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void validate(IValidatable<String> s) {
+            if (isIllTyped(s.getValue())) {
+                s.error(new ValidationError("Value '" + s.getValue() + "' of '" + fieldLabel + "' is not a valid " + Utils.getDatatypeLabel(datatype)));
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void onComponentTag(Component c, ComponentTag tag) {
+            FormComponent<?> fc = (FormComponent<?>) c;
+            if (fc.isValid() && isIllTyped(fc.getDefaultModelObjectAsString())) {
+                tag.append("class", "invalid", " ");
+            }
+        }
+
+        /**
+         * Tells whether a non-empty value lies outside the lexical space of the datatype.
+         *
+         * @param value the value to check, or null
+         * @return true if the value is non-empty and not valid for the datatype
+         */
+        private boolean isIllTyped(String value) {
+            return value != null && !value.isEmpty() && !XMLDatatypeUtil.isValidValue(value, datatype);
         }
 
     }

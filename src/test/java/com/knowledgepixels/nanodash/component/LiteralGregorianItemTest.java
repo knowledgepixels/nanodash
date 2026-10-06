@@ -219,7 +219,7 @@ class LiteralGregorianItemTest {
         form.submit();
 
         assertEquals("", value(), "a year alone is not a gYearMonth");
-        assertErrorMessage("'month of 'the moment'' is required");
+        assertErrorMessage("'month of the moment' is required");
     }
 
     @Test
@@ -338,7 +338,7 @@ class LiteralGregorianItemTest {
         tester.newFormTester("panel:form").setValue(YEAR_FIELD, "46464");
         tester.executeAjaxEvent(yearPath, "change");
         assertEquals("", value(), "a value the pattern rejects is not stored");
-        assertErrorMessage("Value '46464' doesn't match the pattern");
+        assertErrorMessage("Value '46464' of 'the moment' doesn't match the pattern");
 
         tester.clearFeedbackMessages();
         tester.newFormTester("panel:form").setValue(YEAR_FIELD, "2026");
@@ -365,7 +365,7 @@ class LiteralGregorianItemTest {
         tester.newFormTester("panel:form").select(MONTH_FIELD, DECEMBER);
         tester.executeAjaxEvent(monthPath, "change");
         assertEquals("", value(), "December is outside the pattern, so nothing is stored");
-        assertErrorMessage("Value '2026-12' doesn't match the pattern");
+        assertErrorMessage("Value '2026-12' of 'the moment' doesn't match the pattern");
 
         tester.clearFeedbackMessages();
         tester.newFormTester("panel:form").select(MONTH_FIELD, MAY);

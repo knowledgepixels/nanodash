@@ -135,6 +135,7 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
         };
         choice = new Select2Choice<String>("choice", model, choiceProvider);
         if (!optional) choice.setRequired(true);
+        labelField(choice, iri);
         if (template.isLocalResource(iri)) {
             choice.add(new AttributeAppender("class", " short"));
         }

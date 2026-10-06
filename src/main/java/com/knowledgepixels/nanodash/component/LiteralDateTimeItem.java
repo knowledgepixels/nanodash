@@ -83,6 +83,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
         if (!optional) {
             zonedDateTimePicker.setRequired(true);
         }
+        labelField(zonedDateTimePicker, iri);
         if (context.getTemplate().getLabel(iri) != null) {
             zonedDateTimePicker.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
