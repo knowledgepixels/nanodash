@@ -15,6 +15,7 @@ import org.eclipse.rdf4j.rio.jsonld.JSONLDSettings;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubWithNs;
 
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,13 +25,19 @@ import java.util.Map;
  * What a resource page has to offer as RDF (issue #710): the download page's view of the
  * resource, plus the nanopublications that declare the resource itself, whose assertions
  * are small enough to embed in the page.
+ * <p>
+ * Pages keep this in a field, and Wicket serializes the pages it stores, so this has to be
+ * {@link Serializable}: a page holding something that is not never reaches the page store, and
+ * the next request for it then re-instantiates the page without its parameters, which is how the
+ * field added for issue #710 made the Explore page's lazy-loaded panels fail.
+ * The nanopublications it carries are serializable themselves ({@code NanopubImpl}).
  *
  * @param type         the download page's {@code type}: user, space, resource or part
  * @param id           the resource IRI
  * @param contextId    the containing resource for a part, null otherwise
  * @param declarations the nanopublications declaring the resource; empty when unknown
  */
-public record RdfSource(String type, String id, String contextId, List<Nanopub> declarations) {
+public record RdfSource(String type, String id, String contextId, List<Nanopub> declarations) implements Serializable {
 
     /**
      * Prefixes a nanopublication declares for its own URI space, which mean nothing outside it.

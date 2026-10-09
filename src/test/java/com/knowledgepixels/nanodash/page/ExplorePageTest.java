@@ -1,15 +1,29 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.WicketApplication;
+import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.rdf4j.model.util.Values.iri;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExplorePageTest {
+
+    // A request that lost its id -- a stale link, or an Ajax call to a page that is no longer
+    // in the page store -- used to fail as a server error, which left the status line and the
+    // other lazy-loaded panels spinning forever.
+    @Test
+    void anExploreRequestWithoutAnIdIsRejected() {
+        WicketTester tester = new WicketTester(new WicketApplication());
+        tester.executeUrl("." + ExplorePage.MOUNT_PATH);
+        assertEquals(400, tester.getLastResponse().getStatus(),
+                "an explore URL without an 'id' parameter should be rejected, not fail as a server error");
+    }
 
     @Test
     void membershipIsDeclaredByPartVersionAndSchemeRelations() {
