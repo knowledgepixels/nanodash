@@ -220,6 +220,19 @@ public class SpaceRepository {
     }
 
     /**
+     * Get a space by its id, falling back to its alternative IDs. An IRI that a space declares
+     * as an {@code owl:sameAs} alias of itself names that space here, which is what keeps a
+     * reference to a space's former IRI working after it was renamed.
+     *
+     * @param id The id of the space, or one of its alternative IDs.
+     * @return The corresponding Space object, or null if neither matches.
+     */
+    public Space findByIdOrAltId(String id) {
+        Space space = findById(id);
+        return space != null ? space : findByAltId(id);
+    }
+
+    /**
      * Get subspaces of a given space.
      *
      * @param space The space for which to find subspaces.
