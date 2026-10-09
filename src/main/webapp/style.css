@@ -648,6 +648,20 @@ th {
   visibility: visible;
 }
 
+/* Group header rows of a result table: a query column ending in "_group" is not
+   shown as a column but as a full-width row wherever its value changes, so a
+   table can be read in sections (e.g. the FSRs of a FIP per FIP question). */
+.result-table tr.group-header td {
+  font-weight: bold;
+  padding-top: 14px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #bbb;
+}
+
+.result-table tbody tr.group-header {
+  background-color: transparent;
+}
+
 tbody tr:nth-child(even) {
   /* Alpha-based so the zebra stripe darkens whatever is behind it (≈ #efefef
      on white), instead of looking brighter than darker backgrounds (e.g. on
