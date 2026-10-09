@@ -1,3 +1,13 @@
+## [5.17.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.17.0...nanodash-5.17.1) (2026-10-09)
+
+### Bug Fixes
+
+* **explore:** make RdfSource serializable and answer a missing id plainly ([19b1937](https://github.com/knowledgepixels/nanodash/commit/19b19372411087cb0b9fe77bb009d7bf55c4956f)), closes [#710](https://github.com/knowledgepixels/nanodash/issues/710)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([b09ff5c](https://github.com/knowledgepixels/nanodash/commit/b09ff5cbc2e60518bc9f4163ed0be731feee26da))
+
 ## [5.17.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.16.0...nanodash-5.17.0) (2026-10-09)
 
 ### Features
