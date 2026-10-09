@@ -48,6 +48,7 @@ public class QueryResultTable extends QueryResult {
 
     private Model<String> errorMessages = Model.of("");
     private DataTable<ApiResponseEntry, String> table;
+    private String groupColumnKey = null;
     private Label noRecordsLabel;
     private Label errorLabel;
     private FilteredQueryResultDataProvider filteredDataProvider;
@@ -130,9 +131,20 @@ public class QueryResultTable extends QueryResult {
             // (every column is "_noheader"), the entire header row is dropped — see the
             // gated addTopToolbar below.
             boolean anyHeaderShown = false;
+            // A column whose name ends in "_group" is not rendered as a column: its value
+            // labels a group of rows, shown as a full-width header row wherever the value
+            // changes from one row to the next (in display order), see newRowItem below.
+            // Sort the query by that column (or leave it unsorted) to get one header per
+            // group; sorting the table by another column simply interleaves the headers.
+            groupColumnKey = null;
+            for (String h : response.getHeader()) {
+                if (h.endsWith("_group")) {
+                    groupColumnKey = h;
+                }
+            }
             for (String h : response.getHeader()) {
                 if (h.endsWith("_label") || h.endsWith("_label_multi")
-                    || hiddenColumns.contains(h) || h.equals(sourceColumnKey)) {
+                    || hiddenColumns.contains(h) || h.equals(sourceColumnKey) || h.equals(groupColumnKey)) {
                     continue;
                 }
                 // A trailing "_noheader" hides this column's header label while still
@@ -171,11 +183,42 @@ public class QueryResultTable extends QueryResult {
             // The whole table (header included) is hidden when there is nothing to show;
             // a "(nothing found)" note is shown instead. No NoRecordsToolbar, since that
             // would leave the header row visible.
+            final int renderedColumnCount = columns.size();
             table = new DataTable<>("table", columns, filteredDataProvider, viewDisplay.getPageSize() < 1 ? Integer.MAX_VALUE : viewDisplay.getPageSize()) {
                 @Override
                 protected void onConfigure() {
                     super.onConfigure();
                     setVisible(errorMessages.getObject().isEmpty() && filteredDataProvider.size() > 0);
+                }
+
+                // The value of the "_group" column of the row rendered before the current
+                // one on this page; rows are created in display order, so comparing against
+                // it tells where a new group starts. Reset on the first row of each page.
+                private String previousGroup = null;
+
+                @Override
+                protected Item<ApiResponseEntry> newRowItem(String id, int index, IModel<ApiResponseEntry> model) {
+                    if (groupColumnKey == null) {
+                        return super.newRowItem(id, index, model);
+                    }
+                    if (index == 0) previousGroup = null;
+                    String group = model.getObject().get(groupColumnKey);
+                    if (group == null) group = "";
+                    final String header = group.equals(previousGroup) || group.isEmpty() ? null : group;
+                    previousGroup = group;
+                    return new Item<ApiResponseEntry>(id, index, model) {
+                        @Override
+                        protected void onRender() {
+                            if (header != null) {
+                                // A full-width header row written straight before this row's
+                                // own <tr>, outside Wicket's component tree (there is no
+                                // component for it to attach to).
+                                getResponse().write("<tr class=\"group-header\"><td colspan=\"" + renderedColumnCount + "\">"
+                                        + Strings.escapeMarkup(header) + "</td></tr>");
+                            }
+                            super.onRender();
+                        }
+                    };
                 }
             };
             table.setOutputMarkupPlaceholderTag(true);

@@ -195,6 +195,10 @@ public final class DocumentModelBuilder {
                 displayLabel = displayLabel.substring(0, displayLabel.length() - "_multi".length());
             } else if (displayLabel.endsWith("_iri")) {
                 displayLabel = displayLabel.substring(0, displayLabel.length() - "_iri".length());
+            } else if (displayLabel.endsWith("_group")) {
+                // Rendered as group header rows in the table; the export keeps it as a
+                // plain column, so the grouping survives in the document.
+                displayLabel = displayLabel.substring(0, displayLabel.length() - "_group".length());
             }
             dataKeys.add(h);
             keys.add(key);
