@@ -326,9 +326,9 @@ public class SpacePage extends NanodashPage {
      * @param parameters page parameters containing the space {@code id}; in site mode it may be
      *                   left out, meaning the site's space
      * @return the resolved {@link Space}; never {@code null}
-     * @throws RestartResponseException if the id belongs to a {@link MaintainedResource} or to a part within one,
-     *                                  or the site's space is not loaded yet
-     * @throws IllegalArgumentException if the id cannot be resolved to any known resource
+     * @throws RestartResponseException if the id is an alias of a space's canonical id, belongs to a
+     *                                  {@link MaintainedResource} or to a part within one, names nothing
+     *                                  known, or the site's space is not loaded yet
      */
     private Space resolveSpace(PageParameters parameters) {
         String id = parameters.get("id").toString();
@@ -339,13 +339,27 @@ public class SpacePage extends NanodashPage {
             if (site == null) throw new RestartResponseException(SiteLoadingPage.class);
             return site;
         }
-        Space resolved = SpaceRepository.get().findById(id);
+        if (id == null) {
+            throw new RestartResponseException(ErrorPage.class, new PageParameters()
+                    .set(ErrorPage.MESSAGE_PARAM, "No space was given to show.")
+                    .set(ErrorPage.KIND_PARAM, ErrorPage.Kind.REQUEST.getParamValue()));
+        }
+        Space resolved = SpaceRepository.get().findByIdOrAltId(id);
         if (resolved == null) {
             if (MaintainedResourceRepository.get().findById(id) != null) {
                 throw new RestartResponseException(MaintainedResourcePage.class, parameters);
             }
             ResourcePartPage.forwardToContainingResource(parameters);
-            throw new IllegalArgumentException("No space or resource found for id: " + id);
+            // Nothing known goes by this id: an id that is mistyped, or one that is out of date
+            // without an alias pointing on. Saying so beats the page failing to build (#284).
+            throw new RestartResponseException(ErrorPage.class, new PageParameters()
+                    .set(ErrorPage.MESSAGE_PARAM, "No space or resource is known under the id " + id + ".")
+                    .set(ErrorPage.KIND_PARAM, ErrorPage.Kind.REQUEST.getParamValue()));
+        }
+        if (!resolved.getId().equals(id)) {
+            // The id is one the space declares as an owl:sameAs alias of itself, typically its
+            // former IRI: the page is at the canonical id, so continue there.
+            throw new RestartResponseException(SpacePage.class, parameters.set("id", resolved.getId()));
         }
 
         return resolved;
