@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.http.flow.AbortWithHttpErrorCodeException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.commonjava.mimeparse.MIMEParse;
@@ -157,9 +158,15 @@ public class ExplorePage extends NanodashPage {
     private void initPage() {
         PageParameters parameters = getPageParameters();
 
-        String tempRef = parameters.get("id").toString();
+        String tempRef = parameters.get("id").toString("");
         // Sometimes these Wicket session IDs end up here and they can mess up the query cache:
         tempRef = tempRef.replaceFirst(";jsessionid.*$", "");
+        // There is nothing to explore without an id. Answering that plainly keeps a request
+        // that lost the parameter -- a stale link, or an Ajax call to a page that is no longer
+        // in the page store -- from failing as a server error.
+        if (tempRef.isEmpty()) {
+            throw new AbortWithHttpErrorCodeException(400, "Parameter 'id' is required");
+        }
 
         String contextId = parameters.get("context").toString("");
 

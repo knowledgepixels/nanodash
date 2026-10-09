@@ -5,7 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -91,6 +95,31 @@ class RdfSourceTest {
     @Test
     void nothingToEmbedWithoutDeclarations() {
         assertNull(new RdfSource("space", RESOURCE_IRI, null, List.of()).toEmbeddedJsonLd(DUMP_URL));
+    }
+
+    /**
+     * Wicket serializes the pages it stores, and a page keeps its RdfSource in a field, so
+     * one has to survive serialization: a page holding something that does not never reaches
+     * the page store, and the next request for it re-instantiates the page without its
+     * parameters -- which is how the Explore page's lazy-loaded panels came to fail.
+     */
+    @Test
+    void survivesPageSerialization() throws Exception {
+        RdfSource source = new RdfSource("space", RESOURCE_IRI, null, List.of(declaration()));
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+            out.writeObject(source);
+        }
+        RdfSource restored;
+        try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            restored = (RdfSource) in.readObject();
+        }
+        assertEquals("space", restored.type());
+        assertEquals(RESOURCE_IRI, restored.id());
+        assertEquals(1, restored.declarations().size());
+        String doc = restored.toEmbeddedJsonLd(DUMP_URL);
+        assertTrue(doc.contains(RESOURCE_IRI), doc);
+        assertTrue(doc.contains("Test Workshop"), doc);
     }
 
     /**
