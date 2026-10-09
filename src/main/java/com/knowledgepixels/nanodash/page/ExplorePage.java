@@ -423,6 +423,10 @@ public class ExplorePage extends NanodashPage {
 
         final String ref = tempRef;
         canonicalId = (np != null && isNanopubId) ? np.getUri().stringValue() : ref;
+        // JSON document URIs (e.g. ro-crate-metadata.json) are not RDF entities: the
+        // nanopub query API returns JSON for them, which causes RDF parse errors in
+        // ApiCache on every cache refresh. Skip all entity queries for such URIs.
+        final boolean looksLikeJsonDocument = ref.endsWith(".json");
         final String shortName;
         // Prefer the resolved nanopub's own (full) label whenever we are exploring the
         // nanopub itself — this avoids showing the truncated/ellipsised value carried in
@@ -460,7 +464,7 @@ public class ExplorePage extends NanodashPage {
         // shows both what is known about it and where it is mentioned. Note that
         // publishedNanopub != null implies np != null, so "has a nanopublication to show"
         // covers the just-published case too.
-        boolean showTermViews = !outsideSite && !hasNanopub;
+        boolean showTermViews = !outsideSite && !hasNanopub && !looksLikeJsonDocument;
         // The tab strip only has something to split where there is a nanopublication to put
         // on one side of it. A plain term gets a single page instead, so an old ?tab=explore
         // link lands on that page rather than on a tab that is no longer there.
@@ -515,10 +519,14 @@ public class ExplorePage extends NanodashPage {
         // they are empty too -- hence a note about the thing rather than about this view.
         // (The queries are separately published nanopubs that can be superseded without
         // touching this code, which is why the note says only what this query tested.)
-        View refView = View.get(ReferencesPage.REFERENCES_VIEW);
-        QueryRef refQueryRef = new QueryRef(refView.getQuery().getQueryId(), "ref", ref);
-        exploreSection.add(QueryResultTableBuilder.create("references", refQueryRef,
-                new ViewDisplay(refView).withEmptyMessage(NOTHING_KNOWN_NOTE)).build());
+        if (!looksLikeJsonDocument) {
+            View refView = View.get(ReferencesPage.REFERENCES_VIEW);
+            QueryRef refQueryRef = new QueryRef(refView.getQuery().getQueryId(), "ref", ref);
+            exploreSection.add(QueryResultTableBuilder.create("references", refQueryRef,
+                    new ViewDisplay(refView).withEmptyMessage(NOTHING_KNOWN_NOTE)).build());
+        } else {
+            exploreSection.add(new Label("references").setVisible(false));
+        }
 
         // Written as a disjunction although the first implies the second, so that a later
         // change to either cannot quietly leave an empty striped band behind.
