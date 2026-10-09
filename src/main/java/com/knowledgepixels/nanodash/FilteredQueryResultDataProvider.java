@@ -9,8 +9,10 @@ import org.nanopub.extra.services.ApiResponseEntry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Filtered data provider that wraps QueryResultDataProvider and filters results based on a filter string.
@@ -65,6 +67,36 @@ public class FilteredQueryResultDataProvider implements ISortableDataProvider<Ap
         return filteredData;
     }
 
+    /**
+     * The name of the "_group" column of this result, if any: the column whose values
+     * group the rows into sections (rendered as header rows by the result table).
+     *
+     * @return the column name, or null when the result has no such column
+     */
+    public String getGroupColumn() {
+        for (String h : response.getHeader()) {
+            if (h.endsWith("_group")) return h;
+        }
+        return null;
+    }
+
+    /**
+     * The rank of each group value: its position among the distinct values of the
+     * "_group" column in the order the query returned them. Column sorting keeps the
+     * sections in that order and only reorders the rows inside each section.
+     */
+    private Map<String, Integer> groupRanks() {
+        String groupColumn = getGroupColumn();
+        Map<String, Integer> ranks = new HashMap<>();
+        if (groupColumn == null) return ranks;
+        for (ApiResponseEntry entry : response.getData()) {
+            String g = entry.get(groupColumn);
+            if (g == null) g = "";
+            ranks.putIfAbsent(g, ranks.size());
+        }
+        return ranks;
+    }
+
     @Override
     public Iterator<? extends ApiResponseEntry> iterator(long first, long count) {
         List<ApiResponseEntry> data = new ArrayList<>(getFilteredData());
@@ -73,9 +105,20 @@ public class FilteredQueryResultDataProvider implements ISortableDataProvider<Ap
             String prop = sortParam.getProperty();
             String labelProp = prop + "_label";
             String sortProp = Arrays.asList(response.getHeader()).contains(labelProp) ? labelProp : prop;
+            // With a "_group" column, the sections keep their query order whichever
+            // column is sorted and in whichever direction; the sort applies within them.
+            String groupColumn = getGroupColumn();
+            Map<String, Integer> groupRanks = groupRanks();
             // Values are compared with Utils.compareValues rather than as plain text, so
             // that a column of numbers does not come out with "10" above "9" (issue #673).
             data.sort((o1, o2) -> {
+                if (groupColumn != null) {
+                    String g1 = o1.get(groupColumn);
+                    String g2 = o2.get(groupColumn);
+                    int byGroup = Integer.compare(groupRanks.getOrDefault(g1 == null ? "" : g1, Integer.MAX_VALUE),
+                            groupRanks.getOrDefault(g2 == null ? "" : g2, Integer.MAX_VALUE));
+                    if (byGroup != 0) return byGroup;
+                }
                 String v1 = o1.get(sortProp);
                 String v2 = o2.get(sortProp);
                 int result;

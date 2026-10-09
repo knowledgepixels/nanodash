@@ -134,8 +134,9 @@ public class QueryResultTable extends QueryResult {
             // A column whose name ends in "_group" is not rendered as a column: its value
             // labels a group of rows, shown as a full-width header row wherever the value
             // changes from one row to the next (in display order), see newRowItem below.
-            // Sort the query by that column (or leave it unsorted) to get one header per
-            // group; sorting the table by another column simply interleaves the headers.
+            // The groups keep the order the query returned them in; sorting the table by
+            // a column reorders the rows inside each group only (see
+            // FilteredQueryResultDataProvider), so there is always one header per group.
             groupColumnKey = null;
             for (String h : response.getHeader()) {
                 if (h.endsWith("_group")) {
