@@ -1,3 +1,42 @@
+## [5.17.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.16.0...nanodash-5.17.0) (2026-10-09)
+
+### Features
+
+* **dropdowns:** look up dropdown APIs in parallel and cache the results ([8e1cf8c](https://github.com/knowledgepixels/nanodash/commit/8e1cf8c7e958ec8e5ff7d8f62a5025da85331c3e)), closes [#88](https://github.com/knowledgepixels/nanodash/issues/88)
+* **dropdowns:** search 250 ms after typing instead of 500 ms ([b9f71d4](https://github.com/knowledgepixels/nanodash/commit/b9f71d47ccc1406bac3bc58f06bf0062f2dd07a1)), closes [#88](https://github.com/knowledgepixels/nanodash/issues/88)
+* **explore:** describe nanopublication pages to search engines ([51fd96d](https://github.com/knowledgepixels/nanodash/commit/51fd96df5cc4c4e39db75dfab04d1390b5fb4d3c)), closes [#710](https://github.com/knowledgepixels/nanodash/issues/710) [#168](https://github.com/knowledgepixels/nanodash/issues/168)
+* **forms:** check typed literals in the form field instead of only at signing ([a8b958f](https://github.com/knowledgepixels/nanodash/commit/a8b958fb0f7b739fce0b8064bd654cfe5a381a8c)), closes [#751](https://github.com/knowledgepixels/nanodash/issues/751)
+* **forms:** clear a filled-in optional statement with one click ([b63cbb0](https://github.com/knowledgepixels/nanodash/commit/b63cbb051fdb7edc08cad52863b1f0a86d85d5d7)), closes [#145](https://github.com/knowledgepixels/nanodash/issues/145)
+* **forms:** highlight an invalid literal field while typing ([f930bb3](https://github.com/knowledgepixels/nanodash/commit/f930bb3f0b1c00bf441f9911c0f61ff05fd1eafb))
+* **forms:** name the field in its error messages ([565b27a](https://github.com/knowledgepixels/nanodash/commit/565b27a4ee79e85a0028fdbb6f7fa5956f90536c))
+* group rows of a result table under header rows via a "_group" column ([d7a5498](https://github.com/knowledgepixels/nanodash/commit/d7a54987b042519dc4f8a71e247d7d13046aa604))
+* **part-page:** offer the part's own page in the title menu ([3b5671c](https://github.com/knowledgepixels/nanodash/commit/3b5671c97322b8b43ad3cce8c6e42ddbf1629f7c)), closes [#697](https://github.com/knowledgepixels/nanodash/issues/697)
+* **QueryResultThread:** add component for displaying a thread view and helpers ([5a8763c](https://github.com/knowledgepixels/nanodash/commit/5a8763ca1ed0585093ccfef4f06980cd7ae4de68))
+* sort within groups when a result has a "_group" column ([62f065e](https://github.com/knowledgepixels/nanodash/commit/62f065e74f2ff0a3f3bf65f329c813d6d53e88ad))
+* **ThreadNodePanel:** add component for displaying a node in a thread ([4ed9f9b](https://github.com/knowledgepixels/nanodash/commit/4ed9f9bac27a600925e94a7b0d02a6412e60d017))
+
+### Bug Fixes
+
+* fall back to dct:title for a part page's title ([cc9d706](https://github.com/knowledgepixels/nanodash/commit/cc9d70622702ec3e1e9a240ae5dec8b9b8b3d732))
+* **part-page:** type an agent part as gen:IndividualAgent ([37c2acf](https://github.com/knowledgepixels/nanodash/commit/37c2acf415bdd3a7e472992d4fc555d4fbcafd13))
+* take maintained-resource labels from the resource, not its declaring nanopub ([f074497](https://github.com/knowledgepixels/nanodash/commit/f07449711f523ac221e13cf95a199bc3259d73de))
+
+### Tests
+
+* **DiscussionThread, ThreadNodePanel:** add tests for Thread View related components ([de6a35a](https://github.com/knowledgepixels/nanodash/commit/de6a35a2eb83908e2c5f360c80e77d5c96f77e6e))
+
+### General maintenance
+
+* **kpxl_terms:** add `ThreadView` term for displaying a thread ([8ab7457](https://github.com/knowledgepixels/nanodash/commit/8ab7457d69b59454963c259e03eb184b64207e1a))
+* **lookup:** join search terms with String.join instead of JCommander ([228c25f](https://github.com/knowledgepixels/nanodash/commit/228c25fcb158dfb5804de8ef2c370ab8a4f66c8a)), closes [Nanopublication/nanopub-java#111](https://github.com/Nanopublication/nanopub-java/issues/111)
+* **QueryResultComponentFactory:** add support for `QueryResultThread` component ([9c9cc87](https://github.com/knowledgepixels/nanodash/commit/9c9cc874a5bbc6859b7a4ab7b5d9e2846164d44f))
+* **QueryResultThread:** add builder class ([6a68ad5](https://github.com/knowledgepixels/nanodash/commit/6a68ad53331b3f549f3bd0527044d8ec84ce6b1a))
+* setting next snapshot version [skip ci] ([2553e9b](https://github.com/knowledgepixels/nanodash/commit/2553e9b9c0b4bfd6f7dee999ebc78f3378d4878a))
+* **style:** update style for Thread view and Node panel ([23cfe50](https://github.com/knowledgepixels/nanodash/commit/23cfe500e05b4b5c3c6e23c12082543727a06ef8))
+* update minor code issues after merge conflicts ([0c38442](https://github.com/knowledgepixels/nanodash/commit/0c384421c2b466e048b2bdfa2a6bd938e0308784))
+* update ViewActionMappings and DocumentModelBuilder for ThreadView support ([d58ff3e](https://github.com/knowledgepixels/nanodash/commit/d58ff3e4f8b5d75dad74ae3876926177663091df))
+* **View:** add ThreadView to supported types ([48c5dd7](https://github.com/knowledgepixels/nanodash/commit/48c5dd78603c8f8897f9e66f9bd06a438be2cb44))
+
 ## [5.16.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.15.0...nanodash-5.16.0) (2026-09-25)
 
 ### Features
