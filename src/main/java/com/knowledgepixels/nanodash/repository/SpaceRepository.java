@@ -171,12 +171,6 @@ public class SpaceRepository {
         logger.info("Refreshed spaces from spaces repo: {} distinct spaces", spaceList.size());
         SpaceFactory.removeStale(byId.keySet());
         populateSubspaceRelations(byId, subspaceMap, superspaceMap);
-        // Mark each space's per-space detail data stale; the upstream spaces
-        // listing has refreshed, so members/admins/roles should be re-fetched
-        // on next access.
-        for (Space space : spaceList) {
-            space.setDataNeedsUpdate();
-        }
         return new Snapshot(byId, byAltId, subspaceMap, superspaceMap);
     }
 
