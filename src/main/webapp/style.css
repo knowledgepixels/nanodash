@@ -3221,6 +3221,33 @@ div.navigator .goto a[disabled] {
   height: auto;
 }
 
+/* Fitting a very wide figure to the panel can shrink its text past reading size. The
+   toggle added by nanodash.js hands such a figure back its own size, and the scrolling
+   above, which the fit had left with nothing to scroll. */
+.svg-view-content.svg-natural svg {
+  max-width: none;
+}
+
+button.svg-zoom-toggle {
+  font-size: 9pt;
+  min-width: 22px;
+  padding: 0 6px;
+  margin: 1px;
+  background-color: transparent;
+  color: #0B73DA;
+  border: 1px solid #0B73DA;
+  border-radius: 4px;
+  display: inline-block;
+  cursor: pointer;
+  line-height: 20px;
+  vertical-align: middle;
+}
+
+button.svg-zoom-toggle:hover {
+  color: #6EB2F7;
+  border-color: #6EB2F7;
+}
+
 /* Links in SVG figures (both SVG views and inline SVG in HTML snippets) follow
    the page's link colors (matching the a / a:hover rules above). CSS overrides
    the SVG's own fill presentation attributes, which queries keep as a fallback

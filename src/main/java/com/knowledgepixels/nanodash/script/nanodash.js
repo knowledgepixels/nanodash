@@ -149,6 +149,60 @@ function addSectionAnchors(root) {
   });
 }
 
+/* SVG views are fitted to the panel they sit in (max-width:100%), which keeps a wide
+   figure whole but shrinks its text with it: a conference day with thirteen parallel
+   rooms came to 2346 units and landed at 0.55 in a 1320px panel, so its 10px type
+   rendered at 5.5px. The container has always been scrollable (overflow-x:auto on
+   .svg-view-content), it simply never had anything to scroll, because the figure was
+   never allowed to exceed it. So a figure that is being shrunk gets a control to show
+   it at its own size instead, and scroll. Idempotent, and re-run on resize, since the
+   same figure fits one window and not the next. */
+function svgNaturalWidth(svg) {
+  var w = parseFloat(svg.getAttribute("width"));
+  if (w > 0) return w;
+  var box = (svg.getAttribute("viewBox") || "").split(/[\s,]+/);
+  return box.length === 4 ? parseFloat(box[2]) : 0;
+}
+
+function addSvgZoomControls(root) {
+  var scope = root || document;
+  scope.querySelectorAll(".svg-view-content").forEach(function (content) {
+    var svg = content.querySelector("svg");
+    var figure = content.parentElement;
+    var buttons = figure ? figure.querySelector(".paragraph-header .buttons") : null;
+    if (!svg || !buttons) return;
+    var existing = buttons.querySelector(".svg-zoom-toggle");
+    var natural = svgNaturalWidth(svg);
+    // A figure that fits, or comes within a twentieth of fitting, is left alone: a
+    // control that gains the reader a few percent is just one more thing in the header.
+    var shrunk = natural > 0 && content.clientWidth > 0 && natural > content.clientWidth * 1.05;
+    if (!shrunk && !content.classList.contains("svg-natural")) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing) return;
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "svg-zoom-toggle";
+    setSvgZoomLabel(button, false);
+    button.addEventListener("click", function () {
+      setSvgZoomLabel(button, content.classList.toggle("svg-natural"));
+    });
+    buttons.appendChild(button);
+  });
+}
+
+function setSvgZoomLabel(button, natural) {
+  button.textContent = natural ? "⤡ fit" : "⤢ full size";
+  button.title = natural ? "Fit this figure to the panel" : "Show this figure at its own size";
+}
+
+var svgZoomTimer = null;
+window.addEventListener("resize", function () {
+  if (svgZoomTimer) clearTimeout(svgZoomTimer);
+  svgZoomTimer = setTimeout(addSvgZoomControls, 200);
+});
+
 /* Scrolling to a section that isn't there yet. Most view displays load over Ajax after
    the initial render, so at the moment the browser handles the fragment its target
    often does not exist. We therefore keep re-scrolling to it as sections arrive, until
@@ -393,6 +447,7 @@ document.addEventListener("DOMContentLoaded", function() {
   wrapCellEmoji();
   renderFriendlyDates();
   addSectionAnchors();
+  addSvgZoomControls();
   adjustLongLiterals();
   startAnchorTracking();
   trackAjaxUpdates();
@@ -403,6 +458,7 @@ document.addEventListener("DOMContentLoaded", function() {
       wrapCellEmoji();
       renderFriendlyDates();
       addSectionAnchors();
+      addSvgZoomControls();
       adjustLongLiterals();
       scrollToAnchor();
     });
@@ -441,6 +497,7 @@ function updateElements() {
   wrapCellEmoji();
   renderFriendlyDates();
   addSectionAnchors();
+  addSvgZoomControls();
   adjustValueWidths();
   adjustLongLiterals();
   setCollapseOverflow();
