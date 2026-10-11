@@ -449,7 +449,12 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
                 }
             } else {
                 QueryRef queryRef = QueryRef.parseString(target);
-                ApiCache.clearCache(queryRef, waitMs, nanopub.getUri().stringValue());
+                // A role grant reaches the space listing queries only once nanopub-query
+                // has materialized it into the current space state, which is a good while
+                // after it was ingested; waiting for ingest alone re-runs the query too
+                // early for the new row to be in it.
+                ApiCache.clearCache(queryRef, waitMs, nanopub.getUri().stringValue(),
+                        PostPublishRefresh.changesSpaceRoleState(nanopub));
             }
         });
     }

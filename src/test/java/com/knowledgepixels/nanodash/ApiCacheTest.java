@@ -39,7 +39,7 @@ class ApiCacheTest {
         resetMap("refreshStart");
         resetMap("runAfter");
         resetMap("forcedRefresh");
-        resetMap("awaitIngest");
+        resetMap("publishRefreshes");
         resetMap("ingestConfirmResults");
         resetMap("ingestConfirmLocks");
 
@@ -82,6 +82,21 @@ class ApiCacheTest {
         ConcurrentMap<String, Long> lastRefresh = getMap("lastRefresh");
         cachedResponses.put(MOCK_CACHE_ID, response);
         lastRefresh.put(MOCK_CACHE_ID, System.currentTimeMillis() - ageMillis);
+    }
+
+    private Object probeOutcome(String name) throws Exception {
+        Class<?> c = Class.forName("com.knowledgepixels.nanodash.ApiCache$ProbeOutcome");
+        for (Object constant : c.getEnumConstants()) {
+            if (constant.toString().equals(name)) return constant;
+        }
+        throw new IllegalArgumentException(name);
+    }
+
+    private Object publishRefresh(String npId, boolean awaitMaterialization, long retryUntil) throws Exception {
+        Class<?> c = Class.forName("com.knowledgepixels.nanodash.ApiCache$PublishRefresh");
+        var ctor = c.getDeclaredConstructors()[0];
+        ctor.setAccessible(true);
+        return ctor.newInstance(npId, awaitMaterialization, retryUntil);
     }
 
     private void putFailed(int count) throws Exception {
@@ -367,7 +382,7 @@ class ApiCacheTest {
         String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x1";
         // A fallback delay far longer than the test may take: with a positive probe, the
         // refresh must not wait it out.
-        ApiCache.clearCache(mockQueryRef, 60000L, npId);
+        ApiCache.clearCache(mockQueryRef, 60000L, npId, false);
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
             queryApiAccess.when(() -> QueryApiAccess.isNanopubLoaded(npId)).thenReturn(true);
@@ -380,7 +395,7 @@ class ApiCacheTest {
             assertSame(fresh, result);
             assertTrue(elapsed < 10000, "confirmation should release the refresh long before the 60s fallback, but took " + elapsed + "ms");
             queryApiAccess.verify(() -> QueryApiAccess.isNanopubLoaded(npId));
-            assertFalse(this.<String, String>getMap("awaitIngest").containsKey(MOCK_CACHE_ID), "the pending confirmation should be consumed");
+            assertFalse(this.<String, Object>getMap("publishRefreshes").containsKey(MOCK_CACHE_ID), "the pending confirmation should be consumed");
             assertFalse(this.<String, Long>getMap("runAfter").containsKey(MOCK_CACHE_ID), "the fallback delay should be dropped on confirmation");
         }
     }
@@ -392,7 +407,7 @@ class ApiCacheTest {
         ApiResponse fresh = mock(ApiResponse.class);
         putCachedResponse(stale, 5000L);
         String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x2";
-        ApiCache.clearCache(mockQueryRef, 0L, npId);
+        ApiCache.clearCache(mockQueryRef, 0L, npId, false);
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
             queryApiAccess.when(() -> QueryApiAccess.isNanopubLoaded(npId)).thenThrow(new FailedApiCallException(new Exception("probe broken")));
@@ -414,8 +429,8 @@ class ApiCacheTest {
         putCachedResponse(stale, 5000L);
         String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x3";
         // Another view's refresh has already polled for this nanopub and given up.
-        this.<String, Boolean>getMap("ingestConfirmResults").put(npId, false);
-        ApiCache.clearCache(mockQueryRef, 0L, npId);
+        this.<String, Object>getMap("ingestConfirmResults").put(npId + "|loaded", probeOutcome("NOT_YET"));
+        ApiCache.clearCache(mockQueryRef, 0L, npId, false);
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
             queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
@@ -425,6 +440,130 @@ class ApiCacheTest {
             assertSame(fresh, result);
             // The shared result answers instead of a second polling round.
             queryApiAccess.verify(() -> QueryApiAccess.isNanopubLoaded(any()), never());
+        }
+    }
+
+    @Test
+    @DisplayName("a clear with no nanopub to wait for should still sit out its blind delay")
+    void clearWithoutNanopubStillWaitsOutBlindDelay() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        long waitMillis = 1200L;
+        ApiCache.clearCache(mockQueryRef, waitMillis);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            long start = System.currentTimeMillis();
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+            long elapsed = System.currentTimeMillis() - start;
+
+            assertSame(fresh, result);
+            assertTrue(elapsed >= waitMillis,
+                    "the blind delay is all an ordinary cleared entry has, so it must be waited out, but took only " + elapsed + "ms");
+            queryApiAccess.verify(() -> QueryApiAccess.isNanopubLoaded(any()), never());
+            queryApiAccess.verify(() -> QueryApiAccess.isNanopubMaterialized(any()), never());
+        }
+    }
+
+    @Test
+    @DisplayName("a role grant's refresh should wait for materialization, not for ingest")
+    void roleGrantRefreshWaitsForMaterialization() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x4";
+        ApiCache.clearCache(mockQueryRef, 60000L, npId, true);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.isNanopubMaterialized(npId)).thenReturn(true);
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            assertSame(fresh, result);
+            queryApiAccess.verify(() -> QueryApiAccess.isNanopubMaterialized(npId));
+            // Ingest is the wrong question here, and asking it is what released the
+            // refresh too early: the row cannot be in the results until the authority
+            // resolver has written it into the current space state.
+            queryApiAccess.verify(() -> QueryApiAccess.isNanopubLoaded(any()), never());
+            assertFalse(this.<String, Object>getMap("publishRefreshes").containsKey(MOCK_CACHE_ID));
+        }
+    }
+
+    @Test
+    @DisplayName("a refresh that fetched before its publication arrived should stay pending for another attempt")
+    void unconfirmedPublishRefreshIsRetried() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x5";
+        // A probing round has already run and concluded the publication is not there yet.
+        this.<String, Object>getMap("ingestConfirmResults").put(npId + "|materialized", probeOutcome("NOT_YET"));
+        ApiCache.clearCache(mockQueryRef, 0L, npId, true);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // The fetch went ahead, but it is not the final word: the entry stays on the
+            // forced path so the next access runs the wait and the query again, which is
+            // what the UI needs in order to go on waiting.
+            assertTrue(getSet("forcedRefresh").contains(MOCK_CACHE_ID), "the refresh should still count as pending");
+            assertTrue(ApiCache.hasPendingPublishRefresh(mockQueryRef), "the UI should be told to keep waiting");
+            // and the stale verdict is dropped, so the next round really does probe again
+            assertFalse(this.<String, Object>getMap("ingestConfirmResults").containsKey(npId + "|materialized"));
+        }
+    }
+
+    @Test
+    @DisplayName("a probe that cannot be run should not be retried")
+    void unrunnableProbeIsNotRetried() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x6";
+        ApiCache.clearCache(mockQueryRef, 0L, npId, true);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.isNanopubMaterialized(npId))
+                    .thenThrow(new FailedApiCallException(new Exception("probe query not published")));
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // A probe that answers nothing is no evidence that anything is missing, so this
+            // falls back to exactly the old behaviour: one fetch, then settle.
+            assertSame(fresh, result);
+            assertFalse(getSet("forcedRefresh").contains(MOCK_CACHE_ID));
+            assertFalse(ApiCache.hasPendingPublishRefresh(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("retrying should stop once the publish refresh budget has run out")
+    void publishRefreshRetryStopsAtDeadline() throws Exception {
+        ApiResponse stale = mock(ApiResponse.class);
+        ApiResponse fresh = mock(ApiResponse.class);
+        putCachedResponse(stale, 5000L);
+        String npId = "https://w3id.org/np/RAtest0000000000000000000000000000000000000x7";
+        this.<String, Object>getMap("ingestConfirmResults").put(npId + "|materialized", probeOutcome("NOT_YET"));
+        getSet("forcedRefresh").add(MOCK_CACHE_ID);
+        // The publication was never confirmed and the budget for asking again is spent.
+        this.<String, Object>getMap("publishRefreshes").put(MOCK_CACHE_ID,
+                publishRefresh(npId, true, System.currentTimeMillis() - 1));
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            ApiCache.retrieveResponseSync(mockQueryRef, false);
+
+            // Giving up has to be complete: a cache id left on the forced path would put
+            // every later render on the stale branch and re-submit a refresh each time.
+            assertFalse(getSet("forcedRefresh").contains(MOCK_CACHE_ID));
+            assertFalse(ApiCache.hasPendingPublishRefresh(mockQueryRef));
         }
     }
 

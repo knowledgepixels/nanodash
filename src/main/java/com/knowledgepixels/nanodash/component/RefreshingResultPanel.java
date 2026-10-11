@@ -161,6 +161,13 @@ public class RefreshingResultPanel extends Panel {
             return false;
         }
         if (shownDigest != null && shownDigest.equals(digest(fresh))) {
+            if (ApiCache.hasPendingPublishRefresh(queryRef) && System.currentTimeMillis() < deadline) {
+                // These results cannot be the answer yet: the publication they are supposed
+                // to show has not arrived where this query reads it. Keep waiting rather
+                // than settling on pre-publish content, which is what used to leave a
+                // just-added member missing from the list for good.
+                return true;
+            }
             // Nothing changed, so nothing is worth interrupting the user for.
             settle(target);
             return false;

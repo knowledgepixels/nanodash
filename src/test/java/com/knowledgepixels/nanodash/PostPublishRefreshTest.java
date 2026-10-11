@@ -1,9 +1,12 @@
 package com.knowledgepixels.nanodash;
 
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
+
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -20,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 class PostPublishRefreshTest {
 
@@ -100,6 +104,64 @@ class PostPublishRefreshTest {
         assertFalse(PostPublishRefresh.changesPageStructure(TestUtils.createNanopub(), null));
         assertFalse(PostPublishRefresh.changesPageStructure(TestUtils.createNanopub(), ""));
         assertTrue(PostPublishRefresh.changesPageStructure(withType(KPXL_TERMS.SPACE), null));
+    }
+
+    // A nanopub asserting one triple about the space, in the inverse direction a role grant
+    // normally uses: the agent participates in the space.
+    private static Nanopub grantingWith(IRI predicate) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+        NanopubCreator creator = TestUtils.getNanopubCreator();
+        creator.addAssertionStatement(TestUtils.anyIri, predicate, vf.createIRI(SPACE_ID));
+        TestUtils.fillProvenanceGraph(creator);
+        TestUtils.fillPubInfoGraph(creator);
+        return creator.finalizeNanopub();
+    }
+
+    @Test
+    @DisplayName("a role assignment or revocation has to wait for materialization")
+    void roleStateChangesNeedMaterialization() throws Exception {
+        assertTrue(PostPublishRefresh.changesSpaceRoleState(withAssertionPredicate(KPXL_TERMS.HAS_ROLE)));
+        assertTrue(PostPublishRefresh.changesSpaceRoleState(withAssertionPredicate(KPXL_TERMS.DETACHED_ROLE)));
+        assertTrue(PostPublishRefresh.changesSpaceRoleState(withType(KPXL_TERMS.ROLE_INSTANTIATION)));
+        assertTrue(PostPublishRefresh.changesSpaceRoleState(withType(KPXL_TERMS.REVOKED_ROLE_INSTANTIATION)));
+    }
+
+    @Test
+    @DisplayName("a space's own role predicate is recognised in either direction")
+    void spaceRolePredicateNeedsMaterialization() throws Exception {
+        IRI participatesIn = vf.createIRI("http://www.wikidata.org/entity/P1344");
+        SpaceMemberRole role = mock(SpaceMemberRole.class);
+        when(role.getRegularProperties()).thenReturn(new IRI[0]);
+        when(role.getInverseProperties()).thenReturn(new IRI[]{participatesIn});
+        SpaceMemberRoleRef roleRef = mock(SpaceMemberRoleRef.class);
+        when(roleRef.getRole()).thenReturn(role);
+        Space space = mock(Space.class);
+        when(space.getRoles()).thenReturn(List.of(roleRef));
+
+        try (MockedStatic<AbstractResourceWithProfile> resources = mockStatic(AbstractResourceWithProfile.class)) {
+            resources.when(() -> AbstractResourceWithProfile.get(SPACE_ID)).thenReturn(space);
+
+            // The grant names the space as the object, the agent as the subject, so finding
+            // it means looking at both ends of the statement.
+            assertTrue(PostPublishRefresh.changesSpaceRoleState(grantingWith(participatesIn)));
+            assertTrue(PostPublishRefresh.changesSpaceRoleState(withAssertionPredicate(participatesIn)));
+            assertFalse(PostPublishRefresh.changesSpaceRoleState(
+                    grantingWith(vf.createIRI("http://purl.org/dc/terms/description"))));
+        }
+    }
+
+    @Test
+    @DisplayName("publications that are not about roles must not wait for materialization")
+    void nonRolePublicationsDoNotNeedMaterialization() throws Exception {
+        assertFalse(PostPublishRefresh.changesSpaceRoleState(null));
+        assertFalse(PostPublishRefresh.changesSpaceRoleState(TestUtils.createNanopub()));
+        // View displays and presets are read straight off the ingested nanopubs, so making
+        // them wait for a materialization that never comes would only hold the spinner up.
+        assertFalse(PostPublishRefresh.changesSpaceRoleState(withType(KPXL_TERMS.VIEW_DISPLAY)));
+        assertFalse(PostPublishRefresh.changesSpaceRoleState(withType(KPXL_TERMS.PRESET_ASSIGNMENT)));
+        assertFalse(PostPublishRefresh.changesSpaceRoleState(withAssertionPredicate(KPXL_TERMS.IS_DISPLAY_OF_VIEW)));
+        // A retraction qualifies for the structural refresh but not for this wait: most
+        // retractions have nothing to do with roles.
+        assertFalse(PostPublishRefresh.changesSpaceRoleState(withAssertionPredicate(NPX.RETRACTS)));
     }
 
     private static Nanopub introducing(String iri) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
