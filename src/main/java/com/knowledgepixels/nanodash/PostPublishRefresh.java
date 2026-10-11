@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NPX;
@@ -76,6 +77,72 @@ public class PostPublishRefresh {
     );
 
     /**
+     * Nanopub types that say the publication is a role assignment or revocation, i.e. that
+     * what it changes only becomes visible once the authority resolver has worked it out.
+     */
+    private static final Set<IRI> ROLE_STATE_TYPES = Set.of(
+            KPXL_TERMS.ROLE_INSTANTIATION,
+            KPXL_TERMS.REVOKED_ROLE_INSTANTIATION
+    );
+
+    /**
+     * Assertion predicates that say the same, for the role publications whose type alone
+     * does not. Retractions are deliberately not here: a retraction of anything at all
+     * would qualify, and most of them have nothing to do with roles.
+     */
+    private static final Set<IRI> ROLE_STATE_PREDICATES = Set.of(
+            KPXL_TERMS.HAS_ROLE,
+            KPXL_TERMS.DETACHED_ROLE
+    );
+
+    /**
+     * Whether the publication changes a space's role state, and so takes effect in the
+     * space listing queries only once nanopub-query has materialized it into the current
+     * space state.
+     * <p>
+     * This is the one thing a post-publish refresh cannot simply wait out: the members,
+     * observers and participants listings read role instantiations out of that state, and
+     * the resolver writes it in a pass of its own, well after the nanopub has been
+     * ingested. A refresh released on ingest alone re-runs the listing query while it still
+     * cannot return the new row — and because the results come back unchanged, the UI
+     * settles on them. Worse for the person doing it to themselves: the unverified
+     * self-declaration arm of those queries excludes keys that have a registered account,
+     * so between ingest and materialization an account holder matches neither arm and there
+     * is no row to show at all.
+     * <p>
+     * Unlike {@link #changesPageStructure(Nanopub, String)}, this is not about which views a
+     * page shows. View displays and presets are read straight off the ingested nanopubs, so
+     * they are not included here: making them wait for a materialization that never comes
+     * would only hold the spinner up.
+     *
+     * @param np the just-published nanopub
+     * @return true if the refresh should wait for materialization rather than mere ingest
+     */
+    public static boolean changesSpaceRoleState(Nanopub np) {
+        if (np == null) return false;
+        for (IRI type : NanopubUtils.getTypes(np)) {
+            if (ROLE_STATE_TYPES.contains(type)) return true;
+        }
+        for (Statement st : np.getAssertion()) {
+            IRI predicate = st.getPredicate();
+            if (ROLE_STATE_PREDICATES.contains(predicate)) return true;
+            // A grant names the space at one end and the agent at the other, in whichever
+            // direction the space declared the role predicate, so both ends are tried. The
+            // space is taken from the statement rather than from the page being returned to:
+            // the two need not be the same.
+            if (isRolePredicateOfSpace(st.getSubject(), predicate)) return true;
+            if (isRolePredicateOfSpace(st.getObject(), predicate)) return true;
+        }
+        return false;
+    }
+
+    // Whether the value is a space that assigns roles with the given predicate.
+    private static boolean isRolePredicateOfSpace(Value value, IRI predicate) {
+        if (!(value instanceof IRI iri)) return false;
+        return rolePredicatesOf(iri.stringValue()).contains(predicate);
+    }
+
+    /**
      * Whether the publication can change the page structure of the given context resource:
      * the set of views the resource shows, or the roles that decide who sees them. When it
      * cannot, the publication only affects the contents of one or more views, and refreshing
@@ -129,16 +196,15 @@ public class PostPublishRefresh {
     }
 
     /**
-     * The role-assigning predicates declared by the context resource's space, in both
-     * directions, or an empty set when the context is not a space (or its roles are not
-     * loaded).
+     * The role-assigning predicates declared by the given space, in both directions, or an
+     * empty set when the id is not a space's (or its roles are not loaded).
      *
-     * @param contextId the id of the context resource
+     * @param spaceId the id of the resource to read the roles of
      * @return the role predicates to watch for
      */
-    private static Set<IRI> rolePredicatesOf(String contextId) {
-        if (contextId == null || contextId.isEmpty()) return Set.of();
-        AbstractResourceWithProfile resource = AbstractResourceWithProfile.get(contextId);
+    private static Set<IRI> rolePredicatesOf(String spaceId) {
+        if (spaceId == null || spaceId.isEmpty()) return Set.of();
+        AbstractResourceWithProfile resource = AbstractResourceWithProfile.get(spaceId);
         if (!(resource instanceof Space space)) return Set.of();
         Set<IRI> predicates = new java.util.HashSet<>();
         for (SpaceMemberRoleRef roleRef : space.getRoles()) {

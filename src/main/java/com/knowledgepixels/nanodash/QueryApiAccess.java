@@ -28,6 +28,10 @@ public class QueryApiAccess {
     // Minimal single-lookup probe for whether a given nanopub has been loaded by the
     // answering Nanopub Query instance; used to time post-publish refreshes (issue #629).
     public static final String CHECK_NANOPUB_LOADED = "RAxqXyhP1fnjvDdX-K0z9TgnwoXf462FxV1wEAWRm_gos/check-nanopub-loaded";
+    // The later milestone the space listing queries actually depend on: not that the
+    // nanopub arrived, but that the authority resolver has worked out what it grants and
+    // written that into the current space state.
+    public static final String CHECK_NANOPUB_MATERIALIZED = "RAQyt1Xt3_EcDD1AomQgLIbduvwMiQQvHTm4PwTOlJPbE/check-nanopub-materialized";
     public static final String GET_ALL_USER_INTROS = "RAjHh6P11QFUaoPiMRBavdAnTq4YMJW4PB85oVFSBfYjU/get-all-user-intros";
     public static final String GET_ALL_USER_PROFILE_PICS = "RAtcodMPmTrmBvdOqwYIrNNFDO74f8B_xo0qsOcKlCwTA/get-all-user-profile-pics";
     // Profile pictures of spaces and maintained resources (issue #632), declared as
@@ -448,6 +452,30 @@ public class QueryApiAccess {
      */
     public static boolean isNanopubLoaded(String nanopubId) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
         ApiResponse r = get(new QueryRef(CHECK_NANOPUB_LOADED, "np", nanopubId));
+        return r != null && !r.getData().isEmpty();
+    }
+
+    /**
+     * Checks whether the given nanopublication has been materialized into the current space
+     * state, i.e. whether the authority resolver has already recorded what it grants.
+     * <p>
+     * This is a strictly later milestone than {@link #isNanopubLoaded(String)}: the space
+     * listing queries (members, observers, participants) read role instantiations out of the
+     * current space state, so a role grant is invisible to them until the resolver has
+     * processed it, however long it has been ingested. A refresh released on ingest alone
+     * therefore re-runs the view query too early and finds the same rows as before.
+     * <p>
+     * An empty answer does not distinguish "not materialized yet" from "materialized but
+     * granting nothing", so callers must bound how long they wait on it.
+     *
+     * @param nanopubId The ID of the nanopublication.
+     * @return True if the answering query service instance has materialized the nanopub.
+     * @throws org.nanopub.extra.services.FailedApiCallException         If the API call fails.
+     * @throws org.nanopub.extra.services.APINotReachableException       If the API is not reachable.
+     * @throws org.nanopub.extra.services.NotEnoughAPIInstancesException If there are not enough API instances.
+     */
+    public static boolean isNanopubMaterialized(String nanopubId) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
+        ApiResponse r = get(new QueryRef(CHECK_NANOPUB_MATERIALIZED, "np", nanopubId));
         return r != null && !r.getData().isEmpty();
     }
 

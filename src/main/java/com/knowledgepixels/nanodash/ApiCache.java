@@ -89,18 +89,47 @@ public class ApiCache {
     // other repos and the other instances may trail slightly behind.
     private static final long INGEST_CONFIRM_MARGIN_MS = 1000;
 
-    // Cache ids whose next refresh should wait for the given nanopub to be ingested
+    // How long a publish-triggered refresh keeps being retried while the probe still says
+    // the publication has not arrived where the query reads it. One probing round is
+    // bounded by INGEST_CONFIRM_MAX_WAIT_MS, so this is a handful of rounds at most; it is
+    // deliberately the same budget RefreshingResultPanel gives the spinner, because past
+    // it there is nobody left waiting for the answer.
+    private static final long PUBLISH_REFRESH_MAX_WAIT_MS = 60 * 1000;
+
+    // What a cache entry's pending publish-triggered refresh is waiting for: the nanopub
+    // that was just published, whether it has to be materialized into the current space
+    // state (a role grant) rather than merely ingested, and when to stop retrying.
+    private record PublishRefresh(String nanopubId, boolean awaitMaterialization, long retryUntil) {
+    }
+
+    // Cache ids whose next refresh should wait for a just-published nanopub to arrive
     // rather than (only) sit out the blind runAfter delay; set by clearCache after a
     // publish, consumed by waitOutIngestDelay in the background refresh.
-    private transient static ConcurrentMap<String, String> awaitIngest = new ConcurrentHashMap<>();
+    private transient static ConcurrentMap<String, PublishRefresh> publishRefreshes = new ConcurrentHashMap<>();
     // Shared probe results, so several views refreshing after the same publish cost one
-    // polling loop, not one each. False (timed out or probe failed) is cached too, to
-    // keep late arrivals from re-running a full polling round that already gave up.
-    private static final Cache<String, Boolean> ingestConfirmResults = CacheBuilder.newBuilder()
+    // polling loop, not one each. A negative outcome is cached too, to keep late arrivals
+    // from re-running a full polling round that already gave up; a retry invalidates the
+    // entry first, so the next round does probe again.
+    private static final Cache<String, ProbeOutcome> ingestConfirmResults = CacheBuilder.newBuilder()
         .maximumSize(1000)
         .expireAfterWrite(60, TimeUnit.SECONDS)
         .build();
     private transient static ConcurrentMap<String, Object> ingestConfirmLocks = new ConcurrentHashMap<>();
+
+    /**
+     * What a round of probing for a just-published nanopub concluded. The distinction that
+     * matters is between a probe that answered "not there yet" — worth asking again — and
+     * one that could not answer at all, which tells us nothing and so is no reason to keep
+     * re-running the query.
+     */
+    private enum ProbeOutcome {
+        /** The publication has arrived where the query reads it. */
+        ARRIVED,
+        /** The probe answered, and the publication is not there yet. */
+        NOT_YET,
+        /** The probe could not be run (unreachable, or an unpublished probe query). */
+        UNKNOWN
+    }
 
     private static final Logger logger = LoggerFactory.getLogger(ApiCache.class);
 
@@ -119,7 +148,7 @@ public class ApiCache {
         failed.remove(cacheId);
         runAfter.remove(cacheId);
         forcedRefresh.remove(cacheId);
-        awaitIngest.remove(cacheId);
+        publishRefreshes.remove(cacheId);
     }
 
     /**
@@ -218,21 +247,45 @@ public class ApiCache {
     /**
      * Waits out the post-publish ingest delay for a cache entry, if one is pending,
      * before its refresh is allowed to run. With a nanopub to wait for (see
-     * {@link #clearCache(QueryRef, long, String)}), the wait is a measurement: poll
-     * until the query services report the nanopub as loaded, plus a small margin. If
-     * there is none, or the probe fails or times out, this falls back to the blind
-     * runAfter delay, so a broken probe never makes publishing worse than before.
-     * Runs on background threads only; request threads are diverted beforehand.
+     * {@link #clearCache(QueryRef, long, String, boolean)}), the wait is a measurement:
+     * poll until the query services report the nanopub as having arrived where this query
+     * reads it, plus a small margin. If there is none, or the probe fails or times out,
+     * this falls back to the blind runAfter delay, so a broken probe never makes publishing
+     * worse than before. Runs on background threads only; request threads are diverted
+     * beforehand.
      *
      * @param cacheId the cache id (the query's URL string)
+     * @return true if the refresh about to run is final, false if it may have to be
+     * repeated because the publication had not arrived yet (see
+     * {@link #retryPublishRefresh(String)})
      */
-    private static void waitOutIngestDelay(String cacheId) throws InterruptedException {
-        String npId = awaitIngest.remove(cacheId);
-        if (npId != null && awaitNanopubLoaded(npId)) {
+    private static boolean waitOutIngestDelay(String cacheId) throws InterruptedException {
+        PublishRefresh pending = publishRefreshes.get(cacheId);
+        if (pending == null) {
+            // Nothing to measure: an ordinary cleared entry just sits out its delay.
+            waitOutBlindDelay(cacheId);
+            return true;
+        }
+        ProbeOutcome outcome = awaitNanopubArrival(pending);
+        if (outcome == ProbeOutcome.ARRIVED) {
+            publishRefreshes.remove(cacheId);
             Thread.sleep(INGEST_CONFIRM_MARGIN_MS);
             runAfter.remove(cacheId);
-            return;
+            return true;
         }
+        waitOutBlindDelay(cacheId);
+        // The fetch goes ahead either way — showing something beats showing nothing — but
+        // only a probe that actually answered "not there yet" justifies asking again. A
+        // probe that could not answer is no evidence that anything is missing.
+        if (outcome == ProbeOutcome.UNKNOWN) {
+            publishRefreshes.remove(cacheId);
+            return true;
+        }
+        return false;
+    }
+
+    // Sits out a blind runAfter delay, if one is set for the entry.
+    private static void waitOutBlindDelay(String cacheId) throws InterruptedException {
         Long after = runAfter.get(cacheId);
         if (after != null) {
             while (System.currentTimeMillis() < after) {
@@ -243,42 +296,108 @@ public class ApiCache {
     }
 
     /**
-     * Polls the query services until they report the given nanopub as loaded, bounded by
-     * {@link #INGEST_CONFIRM_MAX_WAIT_MS}. Concurrent callers for the same nanopub (the
-     * several views refreshing after one publish) share a single polling loop: the first
-     * caller polls, the others wait on its result.
+     * Re-arms a publish-triggered refresh that fetched before its publication had arrived,
+     * so the entry stays on the stale-content path and the next access runs the whole wait
+     * and fetch again. Without this the single early fetch is final: it leaves the cache
+     * holding pre-publish data with a current timestamp, and
+     * {@link com.knowledgepixels.nanodash.component.RefreshingResultPanel} settles on it
+     * for good because the results it compares are unchanged.
+     * <p>
+     * Bounded by {@link #PUBLISH_REFRESH_MAX_WAIT_MS} from the publish: a cache id left on
+     * the forced path indefinitely would put every later render on the stale branch and
+     * re-submit a refresh each time.
      *
-     * @param npId the nanopub id to wait for
-     * @return true if the nanopub was confirmed as loaded, false if the probe timed out
-     * or failed (callers then fall back to the blind delay)
+     * @param cacheId the cache id (the query's URL string)
+     * @return true if another attempt is due, so the forced-refresh flag must be kept
      */
-    private static boolean awaitNanopubLoaded(String npId) throws InterruptedException {
-        Boolean known = ingestConfirmResults.getIfPresent(npId);
+    private static boolean retryPublishRefresh(String cacheId) {
+        PublishRefresh pending = publishRefreshes.get(cacheId);
+        if (pending == null) return false;
+        if (System.currentTimeMillis() >= pending.retryUntil()) {
+            logger.info("Giving up on confirming {} for {}; keeping what the last fetch returned",
+                    pending.nanopubId(), cacheId);
+            publishRefreshes.remove(cacheId);
+            return false;
+        }
+        // The previous round's negative verdict is shared with every other view waiting on
+        // the same publication; dropping it is what lets the next round ask again.
+        ingestConfirmResults.invalidate(probeKey(pending));
+        runAfter.put(cacheId, System.currentTimeMillis());
+        logger.info("Publication {} has not arrived yet for {}; will try again", pending.nanopubId(), cacheId);
+        return true;
+    }
+
+    /**
+     * Whether a publish-triggered refresh for the given query is still being retried, i.e.
+     * the just-published nanopub has not been confirmed where this query reads it. Lets the
+     * UI keep waiting instead of settling on results that cannot contain the publication
+     * yet.
+     *
+     * @param queryRef the query reference
+     * @return true if a publish-triggered refresh is still pending for it
+     */
+    public static boolean hasPendingPublishRefresh(QueryRef queryRef) {
+        if (queryRef == null) return false;
+        PublishRefresh pending = publishRefreshes.get(queryRef.getAsUrlString());
+        // The deadline is checked here too, not only where retrying stops: an entry whose
+        // query nothing touches again is never cleaned up, and it must not hold a spinner.
+        return pending != null && System.currentTimeMillis() < pending.retryUntil();
+    }
+
+    // Probe results are shared per nanopub, but "ingested" and "materialized" are different
+    // questions about it, so they must not share an answer.
+    private static String probeKey(PublishRefresh pending) {
+        return pending.nanopubId() + (pending.awaitMaterialization() ? "|materialized" : "|loaded");
+    }
+
+    /**
+     * Polls the query services until they report the awaited nanopub as having arrived
+     * where the refreshed query reads it — ingested, or materialized into the current space
+     * state — bounded by {@link #INGEST_CONFIRM_MAX_WAIT_MS}. Concurrent callers for the
+     * same question (the several views refreshing after one publish) share a single polling
+     * loop: the first caller polls, the others wait on its result.
+     *
+     * @param pending what the refresh is waiting for
+     * @return how the round ended; anything but {@link ProbeOutcome#ARRIVED} leaves the
+     * caller to fall back to the blind delay
+     */
+    private static ProbeOutcome awaitNanopubArrival(PublishRefresh pending) throws InterruptedException {
+        String key = probeKey(pending);
+        ProbeOutcome known = ingestConfirmResults.getIfPresent(key);
         if (known != null) return known;
-        Object lock = ingestConfirmLocks.computeIfAbsent(npId, k -> new Object());
+        Object lock = ingestConfirmLocks.computeIfAbsent(key, k -> new Object());
         synchronized (lock) {
             try {
-                known = ingestConfirmResults.getIfPresent(npId);
+                known = ingestConfirmResults.getIfPresent(key);
                 if (known != null) return known;
+                String npId = pending.nanopubId();
                 long deadline = System.currentTimeMillis() + INGEST_CONFIRM_MAX_WAIT_MS;
-                boolean loaded = false;
+                ProbeOutcome outcome = ProbeOutcome.NOT_YET;
                 while (true) {
                     try {
-                        loaded = QueryApiAccess.isNanopubLoaded(npId);
+                        boolean arrived = pending.awaitMaterialization()
+                                ? QueryApiAccess.isNanopubMaterialized(npId)
+                                : QueryApiAccess.isNanopubLoaded(npId);
+                        if (arrived) {
+                            outcome = ProbeOutcome.ARRIVED;
+                            break;
+                        }
                     } catch (Exception ex) {
-                        logger.warn("Nanopub load probe failed for {}: {}", npId, ex.getMessage());
+                        logger.warn("Nanopub arrival probe ({}) failed for {}: {}",
+                                pending.awaitMaterialization() ? "materialized" : "loaded", npId, ex.getMessage());
+                        outcome = ProbeOutcome.UNKNOWN;
                         break;
                     }
-                    if (loaded || System.currentTimeMillis() + INGEST_CONFIRM_POLL_INTERVAL_MS > deadline) break;
+                    if (System.currentTimeMillis() + INGEST_CONFIRM_POLL_INTERVAL_MS > deadline) break;
                     Thread.sleep(INGEST_CONFIRM_POLL_INTERVAL_MS);
                 }
-                if (!loaded) {
-                    logger.info("Nanopub {} not confirmed as loaded, falling back to blind delay", npId);
+                if (outcome != ProbeOutcome.ARRIVED) {
+                    logger.info("Nanopub {} not confirmed ({}), falling back to blind delay", npId, outcome);
                 }
-                ingestConfirmResults.put(npId, loaded);
-                return loaded;
+                ingestConfirmResults.put(key, outcome);
+                return outcome;
             } finally {
-                ingestConfirmLocks.remove(npId, lock);
+                ingestConfirmLocks.remove(key, lock);
             }
         }
     }
@@ -355,7 +474,7 @@ public class ApiCache {
         boolean onRequestThread = RequestCycle.get() != null;
         Long after = runAfter.get(cacheId);
         boolean waitingForIngest = (after != null && System.currentTimeMillis() < after)
-                || awaitIngest.containsKey(cacheId);
+                || publishRefreshes.containsKey(cacheId);
         if (onRequestThread && waitingForIngest) {
             logger.debug("Not waiting out the ingest delay for {} on a request thread", cacheId);
             // Hand the refresh to the background, where waiting out the delay costs nobody
@@ -383,8 +502,9 @@ public class ApiCache {
         if ((needsRefresh || forced) && !isRunning(cacheId)) {
             logger.info("Refreshing cache for {}", cacheId);
             refreshStart.put(cacheId, timeNow);
+            boolean refreshIsFinal = true;
             try {
-                waitOutIngestDelay(cacheId);
+                refreshIsFinal = waitOutIngestDelay(cacheId);
                 if (!onRequestThread) {
                     if (failed.get(cacheId) != null) {
                         // 1 second pause between failed attempts;
@@ -409,7 +529,9 @@ public class ApiCache {
                 lastRefresh.put(cacheId, System.currentTimeMillis());
             } finally {
                 refreshStart.remove(cacheId);
-                forcedRefresh.remove(cacheId);
+                // Kept on the forced path when the publication it was waiting for had not
+                // arrived yet, so this fetch is not mistaken for the final word on it.
+                if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
             }
         } else if (isRunning(cacheId)
                 && (cachedResponses.getIfPresent(cacheId) == null || forcedRefresh.contains(cacheId))) {
@@ -468,8 +590,9 @@ public class ApiCache {
         if (needsRefresh && !isRunning(cacheId)) {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
+                boolean refreshIsFinal = true;
                 try {
-                    waitOutIngestDelay(cacheId);
+                    refreshIsFinal = waitOutIngestDelay(cacheId);
                     if (failed.get(cacheId) != null) {
                         // 1 second pause between failed attempts;
                         Thread.sleep(1000);
@@ -491,7 +614,9 @@ public class ApiCache {
                     refreshStart.remove(cacheId);
                     // Dropped on failure too: a query we cannot reach must not keep every
                     // later render on the stale path, re-submitting a refresh each time.
-                    forcedRefresh.remove(cacheId);
+                    // Kept only while the publication this refresh waits for is still
+                    // unconfirmed, so the early fetch is not taken as the final answer.
+                    if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
                 }
             });
         }
@@ -629,8 +754,9 @@ public class ApiCache {
         if (needsRefresh && !isRunning(cacheId)) {
             NanodashThreadPool.submit(() -> {
                 refreshStart.put(cacheId, System.currentTimeMillis());
+                boolean refreshIsFinal = true;
                 try {
-                    waitOutIngestDelay(cacheId);
+                    refreshIsFinal = waitOutIngestDelay(cacheId);
                     if (failed.get(cacheId) != null) {
                         Thread.sleep(1000);
                     }
@@ -649,7 +775,7 @@ public class ApiCache {
                     lastRefresh.put(cacheId, System.currentTimeMillis());
                 } finally {
                     refreshStart.remove(cacheId);
-                    forcedRefresh.remove(cacheId);
+                    if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
                 }
             });
         }
@@ -803,28 +929,45 @@ public class ApiCache {
      * @param waitMillis The amount of time in milliseconds to wait before allowing the cache to be refreshed again.
      */
     public static void clearCache(QueryRef queryRef, long waitMillis) {
-        clearCache(queryRef, waitMillis, null);
+        clearCache(queryRef, waitMillis, null, false);
     }
 
     /**
      * Like {@link #clearCache(QueryRef, long)}, but for the refresh after a publish: the
-     * refresh is released as soon as the query services confirm the given nanopub as
-     * loaded (plus a small margin), instead of after the blind delay (issue #629). The
-     * delay stays in place as the fallback for when the confirmation probe fails, and the
-     * confirmation wait itself is bounded by {@link #INGEST_CONFIRM_MAX_WAIT_MS}.
+     * refresh is released as soon as the query services confirm the given nanopub as having
+     * arrived (plus a small margin), instead of after the blind delay (issue #629). The
+     * delay stays in place as the fallback for when the confirmation probe fails, and one
+     * confirmation wait is bounded by {@link #INGEST_CONFIRM_MAX_WAIT_MS}.
+     * <p>
+     * What counts as "arrived" depends on what the refreshed query reads. Most queries only
+     * need the nanopub to be ingested. The space listing queries read role instantiations
+     * out of the current space state, which the authority resolver writes in a later pass of
+     * its own; for those, {@code awaitMaterialization} makes the wait a measurement of that
+     * pass instead, since a refresh released on ingest alone re-runs the query before it can
+     * possibly return the new row.
+     * <p>
+     * If the publication has still not arrived once the probe's budget runs out, the refresh
+     * runs anyway — showing something beats showing nothing — but stays marked as
+     * provisional and is repeated, for up to {@link #PUBLISH_REFRESH_MAX_WAIT_MS} from here
+     * (see {@link #retryPublishRefresh(String)}).
      *
-     * @param queryRef   The query reference for which to clear the cache.
-     * @param waitMillis The fallback delay in milliseconds, used if the nanopub's arrival cannot be confirmed.
-     * @param nanopubId  The id of the just-published nanopub to wait for, or null for the plain delay.
+     * @param queryRef            The query reference for which to clear the cache.
+     * @param waitMillis          The fallback delay in milliseconds, used if the nanopub's arrival cannot be confirmed.
+     * @param nanopubId           The id of the just-published nanopub to wait for, or null for the plain delay.
+     * @param awaitMaterialization Whether to wait for the nanopub to be materialized into the current space state rather than merely ingested.
      */
-    public static void clearCache(QueryRef queryRef, long waitMillis, String nanopubId) {
+    public static void clearCache(QueryRef queryRef, long waitMillis, String nanopubId, boolean awaitMaterialization) {
         if (waitMillis < 0) {
             throw new IllegalArgumentException("waitMillis must be non-negative");
         }
         String cacheId = queryRef.getAsUrlString();
         forcedRefresh.add(cacheId);
-        runAfter.put(cacheId, System.currentTimeMillis() + waitMillis);
-        if (nanopubId != null) awaitIngest.put(cacheId, nanopubId);
+        long timeNow = System.currentTimeMillis();
+        runAfter.put(cacheId, timeNow + waitMillis);
+        if (nanopubId != null) {
+            publishRefreshes.put(cacheId, new PublishRefresh(nanopubId, awaitMaterialization,
+                    timeNow + PUBLISH_REFRESH_MAX_WAIT_MS));
+        }
     }
 
 }
