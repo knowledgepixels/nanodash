@@ -48,6 +48,20 @@ class QueryResultPublishLinkTest {
     }
 
     @Test
+    void multiParameterPublishLinksSurviveSanitizing() {
+        // A query that builds an action link needs more than one parameter: the view
+        // "update this template" row passes the template, its version and the nanopub
+        // to override. The sanitizer re-encodes the separators, so the link has to be
+        // checked through the whole cell path, not only through the button rewriting.
+        String html = "<span><a href=\"/publish?template=https%3A%2F%2Fexample.com%2Ft"
+                      + "&template-version=latest&override=https%3A%2F%2Fexample.com%2Fnp\">go</a></span>";
+        String result = QueryResult.withPublishLinksAsButtons(Utils.sanitizeHtml(html));
+        assertTrue(result.contains("class=\"smallbutton button light\""), result);
+        assertTrue(result.contains("template-version"), result);
+        assertTrue(result.contains("override"), result);
+    }
+
+    @Test
     void linksWithTheirOwnClassAreLeftAlone() {
         String html = "<a class=\"source\" href=\"/publish?a\">one</a>";
         assertEquals(html, QueryResult.withPublishLinksAsButtons(html));
