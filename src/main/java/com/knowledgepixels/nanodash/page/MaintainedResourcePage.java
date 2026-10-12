@@ -9,8 +9,10 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -72,13 +74,17 @@ public class MaintainedResourcePage extends NanodashPage {
     public MaintainedResourcePage(final PageParameters parameters) {
         super(parameters);
 
-        MaintainedResource resource = MaintainedResourceRepository.get().findById(parameters.get("id").toString());
+        MaintainedResource resource = resolveResource(parameters);
         resourceId = resource.getId();
         redirectIfRdfRequested(new RdfSource("resource", resourceId, null, List.of()));
         resourceModel = new LoadableDetachableModel<MaintainedResource>() {
             @Override
             protected MaintainedResource load() {
-                return MaintainedResourceRepository.get().findById(resourceId);
+                // Last known, as in the constructor: the page's own renders must not start
+                // handing out null halfway through an answer that came back short, which the
+                // view list and the empty-state check would dereference (the same pairing
+                // HomePage makes for its configured resource, issue #623).
+                return MaintainedResourceRepository.get().findLastKnownById(resourceId);
             }
         };
         resource.triggerDataUpdate();
@@ -228,6 +234,39 @@ public class MaintainedResourcePage extends NanodashPage {
     protected void onDetach() {
         resourceModel.detach();
         super.onDetach();
+    }
+
+    /**
+     * The maintained resource this page is about, or a forward to wherever the given id does
+     * belong. Callers normally check that the id names a maintained resource before linking
+     * here, but a hand-typed or out-of-date address need not: one that names a space, or a term
+     * inside a resource, is answered where it belongs, and one that names nothing known is
+     * answered plainly rather than failing to build (the same treatment {@code SpacePage} gives
+     * an unknown space, issue #284).
+     *
+     * @param parameters the page parameters, holding the {@code id}
+     * @return the resource to show; never null
+     * @throws RestartResponseException forwarding to the page that does answer the id, or to
+     *                                  {@link ErrorPage} when nothing known goes by it
+     */
+    private MaintainedResource resolveResource(PageParameters parameters) {
+        String id = parameters.get("id").toString("");
+        if (id.isEmpty()) {
+            throw new RestartResponseException(ErrorPage.class, new PageParameters()
+                    .set(ErrorPage.MESSAGE_PARAM, "No resource was given to show.")
+                    .set(ErrorPage.KIND_PARAM, ErrorPage.Kind.REQUEST.getParamValue()));
+        }
+        // Last known as well as current: a resource this instance has been shown does not stop
+        // existing because one answer came back short (issue #623).
+        MaintainedResource resource = MaintainedResourceRepository.get().findLastKnownById(id);
+        if (resource != null) return resource;
+        if (SpaceRepository.get().findByIdOrAltId(id) != null) {
+            throw new RestartResponseException(SpacePage.class, parameters);
+        }
+        ResourcePartPage.forwardToContainingResource(parameters);
+        throw new RestartResponseException(ErrorPage.class, new PageParameters()
+                .set(ErrorPage.MESSAGE_PARAM, "No maintained resource is known under the id " + id + ".")
+                .set(ErrorPage.KIND_PARAM, ErrorPage.Kind.REQUEST.getParamValue()));
     }
 
 }
