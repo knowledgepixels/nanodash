@@ -25,7 +25,12 @@ import com.knowledgepixels.nanodash.page.UserPage;
  * <ul>
  *   <li>a blue "successfully published" confirmation box, shown only right after
  *       publishing (i.e. when the page carries a "just-published" parameter) and
- *       dismissable via a close button;</li>
+ *       dismissable via a close button. It reports something that is already done,
+ *       so it does not wait to be dismissed: a client-side countdown (see
+ *       {@code startTransientMessages} in {@code nanodash.js}) retires it after a
+ *       few seconds, with the time left drawn as a ring around the close symbol
+ *       (issue #777). The same script then drops the parameter from the address bar,
+ *       so reloading the page does not announce the publication again;</li>
  *   <li>a red "you haven't published an introduction yet" warning box, shown on
  *       <em>every</em> page (no close button) whenever a logged-in user with a
  *       local key has not yet published an introduction linking that key to their
@@ -54,13 +59,15 @@ public class JustPublishedMessagePanel extends Panel {
         confirmBox.setVisible(justPublished);
         add(confirmBox);
         if (justPublished) {
+            // The close symbol and the countdown ring drawn around it come from the
+            // markup, so no body is set here (issue #777).
             confirmBox.add(new AjaxLink<Void>("confirmClose") {
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     confirmBox.setVisible(false);
                     target.add(confirmBox);
                 }
-            }.setBody(Model.of("×")));
+            });
             Nanopub np = Utils.getAsNanopub(justPublishedId);
             String label = (np != null ? NanopubUtils.getLabel(np) : null);
             if (label == null || label.isEmpty()) label = Utils.getShortNameFromURI(justPublishedId);

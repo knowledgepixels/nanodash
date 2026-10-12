@@ -2464,16 +2464,110 @@ hr {
 
 .titlebar-message-close {
   position: absolute;
-  right: 8px;
-  top: 6px;
-  font-size: 18px;
-  line-height: 1;
+  right: 5px;
+  top: 4px;
+  display: block;
+  width: 22px;
+  height: 22px;
   color: #666;
   text-decoration: none;
 }
 
+/* The close symbol is drawn, not typed. A "×" glyph sits wherever its font puts it — on the
+   math axis, above the middle of its line box — so it never quite lines up with the ring
+   around it, and the title bar's font stack resolves differently per platform, which would
+   make any nudge right on one machine and wrong on the next. Drawn in the ring's own
+   coordinates it is centred on the same point by construction. */
+.titlebar-message-close-cross {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
 .titlebar-message-close:hover {
   color: #000;
+}
+
+/* The post-publish confirmation reports something that is already done, so it retires
+   itself after a few seconds instead of waiting to be dismissed (issue #777). The time
+   left is drawn as a ring that empties around the close symbol, which puts the countdown
+   where the dismiss action already is. The ring is only shown once the script has taken
+   over the countdown, so without the script the box simply stays until closed by hand. */
+.titlebar-message-timer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Only the ring waits for the script; the cross it surrounds is always drawn, so the box
+   stays dismissable by hand whether or not the countdown ever starts. */
+.titlebar-message-timer-track,
+.titlebar-message-timer-sweep {
+  display: none;
+}
+
+.titlebar-message-timed .titlebar-message-timer-track,
+.titlebar-message-timed .titlebar-message-timer-sweep {
+  display: inline;
+}
+
+.titlebar-message-timer-track {
+  fill: none;
+  stroke: #0B73DA26;
+  stroke-width: 1.5;
+}
+
+/* The dash pattern is the full circumference (2 * pi * 9.5), so the offset below sweeps
+   it from a closed ring to an empty one. The duration is set by the script, which owns
+   the one countdown length; the value here only keeps the ring sane if that fails. */
+.titlebar-message-timer-sweep {
+  fill: none;
+  stroke: #0B73DA;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 59.69;
+  animation: titlebar-message-countdown 5s linear forwards;
+}
+
+/* Hovering or tabbing into the message holds the countdown, so a message being read, or a
+   link in it being aimed at, is not pulled out from under the reader. */
+.titlebar-message-box-held .titlebar-message-timer-sweep {
+  animation-play-state: paused;
+}
+
+@keyframes titlebar-message-countdown {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: 59.69;
+  }
+}
+
+/* The script waits out this fade before taking the box out of the flow, so the two
+   lengths belong together (TRANSIENT_MESSAGE_FADE_MS in nanodash.js). */
+.titlebar-message-box-transient {
+  transition: opacity 0.4s ease;
+}
+
+.titlebar-message-box-fading {
+  opacity: 0;
+}
+
+/* Hidden rather than removed: the close button is a server-side component, and Wicket needs
+   its element to still be in the page if a response for it is on its way. */
+.titlebar-message-box-dismissed {
+  display: none;
+}
+
+/* A box that has retired itself leaves no gap above the one that outlives it. */
+.titlebar-message-box-dismissed+.titlebar-message-box {
+  margin-top: 0;
 }
 
 /* Transient, auto-dismissing toast at the top of the viewport (e.g. "link

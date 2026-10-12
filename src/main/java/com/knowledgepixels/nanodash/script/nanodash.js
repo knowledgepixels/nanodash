@@ -443,6 +443,7 @@ function openOutboundLinksInNewTab() {
 
 document.addEventListener("DOMContentLoaded", function() {
   openOutboundLinksInNewTab();
+  startTransientMessages();
   wrapLeadingEmoji();
   wrapCellEmoji();
   renderFriendlyDates();
@@ -767,6 +768,102 @@ function showToast(message) {
     toast.classList.remove('nanodash-toast-visible');
     setTimeout(function () { toast.remove(); }, 400);
   }, 2500);
+}
+
+/* A message that reports what has already happened (the post-publish confirmation) does not
+   need to be dismissed by hand: it counts down and goes, with the time left drawn as a ring
+   around its close symbol (issue #777). Five seconds is what toast libraries settled on, and
+   is long enough to read one sentence and reach for the link in it. Hovering or focusing the
+   message holds the countdown, so it is never pulled away mid-reach; the ring holds with it,
+   which is also what keeps timed content accessible. */
+var TRANSIENT_MESSAGE_MS = 5000;
+// As long as the fade-out of .titlebar-message-box-transient in style.css takes.
+var TRANSIENT_MESSAGE_FADE_MS = 400;
+
+/* The "just-published" parameter says that this page load is the one right after
+   publishing, and the message above is all it is for (nothing else reads it back off the
+   URL). Once the message is on screen the parameter has done its job, so it is taken out of
+   the address bar: otherwise reloading the page — or coming back to it from the history, or
+   opening a link someone copied out of the address bar — would announce a publication that
+   happened long ago. Only that one parameter goes; the rest of the query string is left
+   byte for byte as Wicket wrote it. */
+function dropJustPublishedParam() {
+  if (!window.history || !window.history.replaceState) return;
+  var params = window.location.search.replace(/^\?/, "").split("&");
+  var kept = params.filter(function (p) {
+    return p !== "" && p.split("=")[0] !== "just-published";
+  });
+  if (kept.length === params.filter(function (p) { return p !== ""; }).length) return;
+  var search = kept.length ? "?" + kept.join("&") : "";
+  window.history.replaceState(window.history.state, "",
+      window.location.pathname + search + window.location.hash);
+}
+
+function startTransientMessages() {
+  document.querySelectorAll(".titlebar-message-box-transient").forEach(function (box) {
+    // Wicket can re-render the box; only one countdown should ever run on it.
+    if (box.dataset.countdown) return;
+    box.dataset.countdown = "running";
+    dropJustPublishedParam();
+
+    // The script owns the countdown length, so the ring is told the same one.
+    var sweep = box.querySelector(".titlebar-message-timer-sweep");
+    if (sweep) sweep.style.animationDuration = TRANSIENT_MESSAGE_MS + "ms";
+    box.classList.add("titlebar-message-timed");
+
+    var remaining = TRANSIENT_MESSAGE_MS;
+    var startedAt = Date.now();
+    var timer = setTimeout(dismiss, remaining);
+    var holds = 0;
+
+    function dismiss() {
+      timer = null;
+      box.classList.add("titlebar-message-box-fading");
+      setTimeout(function () {
+        box.classList.add("titlebar-message-box-dismissed");
+      }, TRANSIENT_MESSAGE_FADE_MS);
+    }
+
+    function hold() {
+      holds++;
+      if (holds > 1 || timer === null) return;
+      clearTimeout(timer);
+      timer = null;
+      remaining -= Date.now() - startedAt;
+      box.classList.add("titlebar-message-box-held");
+    }
+
+    function release() {
+      holds = Math.max(0, holds - 1);
+      if (holds > 0 || timer !== null) return;
+      box.classList.remove("titlebar-message-box-held");
+      if (remaining <= 0) {
+        dismiss();
+        return;
+      }
+      startedAt = Date.now();
+      timer = setTimeout(dismiss, remaining);
+    }
+
+    /* The ring is a CSS animation, which the browser suspends in a background tab, while
+       the timer below keeps running: left alone, the message would be gone before it was
+       ever on screen. So a hidden tab holds the countdown too, which both keeps the ring
+       honest and makes sure the confirmation is actually seen. */
+    var heldHidden = false;
+
+    function syncVisibility() {
+      if (document.hidden === heldHidden) return;
+      heldHidden = document.hidden;
+      if (heldHidden) hold(); else release();
+    }
+
+    box.addEventListener("mouseenter", hold);
+    box.addEventListener("mouseleave", release);
+    box.addEventListener("focusin", hold);
+    box.addEventListener("focusout", release);
+    document.addEventListener("visibilitychange", syncVisibility);
+    syncVisibility();
+  });
 }
 
 function toggleView() {
