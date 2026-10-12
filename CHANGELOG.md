@@ -1,3 +1,19 @@
+## [5.18.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.17.1...nanodash-5.18.0) (2026-10-12)
+
+### Features
+
+* **publish:** log which arrival milestone a post-publish refresh waits for ([3133364](https://github.com/knowledgepixels/nanodash/commit/31333641b17e5b9f5de817681a704ba3344bf2b7))
+* **svg:** offer a full-size toggle for a figure the panel has shrunk ([feb896e](https://github.com/knowledgepixels/nanodash/commit/feb896e844b290e88ac6334234bb68e37f7479bb))
+
+### Bug Fixes
+
+* **publish:** wait for a role grant to take effect before settling the view ([a5fa1ff](https://github.com/knowledgepixels/nanodash/commit/a5fa1ff5a1cb14d5b79bf913506ca8e45e974845)), closes [#629](https://github.com/knowledgepixels/nanodash/issues/629)
+* **space:** follow a space's owl:sameAs alias, answer an unknown id plainly ([eb55aaa](https://github.com/knowledgepixels/nanodash/commit/eb55aaaab0b0626f02a162f09e4af56c986b26af))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([ff53cea](https://github.com/knowledgepixels/nanodash/commit/ff53cea141649c0bf6e73178802ec99b798ba8d4))
+
 ## [5.17.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.17.0...nanodash-5.17.1) (2026-10-09)
 
 ### Bug Fixes
