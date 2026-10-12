@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
@@ -86,6 +87,39 @@ public class ExplorePage extends NanodashPage {
                 || predicate.equals(LEGACY_PART_OF)
                 || predicate.equals(DCTERMS.IS_VERSION_OF)
                 || predicate.equals(SKOS.IN_SCHEME);
+    }
+
+    /**
+     * Forwards to the page a resource has of its own — a space, a maintained resource, a user —
+     * if the given id names one, so that a known resource is shown there (on its default Content
+     * tab) rather than as a generic explored IRI.
+     * <p>
+     * Called twice, because an id can arrive in a form no repository is keyed on. The resource
+     * repositories hold full IRIs, while a nanopublication sub-IRI reaches us as the
+     * artifact-code form {@code RA…/templateKind}: that is what w3id.org redirects
+     * {@code https://w3id.org/np/RA…/templateKind} to, and it is the form every real visit to a
+     * maintained kind arrives in. The second call therefore comes once {@code initPage} has
+     * expanded such an id to the nanopublication's own namespace, which is what finally makes a
+     * governed template or view kind registered as a maintained resource land on its page under
+     * the space (issue #780). The first call keeps the already-canonical ids on the fast path,
+     * before any lookup over the network.
+     * <p>
+     * Thrown from, rather than returning, the forward: the page being built is discarded, as with
+     * the part-page forwards further down {@code initPage}, so it is safe to call after components
+     * have been added.
+     *
+     * @param id the explored id, as it arrived or once expanded
+     */
+    private void forwardIfOwnPageExists(String id) {
+        // A just-published nanopublication is shown as published, whatever it introduces.
+        if (publishedNanopub != null) return;
+        if (SpaceRepository.get().findById(id) != null) {
+            throw new RestartResponseException(SpacePage.class, new PageParameters().set("id", id));
+        } else if (MaintainedResourceRepository.get().findById(id) != null) {
+            throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", id));
+        } else if (User.getUserData().isUser(id)) {
+            throw new RestartResponseException(UserPage.class, new PageParameters().set("id", id));
+        }
     }
 
     /**
@@ -170,32 +204,14 @@ public class ExplorePage extends NanodashPage {
 
         String contextId = parameters.get("context").toString("");
 
-        // Known resources are shown on their own page; forward there (to the default
-        // Content tab) instead of rendering the generic explore page.
-        if (publishedNanopub == null) {
-            if (SpaceRepository.get().findById(tempRef) != null) {
-                throw new RestartResponseException(SpacePage.class, new PageParameters().set("id", tempRef));
-            } else if (MaintainedResourceRepository.get().findById(tempRef) != null) {
-                throw new RestartResponseException(MaintainedResourcePage.class, new PageParameters().set("id", tempRef));
-            } else if (User.getUserData().isUser(tempRef)) {
-                throw new RestartResponseException(UserPage.class, new PageParameters().set("id", tempRef));
-            }
-            // Note: forwarding to the part page when the context is a maintained
-            // resource is handled further down (after np resolution), gated on
-            // actual part membership rather than the context type alone.
-        }
+        forwardIfOwnPageExists(tempRef);
+        // Note: forwarding to the part page when the context is a maintained
+        // resource is handled further down (after np resolution), gated on
+        // actual part membership rather than the context type alone.
 
         ResourceTabs.Tab activeTab = ResourceTabs.activeFromParam(parameters);
         TitleBar titleBar = new TitleBar("titlebar", this);
         add(titleBar);
-
-        if (User.getUserData().isUser(tempRef)) {
-            add(new BookmarkablePageLink<Void>("to-specific-page-link", UserPage.class, parameters).setBody(Model.of("go to user page")));
-        } else if (SpaceRepository.get().findById(tempRef) != null) {
-            add(new BookmarkablePageLink<Void>("to-specific-page-link", SpacePage.class, parameters).setBody(Model.of("go to Space page")));
-        } else {
-            add(new Label("to-specific-page-link").setVisible(false));
-        }
 
         WebMarkupContainer raw = new WebMarkupContainer("raw");
         add(raw);
@@ -212,6 +228,11 @@ public class ExplorePage extends NanodashPage {
             if (np != null) {
                 String npId = np.getUri().stringValue();
                 tempRef = npId + tempRef.replaceFirst("^(.*[^A-Za-z0-9-_])?(RA[A-Za-z0-9-_]{43})([^A-Za-z0-9-_].*)$", "$3");
+                // Now that the id carries the nanopublication's own namespace, it is one the
+                // resource repositories are keyed on -- which the id as it arrived was not
+                // (issue #780). Asked before the latest-version query below, whose answer a
+                // forwarded request would only discard.
+                forwardIfOwnPageExists(tempRef);
                 Multimap<String, String> params = ArrayListMultimap.create();
                 params.put("thing", tempRef);
                 params.put("np", npId);
@@ -222,6 +243,25 @@ public class ExplorePage extends NanodashPage {
                 }
                 np = Utils.getAsNanopub(npId);
             }
+        }
+
+        // A governed definition -- a template or view kind, say -- is governed by a space, and
+        // nothing else on this page leads there. Only reached while that space does not list the
+        // kind as a maintained resource yet: once it does, the forward above has already taken the
+        // reader to the kind's page under the space. Read straight off the nanopublication, so it
+        // costs no query, and offered for the kind, the governed instance and the nanopublication
+        // alike, since all three are dead ends here for the same reason (issue #780).
+        GovernedVersions.GovernedRef governedRef = GovernedVersions.findGovernedRef(np);
+        Space governingSpace = governedRef == null ? null : SpaceRepository.get().findByIdOrAltId(governedRef.getSpace());
+        if (governingSpace != null) {
+            add(new BookmarkablePageLink<Void>("to-specific-page-link", SpacePage.class,
+                    new PageParameters().set("id", governingSpace.getId())).setBody(Model.of("go to governing Space")));
+        } else if (User.getUserData().isUser(tempRef)) {
+            add(new BookmarkablePageLink<Void>("to-specific-page-link", UserPage.class, parameters).setBody(Model.of("go to user page")));
+        } else if (SpaceRepository.get().findById(tempRef) != null) {
+            add(new BookmarkablePageLink<Void>("to-specific-page-link", SpacePage.class, parameters).setBody(Model.of("go to Space page")));
+        } else {
+            add(new Label("to-specific-page-link").setVisible(false));
         }
 
         // Forward to the part page when the explored resource actually qualifies as a
