@@ -518,19 +518,42 @@ $(document).on('click', 'input.k-input-inner', function () {
   picker.open();
 });
 
+/* A hover-over box opens from the left edge of what it belongs to, so one on a right-hand
+   column reaches past the content: it would widen the document and leave a white band
+   beside the striped sections while it is up (issue #783). Narrow screens get a box that
+   spans the viewport; wider ones get it pulled back just far enough to fit. */
 $(document).on('mouseenter', '.tooltip, .expltooltip', function () {
   var tip = $(this).children('.tooltiptext, .expltooltiptext');
   if (!tip.length) return;
-  if (window.innerWidth > 768) return;
-  var parent = this.getBoundingClientRect();
   var el = tip[0];
-  el.style.position = 'fixed';
-  el.style.left = '5px';
-  el.style.right = '5px';
-  el.style.top = Math.min(parent.bottom + 2, window.innerHeight - 200) + 'px';
-  el.style.width = 'auto';
-  el.style.maxWidth = 'none';
-  el.style.minWidth = '0';
+  // Back to the stylesheet's own placement first, so an earlier hover's numbers are
+  // not what gets measured here.
+  el.style.position = '';
+  el.style.left = '';
+  el.style.right = '';
+  el.style.top = '';
+  el.style.width = '';
+  el.style.maxWidth = '';
+  el.style.minWidth = '';
+  el.style.transform = '';
+  var parent = this.getBoundingClientRect();
+  if (window.innerWidth <= 768) {
+    el.style.position = 'fixed';
+    el.style.left = '5px';
+    el.style.right = '5px';
+    el.style.top = Math.min(parent.bottom + 2, window.innerHeight - 200) + 'px';
+    el.style.width = 'auto';
+    el.style.maxWidth = 'none';
+    el.style.minWidth = '0';
+    return;
+  }
+  var rect = el.getBoundingClientRect();
+  if (!rect.width) return;
+  // Shifted, not re-anchored: a transform leaves the layout alone and still counts
+  // against the scrollable area, so nothing is left sticking out.
+  var overshoot = rect.right - (document.documentElement.clientWidth - 5);
+  var shift = Math.min(overshoot, Math.max(0, rect.left - 5));
+  if (shift > 0) el.style.transform = 'translateX(-' + Math.round(shift) + 'px)';
 });
 
 $(document).on('mouseenter', '.actionmenu', function () {
