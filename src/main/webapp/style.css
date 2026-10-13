@@ -147,10 +147,16 @@ details summary {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   background: #F3F6F9;
+  /* The stripe reaches the edges of the window as a shadow spread sideways out of the
+     section, rather than as a box 100vw wide: 100vw counts the vertical scrollbar too,
+     so such a box ends up a few pixels past the page and the page scrolls sideways,
+     showing a white band beside the stripe (issue #783). A shadow is painted outside the
+     box without widening anything; the clip keeps the spread to the left and right. */
+  box-shadow: 0 0 0 100vmax #F3F6F9;
+  clip-path: inset(0 -100vmax);
   z-index: -1;
 }
 
@@ -2140,7 +2146,11 @@ textarea.locked-value {
 .tooltip .tooltiptext {
   font-family: "Noto Emoji", Inter, Verdana, Helvetica, sans-serif;
   font-size: 11pt;
-  visibility: hidden;
+  /* Taken out of the layout while hidden, rather than merely made invisible: an
+     absolutely positioned box kept in the layout next to a right-hand column sticks
+     out past the content and widens the document, which the page then shows as a
+     white band beside the striped sections when scrolled right (issue #783). */
+  display: none;
   background-color: black;
   color: #fff;
   text-align: left;
@@ -2182,8 +2192,10 @@ a.tooltiptext {
   color: #fff;
 }
 
-.tooltip:hover .tooltiptext {
-  visibility: visible;
+/* The empty-tooltip rule below hides boxes with nothing to say; keep them hidden
+   on hover too, now that showing one is a display switch rather than a visibility one. */
+.tooltip:hover .tooltiptext:not(:has(> a:empty)) {
+  display: block;
 }
 
 .tooltip .tooltiptext::after {
@@ -2219,7 +2231,8 @@ a[href=""] {
 }
 
 .expltooltip .expltooltiptext {
-  visibility: hidden;
+  /* Out of the layout while hidden, for the same reason as .tooltiptext above. */
+  display: none;
   background-color: white;
   border-style: solid;
   border-color: #bdbdbd;
@@ -2241,7 +2254,7 @@ a[href=""] {
 }
 
 .expltooltip:hover .expltooltiptext {
-  visibility: visible;
+  display: block;
 }
 
 .expltooltip .expltooltiptext::after {
