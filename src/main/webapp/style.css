@@ -252,18 +252,22 @@ details summary {
   padding-top: 0;
 }
 
-.home-footer {
+/* Lines up with the content above it: same width and gutter as a .row-section's
+   column, so the footer starts where the text does. */
+#page-footer {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 15px 4em;
   font-size: 0.9em;
   color: #666;
-  margin-top: 1.5em;
-  padding-top: 0.5em;
 }
 
-.home-footer a {
+#page-footer a {
   color: #666;
 }
 
-.home-footer a:hover {
+#page-footer a:hover {
   color: #333;
 }
 

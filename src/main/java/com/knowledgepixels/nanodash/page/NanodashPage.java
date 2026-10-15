@@ -22,8 +22,11 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.head.StringHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
+import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
@@ -144,7 +147,23 @@ public abstract class NanodashPage extends WebPage {
             }
 
         });
+        addPageFooter();
         addRemoteNavigationPollIfNeeded();
+    }
+
+    /**
+     * Builds the footer every page carries. The privacy link is there because a privacy
+     * notice has to be reachable from wherever the visitor happens to be; it points at the
+     * built-in {@link PrivacyPage}, or at the deployment's own policy where one is
+     * configured ({@code NANODASH_PRIVACY_URL}), never both. Nanodash's own credit sits
+     * next to it, except in site mode, where the instance presents itself as someone
+     * else's website (issue #692).
+     */
+    private void addPageFooter() {
+        add(new WebMarkupContainer("credit").setVisible(!SiteMode.isEnabled()));
+        String url = NanodashPreferences.get().getPrivacyUrl();
+        add(new BookmarkablePageLink<Void>("privacy-link", PrivacyPage.class).setVisible(url == null));
+        add(new ExternalLink("privacy-link-external", url == null ? "" : url).setVisible(url != null));
     }
 
     /**

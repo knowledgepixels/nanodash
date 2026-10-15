@@ -10,6 +10,11 @@ services:
       - NANODASH_MAIN_QUERY=https://query.knowledgepixels.com/
       - NANODASH_UMAMI_SCRIPT_URL=https://your.umami.instance/script.js
       - NANODASH_UMAMI_WEBSITE_ID=your-umami-website-id
+      # Who to name as the operator on the privacy page at /privacy. Unset, the page
+      # says the instance does not name its operator. Set NANODASH_PRIVACY_URL instead
+      # to point the footer at a privacy policy of your own.
+      #- NANODASH_PRIVACY_OPERATOR=Your Organisation, Some Street 1, 1234 Town, Country - you@example.org
+      #- NANODASH_PRIVACY_URL=https://example.org/privacy
       # The maintained resource whose view displays are shown on the home page.
       # Default: https://w3id.org/spaces/knowledgepixels/nanodash/r/home
       #- NANODASH_HOME_RESOURCE=https://w3id.org/spaces/your/resource/r/home
