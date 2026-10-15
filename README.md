@@ -43,6 +43,30 @@ umamiWebsiteId: your-umami-website-id
 
 When configured, Nanodash logs `Umami analytics configured: <url>` at startup to confirm the setting was picked up.
 
+### Privacy page
+
+Every page's footer links a privacy notice. The built-in one at `/privacy` describes what
+the software does with personal data — the ORCID login, the signing key held server-side,
+and that publishing is public and permanent — but it can only name the operator of an
+instance if the deployment tells it who that is:
+
+```yaml
+services:
+  nanodash:
+    environment:
+      - NANODASH_PRIVACY_OPERATOR=Your Organisation, Some Street 1, 1234 Town, Country - you@example.org
+```
+
+Left unset, the page says the instance does not name its operator rather than implying
+something untrue. A deployment with legal pages of its own can point the footer at them
+instead, which leaves the built-in page unused:
+
+```yaml
+      - NANODASH_PRIVACY_URL=https://example.org/privacy
+```
+
+Or in `~/.nanopub/nanodash-preferences.yml`: `privacyOperator`, `privacyUrl`.
+
 ### Site mode
 
 An instance can present itself as the website of one space rather than as Nanodash: the

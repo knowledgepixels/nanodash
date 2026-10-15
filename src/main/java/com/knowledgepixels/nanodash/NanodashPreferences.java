@@ -54,6 +54,8 @@ public class NanodashPreferences implements Serializable {
     private String settingUri;
     private String umamiScriptUrl;
     private String umamiWebsiteId;
+    private String privacyOperator;
+    private String privacyUrl;
     private String homeResource = "https://w3id.org/spaces/knowledgepixels/nanodash/r/home";
     private boolean claudeChatEnabled = false;
     private String claudeChatBinary = "claude";
@@ -317,6 +319,51 @@ public class NanodashPreferences implements Serializable {
      */
     public void setUmamiWebsiteId(String umamiWebsiteId) {
         this.umamiWebsiteId = umamiWebsiteId;
+    }
+
+    /**
+     * Who operates this instance, as the privacy page should name them: an organisation
+     * or person, and a way to reach them. Unset leaves the privacy page saying that the
+     * instance does not name its operator, which is the honest answer rather than a
+     * misleading default.
+     *
+     * @return the operator, or null if not configured
+     */
+    public String getPrivacyOperator() {
+        String s = System.getenv("NANODASH_PRIVACY_OPERATOR");
+        if (s != null && !s.isBlank()) return s;
+        return privacyOperator;
+    }
+
+    /**
+     * Set who operates this instance.
+     *
+     * @param privacyOperator the operator to set
+     */
+    public void setPrivacyOperator(String privacyOperator) {
+        this.privacyOperator = privacyOperator;
+    }
+
+    /**
+     * A privacy policy of the deployment's own, which the footer links instead of the
+     * built-in privacy page. For an instance that is part of a larger site with its own
+     * legal pages.
+     *
+     * @return the privacy policy URL, or null to use the built-in page
+     */
+    public String getPrivacyUrl() {
+        String s = System.getenv("NANODASH_PRIVACY_URL");
+        if (s != null && !s.isBlank()) return s;
+        return privacyUrl;
+    }
+
+    /**
+     * Set the deployment's own privacy policy URL.
+     *
+     * @param privacyUrl the privacy policy URL to set
+     */
+    public void setPrivacyUrl(String privacyUrl) {
+        this.privacyUrl = privacyUrl;
     }
 
     /**

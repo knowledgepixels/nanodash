@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<head>
+  <wicket:remove>
+    <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+  </wicket:remove>
+  <wicket:head>
+    <title wicket:id="pagetitle">Privacy | nanodash</title>
+  </wicket:head>
+</head>
+<body>
+<wicket:extend>
+
+  <div class="row-section">
+    <div class="col-12">
+
+      <h2>Privacy</h2>
+
+      <p>Nanodash is open-source software that anyone can run, so what follows describes
+        what the software does with your personal data, and who runs this particular
+        instance.</p>
+
+      <h3>Who is responsible</h3>
+      <p wicket:id="operator">The operator of this instance.</p>
+      <p wicket:id="no-operator">This instance has not been configured to name its
+        operator. Whoever gave you its address runs it, and your questions about your data
+        go to them.</p>
+
+      <h3>Logging in</h3>
+      <p>Logging in through ORCID tells this instance your ORCID iD and the name on your
+        ORCID record, which are kept on the server so that what you publish can be
+        attributed to you.</p>
+
+      <h3>Your signing key</h3>
+      <p>Nanodash generates a signing key for you and keeps it on the server, so that what
+        you publish carries your signature. An operator may also hold encrypted backups of
+        these keys.</p>
+
+      <h3>What you publish</h3>
+      <p><strong>Publishing is public and permanent.</strong> A nanopublication you publish
+        carries your ORCID iD and your signature, and is distributed to a decentralised
+        network of servers beyond this instance's control. It cannot afterwards be edited,
+        withdrawn or deleted, by you or by us. Do not publish anything you may want to take
+        back. Nanopublications you mark as protected are the exception: those stay on this
+        instance.</p>
+
+      <h3>Cookies and logs</h3>
+      <p>A session cookie keeps you logged in. It is needed for the site to work and is not
+        used to follow you anywhere else. Nanodash itself does not record your IP address.
+        The web server an instance runs behind usually keeps short-lived access logs of the
+        requests it serves, as web servers generally do.</p>
+      <p wicket:id="analytics">This instance counts page views with
+        <a href="https://umami.is/">Umami</a>, which sets no cookies and does not track you
+        across websites.</p>
+
+      <h3>Your rights</h3>
+      <p>You can ask the operator named above for a copy of your data, or for its
+        correction or deletion — except for nanopublications already published, which, as
+        above, nobody can delete.</p>
+
+    </div>
+  </div>
+
+</wicket:extend>
+</body>
+</html>

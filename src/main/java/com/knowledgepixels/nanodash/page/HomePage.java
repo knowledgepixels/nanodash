@@ -10,7 +10,6 @@ import com.knowledgepixels.nanodash.component.PageTitleMenu;
 import com.knowledgepixels.nanodash.component.RefreshingStructurePanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
-import org.apache.wicket.markup.html.panel.Fragment;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import org.apache.wicket.Component;
@@ -136,7 +135,6 @@ public class HomePage extends NanodashPage {
             if (homeResource.isDataInitialized()) {
                 add(RefreshingStructurePanel.of("views", homeResource, markupId -> {
                     ViewList viewList = new ViewList(markupId, homeResourceModel);
-                    viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
                     return viewList;
                 }));
                 return;
@@ -155,7 +153,6 @@ public class HomePage extends NanodashPage {
                 return new Label(markupId, notFoundHtml).setEscapeModelStrings(false);
             }
             ViewList viewList = new ViewList(markupId, homeResourceModel);
-            viewList.setPageFooter(new Fragment("page-footer", "homeFooterFragment", HomePage.this));
             return viewList;
         }) {
 
