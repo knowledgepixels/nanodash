@@ -1,3 +1,23 @@
+## [5.19.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.18.0...nanodash-5.19.0) (2026-10-15)
+
+### Features
+
+* **privacy:** add a privacy page linked from every page ([2af808e](https://github.com/knowledgepixels/nanodash/commit/2af808e3271d9a5d8679d51fc096248d4d6024da)), closes [#692](https://github.com/knowledgepixels/nanodash/issues/692)
+* **publish:** retire the publish confirmation on a visible countdown ([0e1bbb5](https://github.com/knowledgepixels/nanodash/commit/0e1bbb5b6a03b2c3ddf1e3ff9472cc1b9629a5ea)), closes [#777](https://github.com/knowledgepixels/nanodash/issues/777)
+
+### Bug Fixes
+
+* **explore:** take a nanopublication sub-IRI to its page under the space ([2b46867](https://github.com/knowledgepixels/nanodash/commit/2b46867909aa1b2edf4e10029f635989246c11d6)), closes [#284](https://github.com/knowledgepixels/nanodash/issues/284) [#623](https://github.com/knowledgepixels/nanodash/issues/623) [#780](https://github.com/knowledgepixels/nanodash/issues/780)
+* **ui:** keep hover boxes from widening the page ([c493256](https://github.com/knowledgepixels/nanodash/commit/c49325671e9dd143db1983e6acea7ae235b6d87b)), closes [#783](https://github.com/knowledgepixels/nanodash/issues/783)
+
+### Tests
+
+* **views:** pin a multi-parameter publish link through the sanitizer ([aa8ec1c](https://github.com/knowledgepixels/nanodash/commit/aa8ec1cf923f01c9c0d239726fecede8b8b068f0))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([dac8579](https://github.com/knowledgepixels/nanodash/commit/dac8579391c1a0dd8f667e8f59718499b0f53912))
+
 ## [5.18.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.17.1...nanodash-5.18.0) (2026-10-12)
 
 ### Features
