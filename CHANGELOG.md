@@ -1,3 +1,13 @@
+## [5.19.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.19.0...nanodash-5.19.1) (2026-10-16)
+
+### Bug Fixes
+
+* **privacy:** only bind the footer on pages whose markup has one ([169ff7f](https://github.com/knowledgepixels/nanodash/commit/169ff7f9c5e8a876b99d215efa0af9d9c52d0a81))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([087faed](https://github.com/knowledgepixels/nanodash/commit/087faed58fda0b7b31b2b86896ba10f163c85417))
+
 ## [5.19.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.18.0...nanodash-5.19.0) (2026-10-15)
 
 ### Features
