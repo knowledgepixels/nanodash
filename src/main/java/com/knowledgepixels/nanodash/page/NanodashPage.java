@@ -152,18 +152,40 @@ public abstract class NanodashPage extends WebPage {
     }
 
     /**
-     * Builds the footer every page carries. The privacy link is there because a privacy
-     * notice has to be reachable from wherever the visitor happens to be; it points at the
-     * built-in {@link PrivacyPage}, or at the deployment's own policy where one is
-     * configured ({@code NANODASH_PRIVACY_URL}), never both. Nanodash's own credit sits
-     * next to it, except in site mode, where the instance presents itself as someone
+     * Builds the footer, for the pages whose markup has one. The privacy link is there
+     * because a privacy notice has to be reachable from wherever the visitor happens to be;
+     * it points at the built-in {@link PrivacyPage}, or at the deployment's own policy where
+     * one is configured ({@code NANODASH_PRIVACY_URL}), never both. Nanodash's own credit
+     * sits next to it, except in site mode, where the instance presents itself as someone
      * else's website (issue #692).
+     * <p>
+     * Not every page extends this one's markup: a handful bring a complete {@code <html>} of
+     * their own, and the ones that serve a file rather than a page should not grow a footer
+     * at all. Adding a component that the rendered markup has no tag for is a render-time
+     * {@code MarkupNotFoundException}, not a missing link, so the markup decides whether
+     * these components exist at all.
      */
     private void addPageFooter() {
+        if (!hasPageFooter()) return;
         add(new WebMarkupContainer("credit").setVisible(!SiteMode.isEnabled()));
         String url = NanodashPreferences.get().getPrivacyUrl();
         add(new BookmarkablePageLink<Void>("privacy-link", PrivacyPage.class).setVisible(url == null));
         add(new ExternalLink("privacy-link-external", url == null ? "" : url).setVisible(url != null));
+    }
+
+    /**
+     * Whether this page's markup has the footer, and so whether its components should exist.
+     * True for every page that extends this one's markup, since the footer is in it. A page
+     * that brings a complete {@code <html>} of its own either repeats the footer markup (see
+     * {@code QueryPage.html}) or overrides this to false — a page serving a file has no use
+     * for one. Getting it wrong the other way is not a missing link but a render-time
+     * {@code MarkupNotFoundException}, which is how the privacy link took /query down in
+     * production; {@code PageFooterMarkupTest} guards the pairing.
+     *
+     * @return true if the footer's tags are in this page's markup
+     */
+    protected boolean hasPageFooter() {
+        return true;
     }
 
     /**

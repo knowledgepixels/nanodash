@@ -40,4 +40,14 @@ public class GetNamePage extends NanodashPage {
         // TODO return Content-Type text/plain instead of text/html
     }
 
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This page brings its own markup and answers with a name, not a page to read, so it has no footer.
+     */
+    @Override
+    protected boolean hasPageFooter() {
+        return false;
+    }
 }

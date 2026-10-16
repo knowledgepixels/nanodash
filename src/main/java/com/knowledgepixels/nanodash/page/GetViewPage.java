@@ -30,4 +30,14 @@ public class GetViewPage extends NanodashPage {
         ViewPage.addNanopubItem(this, parameters);
     }
 
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This page brings its own markup and redirects on to the view, so it has no footer.
+     */
+    @Override
+    protected boolean hasPageFooter() {
+        return false;
+    }
 }
