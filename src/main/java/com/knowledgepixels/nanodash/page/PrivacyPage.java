@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -44,6 +45,12 @@ public class PrivacyPage extends NanodashPage {
         String operator = prefs.getPrivacyOperator();
         add(new Label("operator", operator).setVisible(operator != null));
         add(new WebMarkupContainer("no-operator").setVisible(operator == null));
+
+        // The protected option is offered only where the main registry is a local instance
+        // (ServiceMode.isRegistryLocal(), see docs/protected-nanopublications.md). Elsewhere
+        // naming it would be worse than silence: it softens the warning above with a way out
+        // that this instance does not give the reader.
+        add(new WebMarkupContainer("protected").setVisible(ServiceMode.isRegistryLocal()));
 
         // Only an instance that actually runs analytics should say that it does.
         String umamiUrl = prefs.getUmamiScriptUrl();
