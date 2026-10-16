@@ -1,6 +1,8 @@
 package com.knowledgepixels.nanodash.page;
 
+import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.WicketApplication;
+import org.mockito.MockedStatic;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +12,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(SystemStubsExtension.class)
 class PrivacyPageTest {
@@ -36,6 +39,23 @@ class PrivacyPageTest {
         tester.assertRenderedPage(PrivacyPage.class);
         tester.assertContains("public and permanent");
         tester.assertContains("withdrawn or deleted");
+    }
+
+    // The protected option exists only where the main registry is a local instance. Naming
+    // it anywhere else would soften the warning above with a way out the reader has not got.
+    @Test
+    void mentionsProtectedNanopubsOnlyWhereTheyArePossible() {
+        try (MockedStatic<ServiceMode> serviceMode = mockStatic(ServiceMode.class)) {
+            serviceMode.when(ServiceMode::isRegistryLocal).thenReturn(false);
+            tester.startPage(PrivacyPage.class);
+            tester.assertInvisible("protected");
+            tester.assertContains("public and permanent");
+
+            serviceMode.when(ServiceMode::isRegistryLocal).thenReturn(true);
+            tester.startPage(PrivacyPage.class);
+            tester.assertVisible("protected");
+            tester.assertContains("mark as protected");
+        }
     }
 
     // Nanodash is run by whoever deploys it, so the page can only name an operator that
