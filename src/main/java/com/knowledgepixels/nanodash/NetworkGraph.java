@@ -93,10 +93,12 @@ public class NetworkGraph {
     /**
      * One entry of the colour legend shown under a network.
      *
-     * @param type  the node type as the query reported it
+     * @param type  the node type's IRI, as the query reported it
+     * @param label what to call it: the query's {@code _type_label} where it gives one,
+     *              and the short name of the IRI otherwise
      * @param color the colour its nodes are drawn in
      */
-    public record LegendEntry(String type, String color) {
+    public record LegendEntry(String type, String label, String color) {
     }
 
     // The shapes below are serialized straight to JSON, so their field names are the
@@ -104,7 +106,7 @@ public class NetworkGraph {
     private record Node(String id, String label, String title, String color, String url) {
     }
 
-    private record Edge(String from, String to, String label, String title, String url) {
+    private record Edge(String from, String to, String label, String title, String iri, String url) {
     }
 
     private record GraphData(List<Node> nodes, List<Edge> edges) {
@@ -136,6 +138,7 @@ public class NetworkGraph {
         List<Edge> edges = new ArrayList<>();
         Set<String> seenEdges = new LinkedHashSet<>();
         Map<String, String> colorByType = new LinkedHashMap<>();
+        Map<String, String> labelByType = new LinkedHashMap<>();
         boolean truncated = false;
 
         for (ApiResponseEntry row : response.getData()) {
@@ -158,10 +161,14 @@ public class NetworkGraph {
             String key = source + "\u0000" + target + "\u0000" + (edgeType == null ? edgeLabel : edgeType);
             if (!seenEdges.add(key)) continue;
 
+            String sourceType = trimmed(row.get("source_type"));
+            String targetType = trimmed(row.get("target_type"));
             node(nodes, source, trimmed(row.get("source_label")), trimmed(row.get("source_desc")),
-                    trimmed(row.get("source_type")));
+                    sourceType);
             node(nodes, target, trimmed(row.get("target_label")), trimmed(row.get("target_desc")),
-                    trimmed(row.get("target_type")));
+                    targetType);
+            typeLabel(labelByType, sourceType, trimmed(row.get("source_type_label")));
+            typeLabel(labelByType, targetType, trimmed(row.get("target_type_label")));
 
             String caption = edgeLabel != null ? edgeLabel
                     : (edgeType != null ? Utils.getShortNameFromURI(edgeType) : null);
@@ -170,9 +177,11 @@ public class NetworkGraph {
             // Of several nanopublications asserting the same relation, the first the result
             // named for it, since the edge itself is drawn once.
             edges.add(new Edge(source, target, Utils.truncateLinkLabel(caption),
-                    // The hover text is the edge's own description where the query writes
-                    // one, and its caption otherwise.
-                    edgeTitle(edgeDesc != null ? edgeDesc : edgeLabel, edgeType, npId),
+                    // The hover box says what the edge is, in the query's own words where
+                    // it has any; the relation it instantiates is named in the status line,
+                    // where a browser would name the target of a link.
+                    edgeDesc != null ? edgeDesc : edgeLabel,
+                    edgeType,
                     npId == null || pageUrl == null ? null : pageUrl.apply(npId)));
         }
 
@@ -201,7 +210,8 @@ public class NetworkGraph {
         }
 
         List<LegendEntry> legend = new ArrayList<>(colorByType.size());
-        colorByType.forEach((type, color) -> legend.add(new LegendEntry(type, color)));
+        colorByType.forEach((type, color) -> legend.add(new LegendEntry(type,
+                labelByType.getOrDefault(type, Utils.getShortNameFromURI(type)), color)));
 
         String json = new Gson().toJson(new GraphData(nodeList, edges));
         return new Graph(json, nodeList.size(), edges.size(), truncated, legend);
@@ -215,6 +225,14 @@ public class NetworkGraph {
         return Utils.truncateLinkLabel(label);
     }
 
+    // What to call a type in the legend. The first row that names it decides, and a row
+    // that names it differently later is passed over rather than reconciled: a legend is a
+    // key to the colours, not a claim about the type.
+    private static void typeLabel(Map<String, String> labels, String type, String label) {
+        if (type == null || label == null) return;
+        labels.putIfAbsent(type, label);
+    }
+
     private static void node(Map<String, NodeBuilder> nodes, String iri, String label, String desc,
                              String type) {
         NodeBuilder nb = nodes.computeIfAbsent(iri, NodeBuilder::new);
@@ -225,34 +243,13 @@ public class NetworkGraph {
         if (nb.type == null) nb.type = type;
     }
 
-    // The tooltip is plain text, shown over several lines. It opens with what the query
-    // has to say about the node — its description, or its full label, which the caption may
-    // have had to cut — and always carries the IRI, so a node can be identified without
-    // clicking through.
+    // The hover box carries what the query has to say about a node, and nothing else: its
+    // description, or its full label, which the caption may have had to cut. A node the
+    // query neither describes nor names gets no hover box at all — a box repeating the
+    // caption, or showing an IRI the status line already shows, is worth less than nothing
+    // in a diagram one points at to read.
     private static String nodeTitle(NodeBuilder nb) {
-        StringBuilder sb = new StringBuilder();
-        String desc = nb.desc != null ? nb.desc : nb.label;
-        if (desc != null) sb.append(desc).append("\n");
-        sb.append(nb.id);
-        if (nb.type != null) sb.append("\n").append(nb.type);
-        return sb.toString();
-    }
-
-    // The hover box over an edge opens with what the query says about it, and then names
-    // the relation by its IRI: the text says what the edge is, the IRI says which relation
-    // it is an instance of.
-    private static String edgeTitle(String desc, String edgeType, String npId) {
-        StringBuilder sb = new StringBuilder();
-        if (desc != null) sb.append(desc);
-        if (edgeType != null) {
-            if (!sb.isEmpty()) sb.append("\n");
-            sb.append(edgeType);
-        }
-        if (npId != null) {
-            if (!sb.isEmpty()) sb.append("\n");
-            sb.append("source: ").append(npId);
-        }
-        return sb.isEmpty() ? null : sb.toString();
+        return nb.desc != null ? nb.desc : nb.label;
     }
 
     private static String trimmed(String value) {

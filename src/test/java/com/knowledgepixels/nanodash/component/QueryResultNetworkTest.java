@@ -109,6 +109,19 @@ class QueryResultNetworkTest {
         assertTrue(html.contains("network-view-swatch"), html);
         assertTrue(html.contains("Space"), html);
         assertTrue(html.contains("IndividualAgent"), html);
+        // The IRI travels with the entry, for the status line to show on hover.
+        assertTrue(html.contains("data-iri=\"https://w3id.org/kpxl/gen/terms/Space\""), html);
+    }
+
+    @Test
+    void legendShowsTheTypeLabelTheQueryGives() {
+        String html = render(response(
+                new String[]{"source", "source_type", "source_type_label", "target"},
+                new String[]{"https://example.org/s", "https://w3id.org/kpxl/gen/terms/Space", "space",
+                        "https://example.org/a"}));
+
+        assertTrue(html.contains(">space<"), html);
+        assertTrue(html.contains("data-iri=\"https://w3id.org/kpxl/gen/terms/Space\""), html);
     }
 
     @Test

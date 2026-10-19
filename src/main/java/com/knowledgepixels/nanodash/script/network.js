@@ -105,11 +105,13 @@ function initNetwork(container) {
     };
   });
   var edgeUrls = {};
+  var edgeIris = {};
   var rawEdges = graph.edges || [];
   var withLabels = rawEdges.length <= EDGE_LABEL_LIMIT;
   var edges = rawEdges.map(function (e, i) {
     var id = "e" + i;
     edgeUrls[id] = e.url;
+    edgeIris[id] = e.iri;
     return {
       id: id,
       from: e.from,
@@ -124,6 +126,44 @@ function initNetwork(container) {
       networkOptions(nodes.length, edges.length));
   container.setAttribute("data-network-ready", "1");
   networkInstances.push({el: container, net: network});
+
+  /* Added after the network, because vis-network empties the container when it takes it
+     over. Nothing in it is interactive, so it never gets in the way of a click. */
+  var status = document.createElement("div");
+  status.className = "network-view-status";
+  status.style.display = "none";
+  container.appendChild(status);
+
+  /* The IRI of whatever is under the pointer, shown the way a browser shows the target of
+     the link you are on. Set as text, for the same reason the tooltips are. */
+  function showStatus(iri) {
+    status.textContent = iri || "";
+    status.style.display = iri ? "block" : "none";
+  }
+
+  /* Leaving the canvas sideways does not always report a blur, and a status line left
+     standing would name something the pointer is no longer on. */
+  container.addEventListener("mouseleave", function () {
+    showStatus(null);
+  });
+
+  /* The legend sits under the canvas and names the types by colour; pointing at one of its
+     entries reports that type's IRI in the same corner, so every named thing in the view
+     can be identified the same way. */
+  var legend = container.parentNode && container.parentNode.querySelector(".network-view-legend");
+  if (legend) {
+    var entries = legend.querySelectorAll("[data-iri]");
+    for (var e = 0; e < entries.length; e++) {
+      (function (entry) {
+        entry.addEventListener("mouseenter", function () {
+          showStatus(entry.getAttribute("data-iri"));
+        });
+        entry.addEventListener("mouseleave", function () {
+          showStatus(null);
+        });
+      })(entries[e]);
+    }
+  }
 
   /* The layout is worth the CPU once; leaving the simulation running would keep every
      network view on the page busy for as long as it is open. */
@@ -146,15 +186,20 @@ function initNetwork(container) {
   /* The pointer says which of the two kinds of hover leads somewhere. */
   network.on("hoverNode", function (params) {
     container.style.cursor = urls[params.node] ? "pointer" : "default";
+    /* A node's id is its IRI. */
+    showStatus(params.node);
   });
   network.on("hoverEdge", function (params) {
     container.style.cursor = edgeUrls[params.edge] ? "pointer" : "default";
+    showStatus(edgeIris[params.edge]);
   });
   network.on("blurNode", function () {
     container.style.cursor = "default";
+    showStatus(null);
   });
   network.on("blurEdge", function () {
     container.style.cursor = "default";
+    showStatus(null);
   });
 }
 

@@ -35,9 +35,9 @@ without network-view support skip the view silently (unknown display type).
 The query returns **one row per edge**:
 
 ```sparql
-SELECT ?source ?source_label ?source_desc ?source_type
+SELECT ?source ?source_label ?source_desc ?source_type ?source_type_label
        ?edge_type ?edge_label ?edge_desc
-       ?target ?target_label ?target_desc ?target_type
+       ?target ?target_label ?target_desc ?target_type ?target_type_label
        ?np ?np_label
 WHERE { ... }
 ```
@@ -49,13 +49,14 @@ the document export.
 | column | required | meaning |
 | --- | --- | --- |
 | `source`, `target` | yes | the two node IRIs. Nodes are deduplicated across rows, so a node reached by five edges is drawn once |
-| `source_label`, `target_label` | no | the node's caption, and the first line of its hover box unless `_desc` gives one. The first non-empty value for a node wins, so a later row cannot rename it. A node the query leaves unnamed falls back to the label Nanodash already knows for that IRI — a user's display name, a space's or a maintained resource's label — and then to the short name of the IRI |
-| `source_desc`, `target_desc` | no | what the node's hover box opens with, for what a caption has no room to say. Defaults to the node's label, and like the label it is taken from the first row that has one |
+| `source_label`, `target_label` | no | the node's caption, and its hover box where no `_desc` gives one. The first non-empty value for a node wins, so a later row cannot rename it. A node the query leaves unnamed falls back to the label Nanodash already knows for that IRI — a user's display name, a space's or a maintained resource's label — and then, for the caption only, to the short name of the IRI |
+| `source_desc`, `target_desc` | no | what the node's hover box says, for what a caption has no room to say. Defaults to the node's label, and like the label it is taken from the first row that has one. A node with neither has no hover box |
 | `source_type`, `target_type` | no | groups nodes by colour, with a legend under the diagram. Colours are assigned in the order the types are first seen |
-| `edge_type` | no | the relation's IRI: what an edge's hover box names, and what captions it where the query gives no `?edge_label`. Edges are all drawn alike — only nodes are grouped by colour |
-| `edge_label` | no | the edge's caption; without one, an `?edge_type` is captioned with its short name |
-| `edge_desc` | no | what the edge's hover box opens with, defaulting to `?edge_label` |
-| `np` | no | the nanopublication asserting the edge: named in the edge's hover box, and where a click on the edge leads |
+| `source_type_label`, `target_type_label` | no | what the legend calls the type; without one it uses the short name of the type's IRI. The first row that names a type decides, and a row naming it differently later is passed over rather than reconciled |
+| `edge_type` | no | the relation's IRI: named in the status line while the pointer is on the edge, and the edge's caption where the query gives no `?edge_label`. Edges are all drawn alike — only nodes are grouped by colour |
+| `edge_label` | no | the edge's caption, and its hover box where no `?edge_desc` gives one; without a label, an `?edge_type` is captioned with its short name |
+| `edge_desc` | no | what the edge's hover box says, defaulting to `?edge_label`. An edge with neither has no hover box |
+| `np` | no | the nanopublication asserting the edge: where a click on the edge leads |
 
 A row that names only one of `source`/`target` describes no edge and is passed over. A
 relation asserted by several nanopublications is drawn as one edge, not as a bundle, and a
@@ -67,11 +68,18 @@ the graph travels as ordinary result cells.
 
 ## Interaction
 
-- **Hovering** a node shows what the query says about it — its `?source_desc`/`?target_desc`
-  where there is one, otherwise its full label, which the caption may have had to cut —
-  then its IRI, and its type where the query gives one. Hovering an edge shows the same
-  for the edge, then the relation's IRI (the text is a word for the relation, the IRI is
-  *which* relation it is), then the nanopublication asserting it.
+- **Hovering** a node shows what the query says about it, and only that: its
+  `?source_desc`/`?target_desc` where there is one, otherwise its full label, which the
+  caption may have had to cut. An edge behaves the same way, with `?edge_desc` and
+  `?edge_label`. Where the query says neither, nothing opens — a box repeating the caption
+  is worth less than no box at all.
+- **The status line** in the bottom-left corner of the diagram names what the pointer is
+  on, the way a browser names the target of the link under the cursor: a node's own IRI, an
+  edge's `?edge_type`, and — pointing at the legend below the diagram — the IRI of the type
+  that entry stands for. It is how an IRI is read off the diagram now that the hover box
+  carries words rather than identifiers, and it is where to look when a caption is
+  ambiguous — two spaces of the same name, say. An edge the query gives no type leaves it
+  empty.
 - **Clicking** a node opens its page, routed exactly as a link in a table cell would be
   (part page, space, user, maintained resource, or Explore), carrying this view's
   navigation context so the destination's back-link leads back here. Clicking an edge
@@ -106,9 +114,11 @@ the graph travels as ordinary result cells.
   many vocabularies is a code. Hand the `*_label` columns the same labels a table would show.
 - **Type the nodes when the graph mixes kinds of thing.** A space, its sub-spaces, its
   maintained resources and its members read very differently in four colours than in one.
-  The legend shows each type's short name, so a type IRI is as good as a word here.
-- **Type the edges when the relation matters.** `?edge_type` is what an edge's hover box
-  names, and what captions an edge the query does not label. Captions on the lines are
+  The legend falls back to each type's short name, so a type IRI is as good as a word here —
+  and `?source_type_label`/`?target_type_label` give it a better one where the short name
+  reads like a class name rather than like a word.
+- **Type the edges when the relation matters.** `?edge_type` is what the status line names
+  while the pointer is on an edge, and what captions an edge the query does not label. Captions on the lines are
   dropped above a few dozen edges, where they overlap each other and the nodes, so in a
   dense graph the relation is a hover away rather than on the page.
 - **Say the rest on hover.** The `_desc` columns are read only there, so a node can be
@@ -177,6 +187,6 @@ Three things it illustrates. The `optional` sits **outside** the `graph ?g { …
 because an optional pattern inside one silently drops the whole row in RDF4J. The space
 nodes carry no label: the space state has none, so they are left to the fallback, which
 names them from what Nanodash knows — the reason that fallback is worth having. And each
-role tier is its own `?edge_type`, which is what the hover box over a grant names; the
-sub-space edges are the only ones with no asserting nanopublication to point at, since the
-space state does not record one.
+role tier is its own `?edge_type`, which is what the status line names when a grant is
+pointed at; the sub-space edges are the only ones with no asserting nanopublication to
+point at, since the space state does not record one.

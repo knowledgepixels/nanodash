@@ -2,11 +2,11 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.NetworkGraph;
 import com.knowledgepixels.nanodash.QueryResult;
-import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.WicketApplication;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsCssResourceReference;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -133,10 +133,15 @@ public class QueryResultNetwork extends QueryResult {
             @Override
             protected void populateItem(ListItem<NetworkGraph.LegendEntry> item) {
                 NetworkGraph.LegendEntry entry = item.getModelObject();
+                WebMarkupContainer legendEntry = new WebMarkupContainer("entry");
+                // Read by script/network.js, which puts the type's IRI in the status line
+                // while the pointer is on its entry, as it does for a node or an edge.
+                legendEntry.add(AttributeModifier.replace("data-iri", entry.type()));
                 WebMarkupContainer swatch = new WebMarkupContainer("swatch");
                 swatch.add(new AttributeAppender("style", "background-color: " + entry.color()));
-                item.add(swatch);
-                item.add(new Label("type", Utils.getShortNameFromURI(entry.type())));
+                legendEntry.add(swatch);
+                legendEntry.add(new Label("type", entry.label()));
+                item.add(legendEntry);
             }
         });
         add(legendRow);

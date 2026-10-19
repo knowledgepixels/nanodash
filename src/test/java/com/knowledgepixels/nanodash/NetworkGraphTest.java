@@ -124,9 +124,10 @@ class NetworkGraphTest {
 
         JsonObject node = nodeById(graph, "https://example.org/a");
         assertEquals("Ay", node.get("label").getAsString());
-        assertTrue(node.get("title").getAsString()
-                .startsWith("Ay, the first of its kind, described at length"), node.toString());
-        assertTrue(node.get("title").getAsString().contains("https://example.org/a"));
+        // The hover box is the description and nothing else: no IRI, no type. The IRI is
+        // what the status line in the corner is for.
+        assertEquals("Ay, the first of its kind, described at length",
+                node.get("title").getAsString());
     }
 
     @Test
@@ -135,7 +136,7 @@ class NetworkGraphTest {
                 new String[]{"source", "source_label", "source_desc", "target"},
                 new String[]{"https://example.org/a", "Ay", "", "https://example.org/b"}), PAGE_URL);
 
-        assertTrue(nodeById(graph, "https://example.org/a").get("title").getAsString().startsWith("Ay\n"));
+        assertEquals("Ay", nodeById(graph, "https://example.org/a").get("title").getAsString());
     }
 
     @Test
@@ -146,9 +147,9 @@ class NetworkGraphTest {
                 new String[]{"https://example.org/b", "What b is, said again", "https://example.org/a", "What a is"}),
                 PAGE_URL);
 
-        assertTrue(nodeById(graph, "https://example.org/b").get("title").getAsString().startsWith("What b is\n"));
+        assertEquals("What b is", nodeById(graph, "https://example.org/b").get("title").getAsString());
         // a was described by no row until the second one, which is still allowed to.
-        assertTrue(nodeById(graph, "https://example.org/a").get("title").getAsString().startsWith("What a is\n"));
+        assertEquals("What a is", nodeById(graph, "https://example.org/a").get("title").getAsString());
     }
 
     /**
@@ -162,8 +163,23 @@ class NetworkGraphTest {
                         new String[]{"https://example.org/space", "https://example.org/b"}),
                 PAGE_URL, iri -> "https://example.org/space".equals(iri) ? "The Space" : null);
 
-        assertTrue(nodeById(graph, "https://example.org/space").get("title").getAsString()
-                .startsWith("The Space\n"));
+        assertEquals("The Space", nodeById(graph, "https://example.org/space").get("title").getAsString());
+    }
+
+    /**
+     * A node the query neither describes nor names, and that Nanodash cannot name either,
+     * has nothing to say on hover — so it says nothing, rather than opening a box with the
+     * caption or the IRI in it.
+     */
+    @Test
+    void nodeWithNothingToSayHasNoHoverBox() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "target"},
+                new String[]{"https://example.org/thing/a", "https://example.org/thing/b"}), PAGE_URL);
+
+        JsonObject node = nodeById(graph, "https://example.org/thing/a");
+        assertEquals("a", node.get("label").getAsString());
+        assertNull(stringOrNull(node, "title"));
     }
 
     @Test
@@ -177,8 +193,7 @@ class NetworkGraphTest {
         JsonObject edge = edges(graph).get(0).getAsJsonObject();
         // The caption on the line stays the label; only the hover box takes the description.
         assertEquals("points at", edge.get("label").getAsString());
-        assertEquals("points at it, since the third of March\nhttps://example.org/p"
-                + "\nsource: https://w3id.org/np/RA1", edge.get("title").getAsString());
+        assertEquals("points at it, since the third of March", edge.get("title").getAsString());
     }
 
     @Test
@@ -188,8 +203,37 @@ class NetworkGraphTest {
                 new String[]{"https://example.org/a", "https://example.org/p", "points at",
                         "https://example.org/b"}), PAGE_URL);
 
-        assertEquals("points at\nhttps://example.org/p",
-                edges(graph).get(0).getAsJsonObject().get("title").getAsString());
+        assertEquals("points at", edges(graph).get(0).getAsJsonObject().get("title").getAsString());
+    }
+
+    /**
+     * The status line names the relation an edge instantiates, so the IRI travels with the
+     * edge even though no hover box shows it. An edge with no type names nothing.
+     */
+    @Test
+    void edgeCarriesItsRelationIriForTheStatusLine() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "edge_type", "edge_label", "target"},
+                new String[]{"https://example.org/a", "https://example.org/p", "points at",
+                        "https://example.org/b"},
+                new String[]{"https://example.org/a", "", "related to", "https://example.org/c"}), PAGE_URL);
+
+        assertEquals("https://example.org/p", edges(graph).get(0).getAsJsonObject().get("iri").getAsString());
+        assertNull(stringOrNull(edges(graph).get(1).getAsJsonObject(), "iri"));
+    }
+
+    @Test
+    void edgeWithNothingToSayHasNoHoverBox() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "edge_type", "target", "np"},
+                new String[]{"https://example.org/a", "https://w3id.org/kpxl/gen/terms/isMaintainedBy",
+                        "https://example.org/b", "https://w3id.org/np/RA1"}), PAGE_URL);
+
+        JsonObject edge = edges(graph).get(0).getAsJsonObject();
+        // It is captioned from its type and leads to its nanopublication, but the query
+        // gave it no words of its own, so there is no box to open.
+        assertEquals("isMaintainedBy", edge.get("label").getAsString());
+        assertNull(stringOrNull(edge, "title"));
     }
 
     @Test
@@ -255,6 +299,55 @@ class NetworkGraphTest {
         assertEquals(spaceColor, graph.legend().get(0).color());
     }
 
+    /**
+     * A type is called whatever the query's {@code _type_label} calls it, so a legend can
+     * read "space" and "person" rather than the tail of two IRIs.
+     */
+    @Test
+    void legendNamesATypeByItsTypeLabel() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "source_type", "source_type_label",
+                        "target", "target_type", "target_type_label"},
+                new String[]{"https://example.org/s", "https://w3id.org/kpxl/gen/terms/Space", "space",
+                        "https://example.org/a", "https://w3id.org/kpxl/gen/terms/IndividualAgent", "person"}),
+                PAGE_URL);
+
+        assertEquals(List.of("space", "person"), graph.legend().stream().map(NetworkGraph.LegendEntry::label).toList());
+        // The IRI is still what the entry stands for, and what the status line shows.
+        assertEquals("https://w3id.org/kpxl/gen/terms/Space", graph.legend().get(0).type());
+    }
+
+    /**
+     * The first name a type is given wins. A query that names it differently two rows later
+     * is not reconciled and not reported — a legend is a key to the colours, and the colour
+     * is keyed on the IRI.
+     */
+    @Test
+    void firstTypeLabelWinsOverLaterOnes() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "source_type", "source_type_label", "target"},
+                new String[]{"https://example.org/a", "https://w3id.org/kpxl/gen/terms/Space", "",
+                        "https://example.org/b"},
+                new String[]{"https://example.org/c", "https://w3id.org/kpxl/gen/terms/Space", "space",
+                        "https://example.org/d"},
+                new String[]{"https://example.org/e", "https://w3id.org/kpxl/gen/terms/Space", "SPACE!!",
+                        "https://example.org/f"}), PAGE_URL);
+
+        assertEquals(1, graph.legend().size());
+        assertEquals("space", graph.legend().get(0).label());
+    }
+
+    @Test
+    void legendFallsBackToTheShortNameOfTheType() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "source_type", "target"},
+                new String[]{"https://example.org/a", "https://w3id.org/kpxl/gen/terms/Space",
+                        "https://example.org/b"}), PAGE_URL);
+
+        assertEquals("Space", graph.legend().get(0).label());
+        assertEquals("https://w3id.org/kpxl/gen/terms/Space", graph.legend().get(0).type());
+    }
+
     @Test
     void untypedQueryHasNoLegend() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
@@ -281,10 +374,9 @@ class NetworkGraphTest {
         JsonObject edge = edges(graph).get(0).getAsJsonObject();
         assertEquals("points at", edge.get("label").getAsString());
         assertEquals("/explore?id=https://w3id.org/np/RA1", edge.get("url").getAsString());
-        // The hover box says what the edge is, names the relation by its IRI, and says
-        // where the edge comes from.
-        assertTrue(edge.get("title").getAsString().startsWith("points at\nhttps://example.org/p"));
-        assertTrue(edge.get("title").getAsString().contains("https://w3id.org/np/RA1"));
+        // The hover box says what the edge is; the relation's IRI goes to the status line.
+        assertEquals("points at", edge.get("title").getAsString());
+        assertEquals("https://example.org/p", edge.get("iri").getAsString());
     }
 
     @Test
@@ -354,7 +446,7 @@ class NetworkGraphTest {
         assertTrue(denseCaption.length() < sparseCaption.length(), denseCaption);
         assertTrue(denseCaption.endsWith("..."), denseCaption);
         // Whatever the caption, the hover box still carries the full label.
-        assertTrue(nodeById(dense, "https://example.org/n0").get("title").getAsString().startsWith(label));
+        assertEquals(label, nodeById(dense, "https://example.org/n0").get("title").getAsString());
     }
 
     @Test
@@ -426,8 +518,7 @@ class NetworkGraphTest {
 
         JsonObject node = nodeById(graph, "https://example.org/a");
         assertTrue(node.get("label").getAsString().endsWith("..."));
-        assertTrue(node.get("title").getAsString().startsWith(longLabel));
-        assertTrue(node.get("title").getAsString().contains("https://example.org/a"));
+        assertEquals(longLabel, node.get("title").getAsString());
     }
 
 }
