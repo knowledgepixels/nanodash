@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.template.DatePrecision;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.UnificationException;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -25,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
+import org.wicketstuff.jquery.core.JQueryBehavior;
+import org.wicketstuff.jquery.core.ajax.JQueryAjaxBehavior;
 
 import java.util.List;
 import java.util.Locale;
@@ -50,7 +53,7 @@ class LiteralFlexibleDateItemTest {
     private static final String MONTH_FIELD = PARTS + "month";
     private static final String DAY_FIELD = PARTS + "day";
     private static final String TIME_FIELD = PARTS + "time";
-    private static final String ZONE_FIELD = PARTS + "zone";
+    private static final String ZONE_FIELD = PARTS + "zone:dropdown";
 
     private WicketTester tester;
 
@@ -131,7 +134,12 @@ class LiteralFlexibleDateItemTest {
      */
     private void enter(String field, String value) {
         tester.newFormTester("panel:form").setValue(field, value);
-        tester.executeAjaxEvent("panel:form:" + field, "change");
+        if (field.equals(TIME_FIELD)) {
+            Component timePicker = tester.getComponentFromLastRenderedPage("panel:form:" + field);
+            tester.executeBehavior(timePicker.getBehaviors(JQueryAjaxBehavior.class).get(0));
+        } else {
+            tester.executeAjaxEvent("panel:form:" + field, "change");
+        }
     }
 
     private LiteralFlexibleDateItem item() {
@@ -147,7 +155,7 @@ class LiteralFlexibleDateItemTest {
     }
 
     private boolean isShown(String field) {
-        return tester.getComponentFromLastRenderedPage("panel:form:" + field, false).isVisible();
+        return tester.getComponentFromLastRenderedPage("panel:form:" + field, false).isVisibleInHierarchy();
     }
 
     private void assertErrorMessage(String expectedFragment) {
@@ -214,9 +222,9 @@ class LiteralFlexibleDateItemTest {
         enter(MONTH_FIELD, "11");
         enter(DAY_FIELD, "16");
         enter(TIME_FIELD, "09:00");
+        enter(ZONE_FIELD, "-05:00");
 
         FormTester form = filledForm();
-        form.setValue(ZONE_FIELD, "-05:00");
         form.submit();
 
         assertEquals(vf.createLiteral("2026-11-16T09:00:00-05:00", XSD.DATETIME), published(np));
@@ -231,7 +239,7 @@ class LiteralFlexibleDateItemTest {
         enter(DAY_FIELD, "01");
         enter(TIME_FIELD, "12:00");
 
-        String expectedZone = AjaxZonedDateTimePicker.getUserZoneId().getRules()
+        String expectedZone = ZoneChoice.getUserZoneId().getRules()
                 .getOffset(java.time.LocalDateTime.of(2026, 7, 1, 12, 0)).getId();
         assertEquals("2026-07-01T12:00:00" + expectedZone, value());
     }
@@ -343,7 +351,7 @@ class LiteralFlexibleDateItemTest {
     @Test
     void theBrowsersTimezoneIsTakenUpWhereATimeCanBeEntered() throws Exception {
         startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex14", XSD.DATE, XSD.DATETIME);
-        List<AjaxClientInfoBehavior> behaviors = tester.getComponentFromLastRenderedPage(ITEM).getBehaviors(AjaxClientInfoBehavior.class);
+        List<AjaxClientInfoBehavior> behaviors = tester.getComponentFromLastRenderedPage(ITEM + ":zone").getBehaviors(AjaxClientInfoBehavior.class);
         assertEquals(1, behaviors.size());
 
         tester.executeBehavior(behaviors.get(0));
@@ -355,8 +363,91 @@ class LiteralFlexibleDateItemTest {
     void noTimezoneIsAskedForWhereNoTimeCanBeEntered() throws Exception {
         startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex15", XSD.GYEAR, XSD.GYEARMONTH);
 
-        assertTrue(tester.getComponentFromLastRenderedPage(ITEM).getBehaviors(AjaxClientInfoBehavior.class).isEmpty(),
-                "a template that takes a year and month at most has no timezone part to repaint");
+        assertFalse(isShown(ZONE_FIELD), "a template that takes a year and month at most has no timezone part");
+        assertFalse(tester.getLastResponseAsString().contains("jsTimeZone"),
+                "so the browser is not asked for its timezone, which there would be nothing to repaint with");
+    }
+
+    @Test
+    void theTimeIsPickedWithTheSameTimePickerAsADateAndTime() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex20");
+
+        assertTrue(tester.getComponentFromLastRenderedPage(ITEM + ":time") instanceof org.wicketstuff.kendo.ui.form.datetime.TimePicker);
+        assertTrue(tester.getComponentFromLastRenderedPage(ITEM + ":zone") instanceof ZoneChoice);
+    }
+
+    @Test
+    void secondsAreKeptAndShownOnceTheTimeHasThem() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex21";
+        startForm(np, new PageParameters().add("param_moment", "2026-11-16T09:00:30.123456Z"), null);
+
+        assertEquals(vf.createLiteral("2026-11-16T09:00:30.123456Z", XSD.DATETIME), published(np),
+                "more digits of a second than the time picker holds are kept");
+        Component timePicker = tester.getComponentFromLastRenderedPage(ITEM + ":time");
+        Object format = timePicker.getBehaviors(JQueryBehavior.class).get(0).getOption("format");
+        assertEquals("\"HH:mm:ss\"", String.valueOf(format), "the picker asks for seconds");
+        assertTrue(tester.getLastResponseAsString().contains("value=\"09:00:30.123\""), "and shows them");
+    }
+
+    @Test
+    void secondsTypedIntoTheTimeAreTaken() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex22";
+        startForm(np);
+        enter(YEAR_FIELD, "2026");
+        enter(MONTH_FIELD, "11");
+        enter(DAY_FIELD, "16");
+        enter(TIME_FIELD, "09:00:30");
+        enter(ZONE_FIELD, "Z");
+
+        assertEquals(vf.createLiteral("2026-11-16T09:00:30Z", XSD.DATETIME), published(np));
+    }
+
+    @Test
+    void aTimeThatIsNoTimeOfDayIsReported() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex23");
+        FormTester form = filledForm();
+        form.setValue(YEAR_FIELD, "2026");
+        form.setValue(MONTH_FIELD, "11");
+        form.setValue(DAY_FIELD, "16");
+        form.setValue(TIME_FIELD, "25:00");
+        form.submit();
+
+        assertErrorMessage("'25:00' is not a time of day");
+    }
+
+    @Test
+    void aPreselectedTimezoneSubmittedUnchangedFollowsTheDate() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex24";
+        startForm(np);
+        String shownBeforeTheDate = tester.getComponentFromLastRenderedPage("panel:form:" + ZONE_FIELD).getDefaultModelObjectAsString();
+
+        FormTester form = filledForm();
+        form.setValue(YEAR_FIELD, "2026");
+        form.setValue(MONTH_FIELD, "01");
+        form.setValue(DAY_FIELD, "16");
+        form.setValue(TIME_FIELD, "09:30");
+        form.setValue(ZONE_FIELD, shownBeforeTheDate);
+        form.submit();
+
+        String winterOffset = ZoneChoice.getUserOffsetAt(java.time.LocalDateTime.of(2026, 1, 16, 9, 30)).getId();
+        assertEquals("2026-01-16T09:30:00" + winterOffset, value(),
+                "the offset preselected before the date was known is not taken for a pick");
+    }
+
+    @Test
+    void aTimezonePickedByTheUserIsKept() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex25";
+        startForm(np);
+        enter(YEAR_FIELD, "2026");
+        enter(MONTH_FIELD, "01");
+        enter(DAY_FIELD, "16");
+        enter(TIME_FIELD, "09:30");
+        enter(ZONE_FIELD, "+09:00");
+
+        FormTester form = filledForm();
+        form.submit();
+
+        assertEquals("2026-01-16T09:30:00+09:00", value());
     }
 
     @Test

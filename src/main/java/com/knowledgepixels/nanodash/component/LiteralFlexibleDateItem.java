@@ -7,18 +7,27 @@ import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
+import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.IConverter;
+import org.wicketstuff.jquery.core.JQueryBehavior;
+import org.wicketstuff.jquery.core.Options;
+import org.wicketstuff.kendo.ui.form.datetime.AjaxTimePicker;
+import java.io.Serializable;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -28,16 +37,13 @@ import org.eclipse.rdf4j.model.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -133,8 +139,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
          */
         String getTimeZone() {
             if (timeZone != null) return timeZone;
-            ZoneId userZone = AjaxZonedDateTimePicker.getUserZoneId();
-            return userZone.getRules().getOffset(enteredDateTime().orElse(LocalDateTime.now(userZone))).getId();
+            return ZoneChoice.getUserOffsetAt(enteredDateTime().orElse(null)).getId();
         }
 
         private Optional<LocalDateTime> enteredDateTime() {
@@ -163,15 +168,30 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * The parts of a value, each edited by a control of its own.
+     * The parts of a value given as text, each edited by a control of its own.
      */
-    private enum Part {YEAR, MONTH, DAY, TIME, ZONE}
+    private enum Part {YEAR, MONTH, DAY}
 
     /**
-     * A view of one part of the value, so that each control edits its own part while they all
-     * share the one model the rest of the form sees.
+     * A model that edits one part of a value, which tells the parts of a value apart from the
+     * parts of any other value on the form.
      */
-    private static class PartModel implements IModel<String> {
+    private interface PartOfValue extends Serializable {
+
+        /**
+         * Returns the value this is a part of.
+         *
+         * @return the model of the whole value
+         */
+        DateModel getValue();
+
+    }
+
+    /**
+     * A view of the year, month or day of the value, so that each control edits its own part
+     * while they all share the one model the rest of the form sees.
+     */
+    private static class PartModel implements IModel<String>, PartOfValue {
 
         private final DateModel value;
         private final Part part;
@@ -185,13 +205,19 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
          * {@inheritDoc}
          */
         @Override
+        public DateModel getValue() {
+            return value;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public String getObject() {
             return switch (part) {
                 case YEAR -> value.year;
                 case MONTH -> value.month;
                 case DAY -> value.day;
-                case TIME -> value.time;
-                case ZONE -> value.getTimeZone().isEmpty() ? null : value.getTimeZone();
             };
         }
 
@@ -205,20 +231,149 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
                 case YEAR -> value.year = v;
                 case MONTH -> value.month = v;
                 case DAY -> value.day = v;
-                case TIME -> value.time = v;
-                case ZONE -> value.timeZone = v;
             }
         }
 
+    }
+
+    /**
+     * A view of the time of day of the value, as the time picker edits it: a {@link Date} on
+     * the first day of 1970, read in the server's timezone. A time the picker hands back
+     * unchanged keeps the form it was written in, down to more digits of a second than a
+     * {@link Date} holds.
+     */
+    private static class TimeModel implements IModel<Date>, PartOfValue {
+
+        private final DateModel value;
+
+        TimeModel(DateModel value) {
+            this.value = value;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DateModel getValue() {
+            return value;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Date getObject() {
+            return value.time.isEmpty() ? null : toDate(LocalTime.parse(value.time));
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void setObject(Date date) {
+            if (date == null) {
+                value.time = "";
+                return;
+            }
+            LocalTime time = toLocalTime(date);
+            if (!value.time.isEmpty() && LocalTime.parse(value.time).truncatedTo(ChronoUnit.MILLIS).equals(time)) return;
+            value.time = time.toString();
+        }
+
+    }
+
+    /**
+     * A view of the timezone of the value, as the timezone choice edits it. Only picking a
+     * timezone in the dropdown decides it, which its own Ajax update does as soon as it is
+     * picked: a submitted form carries the timezone the dropdown showed when it was sent, which
+     * for a preselected one may still be the offset for the date entered before, when a change to
+     * the date or time arrives together with the submit. A preselected timezone therefore goes on
+     * following the date until it is picked.
+     */
+    private class ZoneModel implements IModel<ZoneId>, PartOfValue {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public DateModel getValue() {
+            return model;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public ZoneId getObject() {
+            String zone = model.getTimeZone();
+            return zone.isEmpty() ? null : ZoneId.of(zone);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void setObject(ZoneId zone) {
+            if (model.timeZone == null && isFormSubmitted()) return;
+            model.timeZone = (zone == null) ? "" : zone.getId();
+        }
+
+    }
+
+    private boolean isFormSubmitted() {
+        Form<?> form = findParent(Form.class);
+        return form != null && form.isSubmitted();
+    }
+
+    /**
+     * Reads and writes the time of day as the time picker shows it: hours and minutes, and the
+     * seconds where the time has them. A time typed with seconds is taken with them, even while
+     * the picker only asks for minutes.
+     */
+    private static class TimeConverter implements IConverter<Date> {
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Date convertToObject(String text, Locale locale) {
+            if (text == null || text.isBlank()) return null;
+            try {
+                return toDate(LocalTime.parse(text.trim()));
+            } catch (DateTimeParseException ex) {
+                throw new ConversionException("'" + text + "' is not a time of day, e.g. 09:00")
+                        .setSourceValue(text)
+                        .setResourceKey("LiteralFlexibleDateItem.time");
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String convertToString(Date date, Locale locale) {
+            return date == null ? "" : toLocalTime(date).toString();
+        }
+
+    }
+
+    private static Date toDate(LocalTime time) {
+        return Date.from(LocalDate.EPOCH.atTime(time).atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    private static LocalTime toLocalTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).toLocalTime();
     }
 
     private final IRI iri;
     private final String regex;
     private final List<DatePrecision> precisions;
     private final DateModel model;
-    private final Map<ZoneOffset, List<ZoneId>> zonesByOffset = AjaxZonedDateTimePicker.getZonesByCurrentOffset(Instant.now());
-    private final List<FormComponent<String>> fields = new ArrayList<>();
-    private final FormComponent<String> yearField, monthField, dayField, timeField, zoneField;
+    private final List<FormComponent<?>> fields = new ArrayList<>();
+    private final FormComponent<String> yearField, monthField, dayField;
+    private final AjaxTimePicker timeField;
+    private final ZoneChoice zoneChoice;
+    private final FormComponent<ZoneId> zoneField;
     private final Label datatypeLabel;
 
     /**
@@ -244,13 +399,14 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         dayField = newPartChoice("day", Part.DAY, numberedChoices(31), dayRenderer(),
                 !isNeeded(DatePrecision.DATE));
         timeField = newTimeField();
-        zoneField = newZoneChoice();
+        zoneChoice = newZoneChoice();
+        zoneField = zoneChoice.getDropDown();
 
-        addField(yearField, accepts(DatePrecision.YEAR), !optional, template);
-        addField(monthField, accepts(DatePrecision.YEAR_MONTH), !optional && isNeeded(DatePrecision.YEAR_MONTH), template);
-        addField(dayField, accepts(DatePrecision.DATE), !optional && isNeeded(DatePrecision.DATE), template);
-        addField(timeField, accepts(DatePrecision.DATE_TIME), !optional && isNeeded(DatePrecision.DATE_TIME), template);
-        addField(zoneField, accepts(DatePrecision.DATE_TIME), false, template);
+        addField(yearField, yearField, accepts(DatePrecision.YEAR), !optional, template);
+        addField(monthField, monthField, accepts(DatePrecision.YEAR_MONTH), !optional && isNeeded(DatePrecision.YEAR_MONTH), template);
+        addField(dayField, dayField, accepts(DatePrecision.DATE), !optional && isNeeded(DatePrecision.DATE), template);
+        addField(timeField, timeField, accepts(DatePrecision.DATE_TIME), !optional && isNeeded(DatePrecision.DATE_TIME), template);
+        addField(zoneChoice, zoneField, accepts(DatePrecision.DATE_TIME), false, template);
 
         addValueCheck(this::checkNoPartSkipped);
         addValueCheck(this::checkPointInTime);
@@ -260,9 +416,6 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         datatypeLabel = new Label("datatype", () -> describeDatatype(model.getObject()));
         datatypeLabel.setOutputMarkupId(true);
         add(datatypeLabel);
-        if (accepts(DatePrecision.DATE_TIME) && AjaxZonedDateTimePicker.getClientZoneId() == null) {
-            add(new ClientZoneBehavior());
-        }
     }
 
     /**
@@ -314,17 +467,43 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         return field;
     }
 
-    private FormComponent<String> newTimeField() {
-        TextField<String> field = new TextField<>("time", new PartModel(model, Part.TIME));
-        field.add(new AttributeModifier("type", "time"));
-        field.add(new AttributeModifier("placeholder", "hh:mm"));
-        field.add((IValidator<String>) v -> {
-            if (!DateValue.isTimeOfDay(v.getValue())) {
-                v.error(new ValidationError("'" + v.getValue() + "' is not a time of day, e.g. 09:00"));
+    /**
+     * Creates the time picker, the same one fields for a date and time use. It asks for minutes,
+     * and for seconds too once the time has them, so that a time filled in with seconds is shown
+     * and kept in full. Its own Ajax update is what stores the time, as the picker reports a
+     * change through its widget rather than through the input.
+     */
+    private AjaxTimePicker newTimeField() {
+        AjaxTimePicker field = new AjaxTimePicker("time", new TimeModel(model), "HH:mm") {
+
+            @Override
+            public void onConfigure(JQueryBehavior behavior) {
+                behavior.setOption("format", Options.asString(timeHasSeconds() ? "HH:mm:ss" : "HH:mm"));
+                super.onConfigure(behavior);
             }
-        });
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public <C> IConverter<C> getConverter(Class<C> type) {
+                if (Date.class.isAssignableFrom(type)) return (IConverter<C>) new TimeConverter();
+                return super.getConverter(type);
+            }
+
+            @Override
+            public void onValueChanged(IPartialPageRequestHandler handler) {
+                refreshParts(this, handler);
+            }
+
+        };
+        field.add(new AttributeModifier("autocomplete", "off"));
+        field.add(new AttributeModifier("data-form-type", "other"));
+        field.add(AttributeModifier.append("class", () -> timeHasSeconds() ? "with-seconds" : null));
         field.setLabel(Model.of("time of " + getFieldLabel(iri)));
         return field;
+    }
+
+    private boolean timeHasSeconds() {
+        return model.time.length() > "HH:mm".length();
     }
 
     private FormComponent<String> newPartChoice(String id, Part part, List<String> choices, IChoiceRenderer<String> renderer,
@@ -345,58 +524,37 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         return field;
     }
 
-    private FormComponent<String> newZoneChoice() {
-        DropDownChoice<String> field = new DropDownChoice<>("zone", new PartModel(model, Part.ZONE), this::zoneChoices, zoneRenderer()) {
+    /**
+     * Creates the timezone choice, the same one fields for a date and time use. It offers "no
+     * timezone" only to keep a date and time filled in without one.
+     */
+    private ZoneChoice newZoneChoice() {
+        ZoneChoice choice = new ZoneChoice("zone", new ZoneModel()) {
+
             @Override
-            public boolean isNullValid() {
+            protected boolean isNoZoneAllowed() {
                 return model.hasNoTimeZone();
             }
 
-            @Override
-            protected String getNullValidDisplayValue() {
-                return "no timezone";
-            }
-
-            @Override
-            protected String getNullKeyDisplayValue() {
-                return "choose timezone";
-            }
         };
-        field.setLabel(Model.of("timezone of " + getFieldLabel(iri)));
-        return field;
-    }
-
-    /**
-     * Returns the timezones on offer: every offset some place is at right now, plus the one the
-     * value has, which may be one no place is at today.
-     */
-    private List<String> zoneChoices() {
-        List<ZoneOffset> offsets = new ArrayList<>(zonesByOffset.keySet());
-        String current = model.getTimeZone();
-        if (!current.isEmpty()) {
-            ZoneOffset currentOffset = ZoneOffset.of(current);
-            if (!offsets.contains(currentOffset)) offsets.add(currentOffset);
-        }
-        offsets.sort(Comparator.comparingInt(ZoneOffset::getTotalSeconds));
-        return offsets.stream().map(ZoneOffset::getId).toList();
-    }
-
-    private IChoiceRenderer<String> zoneRenderer() {
-        return partRenderer(id -> {
-            ZoneOffset offset = ZoneOffset.of(id);
-            return AjaxZonedDateTimePicker.getZoneChoiceLabel(offset, zonesByOffset.getOrDefault(offset, List.of()),
-                    AjaxZonedDateTimePicker.getUserZoneId());
-        });
+        choice.getDropDown().setLabel(Model.of("timezone of " + getFieldLabel(iri)));
+        return choice;
     }
 
     /**
      * Adds one part control to the form, or a hidden placeholder for a part finer than the
      * template accepts.
+     *
+     * @param container the component that holds the control, which may be the control itself
+     * @param field     the form component of the control
+     * @param used      whether the template accepts a precision that has this part
+     * @param required  whether the part has to be filled in
+     * @param template  the template of the form
      */
-    private void addField(FormComponent<String> field, boolean used, boolean required, Template template) {
-        add(field);
+    private void addField(Component container, FormComponent<?> field, boolean used, boolean required, Template template) {
+        add(container);
         if (!used) {
-            field.setVisible(false);
+            container.setVisible(false);
             return;
         }
         field.setRequired(required);
@@ -404,7 +562,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
             field.add(new AttributeModifier("title", template.getLabel(iri)));
         }
         field.setOutputMarkupId(true);
-        field.add(new RefreshPartsOnChange(field));
+        if (!(field instanceof AjaxTimePicker)) field.add(new RefreshPartsOnChange(field));
         field.add(new InvalidityHighlighting());
         lockIfNeeded(field, iri);
         context.getComponents().add(field);
@@ -420,9 +578,9 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      */
     private class RefreshPartsOnChange extends OnChangeAjaxBehavior {
 
-        private final FormComponent<String> source;
+        private final FormComponent<?> source;
 
-        RefreshPartsOnChange(FormComponent<String> source) {
+        RefreshPartsOnChange(FormComponent<?> source) {
             this.source = source;
         }
 
@@ -431,31 +589,45 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
          */
         @Override
         protected void onUpdate(AjaxRequestTarget target) {
-            for (Component c : context.getComponents()) {
-                if (c == source) continue;
-                if (c.getDefaultModel() instanceof PartModel other && other.value == model) {
-                    c.modelChanged();
-                    target.add(c);
-                }
-            }
-            target.add(datatypeLabel);
+            refreshParts(source, target);
         }
 
     }
 
     /**
-     * Asks the browser for its timezone where it has not said yet, and repaints the timezone
-     * part once it has: until then the timezone offered is a guess from the server's own.
+     * Repaints what a change to one part can change elsewhere: the timezone, whose preselected
+     * offset follows the date, and the datatype the value is going to have. The other parts of
+     * this item are left as they are, so that a time typed but not yet reported by the time
+     * picker is not painted over. A second item editing the same value in a repeated statement
+     * group, found by the value behind its parts, is repainted in full.
+     *
+     * @param source the part that changed
+     * @param target the handler to repaint them with
      */
-    private class ClientZoneBehavior extends AjaxClientInfoBehavior {
+    private void refreshParts(Component source, IPartialPageRequestHandler target) {
+        for (Component c : context.getComponents()) {
+            if (c == source) continue;
+            if (fields.contains(c) && c != zoneField) continue;
+            if (c.getDefaultModel() instanceof PartOfValue other && other.getValue() == model) {
+                c.modelChanged();
+                target.add(c);
+            }
+        }
+        target.add(datatypeLabel);
+    }
+
+    /**
+     * A check of the value as a whole, which every part runs.
+     */
+    @FunctionalInterface
+    private interface ValueCheck extends Serializable {
 
         /**
-         * {@inheritDoc}
+         * Checks the value, reporting what is wrong with it on the part being validated.
+         *
+         * @param validatable the part being validated
          */
-        @Override
-        protected void onClientInfo(AjaxRequestTarget target, WebClientInfo clientInfo) {
-            target.add(zoneField);
-        }
+        void check(IValidatable<?> validatable);
 
     }
 
@@ -464,13 +636,17 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      * user changed. Only the first part to report keeps its message: on a submit, where every
      * part is validated, the same complaint would otherwise be made once per part.
      */
-    private void addValueCheck(IValidator<String> check) {
-        for (FormComponent<String> field : fields) {
-            field.add((IValidator<String>) v -> {
-                if (fields.stream().anyMatch(FormComponent::hasErrorMessage)) return;
-                check.validate(v);
-            });
+    private void addValueCheck(ValueCheck check) {
+        for (FormComponent<?> field : fields) {
+            addCheck(field, check);
         }
+    }
+
+    private <T> void addCheck(FormComponent<T> field, ValueCheck check) {
+        field.add((IValidator<T>) v -> {
+            if (fields.stream().anyMatch(FormComponent::hasErrorMessage)) return;
+            check.check(v);
+        });
     }
 
     /**
@@ -478,9 +654,9 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      * which would otherwise be dropped from the value without a word. This is only decided on a
      * submit, so that the parts can be filled in in any order.
      */
-    private void checkNoPartSkipped(IValidatable<String> v) {
+    private void checkNoPartSkipped(IValidatable<?> v) {
         if (!yearField.getForm().isSubmitted()) return;
-        List<FormComponent<String>> parts = List.of(yearField, monthField, dayField, timeField);
+        List<FormComponent<?>> parts = List.of(yearField, monthField, dayField, timeField);
         List<String> names = List.of("year", "month", "day", "time");
         for (int finer = parts.size() - 1; finer > 0; finer--) {
             if (partInput(parts.get(finer)).isEmpty()) continue;
@@ -495,7 +671,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         }
     }
 
-    private void checkPointInTime(IValidatable<String> v) {
+    private void checkPointInTime(IValidatable<?> v) {
         String problem = candidateValue().getProblem();
         if (problem != null) v.error(new ValidationError(problem));
     }
@@ -505,14 +681,14 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      * does not. This is only decided on a submit: while the value is being entered part by part,
      * a year that is not yet a date may be a value on its way to becoming one.
      */
-    private void checkAcceptedPrecision(IValidatable<String> v) {
+    private void checkAcceptedPrecision(IValidatable<?> v) {
         if (!yearField.getForm().isSubmitted()) return;
         DatePrecision precision = candidateValue().getPrecision();
         if (precision == null || precisions.contains(precision)) return;
         v.error(new ValidationError("Enter " + DatePrecision.describe(precisions) + " for '" + getFieldLabel(iri) + "'"));
     }
 
-    private void checkRegex(IValidatable<String> v) {
+    private void checkRegex(IValidatable<?> v) {
         String candidate = candidateValue().toLexical();
         if (!candidate.isEmpty() && !candidate.matches(regex)) {
             v.error(new ValidationError("Value '" + candidate + "' of '" + getFieldLabel(iri) + "' doesn't match the pattern '" + regex + "'"));
@@ -524,7 +700,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      * stored value would measure every correction against the entry it corrects.
      */
     private DateValue candidateValue() {
-        String zone = zoneField.isVisible() ? emptyAsNull(partInput(zoneField)) : null;
+        String zone = zoneField.isVisibleInHierarchy() ? emptyAsNull(partInput(zoneField)) : null;
         return model.assemble(partInput(yearField), partInput(monthField), partInput(dayField), partInput(timeField), zone);
     }
 
@@ -532,8 +708,8 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      * What a control holds right now: the input being validated where there is one, and the
      * stored part otherwise.
      */
-    private static String partInput(FormComponent<String> field) {
-        if (!field.isVisible()) return "";
+    private static String partInput(FormComponent<?> field) {
+        if (!field.isVisibleInHierarchy()) return "";
         String value = field.getValue();
         return (value == null) ? "" : value.trim();
     }

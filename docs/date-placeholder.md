@@ -56,8 +56,10 @@ placeholder that takes `xsd:date` and `xsd:dateTime` needs year, month and day (
 month", "no day", an empty time), and how far the parts are filled in decides the precision and
 so the datatype.
 
-The timezone can always be picked when the template takes `xsd:dateTime`; it only goes into
-the value together with a time.
+The time and timezone are entered with the same controls as an `xsd:dateTime` field: Kendo's
+time picker (minutes, and seconds once the value has them or they are typed) and `ZoneChoice`,
+the timezone dropdown that `AjaxZonedDateTimePicker` uses too. The timezone can always be
+picked when the template takes `xsd:dateTime`; it only goes into the value together with a time.
 
 What is checked:
 
@@ -71,7 +73,9 @@ What is checked:
 
 The timezone of a date and time starts at the offset the user's own timezone has *at the date
 entered*, so a November date entered in October gets winter time. The user's timezone is the
-one the browser reports, or the server's until the browser has said.
+one the browser reports, or the server's until the browser has said. The `xsd:dateTime` field
+does the same now: its preselected timezone used to be the offset of today, whatever date was
+picked.
 
 ## Existing values
 
