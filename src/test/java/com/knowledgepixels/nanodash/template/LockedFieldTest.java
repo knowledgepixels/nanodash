@@ -42,6 +42,10 @@ public class LockedFieldTest {
     private static final IRI COMMENT_REP1 = vf.createIRI(NP_URI + "/comment__1");
     private static final IRI COMMENT_REP2 = vf.createIRI(NP_URI + "/comment__2");
 
+    private static final String URI_NP_URI = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_UriTs";
+    private static final IRI TARGET = vf.createIRI(URI_NP_URI + "/target");
+    private static final String TARGET_VALUE = "https://w3id.org/np/RAOCirX5i7BGflopf6c8m7JH7nR4bEWp0VqLs9dTyZmXg";
+
     private MockedStatic<TemplateData> templateDataMockedStatic;
     private WicketTester tester;
 
@@ -407,6 +411,99 @@ public class LockedFieldTest {
         TemplateContext context = repeatableContext();
         context.setLocked("comment");
         assertFalse(context.isLocked(COMMENT));
+    }
+
+    /**
+     * A template with one statement holding a single placeholder of the given type, rendered as
+     * the text field a locked URI lands in.
+     *
+     * @param placeholderType the type of the one placeholder
+     */
+    private TemplateContext singleFieldContext(IRI placeholderType) throws Exception {
+        String npUri = URI_NP_URI;
+        IRI st1 = vf.createIRI(npUri + "/st1");
+        NanopubCreator creator = new NanopubCreator(npUri);
+        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
+        IRI templateNode = creator.getAssertionUri();
+        creator.addAssertionStatement(templateNode, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
+        creator.addAssertionStatement(templateNode, RDFS.LABEL, vf.createLiteral("URI lock test template"));
+        creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, st1);
+        creator.addAssertionStatement(st1, RDF.SUBJECT, vf.createIRI("http://example.com/subject"));
+        creator.addAssertionStatement(st1, RDF.PREDICATE, RDFS.SEEALSO);
+        creator.addAssertionStatement(st1, RDF.OBJECT, TARGET);
+        creator.addAssertionStatement(TARGET, RDF.TYPE, placeholderType);
+        creator.addAssertionStatement(TARGET, RDFS.LABEL, vf.createLiteral("target"));
+        Template template = new Template(creator.finalizeNanopub());
+
+        TemplateData templateDataMock = mock(TemplateData.class);
+        templateDataMockedStatic.when(TemplateData::get).thenReturn(templateDataMock);
+        when(templateDataMock.getTemplate(npUri)).thenReturn(template);
+
+        return new TemplateContext(ContextType.ASSERTION, npUri, "statement", (String) null);
+    }
+
+    /**
+     * A locked URI field is only as wide as it is, so the value it cannot be edited out of would
+     * otherwise be unreadable past that width. It gets the hover box every other non-changeable
+     * value has: the full URI as a link, with the reason for the lock above it (issue #786).
+     */
+    @Test
+    void lockedUriFieldShowsItsFullUriInAHoverBox() throws Exception {
+        TemplateContext context = singleFieldContext(NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
+        context.setParam("target", TARGET_VALUE);
+        context.setLocked("target");
+        context.initStatements();
+        context.finalizeStatements();
+
+        tester.startComponentInPage(context.getStatementItems().get(0));
+        String html = tester.getLastResponseAsString();
+        assertTrue(html.contains("readonly=\"readonly\""), html);
+        assertTrue(html.contains("class=\"tooltiptext\""), html);
+        assertTrue(html.contains("cannot be changed here"), html);
+        assertTrue(html.contains("href=\"" + TARGET_VALUE + "\""), "the box must link the full URI: " + html);
+        assertTrue(html.contains(">" + TARGET_VALUE + "<"),
+                "the box must spell the URI out rather than abbreviate it: " + html);
+        assertFalse(html.contains("title=\"This value is set"),
+                "the reason is in the box, not in a plain tooltip covering it: " + html);
+    }
+
+    /**
+     * A value placeholder takes a URI as well, and its field is as wide as the other one, so a
+     * locked one gets the same box.
+     */
+    @Test
+    void lockedValueFieldShowsItsFullUriInAHoverBox() throws Exception {
+        TemplateContext context = singleFieldContext(NTEMPLATE.VALUE_PLACEHOLDER);
+        context.setParam("target", TARGET_VALUE);
+        context.setLocked("target");
+        context.initStatements();
+        context.finalizeStatements();
+
+        tester.startComponentInPage(context.getStatementItems().get(0));
+        String html = tester.getLastResponseAsString();
+        assertTrue(html.contains("cannot be changed here"), html);
+        assertTrue(html.contains("href=\"" + TARGET_VALUE + "\""), "the box must link the full URI: " + html);
+        assertTrue(html.contains(">" + TARGET_VALUE + "<"),
+                "the box must spell the URI out rather than abbreviate it: " + html);
+        assertFalse(html.contains("title=\"This value is set"), html);
+    }
+
+    /**
+     * The box belongs to the lock: a field that is there to be typed in gets none, as it would
+     * open over the form under it at every pass of the mouse.
+     */
+    @Test
+    void unlockedUriFieldHasNoHoverBox() throws Exception {
+        TemplateContext context = singleFieldContext(NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
+        context.setParam("target", TARGET_VALUE);
+        context.initStatements();
+        context.finalizeStatements();
+
+        tester.startComponentInPage(context.getStatementItems().get(0));
+        String html = tester.getLastResponseAsString();
+        assertFalse(html.contains("cannot be changed here"), html);
+        assertFalse(html.contains("href=\"" + TARGET_VALUE + "\""), html);
     }
 
 }

@@ -21,7 +21,11 @@ public abstract class AbstractContextComponent extends Panel implements ContextC
     protected TemplateContext context;
     protected static ValueFactory vf = SimpleValueFactory.getInstance();
 
-    private static final String LOCKED_FIELD_MESSAGE = "This value is set by the link that opened this form and cannot be changed here.";
+    /**
+     * Why a locked field cannot be typed in. It is said on the field itself: on the tag as a plain
+     * title, or at the top of the field's own hover box where it has one.
+     */
+    protected static final String LOCKED_FIELD_MESSAGE = "This value is set by the link that opened this form and cannot be changed here.";
 
     /**
      * Makes the given form component follow the lock state of the given placeholder: a locked
@@ -47,6 +51,20 @@ public abstract class AbstractContextComponent extends Panel implements ContextC
      * @param iri       the placeholder IRI, including any repetition suffix
      */
     protected void lockIfNeeded(final FormComponent<?> component, final IRI iri) {
+        lockIfNeeded(component, iri, true);
+    }
+
+    /**
+     * Locks the given form component as {@link #lockIfNeeded(FormComponent, IRI)} does, saying why
+     * somewhere else than on the tag.
+     *
+     * @param component   the form component to lock when its placeholder is locked
+     * @param iri         the placeholder IRI, including any repetition suffix
+     * @param sayWhyOnTag whether {@link #LOCKED_FIELD_MESSAGE} goes on the tag as a title: false
+     *                    for a field that says it in a hover box of its own, which the browser's
+     *                    plain tooltip would otherwise cover with the same sentence (issue #786)
+     */
+    protected void lockIfNeeded(final FormComponent<?> component, final IRI iri, final boolean sayWhyOnTag) {
         final TemplateContext c = context;
         component.add(new Behavior() {
 
@@ -59,8 +77,12 @@ public abstract class AbstractContextComponent extends Panel implements ContextC
                 renderedAsTextInput = isTextInput(tag);
                 if (!c.isLocked(iri)) return;
                 // A field that is simply greyed out leaves the user guessing why they can't type
-                // in it, so say where the value came from.
-                tag.put("title", LOCKED_FIELD_MESSAGE);
+                // in it, so say where the value came from. A field with a hover box of its own says
+                // it there instead -- except while it holds no value, as a box with nothing but
+                // this sentence in it is not shown at all (issue #786).
+                if (sayWhyOnTag || Strings.isEmpty(((FormComponent<?>) component).getValue())) {
+                    tag.put("title", LOCKED_FIELD_MESSAGE);
+                }
                 tag.append("class", "locked-value", " ");
                 if (renderedAsTextInput) {
                     tag.put("readonly", "readonly");
