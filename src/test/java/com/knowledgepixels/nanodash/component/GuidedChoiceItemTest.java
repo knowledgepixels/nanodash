@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
@@ -46,12 +47,13 @@ public class GuidedChoiceItemTest {
     private static final String NP_URI = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE";
     private static final IRI THING = vf.createIRI(NP_URI + "/thing");
 
+    private WicketTester tester;
     private MockedStatic<TemplateData> templateDataMockedStatic;
     private MockedStatic<User> userMockedStatic;
 
     @BeforeEach
     void setUp() {
-        new WicketTester(new WicketApplication());
+        tester = new WicketTester(new WicketApplication());
         templateDataMockedStatic = mockStatic(TemplateData.class);
         // Building the form looks users up; keep the test off the network.
         userMockedStatic = mockStatic(User.class, CALLS_REAL_METHODS);
@@ -78,6 +80,15 @@ public class GuidedChoiceItemTest {
      * initialized context for it.
      */
     private TemplateContext guidedContext(String prefix, boolean external) throws Exception {
+        return guidedContext(prefix, external, null);
+    }
+
+    /**
+     * Builds a one-statement template whose object is a guided choice placeholder with the given
+     * prefix (none if null), optionally typed as an external URI placeholder and with a fixed
+     * possible value (none if null), and returns an initialized context for it.
+     */
+    private TemplateContext guidedContext(String prefix, boolean external, IRI possibleValue) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -96,6 +107,9 @@ public class GuidedChoiceItemTest {
         creator.addAssertionStatement(THING, RDFS.LABEL, vf.createLiteral("thing"));
         if (prefix != null) {
             creator.addAssertionStatement(THING, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
+        }
+        if (possibleValue != null) {
+            creator.addAssertionStatement(THING, NTEMPLATE.POSSIBLE_VALUE, possibleValue);
         }
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
@@ -215,6 +229,49 @@ public class GuidedChoiceItemTest {
         assertFalse(suggestions.contains("john"), "a restricted choice must not offer a made-up name");
         assertTrue(suggestions.isEmpty());
         assertEquals("john", fieldOf(context).getProvider().getDisplayValue("john"));
+    }
+
+    @Test
+    void fieldWithoutFixedValuesPromptsForASearchTermWhenOpened() throws Exception {
+        assertEquals(1, fieldOf(guidedContext(null)).getSettings().getMinimumInputLength());
+    }
+
+    @Test
+    void fieldWithFixedValuesListsThemWhenOpened() throws Exception {
+        TemplateContext context = guidedContext(null, false, vf.createIRI("http://example.com/apple"));
+        assertNotEquals(Integer.valueOf(1), fieldOf(context).getSettings().getMinimumInputLength());
+        assertTrue(suggestionsFor(context, null).contains("http://example.com/apple"));
+    }
+
+    @Test
+    void searchThatFindsNothingSaysSoAboveTheMintEntry() throws Exception {
+        assertEquals(List.of(GuidedChoiceItem.NO_RESULTS_ID, "xyzq"), suggestionsFor(guidedContext(null), "xyzq"));
+    }
+
+    @Test
+    void searchThatFindsSomethingDoesNotSayNothingWasFound() throws Exception {
+        TemplateContext context = guidedContext(null, false, vf.createIRI("http://example.com/apple"));
+        assertFalse(suggestionsFor(context, "apple").contains(GuidedChoiceItem.NO_RESULTS_ID));
+    }
+
+    @Test
+    void searchWithNothingToOfferIsLeftToSelect2sOwnMessage() throws Exception {
+        assertTrue(suggestionsFor(guidedContext(null, true), "xyzq").isEmpty());
+    }
+
+    @Test
+    void noResultsEntryIsLabelledAndCannotBeChosen() throws Exception {
+        Select2Choice<String> field = fieldOf(guidedContext(null));
+        assertEquals("No results found", field.getProvider().getDisplayValue(GuidedChoiceItem.NO_RESULTS_ID));
+        assertTrue(field.getProvider().toChoices(List.of(GuidedChoiceItem.NO_RESULTS_ID)).isEmpty());
+    }
+
+    @Test
+    void renderedFieldDisablesTheNoResultsEntry() throws Exception {
+        TemplateContext context = guidedContext(null);
+        tester.startComponentInPage(context.getStatementItems().get(0));
+        String processResults = fieldOf(context).getSettings().getAjax().getProcessResults();
+        assertTrue(processResults.contains(GuidedChoiceItem.NO_RESULTS_ID) && processResults.contains("disabled: true"), processResults);
     }
 
 }
