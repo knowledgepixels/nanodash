@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.WicketApplication;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,15 +29,18 @@ class ZoneChoiceTest {
     private static final Instant WINTER = Instant.parse("2026-01-01T12:00:00Z");
 
     private TimeZone defaultTimeZone;
+    private WicketTester tester;
 
     @BeforeEach
     void setUp() {
         defaultTimeZone = TimeZone.getDefault();
+        tester = new WicketTester(new WicketApplication());
     }
 
     @AfterEach
     void tearDown() {
         TimeZone.setDefault(defaultTimeZone);
+        tester.destroy();
     }
 
     @Test
@@ -93,6 +99,94 @@ class ZoneChoiceTest {
         assertNull(ZoneChoice.getClientZoneId());
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Rome"));
         assertEquals(ZoneId.of("Europe/Rome"), ZoneChoice.getUserZoneId());
+    }
+
+    private static ZoneChoice newChoice() {
+        return new ZoneChoice("zone", Model.of((ZoneId) null));
+    }
+
+    private static ZoneOffset offsetNowOf(String zone) {
+        return ZoneId.of(zone).getRules().getOffset(Instant.now());
+    }
+
+    @Test
+    void anEmptySearchOffersEveryTimezoneWestToEast() {
+        ZoneChoice choice = newChoice();
+        List<ZoneId> all = choice.search("");
+
+        assertEquals(choice.getChoices(), all);
+        assertEquals(choice.getChoices(), choice.search(null));
+        assertTrue(all.size() > 30);
+    }
+
+    @Test
+    void aTimezoneIsFoundByAnyPlaceAtItsOffset() {
+        ZoneChoice choice = newChoice();
+
+        assertTrue(choice.search("tokyo").contains(offsetNowOf("Asia/Tokyo")));
+        assertTrue(choice.search("Zurich").contains(offsetNowOf("Europe/Zurich")),
+                "a place the label leaves out is found all the same");
+        assertTrue(choice.search("sao paulo").contains(offsetNowOf("America/Sao_Paulo")),
+                "without its accent or underscore");
+        assertEquals(List.of(offsetNowOf("Asia/Kathmandu")), choice.search("kathmandu"));
+    }
+
+    @Test
+    void aTimezoneIsFoundByItsOffsetHoweverItIsWritten() {
+        ZoneChoice choice = newChoice();
+        ZoneOffset kolkata = ZoneOffset.ofHoursMinutes(5, 30);
+        ZoneOffset newYorkWinter = ZoneOffset.ofHours(-5);
+
+        for (String term : List.of("+05:30", "+5:30", "UTC+5:30", "gmt +05:30", "+0530")) {
+            assertEquals(List.of(kolkata), choice.search(term), term);
+        }
+        for (String term : List.of("-5", "UTC-5", "GMT-05", "-05:00")) {
+            assertTrue(choice.search(term).contains(newYorkWinter), term);
+        }
+        assertEquals(List.of(ZoneOffset.UTC), choice.search("utc"), "not every label that starts with UTC");
+        assertEquals(List.of(ZoneOffset.UTC), choice.search("GMT"));
+        assertEquals(List.of(ZoneOffset.UTC), choice.search("+0"));
+        assertEquals(List.of(ZoneOffset.ofHours(1)), choice.search("+1"), "not +10:00 to +14:00 as well");
+        assertTrue(choice.search("+05:").containsAll(List.of(kolkata, ZoneOffset.ofHoursMinutes(5, 45))),
+                "an offset still being typed finds the ones it begins");
+    }
+
+    @Test
+    void aSearchThatMatchesNothingOffersNothing() {
+        assertTrue(newChoice().search("atlantis").isEmpty());
+    }
+
+    @Test
+    void anOffsetNoPlaceIsAtIsOfferedWhileItIsTheValue() {
+        ZoneOffset unusual = ZoneOffset.ofHoursMinutes(1, 23);
+        ZoneChoice choice = new ZoneChoice("zone", Model.of(unusual));
+
+        assertTrue(choice.getChoices().contains(unusual));
+        assertEquals(List.of(unusual), choice.search("+01:23"));
+    }
+
+    @Test
+    void thePlacesAreThoseAtEachOffsetAtTheDateEntered() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Rome"));
+        ZoneChoice winter = new ZoneChoice("zone", Model.of((ZoneId) null)) {
+            @Override
+            protected LocalDateTime getDateTime() {
+                return LocalDateTime.of(2026, 1, 16, 9, 30);
+            }
+        };
+        ZoneChoice summer = new ZoneChoice("zone", Model.of((ZoneId) null)) {
+            @Override
+            protected LocalDateTime getDateTime() {
+                return LocalDateTime.of(2026, 7, 16, 9, 30);
+            }
+        };
+
+        assertTrue(winter.getDropDown().getProvider().getDisplayValue(ZoneOffset.ofHours(1)).startsWith("UTC+01:00 — Rome,"),
+                "the user's own place is named first under winter time in January");
+        assertTrue(winter.search("rome").contains(ZoneOffset.ofHours(1)));
+        assertFalse(winter.search("london").contains(ZoneOffset.ofHours(1)), "London is at UTC in January");
+        assertTrue(summer.search("rome").contains(ZoneOffset.ofHours(2)));
+        assertTrue(summer.search("london").contains(ZoneOffset.ofHours(1)));
     }
 
     @Test

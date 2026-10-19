@@ -61,6 +61,16 @@ time picker (minutes, and seconds once the value has them or they are typed) and
 the timezone dropdown that `AjaxZonedDateTimePicker` uses too. The timezone can always be
 picked when the template takes `xsd:dateTime`; it only goes into the value together with a time.
 
+`ZoneChoice` lists one choice per UTC offset, west to east, each labelled with a few places at
+it, e.g. "UTC+01:00 — Zurich, Paris, Berlin", the user's own place first. The places are those
+at each offset *at the date and time entered*, so in January Zurich is under UTC+01:00 and
+London under UTC. The list can be searched
+([#266](https://github.com/knowledgepixels/nanodash/issues/266)): by any place at an offset,
+not only the ones the label names ("geneva" does not work, "zurich" does, accents and
+underscores aside), and by the offset itself, written "+1", "UTC+5:30", "GMT-05" or the like,
+which has to be the offset rather than the beginning of a longer one ("+1" is not "+10:00").
+"UTC", "GMT" and "Z" find the zero offset.
+
 What is checked:
 
 - **That the day is one the month has**: like a calendar, the day dropdown offers only the days

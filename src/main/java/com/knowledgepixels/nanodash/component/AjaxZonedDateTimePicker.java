@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.kendo.ui.form.datetime.AjaxDateTimePicker;
 import org.wicketstuff.kendo.ui.form.datetime.DateTimePicker;
+import org.wicketstuff.select2.Select2Choice;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -28,7 +29,7 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
     private IModel<ZoneId> zoneIdModel = Model.of((ZoneId) null);
     private IModel<Date> dateModel = Model.of((Date) null);
     private final ZoneChoice zoneChoice;
-    private final DropDownChoice<ZoneId> zoneDropDown;
+    private final Select2Choice<ZoneId> zoneDropDown;
     private DateTimePicker dateTimePicker;
     private String datePattern, timePattern;
 
@@ -64,6 +65,11 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
             @Override
             protected void onClientZone(AjaxRequestTarget target, ZoneId clientZone) {
                 applyClientZone(target);
+            }
+
+            @Override
+            protected LocalDateTime getDateTime() {
+                return getPickedDateTime();
             }
         };
         this.zoneDropDown = zoneChoice.getDropDown();
@@ -245,8 +251,22 @@ public class AjaxZonedDateTimePicker extends FormComponentPanel<ZonedDateTime> i
         logger.info("Updating existing datetime with selected timezone: {}", currentZonedDateTime);
     }
 
-    public DropDownChoice<ZoneId> getZoneDropDown() {
+    /**
+     * Returns the dropdown the zone is picked with.
+     *
+     * @return the zone dropdown
+     */
+    public Select2Choice<ZoneId> getZoneDropDown() {
         return zoneDropDown;
+    }
+
+    /**
+     * Returns the zone choice, which holds the zone dropdown.
+     *
+     * @return the zone choice
+     */
+    public ZoneChoice getZoneChoice() {
+        return zoneChoice;
     }
 
     public DateTimePicker getDateTimePicker() {

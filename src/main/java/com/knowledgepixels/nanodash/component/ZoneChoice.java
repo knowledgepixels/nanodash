@@ -1,30 +1,47 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
+import org.wicketstuff.select2.Select2Choice;
 
+import java.text.Normalizer;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * The timezone of a date and time, picked from the offsets places are at, each labelled with a
  * few of those places, e.g. "UTC+01:00 — Zurich, Paris, Berlin". The timezone the user is most
- * likely in is offered first: the one their browser reports, which is asked for once per session.
+ * likely in is preselected: the one their browser reports, which is asked for once per session.
+ * <p>
+ * The places are those at each offset at the date and time being entered, so that a date in
+ * winter is offered winter time under the user's own place.
+ * <p>
+ * The choices are listed by offset in a dropdown that can be searched (issue #266): by any place
+ * at an offset, not only the few its label names, and by the offset itself, written as
+ * "+1", "UTC+1", "GMT-05:00" or the like.
  * <p>
  * Shared by every field that takes a date and time, so that they offer the same choices and
  * name them the same way.
@@ -32,6 +49,8 @@ import java.util.stream.Collectors;
 public class ZoneChoice extends Panel {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = LoggerFactory.getLogger(ZoneChoice.class);
 
     private static final int MAX_LABEL_ZONES = 3;
 
@@ -72,9 +91,17 @@ public class ZoneChoice extends Panel {
             "Pacific/Kiritimati", "Pacific/Pago_Pago", "Pacific/Niue", "Pacific/Tahiti",
             "Pacific/Marquesas", "Pacific/Gambier", "Pacific/Pitcairn");
 
+    private static final String WIDTH = "22em";
+
+    /**
+     * A search term that is an offset, optionally after "utc" or "gmt", as normalized.
+     */
+    private static final Pattern OFFSET_TERM = Pattern.compile("^(?:utc|gmt)?([+-][0-9:]*)$");
+
     private final IModel<ZoneId> model;
-    private final Map<ZoneOffset, List<ZoneId>> zonesByOffset = getZonesByCurrentOffset(Instant.now());
-    private final DropDownChoice<ZoneId> dropDown;
+    private transient Map<ZoneOffset, List<ZoneId>> zonesByOffset;
+    private transient Instant zonesGroupedAt;
+    private final Select2Choice<ZoneId> dropDown;
 
     /**
      * Constructs a ZoneChoice editing the given model, which holds the timezone picked.
@@ -85,24 +112,20 @@ public class ZoneChoice extends Panel {
     public ZoneChoice(String id, IModel<ZoneId> model) {
         super(id);
         this.model = model;
-        dropDown = new DropDownChoice<>("dropdown", model, this::getChoices, new ZoneRenderer()) {
+        dropDown = new Select2Choice<>("dropdown", model, new ZoneChoiceProvider()) {
 
             @Override
-            public boolean isNullValid() {
-                return isNoZoneAllowed();
-            }
-
-            @Override
-            protected String getNullValidDisplayValue() {
-                return "no timezone";
-            }
-
-            @Override
-            protected String getNullKeyDisplayValue() {
-                return "choose timezone";
+            protected void onConfigure() {
+                super.onConfigure();
+                getSettings().setAllowClear(isNoZoneAllowed());
+                getSettings().setPlaceholder(isNoZoneAllowed() ? "no timezone" : "choose timezone");
             }
 
         };
+        dropDown.getSettings().setCloseOnSelect(true);
+        dropDown.getSettings().setWidth(WIDTH);
+        dropDown.getSettings().setDropdownCssClass("timezone-dropdown");
+        Utils.setSelect2SearchAsYouType(dropDown);
         dropDown.setOutputMarkupId(true);
         add(dropDown);
         if (getClientZoneId() == null) add(new ClientZoneBehavior());
@@ -114,8 +137,36 @@ public class ZoneChoice extends Panel {
      *
      * @return the dropdown
      */
-    public DropDownChoice<ZoneId> getDropDown() {
+    public Select2Choice<ZoneId> getDropDown() {
         return dropDown;
+    }
+
+    /**
+     * Returns the date and time the timezone is for, so that the places are found under the
+     * offset they are at then: in January, Zurich is at UTC+01:00, whatever the date today.
+     *
+     * @return the date and time entered, or null while there is none, for the current one
+     */
+    protected LocalDateTime getDateTime() {
+        return null;
+    }
+
+    private Instant getReferenceInstant() {
+        LocalDateTime dateTime = getDateTime();
+        return dateTime == null ? Instant.now() : dateTime.atZone(getUserZoneId()).toInstant();
+    }
+
+    /**
+     * Returns the places grouped by the offset they are at at the date and time the timezone is
+     * for, regrouping them only when that moves by an hour or more.
+     */
+    private Map<ZoneOffset, List<ZoneId>> getZonesByOffset() {
+        Instant reference = getReferenceInstant();
+        if (zonesByOffset == null || Math.abs(reference.getEpochSecond() - zonesGroupedAt.getEpochSecond()) >= 3600) {
+            zonesByOffset = getZonesByCurrentOffset(reference);
+            zonesGroupedAt = reference;
+        }
+        return zonesByOffset;
     }
 
     /**
@@ -159,35 +210,107 @@ public class ZoneChoice extends Panel {
     /**
      * Returns the timezones on offer: every offset some place is at right now, plus the one the
      * model holds, which may be one no place is at today. They are ordered by offset.
+     *
+     * @return the timezones, west to east
      */
-    private List<ZoneId> getChoices() {
-        Instant now = Instant.now();
-        List<ZoneId> choices = new ArrayList<>(zonesByOffset.keySet());
+    List<ZoneId> getChoices() {
+        Instant reference = getReferenceInstant();
+        List<ZoneId> choices = new ArrayList<>(getZonesByOffset().keySet());
         ZoneId current = model.getObject();
         if (current != null && !choices.contains(current)) choices.add(current);
-        choices.sort(Comparator.comparingInt(zone -> zone.getRules().getOffset(now).getTotalSeconds()));
+        choices.sort(Comparator.comparingInt(zone -> zone.getRules().getOffset(reference).getTotalSeconds()));
         return choices;
     }
 
     /**
-     * Labels each timezone by its offset and the places at it, and submits its id rather than its
-     * position in the list.
+     * Returns the timezones on offer that match what was typed into the search box.
+     *
+     * @param term what was typed, which may be empty or null for all of them
+     * @return the matching timezones, west to east
      */
-    private class ZoneRenderer implements IChoiceRenderer<ZoneId> {
+    List<ZoneId> search(String term) {
+        String query = normalize(term);
+        if (query.isEmpty()) return getChoices();
+        return getChoices().stream().filter(zone -> matches(zone, query)).toList();
+    }
+
+    /**
+     * Whether a timezone matches a search: an offset typed, such as "+1", "UTC+5:30" or
+     * "GMT-05", has to be the timezone's offset, or the beginning of it while it is still being
+     * typed with its minutes; anything else is looked for in the places at the offset, all of
+     * them rather than only the few the label names. "UTC", "GMT" and "Z" are the places of the
+     * zero offset.
+     */
+    private boolean matches(ZoneId zone, String query) {
+        Matcher offsetTyped = OFFSET_TERM.matcher(query);
+        if (offsetTyped.matches()) {
+            String offset = offsetTyped.group(1);
+            List<String> spellings = getOffsetSpellings(zone);
+            return spellings.contains(offset) || (offset.contains(":") && spellings.get(0).startsWith(offset));
+        }
+        return getPlaceText(zone).contains(query);
+    }
+
+    private String getPlaceText(ZoneId zone) {
+        List<String> places = new ArrayList<>();
+        getZonesByOffset().getOrDefault(zone, List.of()).forEach(place -> places.add(getPlaceName(place)));
+        if (getOffsetSpellings(zone).contains("+00:00")) places.addAll(List.of("UTC", "GMT", "Z"));
+        return places.stream().map(ZoneChoice::normalize).collect(Collectors.joining("|"));
+    }
+
+    /**
+     * Returns the ways an offset is written, the full form first: "+01:00", "+0100", "+01" and
+     * "+1" for one hour east of UTC, or "+05:30", "+0530" and "+5:30" for five and a half;
+     * and "-00:00", "-0" and the like for UTC too.
+     */
+    private static List<String> getOffsetSpellings(ZoneId zone) {
+        int seconds = (zone instanceof ZoneOffset offset ? offset : zone.getRules().getOffset(Instant.now())).getTotalSeconds();
+        List<String> signs = seconds == 0 ? List.of("+", "-") : List.of(seconds < 0 ? "-" : "+");
+        int hours = Math.abs(seconds) / 3600, minutes = Math.abs(seconds) % 3600 / 60;
+        List<String> spellings = new ArrayList<>();
+        for (String sign : signs) {
+            spellings.add(String.format("%s%02d:%02d", sign, hours, minutes));
+            spellings.add(String.format("%s%02d%02d", sign, hours, minutes));
+            if (minutes == 0) {
+                spellings.add(String.format("%s%02d", sign, hours));
+                spellings.add(sign + hours);
+            } else {
+                spellings.add(String.format("%s%d:%02d", sign, hours, minutes));
+            }
+        }
+        return spellings;
+    }
+
+    /**
+     * Makes a search term and the text it is looked for in comparable: lower case, without
+     * spaces, with "−" read as "-" and with letters stripped of their accents, so that
+     * "sao paulo" finds "São Paulo".
+     */
+    private static String normalize(String text) {
+        if (text == null) return "";
+        String plain = Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return plain.toLowerCase(Locale.ROOT).replace('\u2212', '-').replaceAll("[\\s_]", "");
+    }
+
+    /**
+     * Offers the timezones that match the search, labels each one by its offset and the places
+     * at it, and submits its id.
+     */
+    private class ZoneChoiceProvider extends ChoiceProvider<ZoneId> {
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public Object getDisplayValue(ZoneId zone) {
-            return getZoneChoiceLabel(zone, zonesByOffset.getOrDefault(zone, List.of()), getUserZoneId());
+        public String getDisplayValue(ZoneId zone) {
+            return getZoneChoiceLabel(zone, getZonesByOffset().getOrDefault(zone, List.of()), getUserZoneId());
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public String getIdValue(ZoneId zone, int index) {
+        public String getIdValue(ZoneId zone) {
             return zone.getId();
         }
 
@@ -195,8 +318,34 @@ public class ZoneChoice extends Panel {
          * {@inheritDoc}
          */
         @Override
-        public ZoneId getObject(String id, IModel<? extends List<? extends ZoneId>> choices) {
-            return choices.getObject().stream().filter(zone -> zone.getId().equals(id)).findFirst().orElse(null);
+        public void query(String term, int page, Response<ZoneId> response) {
+            response.addAll(search(term));
+            response.setHasMore(false);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Collection<ZoneId> toChoices(Collection<String> ids) {
+            List<ZoneId> zones = new ArrayList<>();
+            for (String id : ids) {
+                try {
+                    zones.add(ZoneId.of(id));
+                } catch (DateTimeException ex) {
+                    logger.warn("Ignoring unknown timezone {}", id);
+                }
+            }
+            return zones;
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Holds nothing to detach; overridden as the other providers are, for Tomcat's sake.
+         */
+        @Override
+        public void detach() {
         }
 
     }

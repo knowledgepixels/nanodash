@@ -58,7 +58,7 @@ public class AjaxZonedDateTimePickerTest {
     }
 
     private List<? extends ZoneId> zoneChoices() {
-        return newPicker(null).getZoneDropDown().getChoices();
+        return newPicker(null).getZoneChoice().getChoices();
     }
 
     @Test
@@ -82,7 +82,7 @@ public class AjaxZonedDateTimePickerTest {
         AjaxZonedDateTimePicker picker = newPicker(ZonedDateTime.parse("2020-05-17T10:15:00+01:23"));
         ZoneOffset offset = ZoneOffset.ofHoursMinutes(1, 23);
         assertEquals(offset, picker.getZoneDropDown().getModelObject());
-        assertTrue(picker.getZoneDropDown().getChoices().contains(offset), "the value's offset must be selectable");
+        assertTrue(picker.getZoneChoice().getChoices().contains(offset), "the value's offset must be selectable");
     }
 
     @Test

@@ -547,6 +547,11 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
                 return model.hasNoTimeZone();
             }
 
+            @Override
+            protected LocalDateTime getDateTime() {
+                return model.enteredDateTime().orElse(null);
+            }
+
         };
         choice.getDropDown().setLabel(Model.of("timezone of " + getFieldLabel(iri)));
         return choice;
