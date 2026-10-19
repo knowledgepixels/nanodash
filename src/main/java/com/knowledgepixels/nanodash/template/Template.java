@@ -56,6 +56,16 @@ public class Template implements Serializable {
      */
     public static final IRI NEW_URI_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/NewUriPlaceholder");
 
+    /**
+     * Type of a literal placeholder that takes a point in time at whatever precision the user
+     * has it, from the year alone to the full date and time, and publishes it typed by what was
+     * entered: {@code xsd:gYear}, {@code xsd:gYearMonth}, {@code xsd:date} or
+     * {@code xsd:dateTime} (#726). The template can narrow the precisions it takes by listing
+     * their datatypes with {@link org.nanopub.vocabulary.NTEMPLATE#HAS_DATATYPE}; it takes all
+     * four if it lists none.
+     */
+    public static final IRI DATE_PLACEHOLDER = vf.createIRI("https://w3id.org/np/o/ntemplate/DatePlaceholder");
+
     private final Nanopub nanopub;
     private String label;
     private String description;
@@ -72,6 +82,8 @@ public class Template implements Serializable {
     private Map<IRI, String> labelMap = new HashMap<>();
     private Map<IRI, String> statementDescriptionMap = new HashMap<>();
     private Map<IRI, IRI> datatypeMap = new HashMap<>();
+    private Map<IRI, List<IRI>> declaredDatatypesMap = new HashMap<>();
+    private Map<IRI, List<DatePrecision>> datePrecisionMap = new HashMap<>();
     private Map<IRI, String> languageTagMap = new HashMap<>();
     private Map<IRI, List<String>> possibleLanguageTagMap = new HashMap<>();
     private Map<IRI, String> prefixMap = new HashMap<>();
@@ -651,6 +663,29 @@ public class Template implements Serializable {
     }
 
     /**
+     * Checks if the IRI is a date placeholder, one that takes a point in time at whatever
+     * precision the user has it (see {@link #DATE_PLACEHOLDER}).
+     *
+     * @param iri the IRI to check.
+     * @return true if the IRI is a date placeholder, false otherwise.
+     */
+    public boolean isDatePlaceholder(IRI iri) {
+        iri = transform(iri);
+        return typeMap.containsKey(iri) && typeMap.get(iri).contains(DATE_PLACEHOLDER);
+    }
+
+    /**
+     * Returns the precisions a date placeholder accepts, coarsest first.
+     *
+     * @param iri the date placeholder IRI.
+     * @return the accepted precisions, or an empty list if the IRI is not a date placeholder.
+     */
+    public List<DatePrecision> getDatePrecisions(IRI iri) {
+        iri = transform(iri);
+        return datePrecisionMap.getOrDefault(iri, List.of());
+    }
+
+    /**
      * Checks if the IRI is a literal placeholder.
      *
      * @param iri the IRI to check.
@@ -659,7 +694,7 @@ public class Template implements Serializable {
     public boolean isLiteralPlaceholder(IRI iri) {
         iri = transform(iri);
         return typeMap.containsKey(iri) && (typeMap.get(iri).contains(NTEMPLATE.LITERAL_PLACEHOLDER) || typeMap.get(iri).contains(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)
-                || typeMap.get(iri).contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER));
+                || typeMap.get(iri).contains(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER) || typeMap.get(iri).contains(DATE_PLACEHOLDER));
     }
 
     /**
@@ -792,6 +827,7 @@ public class Template implements Serializable {
             if (t.equals(NTEMPLATE.LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LONG_LITERAL_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.LANGUAGE_TAGGED_LITERAL_PLACEHOLDER)) return true;
+            if (t.equals(DATE_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.SEQUENCE_ELEMENT_PLACEHOLDER)) return true;
             if (t.equals(NTEMPLATE.ROOT_NANOPUB_PLACEHOLDER)) return true;
         }
@@ -1055,6 +1091,44 @@ public class Template implements Serializable {
         }
         tagUntypedLocalIrisAsLocalResources(templateNp);
         checkLanguageTagPlaceholders();
+        collectDatePrecisions();
+    }
+
+    /**
+     * Turns the datatypes a date placeholder lists into the precisions it accepts. A date
+     * placeholder has no single datatype, so it is left without one: whatever reads the
+     * datatype of a placeholder would otherwise take one of the listed precisions for the only
+     * one allowed.
+     */
+    private void collectDatePrecisions() {
+        for (Map.Entry<IRI, List<IRI>> e : typeMap.entrySet()) {
+            if (!e.getValue().contains(DATE_PLACEHOLDER)) continue;
+            IRI placeholder = e.getKey();
+            datePrecisionMap.put(placeholder, getListedDatePrecisions(placeholder));
+            datatypeMap.remove(placeholder);
+        }
+    }
+
+    /**
+     * Returns the precisions a date placeholder lists, coarsest first, or all of them if it
+     * lists none it can take.
+     *
+     * @param placeholder the date placeholder
+     * @return the precisions the placeholder accepts
+     */
+    private List<DatePrecision> getListedDatePrecisions(IRI placeholder) {
+        List<DatePrecision> listed = new ArrayList<>();
+        for (IRI datatype : declaredDatatypesMap.getOrDefault(placeholder, List.of())) {
+            DatePrecision precision = DatePrecision.of(datatype);
+            if (precision == null) {
+                logger.warn("Ignoring datatype {} on date placeholder {}", datatype, placeholder);
+            } else if (!listed.contains(precision)) {
+                listed.add(precision);
+            }
+        }
+        if (listed.isEmpty()) return DatePrecision.ALL;
+        listed.sort(null);
+        return listed;
     }
 
     // A literal is either language-tagged or datatyped, never both; the language-tag
@@ -1191,6 +1265,7 @@ public class Template implements Serializable {
                 statementDescriptionMap.put(subj, Utils.sanitizeHtml(objS));
             } else if (pred.equals(NTEMPLATE.HAS_DATATYPE) && obj instanceof IRI objIri) {
                 datatypeMap.put(subj, objIri);
+                declaredDatatypesMap.computeIfAbsent(subj, k -> new ArrayList<>()).add(objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
                 languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(NTEMPLATE.POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
@@ -1397,6 +1472,7 @@ public class Template implements Serializable {
                 statementDescriptionMap.put(subj, Utils.sanitizeHtml(objS));
             } else if (pred.equals(NTEMPLATE.HAS_DATATYPE) && obj instanceof IRI objIri) {
                 datatypeMap.put(subj, objIri);
+                declaredDatatypesMap.computeIfAbsent(subj, k -> new ArrayList<>()).add(objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
                 languageTagMap.put(subj, Literals.normalizeLanguageTag(objS));
             } else if (pred.equals(NTEMPLATE.POSSIBLE_LANGUAGE_TAG) && obj instanceof Literal) {
