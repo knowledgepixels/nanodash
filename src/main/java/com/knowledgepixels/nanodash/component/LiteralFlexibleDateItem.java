@@ -258,7 +258,9 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         datatypeLabel = new Label("datatype", () -> describeDatatype(model.getObject()));
         datatypeLabel.setOutputMarkupId(true);
         add(datatypeLabel);
-        if (AjaxZonedDateTimePicker.getClientZoneId() == null) add(new ClientZoneBehavior());
+        if (accepts(DatePrecision.DATE_TIME) && AjaxZonedDateTimePicker.getClientZoneId() == null) {
+            add(new ClientZoneBehavior());
+        }
     }
 
     /**

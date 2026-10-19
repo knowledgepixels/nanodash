@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.template.DatePrecision;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.UnificationException;
+import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
@@ -300,6 +301,25 @@ class LiteralFlexibleDateItemTest {
         startForm(np, new PageParameters(), vf.createLiteral("2026-11", XSD.GYEARMONTH));
 
         assertEquals(vf.createLiteral("2026-11", XSD.GYEARMONTH), published(np));
+    }
+
+    @Test
+    void theBrowsersTimezoneIsTakenUpWhereATimeCanBeEntered() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex14", XSD.DATE, XSD.DATETIME);
+        List<AjaxClientInfoBehavior> behaviors = tester.getComponentFromLastRenderedPage(ITEM).getBehaviors(AjaxClientInfoBehavior.class);
+        assertEquals(1, behaviors.size());
+
+        tester.executeBehavior(behaviors.get(0));
+
+        assertEquals(200, tester.getLastResponse().getStatus());
+    }
+
+    @Test
+    void noTimezoneIsAskedForWhereNoTimeCanBeEntered() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex15", XSD.GYEAR, XSD.GYEARMONTH);
+
+        assertTrue(tester.getComponentFromLastRenderedPage(ITEM).getBehaviors(AjaxClientInfoBehavior.class).isEmpty(),
+                "a template that takes a year and month at most has no timezone part to repaint");
     }
 
     @Test
