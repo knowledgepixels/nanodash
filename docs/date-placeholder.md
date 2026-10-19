@@ -117,8 +117,11 @@ as before.
   with that `nt:hasDatatype` still covers them.
 - A date and time without a timezone, for new values. The timezone always has a value, the
   user's own by default.
-- Durations, from/to ranges, a "now" default and timezone selection, all in
-  [#444](https://github.com/knowledgepixels/nanodash/issues/444).
+- Durations ([#799](https://github.com/knowledgepixels/nanodash/issues/799)).
+- A "now" or "today" default value
+  ([#800](https://github.com/knowledgepixels/nanodash/issues/800)).
+- From/to ranges across two placeholders
+  ([#801](https://github.com/knowledgepixels/nanodash/issues/801)).
 
 ## Vocabulary
 
