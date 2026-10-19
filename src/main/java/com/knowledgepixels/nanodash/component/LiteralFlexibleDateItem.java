@@ -41,6 +41,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -161,6 +162,14 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
             return "".equals(timeZone);
         }
 
+        /**
+         * Clears a day the month no longer has, as when 31 was picked for January and the month
+         * is then changed to February, rather than keeping a value that is no point in time.
+         */
+        void dropDayTheMonthDoesNotHave() {
+            if (!day.isEmpty() && Integer.parseInt(day) > daysInMonth(year, month)) day = "";
+        }
+
         private static String asShownInField(String time) {
             return time.endsWith(":00") && time.length() == "HH:mm:ss".length() ? time.substring(0, "HH:mm".length()) : time;
         }
@@ -232,6 +241,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
                 case MONTH -> value.month = v;
                 case DAY -> value.day = v;
             }
+            if (part != Part.DAY) value.dropDayTheMonthDoesNotHave();
         }
 
     }
@@ -394,9 +404,10 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         this.model = obtainModel(context);
 
         yearField = newYearField();
-        monthField = newPartChoice("month", Part.MONTH, numberedChoices(12), monthRenderer(),
+        monthField = newPartChoice("month", Part.MONTH, () -> numberedChoices(12), monthRenderer(),
                 !isNeeded(DatePrecision.YEAR_MONTH));
-        dayField = newPartChoice("day", Part.DAY, numberedChoices(31), dayRenderer(),
+        dayField = newPartChoice("day", Part.DAY,
+                () -> numberedChoices(daysInMonth(partInput(yearField), partInput(monthField))), dayRenderer(),
                 !isNeeded(DatePrecision.DATE));
         timeField = newTimeField();
         zoneChoice = newZoneChoice();
@@ -506,7 +517,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         return model.time.length() > "HH:mm".length();
     }
 
-    private FormComponent<String> newPartChoice(String id, Part part, List<String> choices, IChoiceRenderer<String> renderer,
+    private FormComponent<String> newPartChoice(String id, Part part, IModel<List<String>> choices, IChoiceRenderer<String> renderer,
                                                 boolean canBeLeftOut) {
         DropDownChoice<String> field = new DropDownChoice<>(id, new PartModel(model, part), choices, renderer) {
             @Override
@@ -595,8 +606,9 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * Repaints what a change to one part can change elsewhere: the timezone, whose preselected
-     * offset follows the date, and the datatype the value is going to have. The other parts of
+     * Repaints what a change to one part can change elsewhere: the day, whose choices are the
+     * days of the month picked, the timezone, whose preselected offset follows the date, and the
+     * datatype the value is going to have. The other parts of
      * this item are left as they are, so that a time typed but not yet reported by the time
      * picker is not painted over. A second item editing the same value in a repeated statement
      * group, found by the value behind its parts, is repainted in full.
@@ -607,7 +619,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     private void refreshParts(Component source, IPartialPageRequestHandler target) {
         for (Component c : context.getComponents()) {
             if (c == source) continue;
-            if (fields.contains(c) && c != zoneField) continue;
+            if (fields.contains(c) && c != zoneField && c != dayField) continue;
             if (c.getDefaultModel() instanceof PartOfValue other && other.getValue() == model) {
                 c.modelChanged();
                 target.add(c);
@@ -701,7 +713,19 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
      */
     private DateValue candidateValue() {
         String zone = zoneField.isVisibleInHierarchy() ? emptyAsNull(partInput(zoneField)) : null;
-        return model.assemble(partInput(yearField), partInput(monthField), partInput(dayField), partInput(timeField), zone);
+        String year = partInput(yearField), month = partInput(monthField);
+        return model.assemble(year, month, dayInput(year, month), partInput(timeField), zone);
+    }
+
+    /**
+     * The day as the value will have it: while a part is being changed on its own, a day the
+     * month entered does not have is left out, as changing the month clears it, so that picking
+     * February after the 31st is not refused. Only a submit judges the day against the month.
+     */
+    private String dayInput(String year, String month) {
+        String day = partInput(dayField);
+        if (day.isEmpty() || isFormSubmitted()) return day;
+        return Integer.parseInt(day) > daysInMonth(year, month) ? "" : day;
     }
 
     /**
@@ -722,6 +746,22 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         DateValue value = DateValue.parse(lexical);
         if (value == null) return "";
         return "(" + Utils.getDatatypeLabel(value.getPrecision().getDatatype()) + ")";
+    }
+
+    /**
+     * Returns how many days the given month has, the way a calendar does: February has 29 days
+     * in a leap year and 28 in any other, and as long as the year is not known it may have 29.
+     * While no month is picked, any day up to the 31st may be.
+     *
+     * @param year  the year, which may be empty or not yet a year
+     * @param month the month as two digits, which may be empty
+     * @return the number of days
+     */
+    static int daysInMonth(String year, String month) {
+        if (month == null || !month.matches("(0[1-9]|1[0-2])")) return 31;
+        Month monthOfYear = Month.of(Integer.parseInt(month));
+        if (year == null || !year.matches("-?\\d{4,}")) return monthOfYear.maxLength();
+        return monthOfYear.length(Year.isLeap(Long.parseLong(year)));
     }
 
     private static List<String> numberedChoices(int count) {

@@ -63,6 +63,9 @@ picked when the template takes `xsd:dateTime`; it only goes into the value toget
 
 What is checked:
 
+- **That the day is one the month has**: like a calendar, the day dropdown offers only the days
+  of the month picked (29 for February in a leap year, 28 otherwise, 31 while no month is
+  picked), and changing the month clears a day it does not have.
 - **That no part is skipped**: a day without a month, say, is reported on submit rather than
   dropped from the value.
 - **That it is a point in time**: a real month, a day the month has (leap years included), and

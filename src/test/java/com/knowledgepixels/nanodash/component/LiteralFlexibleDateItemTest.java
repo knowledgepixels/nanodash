@@ -451,6 +451,53 @@ class LiteralFlexibleDateItemTest {
     }
 
     @Test
+    void onlyTheDaysOfThePickedMonthAreOffered() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex26");
+        assertEquals(31, dayChoices().size(), "any day up to the 31st while no month is picked");
+
+        enter(YEAR_FIELD, "2026");
+        enter(MONTH_FIELD, "02");
+        assertEquals(28, dayChoices().size(), "February 2026 has 28 days");
+        assertEquals("28", dayChoices().get(27));
+
+        enter(YEAR_FIELD, "2028");
+        assertEquals(29, dayChoices().size(), "and February 2028 has 29");
+
+        enter(MONTH_FIELD, "04");
+        assertEquals(30, dayChoices().size());
+    }
+
+    @Test
+    void aDayTheNewMonthDoesNotHaveIsCleared() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex27";
+        startForm(np);
+        enter(YEAR_FIELD, "2026");
+        enter(MONTH_FIELD, "01");
+        enter(DAY_FIELD, "31");
+        assertEquals(vf.createLiteral("2026-01-31", XSD.DATE), published(np));
+
+        enter(MONTH_FIELD, "02");
+
+        assertEquals(vf.createLiteral("2026-02", XSD.GYEARMONTH), published(np), "there is no 31 February to keep");
+        enter(DAY_FIELD, "28");
+        assertEquals(vf.createLiteral("2026-02-28", XSD.DATE), published(np));
+    }
+
+    @Test
+    void februaryHasTwentyNineDaysWhileTheYearIsUnknown() {
+        assertEquals(29, LiteralFlexibleDateItem.daysInMonth("", "02"));
+        assertEquals(28, LiteralFlexibleDateItem.daysInMonth("2100", "02"), "2100 is no leap year");
+        assertEquals(29, LiteralFlexibleDateItem.daysInMonth("2000", "02"), "2000 is one");
+        assertEquals(31, LiteralFlexibleDateItem.daysInMonth("2026", ""));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> dayChoices() {
+        return (List<String>) ((org.apache.wicket.markup.html.form.DropDownChoice<String>)
+                tester.getComponentFromLastRenderedPage("panel:form:" + DAY_FIELD)).getChoices();
+    }
+
+    @Test
     void theTemplateListsThePrecisionsItTakes() throws Exception {
         String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex12";
         Template template = registerTemplate(np, List.of(XSD.DATETIME, XSD.GMONTHDAY, XSD.DATE), null);
