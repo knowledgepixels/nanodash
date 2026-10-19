@@ -2147,6 +2147,14 @@ textarea.locked-value {
   display: inline;
 }
 
+/* The hover box of a locked form field wraps the field itself (issue #786), so this trigger
+   stays plain inline as well: the field keeps the line-breaking and the sizing it has
+   everywhere else, rather than being shrink-wrapped by the box it only anchors.
+   position: relative still anchors that box. */
+.tooltip.field-tooltip {
+  display: inline;
+}
+
 .tooltip .tooltiptext {
   font-family: "Noto Emoji", Inter, Verdana, Helvetica, sans-serif;
   font-size: 11pt;
@@ -2222,6 +2230,13 @@ a[href=""] {
   white-space: nowrap;
   display: block;
   margin: 0 !important;
+}
+
+/* A URI spelled out in full (issue #786) is as long as it is, so it wraps inside its box
+   instead of running out of it the way an abbreviated one never could. */
+.uri.uri-full {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .expltooltip {

@@ -1365,6 +1365,20 @@ public class Utils {
     }
 
     /**
+     * Gets an ExternalLink that spells the URI out in full, for the places where the whole URI is
+     * what the link is there to show and the abbreviation {@link #getUriLink(String, IModel)}
+     * applies would hide it (issue #786). The element it is given has to let the text wrap, as a
+     * URI of any length lands in it.
+     *
+     * @param markupId the markup ID for the link
+     * @param model    the model containing the URI
+     * @return an ExternalLink labelled with the whole URI
+     */
+    public static ExternalLink getFullUriLink(String markupId, IModel<String> model) {
+        return new ExternalLink(markupId, new UriHrefModel(model), model);
+    }
+
+    /**
      * The href of a URI link: empty for anything that isn't a URI to link to, so that a local
      * URI or a locally minted name (issue #652) isn't turned into a relative link. This mirrors
      * what {@link #getUriLink(String, String)} does with local URIs.

@@ -128,7 +128,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             }
         });
         context.getComponents().add(textfield);
-        lockIfNeeded(textfield, iri);
+        lockIfNeeded(textfield, iri, false);
         labelField(textfield, iri);
         if (template.getLabel(iri) != null) {
             textfield.add(new AttributeModifier("placeholder", template.getLabel(iri).replaceFirst(" - .*$", "")));
@@ -151,11 +151,65 @@ public class IriTextfieldItem extends AbstractContextComponent {
             textfield.add(AttributeAppender.append("class", "introduced"));
         }
         add(textfield);
+        add(lockedTooltip());
         if (showPrefixChoice) {
             initPrefixChoice(prefixTooltip);
         } else {
             add(new WebMarkupContainer("prefixchoice").setVisible(false));
         }
+    }
+
+    /**
+     * The hover box of a locked field: why the value cannot be changed here, and the full IRI it
+     * stands for, which the field itself shows only as much of as it is wide (issue #786). It is
+     * the box every other non-changeable value has, so the IRI can be read, followed and copied
+     * out from here too. Only a locked field gets one: a box opening under a field that is there
+     * to be typed in would be in the way.
+     */
+    private WebMarkupContainer lockedTooltip() {
+        WebMarkupContainer tooltip = new WebMarkupContainer("lockedtooltip") {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                // Read at render time, like the lock itself: it can change while the form is open
+                // (see AbstractContextComponent#lockIfNeeded).
+                setVisible(context.isLocked(iri));
+            }
+
+        };
+        tooltip.add(new Label("description", LOCKED_FIELD_MESSAGE));
+        tooltip.add(Utils.getFullUriLink("uri", new FullIriModel()));
+        return tooltip;
+    }
+
+    /**
+     * The full IRI the field stands for: the value as typed where that is already a URI, and the
+     * prefix the field builds on in front of it otherwise -- a resource minted by this
+     * nanopublication under the local prefix it is shown by everywhere else in the form, as the
+     * nanopublication has no URI of its own yet. Empty for an empty field, so that a prefix on
+     * its own is never shown as a value.
+     */
+    private class FullIriModel implements IModel<String> {
+
+        @Override
+        public String getObject() {
+            String value = textfield.getModelObject();
+            if (value == null || value.isEmpty()) return "";
+            if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
+                value = Utils.urlEncode(value);
+            }
+            if (Utils.isUriValue(value)) return value;
+            if (!context.hasDynamicPrefix(iri) && context.getTemplate().isLocalResource(iri)) {
+                return LocalUri.PREFIX + value;
+            }
+            String full = prefixModel.getObject() + value;
+            // A bare name with no prefix in front of it is a local resource too, which is how
+            // the validator reads it.
+            if (full.matches("[^:# ]+")) return LocalUri.PREFIX + full;
+            return full;
+        }
+
     }
 
     /**

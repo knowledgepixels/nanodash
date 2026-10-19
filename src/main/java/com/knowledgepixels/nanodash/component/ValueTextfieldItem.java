@@ -9,6 +9,8 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -61,7 +63,7 @@ public class ValueTextfieldItem extends AbstractContextComponent {
         if (!optional) textfield.setRequired(true);
         textfield.add(new Validator(iri, template));
         context.getComponents().add(textfield);
-        lockIfNeeded(textfield, iri);
+        lockIfNeeded(textfield, iri, false);
         labelField(textfield, iri);
         if (template.getLabel(iri) != null) {
             textfield.add(new AttributeModifier("placeholder", template.getLabel(iri)));
@@ -81,6 +83,48 @@ public class ValueTextfieldItem extends AbstractContextComponent {
 
         });
         add(textfield);
+        add(lockedTooltip());
+    }
+
+    /**
+     * The hover box of a locked field: why the value cannot be changed here, and the whole value
+     * it holds, of which the field itself shows only as much as it is wide (issue #786). A URI is
+     * shown as the link every other non-changeable value is shown as, so it can be read, followed
+     * and copied out from here too. Only a locked field gets a box: one opening under a field that
+     * is there to be typed in would be in the way.
+     */
+    private WebMarkupContainer lockedTooltip() {
+        WebMarkupContainer tooltip = new WebMarkupContainer("lockedtooltip") {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                // Read at render time, like the lock itself: it can change while the form is open
+                // (see AbstractContextComponent#lockIfNeeded).
+                setVisible(context.isLocked(iri));
+            }
+
+        };
+        tooltip.add(new Label("description", LOCKED_FIELD_MESSAGE));
+        tooltip.add(Utils.getFullUriLink("uri", new FullValueModel()));
+        return tooltip;
+    }
+
+    /**
+     * The whole value the field stands for: a literal as it was typed, and a bare name under the
+     * local prefix the validator reads it as. Empty for an empty field.
+     */
+    private class FullValueModel implements IModel<String> {
+
+        @Override
+        public String getObject() {
+            String value = textfield.getModelObject();
+            if (value == null || value.isEmpty()) return "";
+            if (value.startsWith("\"")) return value;
+            if (value.matches("[^:# ]+")) return LocalUri.PREFIX + value;
+            return value;
+        }
+
     }
 
     /**
