@@ -1196,6 +1196,14 @@ span.mint-note {
   vertical-align: middle;
 }
 
+/* Who a value found in the nanopub network comes from (issue #765): the Space governing it or the
+   user who introduced it, on a line of its own below the term. */
+.select2-dropdown span.origin-note {
+  font-weight: normal;
+  font-style: italic;
+  color: #555;
+}
+
 .select2-dropdown.select2-dropdown--below {
   min-width: 600px !important;
   margin-top: -1px;

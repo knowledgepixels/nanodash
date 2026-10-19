@@ -45,6 +45,7 @@ import org.nanopub.extra.services.QueryCall;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
+import org.owasp.html.Encoding;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
@@ -838,6 +839,24 @@ public class Utils {
             .requireRelNofollowOnLinks()).toFactory();
 
     /**
+     * The text of an HTML fragment, with block-level boundaries kept as spaces so that
+     * paragraphs and list items do not run into each other.
+     *
+     * @param html the HTML fragment, or plain text
+     * @return the text, with markup removed and entities decoded
+     */
+    public static String toPlainText(String html) {
+        String spaced = BLOCK_BOUNDARY.matcher(html).replaceAll(" ");
+        return Encoding.decodeHtml(TEXT_ONLY_POLICY.sanitize(spaced));
+    }
+
+    private static final PolicyFactory TEXT_ONLY_POLICY = new HtmlPolicyBuilder().toFactory();
+
+    private static final Pattern BLOCK_BOUNDARY = Pattern.compile(
+            "</?(?:p|div|br|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|section|article)\\b[^>]*>",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
      * Sanitizes raw HTML input to ensure safe rendering. Inline SVG is kept, reduced
      * to the same static subset as in {@link #sanitizeSvg(String)}.
      *
@@ -1057,7 +1076,7 @@ public class Utils {
         // The note of a to-be-minted value is not part of the value, so it is set in its own
         // span and styled as an aside rather than as the term itself (issue #652).
         String noteRegex = TO_BE_MINTED_NOTE.replace("(", "\\(").replace(")", "\\)");
-        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
+        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/" + ORIGIN_NOTE_SEPARATOR + "((?:governed )?by [^<]*)(<br><code>|$)/, '<br><span class=\"origin-note\">$1</span>$2')" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
     }
 
     /**
@@ -1341,6 +1360,24 @@ public class Utils {
      * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)}.
      */
     private static final String TO_BE_MINTED_NOTE = "(mint locally)";
+
+    /**
+     * What separates the note on who a value comes from from the label of the value, so that
+     * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)} can set it on a line of its own.
+     */
+    private static final String ORIGIN_NOTE_SEPARATOR = " \u00b7 ";
+
+    /**
+     * Returns the note on who a value comes from as it is appended to the label of the value in a
+     * dropdown (issue #765).
+     *
+     * @param originNote the note, e.g. "by Jane Doe", or null
+     * @return the note with its separator, or an empty string if there is no note
+     */
+    public static String getOriginNoteSuffix(String originNote) {
+        if (originNote == null || originNote.isEmpty()) return "";
+        return ORIGIN_NOTE_SEPARATOR + originNote;
+    }
 
     /**
      * Gets an ExternalLink with a URI label.
