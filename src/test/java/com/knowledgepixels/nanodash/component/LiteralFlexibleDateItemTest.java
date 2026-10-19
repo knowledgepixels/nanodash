@@ -169,32 +169,41 @@ class LiteralFlexibleDateItemTest {
     }
 
     @Test
-    void theFieldWidensAsItIsFilledIn() throws Exception {
-        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex02";
+    void everyPartIsOfferedFromTheStart() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex02");
+
+        for (String field : List.of(YEAR_FIELD, MONTH_FIELD, DAY_FIELD, TIME_FIELD, ZONE_FIELD)) {
+            assertTrue(isShown(field), field + " is offered before anything is entered");
+        }
+    }
+
+    @Test
+    void theDatatypeFollowsHowManyPartsAreFilledIn() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex18";
         startForm(np);
-        assertTrue(isShown(YEAR_FIELD));
-        assertFalse(isShown(MONTH_FIELD), "no month before there is a year");
 
         enter(YEAR_FIELD, "2026");
-        assertTrue(isShown(MONTH_FIELD));
-        assertFalse(isShown(DAY_FIELD), "no day before there is a month");
-
+        assertEquals(vf.createLiteral("2026", XSD.GYEAR), published(np));
         enter(MONTH_FIELD, "11");
         assertEquals(vf.createLiteral("2026-11", XSD.GYEARMONTH), published(np));
-        assertTrue(isShown(DAY_FIELD));
-        assertFalse(isShown(TIME_FIELD), "no time before there is a day");
-
         enter(DAY_FIELD, "16");
         assertEquals(vf.createLiteral("2026-11-16", XSD.DATE), published(np));
-        assertTrue(isShown(TIME_FIELD));
-        assertFalse(isShown(ZONE_FIELD), "no timezone before there is a time");
-
         enter(TIME_FIELD, "09:00");
-        assertTrue(isShown(ZONE_FIELD));
         enter(ZONE_FIELD, "+01:00");
 
         assertEquals(vf.createLiteral("2026-11-16T09:00:00+01:00", XSD.DATETIME), published(np));
         assertTrue(tester.getLastResponseAsString().contains("xsd:dateTime"), "the datatype shown follows the value");
+    }
+
+    @Test
+    void aPartFilledInWithoutTheOneBeforeItIsReported() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex19");
+        FormTester form = filledForm();
+        form.setValue(YEAR_FIELD, "2026");
+        form.setValue(DAY_FIELD, "16");
+        form.submit();
+
+        assertErrorMessage("'the moment' has a day but no month");
     }
 
     @Test
@@ -244,7 +253,7 @@ class LiteralFlexibleDateItemTest {
         assertTrue(isShown(YEAR_FIELD));
         assertTrue(isShown(MONTH_FIELD), "a field that takes a date at least is not shown as a year field");
         assertTrue(isShown(DAY_FIELD));
-        assertFalse(isShown(TIME_FIELD), "the time is still offered only once there is a day");
+        assertTrue(isShown(TIME_FIELD), "the finer parts are offered too");
         String response = tester.getLastResponseAsString();
         assertFalse(response.contains("no month"), "a month that every accepted precision needs cannot be left out");
         assertFalse(response.contains("no day"));
@@ -253,7 +262,6 @@ class LiteralFlexibleDateItemTest {
         enter(MONTH_FIELD, "11");
         enter(DAY_FIELD, "16");
         assertEquals(vf.createLiteral("2026-11-16", XSD.DATE), published(np));
-        assertTrue(isShown(TIME_FIELD));
     }
 
     @Test

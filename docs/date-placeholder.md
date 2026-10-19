@@ -44,25 +44,29 @@ With none listed, all four are taken. A listed datatype that is not one of the f
 
 ## The field
 
-One field that widens as it is filled in, in `LiteralFlexibleDateItem`: a year, then a month
-once there is a year, a day once there is a month, a time of day once there is a day, and a
-timezone once there is a time. A part finer than the finest precision the template takes is
-never offered, so a template that takes `xsd:gYear` and `xsd:gYearMonth` asks for no day.
+One field, in `LiteralFlexibleDateItem`, that offers every part up to the finest precision the
+template takes from the start: year, month, day, time of day and timezone for a placeholder
+that takes all four precisions, so it is as open as the template allows. A part finer than the
+finest precision taken is never offered, so a template that takes `xsd:gYear` and
+`xsd:gYearMonth` asks for no day.
 
-The parts the *coarsest* precision the template takes needs are asked for from the start
-rather than one by one, and cannot be left out: a placeholder that takes `xsd:date` and
-`xsd:dateTime` shows year, month and day together, so it does not look like a field for a year
-alone, and only the time and timezone are offered as it is filled in.
-Clearing a part beyond those (the "no month" / "no day" choice, or an empty time) takes the
-value back to the coarser precision.
+The parts the *coarsest* precision taken needs have to be filled in and cannot be left out: a
+placeholder that takes `xsd:date` and `xsd:dateTime` needs year, month and day ("choose month",
+"choose day"), while time and timezone stay optional. The other parts may be left out ("no
+month", "no day", an empty time), and how far the parts are filled in decides the precision and
+so the datatype.
+
+The timezone can always be picked when the template takes `xsd:dateTime`; it only goes into
+the value together with a time.
 
 What is checked:
 
+- **That no part is skipped**: a day without a month, say, is reported on submit rather than
+  dropped from the value.
 - **That it is a point in time**: a real month, a day the month has (leap years included), and
   a time of the day.
-- **That the precision is one the template takes.** This is only decided on submit. While the
-  value is being entered part by part, a year that is not a date yet is on its way to being
-  one, and refusing it would keep the month from ever being offered.
+- **That the precision is one the template takes.** This is only decided on submit, so the
+  parts can be filled in in any order.
 - **`nt:hasRegex`**, against the lexical form that would be published.
 
 The timezone of a date and time starts at the offset the user's own timezone has *at the date
@@ -92,7 +96,7 @@ as before.
 ## Not covered
 
 - `xsd:gMonthDay`, `xsd:gMonth`, `xsd:gDay`, and a time without a date. They do not fit the
-  year → month → day → time sequence the field widens along. A plain `nt:LiteralPlaceholder`
+  year → month → day → time sequence the field is made of. A plain `nt:LiteralPlaceholder`
   with that `nt:hasDatatype` still covers them.
 - A date and time without a timezone, for new values. The timezone always has a value, the
   user's own by default.

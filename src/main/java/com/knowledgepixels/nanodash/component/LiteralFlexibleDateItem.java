@@ -11,7 +11,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -50,9 +49,9 @@ import java.util.Optional;
  * year alone as an {@code xsd:gYear}, a year and month as an {@code xsd:gYearMonth}, a full date
  * as an {@code xsd:date}, and a date with a time of day as an {@code xsd:dateTime} (issue #726).
  * <p>
- * The field widens as it is filled in: the month is offered once there is a year, the day once
- * there is a month, the time of day once there is a day, and the timezone once there is a time.
- * Parts finer than the finest precision the template accepts are never offered.
+ * Every part up to the finest precision the template accepts is offered from the start, so the
+ * field is as open as the template allows. The parts the coarsest accepted precision needs have
+ * to be filled in; the others may be left out, from the finest one backwards.
  */
 public class LiteralFlexibleDateItem extends AbstractContextComponent {
 
@@ -63,7 +62,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     /**
      * The value as its parts, presented to the rest of the form as the lexical form of a literal
      * of the precision the parts reach. Keeping the parts rather than the string is what lets a
-     * value be widened one part at a time.
+     * value be entered one part at a time.
      */
     static class DateModel implements IModel<String> {
 
@@ -241,26 +240,19 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
 
         yearField = newYearField();
         monthField = newPartChoice("month", Part.MONTH, numberedChoices(12), monthRenderer(),
-                !isAlwaysAsked(DatePrecision.YEAR_MONTH));
+                !isNeeded(DatePrecision.YEAR_MONTH));
         dayField = newPartChoice("day", Part.DAY, numberedChoices(31), dayRenderer(),
-                !isAlwaysAsked(DatePrecision.DATE));
+                !isNeeded(DatePrecision.DATE));
         timeField = newTimeField();
         zoneField = newZoneChoice();
 
-        addField(yearField, accepts(DatePrecision.YEAR), () -> true, optional, template);
-        addField(monthField, accepts(DatePrecision.YEAR_MONTH),
-                () -> isAlwaysAsked(DatePrecision.YEAR_MONTH) || !model.year.isEmpty(),
-                optional || !isAlwaysAsked(DatePrecision.YEAR_MONTH), template);
-        addField(dayField, accepts(DatePrecision.DATE),
-                () -> isAlwaysAsked(DatePrecision.DATE) || (monthField.isVisible() && !model.month.isEmpty()),
-                optional || !isAlwaysAsked(DatePrecision.DATE), template);
-        addField(timeField, accepts(DatePrecision.DATE_TIME),
-                () -> isAlwaysAsked(DatePrecision.DATE_TIME) || (dayField.isVisible() && !model.day.isEmpty()),
-                optional || !isAlwaysAsked(DatePrecision.DATE_TIME), template);
-        addField(zoneField, accepts(DatePrecision.DATE_TIME),
-                () -> isAlwaysAsked(DatePrecision.DATE_TIME) || (timeField.isVisible() && !model.time.isEmpty()),
-                true, template);
+        addField(yearField, accepts(DatePrecision.YEAR), !optional, template);
+        addField(monthField, accepts(DatePrecision.YEAR_MONTH), !optional && isNeeded(DatePrecision.YEAR_MONTH), template);
+        addField(dayField, accepts(DatePrecision.DATE), !optional && isNeeded(DatePrecision.DATE), template);
+        addField(timeField, accepts(DatePrecision.DATE_TIME), !optional && isNeeded(DatePrecision.DATE_TIME), template);
+        addField(zoneField, accepts(DatePrecision.DATE_TIME), false, template);
 
+        addValueCheck(this::checkNoPartSkipped);
         addValueCheck(this::checkPointInTime);
         addValueCheck(this::checkAcceptedPrecision);
         if (regex != null) addValueCheck(this::checkRegex);
@@ -294,15 +286,13 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * Whether a part is needed by every precision the template accepts, so that it is asked for
-     * from the start rather than once the coarser parts are filled in: a placeholder that takes
-     * a date at least shows the year, month and day together, and does not look like a field
-     * for a year alone.
+     * Whether a part is needed by every precision the template accepts, so that it cannot be
+     * left out: a placeholder that takes a date at least needs the year, month and day.
      *
      * @param precision the precision that adds the part
      * @return true if even the coarsest accepted precision includes the part
      */
-    private boolean isAlwaysAsked(DatePrecision precision) {
+    private boolean isNeeded(DatePrecision precision) {
         return precisions.get(0).compareTo(precision) >= 0;
     }
 
@@ -401,21 +391,19 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
 
     /**
      * Adds one part control to the form, or a hidden placeholder for a part finer than the
-     * template accepts. A part that is used is shown only once the coarser parts it refines are
-     * filled in, so it is rendered with a placeholder tag to be revealed by an Ajax update.
+     * template accepts.
      */
-    private void addField(FormComponent<String> field, boolean used, IModel<Boolean> shown, boolean optional, Template template) {
+    private void addField(FormComponent<String> field, boolean used, boolean required, Template template) {
         add(field);
         if (!used) {
             field.setVisible(false);
             return;
         }
-        if (!optional) field.setRequired(true);
+        field.setRequired(required);
         if (template.getLabel(iri) != null) {
             field.add(new AttributeModifier("title", template.getLabel(iri)));
         }
-        field.setOutputMarkupPlaceholderTag(true);
-        field.add(new ShownWhen(shown));
+        field.setOutputMarkupId(true);
         field.add(new RefreshPartsOnChange(field));
         field.add(new InvalidityHighlighting());
         lockIfNeeded(field, iri);
@@ -424,30 +412,9 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * Shows a part only while the condition for offering it holds.
-     */
-    private static class ShownWhen extends Behavior {
-
-        private final IModel<Boolean> shown;
-
-        ShownWhen(IModel<Boolean> shown) {
-            this.shown = shown;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void onConfigure(Component component) {
-            super.onConfigure(component);
-            component.setVisible(Boolean.TRUE.equals(shown.getObject()));
-        }
-
-    }
-
-    /**
-     * Stores a part as soon as it changes and repaints the other parts of the same value, which
-     * may now be offered or no longer be, along with the datatype the value is going to have.
+     * Stores a part as soon as it changes and repaints the other parts of the same value, whose
+     * default timezone follows the date entered, along with the datatype the value is going to
+     * have.
      * It is the only updating behavior of a part: a second one would store the part again from
      * an input that is empty by then (see {@link LiteralGregorianItem}, issue #670).
      */
@@ -506,6 +473,28 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         }
     }
 
+    /**
+     * Reports a part filled in while a coarser one is left out, such as a day without a month,
+     * which would otherwise be dropped from the value without a word. This is only decided on a
+     * submit, so that the parts can be filled in in any order.
+     */
+    private void checkNoPartSkipped(IValidatable<String> v) {
+        if (!yearField.getForm().isSubmitted()) return;
+        List<FormComponent<String>> parts = List.of(yearField, monthField, dayField, timeField);
+        List<String> names = List.of("year", "month", "day", "time");
+        for (int finer = parts.size() - 1; finer > 0; finer--) {
+            if (partInput(parts.get(finer)).isEmpty()) continue;
+            for (int coarser = 0; coarser < finer; coarser++) {
+                if (partInput(parts.get(coarser)).isEmpty()) {
+                    v.error(new ValidationError("'" + getFieldLabel(iri) + "' has a " + names.get(finer)
+                            + " but no " + names.get(coarser)));
+                    return;
+                }
+            }
+            return;
+        }
+    }
+
     private void checkPointInTime(IValidatable<String> v) {
         String problem = candidateValue().getProblem();
         if (problem != null) v.error(new ValidationError(problem));
@@ -514,7 +503,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     /**
      * Reports a value coarser than the template accepts, or of a precision in between that it
      * does not. This is only decided on a submit: while the value is being entered part by part,
-     * a year that is not yet a date is a value on its way to becoming one.
+     * a year that is not yet a date may be a value on its way to becoming one.
      */
     private void checkAcceptedPrecision(IValidatable<String> v) {
         if (!yearField.getForm().isSubmitted()) return;
