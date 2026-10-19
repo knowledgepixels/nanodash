@@ -237,6 +237,35 @@ class LiteralFlexibleDateItemTest {
     }
 
     @Test
+    void thePartsTheCoarsestPrecisionNeedsAreAskedForFromTheStart() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex16";
+        startForm(np, XSD.DATE, XSD.DATETIME);
+
+        assertTrue(isShown(YEAR_FIELD));
+        assertTrue(isShown(MONTH_FIELD), "a field that takes a date at least is not shown as a year field");
+        assertTrue(isShown(DAY_FIELD));
+        assertFalse(isShown(TIME_FIELD), "the time is still offered only once there is a day");
+        String response = tester.getLastResponseAsString();
+        assertFalse(response.contains("no month"), "a month that every accepted precision needs cannot be left out");
+        assertFalse(response.contains("no day"));
+
+        enter(YEAR_FIELD, "2026");
+        enter(MONTH_FIELD, "11");
+        enter(DAY_FIELD, "16");
+        assertEquals(vf.createLiteral("2026-11-16", XSD.DATE), published(np));
+        assertTrue(isShown(TIME_FIELD));
+    }
+
+    @Test
+    void aFieldThatTakesOnlyADateAndTimeAsksForAllOfIt() throws Exception {
+        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex17", XSD.DATETIME);
+
+        for (String field : List.of(YEAR_FIELD, MONTH_FIELD, DAY_FIELD, TIME_FIELD, ZONE_FIELD)) {
+            assertTrue(isShown(field), field + " is shown from the start");
+        }
+    }
+
+    @Test
     void aValueCoarserThanTheTemplateTakesIsReported() throws Exception {
         startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex06", XSD.DATE, XSD.DATETIME);
         enter(YEAR_FIELD, "2026");

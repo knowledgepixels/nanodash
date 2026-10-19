@@ -240,16 +240,26 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         this.model = obtainModel(context);
 
         yearField = newYearField();
-        monthField = newPartChoice("month", Part.MONTH, numberedChoices(12), monthRenderer());
-        dayField = newPartChoice("day", Part.DAY, numberedChoices(31), dayRenderer());
+        monthField = newPartChoice("month", Part.MONTH, numberedChoices(12), monthRenderer(),
+                !isAlwaysAsked(DatePrecision.YEAR_MONTH));
+        dayField = newPartChoice("day", Part.DAY, numberedChoices(31), dayRenderer(),
+                !isAlwaysAsked(DatePrecision.DATE));
         timeField = newTimeField();
         zoneField = newZoneChoice();
 
         addField(yearField, accepts(DatePrecision.YEAR), () -> true, optional, template);
-        addField(monthField, accepts(DatePrecision.YEAR_MONTH), () -> !model.year.isEmpty(), true, template);
-        addField(dayField, accepts(DatePrecision.DATE), () -> monthField.isVisible() && !model.month.isEmpty(), true, template);
-        addField(timeField, accepts(DatePrecision.DATE_TIME), () -> dayField.isVisible() && !model.day.isEmpty(), true, template);
-        addField(zoneField, accepts(DatePrecision.DATE_TIME), () -> timeField.isVisible() && !model.time.isEmpty(), true, template);
+        addField(monthField, accepts(DatePrecision.YEAR_MONTH),
+                () -> isAlwaysAsked(DatePrecision.YEAR_MONTH) || !model.year.isEmpty(),
+                optional || !isAlwaysAsked(DatePrecision.YEAR_MONTH), template);
+        addField(dayField, accepts(DatePrecision.DATE),
+                () -> isAlwaysAsked(DatePrecision.DATE) || (monthField.isVisible() && !model.month.isEmpty()),
+                optional || !isAlwaysAsked(DatePrecision.DATE), template);
+        addField(timeField, accepts(DatePrecision.DATE_TIME),
+                () -> isAlwaysAsked(DatePrecision.DATE_TIME) || (dayField.isVisible() && !model.day.isEmpty()),
+                optional || !isAlwaysAsked(DatePrecision.DATE_TIME), template);
+        addField(zoneField, accepts(DatePrecision.DATE_TIME),
+                () -> isAlwaysAsked(DatePrecision.DATE_TIME) || (timeField.isVisible() && !model.time.isEmpty()),
+                true, template);
 
         addValueCheck(this::checkPointInTime);
         addValueCheck(this::checkAcceptedPrecision);
@@ -283,6 +293,19 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         return created;
     }
 
+    /**
+     * Whether a part is needed by every precision the template accepts, so that it is asked for
+     * from the start rather than once the coarser parts are filled in: a placeholder that takes
+     * a date at least shows the year, month and day together, and does not look like a field
+     * for a year alone.
+     *
+     * @param precision the precision that adds the part
+     * @return true if even the coarsest accepted precision includes the part
+     */
+    private boolean isAlwaysAsked(DatePrecision precision) {
+        return precisions.get(0).compareTo(precision) >= 0;
+    }
+
     private boolean accepts(DatePrecision precision) {
         return precisions.stream().anyMatch(p -> p.compareTo(precision) >= 0);
     }
@@ -314,7 +337,8 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         return field;
     }
 
-    private FormComponent<String> newPartChoice(String id, Part part, List<String> choices, IChoiceRenderer<String> renderer) {
+    private FormComponent<String> newPartChoice(String id, Part part, List<String> choices, IChoiceRenderer<String> renderer,
+                                                boolean canBeLeftOut) {
         DropDownChoice<String> field = new DropDownChoice<>(id, new PartModel(model, part), choices, renderer) {
             @Override
             protected String getNullKeyDisplayValue() {
@@ -326,7 +350,7 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
                 return "no " + id;
             }
         };
-        field.setNullValid(true);
+        field.setNullValid(canBeLeftOut);
         field.setLabel(Model.of(id + " of " + getFieldLabel(iri)));
         return field;
     }

@@ -48,8 +48,13 @@ One field that widens as it is filled in, in `LiteralFlexibleDateItem`: a year, 
 once there is a year, a day once there is a month, a time of day once there is a day, and a
 timezone once there is a time. A part finer than the finest precision the template takes is
 never offered, so a template that takes `xsd:gYear` and `xsd:gYearMonth` asks for no day.
-Clearing a part (the "no month" / "no day" choice, or an empty time) takes the value back to
-the coarser precision.
+
+The parts the *coarsest* precision the template takes needs are asked for from the start
+rather than one by one, and cannot be left out: a placeholder that takes `xsd:date` and
+`xsd:dateTime` shows year, month and day together, so it does not look like a field for a year
+alone, and only the time and timezone are offered as it is filled in.
+Clearing a part beyond those (the "no month" / "no day" choice, or an empty time) takes the
+value back to the coarser precision.
 
 What is checked:
 
