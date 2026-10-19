@@ -66,8 +66,59 @@ class LiteralSerializationTest {
         assertFalse(Utils.isValidLiteralSerialization("\"unterminated"));
         assertFalse(Utils.isValidLiteralSerialization("\"inner \" quote\""));
         assertFalse(Utils.isValidLiteralSerialization("\"text\" trailing"));
-        assertFalse(Utils.isValidLiteralSerialization("\"bad escape \\n\""));
+        assertFalse(Utils.isValidLiteralSerialization("\"bad escape \\q\""));
         assertThrows(IllegalArgumentException.class, () -> Utils.getParsedLiteral("no quotes"));
+    }
+
+    /**
+     * A value field is a single line, which a browser strips line breaks from, so a literal
+     * with several lines is shown with its newlines escaped and comes back unchanged
+     * (issue #103).
+     */
+    @Test
+    void multiLineLiteralIsSerializedOnOneLineAndRoundTrips() {
+        Literal multiLine = Utils.vf.createLiteral("first line\nsecond line\r\nthird\tline", "en");
+        String serialized = Utils.getSerializedLiteral(multiLine);
+        assertEquals("\"first line\\nsecond line\\r\\nthird\\tline\"@en", serialized);
+        assertTrue(Utils.isValidLiteralSerialization(serialized), serialized);
+        assertEquals(multiLine, Utils.getParsedLiteral(serialized));
+    }
+
+    /**
+     * A newline typed as {@code \n} into a value field becomes a real newline in the literal.
+     */
+    @Test
+    void typedNewlineEscapeBecomesANewline() {
+        assertEquals("a\nb", Utils.getParsedLiteral("\"a\\nb\"").stringValue());
+    }
+
+    /**
+     * An escaped backslash before an {@code n} stays a backslash and a letter.
+     */
+    @Test
+    void escapedBackslashBeforeNIsNotANewline() {
+        assertEquals("C:\\new", Utils.getParsedLiteral("\"C:\\\\new\"").stringValue());
+        assertEquals("\"C:\\\\new\"", Utils.getSerializedLiteral(Utils.vf.createLiteral("C:\\new")));
+    }
+
+    /**
+     * Every short escape Turtle defines is accepted, the single quote included.
+     */
+    @Test
+    void allTurtleShortEscapesAreAccepted() {
+        String serialized = "\"\\t\\b\\n\\r\\f\\\"\\'\\\\\"";
+        assertTrue(Utils.isValidLiteralSerialization(serialized));
+        assertEquals("\t\b\n\r\f\"'\\", Utils.getParsedLiteral(serialized).stringValue());
+    }
+
+    /**
+     * A literal whose text still holds a raw line break, as a prefilled page parameter may,
+     * is accepted and keeps it.
+     */
+    @Test
+    void rawNewlineInsideTheQuotesIsKept() {
+        assertTrue(Utils.isValidLiteralSerialization("\"a\nb\""));
+        assertEquals("a\nb", Utils.getParsedLiteral("\"a\nb\"").stringValue());
     }
 
 }
