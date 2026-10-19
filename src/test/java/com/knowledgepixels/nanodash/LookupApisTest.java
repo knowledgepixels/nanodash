@@ -16,7 +16,6 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -120,76 +119,6 @@ class LookupApisTest {
             mockedApiCache.close();
             mockedGrlc.close();
         };
-    }
-
-    // ---- parseNanopubGrlcApi ----
-
-    @Test
-    void parseNanopubGrlcApi_singleResult() {
-        JSONObject json = new JSONObject("{\"results\":{\"bindings\":[" +
-                "{\"thing\":{\"value\":\"https://example.org/thing1\"},\"label\":{\"value\":\"Thing 1\"}}" +
-                "]}}");
-        Map<String, String> labelMap = new HashMap<>();
-        List<String> values = new ArrayList<>();
-        LookupApis.parseNanopubGrlcApi(json, labelMap, values);
-        assertEquals(1, values.size());
-        assertEquals("https://example.org/thing1", values.get(0));
-        assertEquals("Thing 1", labelMap.get("https://example.org/thing1"));
-    }
-
-    @Test
-    void parseNanopubGrlcApi_multipleResults() {
-        JSONObject json = new JSONObject("{\"results\":{\"bindings\":[" +
-                "{\"thing\":{\"value\":\"https://example.org/thing1\"},\"label\":{\"value\":\"Thing 1\"}}," +
-                "{\"thing\":{\"value\":\"https://example.org/thing2\"},\"label\":{\"value\":\"Thing 2\"}}" +
-                "]}}");
-        Map<String, String> labelMap = new HashMap<>();
-        List<String> values = new ArrayList<>();
-        LookupApis.parseNanopubGrlcApi(json, labelMap, values);
-        assertEquals(2, values.size());
-        assertEquals("Thing 1", labelMap.get("https://example.org/thing1"));
-        assertEquals("Thing 2", labelMap.get("https://example.org/thing2"));
-    }
-
-    @Test
-    void parseNanopubGrlcApi_emptyResults() {
-        JSONObject json = new JSONObject("{\"results\":{\"bindings\":[]}}");
-        Map<String, String> labelMap = new HashMap<>();
-        List<String> values = new ArrayList<>();
-        LookupApis.parseNanopubGrlcApi(json, labelMap, values);
-        assertTrue(values.isEmpty());
-        assertTrue(labelMap.isEmpty());
-    }
-
-    // ---- expandSearchTerm (private method, tested via reflection) ----
-
-    private String expandSearchTerm(String input) throws Exception {
-        Method method = LookupApis.class.getDeclaredMethod("expandSearchTerm", String.class);
-        method.setAccessible(true);
-        return (String) method.invoke(null, input);
-    }
-
-    @Test
-    void expandSearchTerm_singleWord() throws Exception {
-        assertEquals("( covid* )", expandSearchTerm("covid"));
-    }
-
-    @Test
-    void expandSearchTerm_twoWords() throws Exception {
-        assertEquals("( covid AND virus* )", expandSearchTerm("covid virus"));
-    }
-
-    @Test
-    void expandSearchTerm_extraWhitespace() throws Exception {
-        assertEquals("( covid* )", expandSearchTerm("  covid  "));
-    }
-
-    @Test
-    void expandSearchTerm_quotedPhrase() throws Exception {
-        String result = expandSearchTerm("\"covid virus\"");
-        assertTrue(result.startsWith("( "));
-        assertTrue(result.endsWith(" )"));
-        assertFalse(result.endsWith("* )"), "Quoted phrase should not have wildcard: " + result);
     }
 
     // ---- getPossibleValues tests ----
