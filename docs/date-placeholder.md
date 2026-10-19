@@ -118,8 +118,9 @@ as before.
 - A date and time without a timezone, for new values. The timezone always has a value, the
   user's own by default.
 - Durations ([#799](https://github.com/knowledgepixels/nanodash/issues/799)).
-- A "now" or "today" default value
-  ([#800](https://github.com/knowledgepixels/nanodash/issues/800)).
+- A "now" or "today" default value. A pre-filled value would have to be cleared part by part by
+  everyone who knows the date only at a coarser precision
+  ([#800](https://github.com/knowledgepixels/nanodash/issues/800), not planned).
 - From/to ranges across two placeholders
   ([#801](https://github.com/knowledgepixels/nanodash/issues/801)).
 
