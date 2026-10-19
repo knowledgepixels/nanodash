@@ -76,6 +76,13 @@ public class QueryResultComponentFactory {
                     .id(id)
                     .refRoot(refRoot)
                     .build();
+        } else if (viewType.equals(KPXL_TERMS.NETWORK_VIEW)) {
+            return QueryResultNetworkBuilder.create(markupId, queryRef, viewDisplay)
+                    .pageResource(resourceWithProfile)
+                    .contextId(contextId)
+                    .id(id)
+                    .refRoot(refRoot)
+                    .build();
         } else if (viewType.equals(KPXL_TERMS.THREAD_VIEW)) {
             return QueryResultThreadBuilder.create(markupId, queryRef, viewDisplay)
                     .resourceWithProfile(resourceWithProfile)

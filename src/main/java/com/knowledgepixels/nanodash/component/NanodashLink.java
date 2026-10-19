@@ -326,6 +326,55 @@ public class NanodashLink extends Panel {
         }
     }
 
+    /**
+     * Like {@link #getPageUrl(String)}, but for a link made inside a navigation context: an
+     * IRI that is a part of the context resource goes to its part page, and the Explore
+     * fallback is told to forward to one. This is the routing {@link #createLink} applies,
+     * as a URL — for the places that cannot use a link component, such as the nodes of a
+     * network view, which are drawn on a canvas.
+     *
+     * @param uri       the IRI to link to
+     * @param contextId the context resource id, or null
+     * @return the page URL
+     */
+    public static String getPageUrl(String uri, String contextId) {
+        if (isPartOfResource(uri, contextId)) {
+            return ResourcePartPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+        }
+        String url = getPageUrl(uri);
+        // Only the Explore fallback takes it; an external or resolver URL is not ours to extend.
+        if (url.startsWith(ExplorePage.MOUNT_PATH + "?")) url += "&forward-to-part=true";
+        return url;
+    }
+
+    /**
+     * The label Nanodash already knows for an IRI — a user's display name, a space's or a
+     * maintained resource's label — or null where it knows none. This is what lets a link
+     * in a result cell read as a name even when the query returned none, and it is offered
+     * here for the places that have no link component to get it from, such as the nodes of
+     * a network view. {@link #createLinkComponent} does the same lookups inline, where they
+     * are interwoven with its rules about which label wins.
+     *
+     * @param uri the IRI to name
+     * @return the known label, or null
+     */
+    public static String getKnownLabel(String uri) {
+        if (uri == null) return null;
+        if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
+            return User.getName(vf.createIRI(uri)) == null ? null : User.getShortDisplayName(vf.createIRI(uri));
+        }
+        if (SpaceRepository.get().findById(uri) != null) {
+            return SpaceRepository.get().findById(uri).getLabel();
+        }
+        if (SpaceRepository.get().findByAltId(uri) != null) {
+            return SpaceRepository.get().findByAltId(uri).getLabel();
+        }
+        if (MaintainedResourceRepository.get().findById(uri) != null) {
+            return MaintainedResourceRepository.get().findById(uri).getLabel();
+        }
+        return null;
+    }
+
     private static boolean isPartOfResource(String uri, String contextId) {
         if (contextId == null) return false;
         String uriNamespace = MaintainedResource.getNamespace(uri);
