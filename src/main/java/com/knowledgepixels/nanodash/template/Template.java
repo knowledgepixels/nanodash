@@ -70,6 +70,7 @@ public class Template implements Serializable {
     private Map<IRI, List<IRI>> possibleValuesToLoadMap = new HashMap<>();
     private Map<IRI, List<String>> apiMap = new HashMap<>();
     private Map<IRI, String> labelMap = new HashMap<>();
+    private Map<IRI, String> statementDescriptionMap = new HashMap<>();
     private Map<IRI, IRI> datatypeMap = new HashMap<>();
     private Map<IRI, String> languageTagMap = new HashMap<>();
     private Map<IRI, List<String>> possibleLanguageTagMap = new HashMap<>();
@@ -216,6 +217,16 @@ public class Template implements Serializable {
      */
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * Returns the description that tells how to fill in a statement or statement group.
+     *
+     * @param statementId the IRI of the statement or statement group
+     * @return the sanitized HTML description, or null if the template gives none
+     */
+    public String getStatementDescription(IRI statementId) {
+        return statementDescriptionMap.get(transform(statementId));
     }
 
     /**
@@ -1176,6 +1187,8 @@ public class Template implements Serializable {
                 }
             } else if (pred.equals(RDFS.LABEL) && obj instanceof Literal) {
                 labelMap.put(subj, objS);
+            } else if (pred.equals(DCTERMS.DESCRIPTION) && obj instanceof Literal && !subj.equals(templateIri)) {
+                statementDescriptionMap.put(subj, Utils.sanitizeHtml(objS));
             } else if (pred.equals(NTEMPLATE.HAS_DATATYPE) && obj instanceof IRI objIri) {
                 datatypeMap.put(subj, objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
@@ -1380,6 +1393,8 @@ public class Template implements Serializable {
                 }
             } else if (pred.equals(RDFS.LABEL) && obj instanceof Literal) {
                 labelMap.put(subj, objS);
+            } else if (pred.equals(DCTERMS.DESCRIPTION) && obj instanceof Literal && !subj.equals(templateIri)) {
+                statementDescriptionMap.put(subj, Utils.sanitizeHtml(objS));
             } else if (pred.equals(NTEMPLATE.HAS_DATATYPE) && obj instanceof IRI objIri) {
                 datatypeMap.put(subj, objIri);
             } else if (pred.equals(NTEMPLATE.HAS_LANGUAGE_TAG) && obj instanceof Literal) {
