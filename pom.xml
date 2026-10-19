@@ -309,6 +309,10 @@
         <version>3.5.5</version>
         <configuration>
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djava.awt.headless=true</argLine>
+          <!-- Four test JVMs share the tests, matching the four cores of a GitHub-hosted runner.
+               Many tests wait on the nanopub network, and the others now run meanwhile. -->
+          <forkCount>4</forkCount>
+          <reuseForks>true</reuseForks>
           <environmentVariables>
             <!-- Tests that start a WicketApplication must not read or write the developer's
                  real API cache persistence (snapshot file and entry store) in ~/.nanopub. -->
