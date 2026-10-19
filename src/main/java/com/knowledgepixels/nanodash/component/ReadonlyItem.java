@@ -13,6 +13,7 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
+import com.knowledgepixels.nanodash.template.DatePrecision;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import net.trustyuri.TrustyUriUtils;
@@ -424,6 +425,10 @@ public class ReadonlyItem extends AbstractContextComponent {
                 }
             } else if (languagetag != null) {
                 if (vL.getLanguage().isEmpty() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
+                    return false;
+                }
+            } else if (template.isDatePlaceholder(iri)) {
+                if (!template.getDatePrecisions(iri).contains(DatePrecision.of(vL.getDatatype()))) {
                     return false;
                 }
             } else if (datatype != null) {

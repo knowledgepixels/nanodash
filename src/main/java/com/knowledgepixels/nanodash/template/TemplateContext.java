@@ -12,6 +12,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -603,6 +604,20 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Turns the value of a date placeholder into a literal typed by its precision, so that a year
+     * is published as an {@code xsd:gYear} and a full date and time as an {@code xsd:dateTime}.
+     *
+     * @param lexical the lexical form held by the placeholder's model, which may be null
+     * @return the literal, or null if the placeholder holds no complete value
+     */
+    private Literal toDateLiteral(Object lexical) {
+        if (lexical == null) return null;
+        DateValue dateValue = DateValue.parse(lexical.toString());
+        if (dateValue == null) return null;
+        return vf.createLiteral(dateValue.toLexical(), dateValue.getPrecision().getDatatype());
+    }
+
+    /**
      * Processes a Value according to the template's rules.
      *
      * @param value the Value to process
@@ -734,6 +749,8 @@ public class TemplateContext implements Serializable {
                 String prefix = Utils.getUriPrefix(iri);
                 processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
             }
+        } else if (template.isDatePlaceholder(iri)) {
+            processedValue = toDateLiteral(tfObjectGeneric);
         } else if (template.isLiteralPlaceholder(iri)) {
             IRI datatype = template.getDatatype(iri);
             String languageTag = template.getLanguageTag(iri);

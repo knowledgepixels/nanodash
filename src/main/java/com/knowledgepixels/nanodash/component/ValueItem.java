@@ -72,6 +72,8 @@ public class ValueItem extends AbstractContextComponent {
                 // (issue #378), so it is written with a rich-text editor rather than as
                 // markup typed by hand.
                 component = new LiteralHtmlEditorItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
+            } else if (template.isDatePlaceholder(iri)) {
+                component = new LiteralFlexibleDateItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLongLiteralPlaceholder(iri)) {
                 component = new LiteralTextareaItem("value", iri, rg.isOptionalPart(statementPartId), this.context);
             } else if (template.isLiteralPlaceholder(iri)) {
