@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
+import com.knowledgepixels.nanodash.lookup.ThingOrigins;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
@@ -176,7 +177,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 if (label == null || label.isBlank()) {
                     return choiceId;
                 }
-                return label + " (" + choiceId + ")";
+                return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(choiceId)) + " (" + choiceId + ")";
             }
 
             @Override

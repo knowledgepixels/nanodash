@@ -1057,7 +1057,7 @@ public class Utils {
         // The note of a to-be-minted value is not part of the value, so it is set in its own
         // span and styled as an aside rather than as the term itself (issue #652).
         String noteRegex = TO_BE_MINTED_NOTE.replace("(", "\\(").replace(")", "\\)");
-        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
+        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/" + ORIGIN_NOTE_SEPARATOR + "((?:governed )?by [^<]*)(<br><code>|$)/, '<br><span class=\"origin-note\">$1</span>$2')" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
     }
 
     /**
@@ -1341,6 +1341,24 @@ public class Utils {
      * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)}.
      */
     private static final String TO_BE_MINTED_NOTE = "(mint locally)";
+
+    /**
+     * What separates the note on who a value comes from from the label of the value, so that
+     * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)} can set it on a line of its own.
+     */
+    private static final String ORIGIN_NOTE_SEPARATOR = " \u00b7 ";
+
+    /**
+     * Returns the note on who a value comes from as it is appended to the label of the value in a
+     * dropdown (issue #765).
+     *
+     * @param originNote the note, e.g. "by Jane Doe", or null
+     * @return the note with its separator, or an empty string if there is no note
+     */
+    public static String getOriginNoteSuffix(String originNote) {
+        if (originNote == null || originNote.isEmpty()) return "";
+        return ORIGIN_NOTE_SEPARATOR + originNote;
+    }
 
     /**
      * Gets an ExternalLink with a URI label.
