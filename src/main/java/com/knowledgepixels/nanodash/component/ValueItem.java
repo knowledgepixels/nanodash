@@ -7,6 +7,8 @@ import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -17,12 +19,18 @@ import org.nanopub.Nanopub;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.util.List;
+
 /**
  * ValueItem is a panel that represents a single value in a statement.
  */
 public class ValueItem extends AbstractContextComponent {
 
+    private static final String API_STATUS_ID = "apiStatus";
+
     private ContextComponent component;
+
+    private Component apiStatus;
     private Value value;
 
     /**
@@ -102,6 +110,31 @@ public class ValueItem extends AbstractContextComponent {
             component = new MissingValueItem("value");
         }
         add((Component) component);
+        apiStatus = newApiStatus(id, value, statementPartId);
+        add(apiStatus);
+    }
+
+    /**
+     * Returns the line under a field in which a template gives the API that another placeholder
+     * looks its values up in, i.e. the object of an {@code nt:possibleValuesFromApi} statement,
+     * which says whether the API entered can be reached (issue #763). Other fields get no such
+     * line.
+     *
+     * @param id              the position of the value in its statement
+     * @param value           the value of this item
+     * @param statementPartId the IRI of the statement part this value belongs to
+     * @return the status line, hidden unless this is such a field
+     */
+    @SuppressWarnings("unchecked")
+    private Component newApiStatus(String id, Value value, IRI statementPartId) {
+        IModel<?> fieldModel = value instanceof IRI iri ? context.getComponentModels().get(iri) : null;
+        boolean givesAnApi = "obj".equals(id) && fieldModel != null && fieldModel.getObject() instanceof String
+                && NTEMPLATE.POSSIBLE_VALUES_FROM_API.equals(context.getTemplate().getPredicate(statementPartId));
+        if (!givesAnApi) return new LookupApiStatus(API_STATUS_ID, List.of());
+        LookupApiStatus status = LookupApiStatus.forField(API_STATUS_ID, (IModel<String>) fieldModel);
+        context.getComponents().add(status);
+        add(AttributeAppender.append("class", "field-with-status"));
+        return status;
     }
 
     private static boolean introducesAnything(Nanopub np) {
@@ -132,6 +165,7 @@ public class ValueItem extends AbstractContextComponent {
     @Override
     public void removeFromContext() {
         component.removeFromContext();
+        context.getComponents().remove(apiStatus);
     }
 
     /**

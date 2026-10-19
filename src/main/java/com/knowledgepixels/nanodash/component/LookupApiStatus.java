@@ -6,9 +6,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,39 +19,84 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Says under a guided choice field whether the APIs it looks its values up in can be reached
- * (issue #763): in green if they all can, in red, naming the ones that cannot, with a button
- * to try them again, if any cannot. The APIs are contacted in a follow-up Ajax request, so the
- * form does not wait for them, unless it is known from the last minutes whether they can be
- * reached.
+ * Says under a field whether the APIs it is about can be reached (issue #763): in green if they
+ * all can, in red, naming the ones that cannot, with a button to try them again, if any cannot.
+ * A guided choice field is about the APIs it looks its values up in; the field in which a
+ * template gives such an API, as the object of {@code nt:possibleValuesFromApi}, is about the API
+ * entered, and is checked again whenever it changes, including when the form fills it in. The APIs are contacted in a follow-up Ajax
+ * request, so the form does not wait for them, unless it is known from the last minutes whether
+ * they can be reached.
  */
 public class LookupApiStatus extends Panel {
 
     static final String CHECK_ID = "check";
 
-    private final List<String> apis;
+    private final List<String> fixedApis;
+
+    private List<String> checkedApis;
 
     /**
-     * Creates the status line of a field.
+     * Creates the status line of a field that looks its values up in the given APIs.
      *
      * @param id   the Wicket component ID
      * @param apis the API URLs the field looks its values up in; with none, nothing is shown
      */
     public LookupApiStatus(String id, List<String> apis) {
-        super(id);
-        this.apis = new ArrayList<>(apis);
-        setOutputMarkupId(true);
-        setVisible(!apis.isEmpty());
+        this(id, new ArrayList<>(apis), null);
+    }
+
+    private LookupApiStatus(String id, List<String> fixedApis, IModel<String> apiModel) {
+        super(id, apiModel);
+        this.fixedApis = fixedApis;
+        setOutputMarkupPlaceholderTag(true);
         add(newCheck());
     }
 
+    /**
+     * Creates the status line of a field in which an API URL is entered. It shares the model of
+     * the field, so that the field, which updates the components with its model when it changes,
+     * has the line check the new URL.
+     *
+     * @param id       the Wicket component ID
+     * @param apiModel the model of the field; while it is empty, nothing is shown
+     * @return the status line
+     */
+    public static LookupApiStatus forField(String id, IModel<String> apiModel) {
+        return new LookupApiStatus(id, null, apiModel);
+    }
+
+    /**
+     * Returns the APIs this line is about.
+     *
+     * @return the API URLs, empty if there are none
+     */
+    List<String> getApis() {
+        if (fixedApis != null) return fixedApis;
+        Object entered = getDefaultModelObject();
+        if (!(entered instanceof String api) || api.isBlank()) return List.of();
+        return List.of(api.strip());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        if (!getApis().equals(checkedApis)) replace(newCheck());
+        setVisible(!checkedApis.isEmpty());
+    }
+
     private Component newCheck() {
-        if (LookupApis.isReachabilityKnown(apis)) return new Outcome(CHECK_ID);
+        List<String> apis = getApis();
+        checkedApis = apis;
+        if (apis.isEmpty()) return new WebMarkupContainer(CHECK_ID);
+        if (LookupApis.isReachabilityKnown(apis)) return new Outcome(CHECK_ID, apis);
         return new AjaxLazyLoadPanel<Component>(CHECK_ID) {
 
             @Override
             public Component getLazyLoadComponent(String markupId) {
-                return new Outcome(markupId);
+                return new Outcome(markupId, apis);
             }
 
             @Override
@@ -61,7 +108,7 @@ public class LookupApiStatus extends Panel {
         };
     }
 
-    private void retry(AjaxRequestTarget target) {
+    private void retry(AjaxRequestTarget target, List<String> apis) {
         LookupApis.forgetReachability(apis);
         replace(newCheck());
         target.add(this);
@@ -108,7 +155,7 @@ public class LookupApiStatus extends Panel {
      */
     private class Outcome extends Fragment {
 
-        Outcome(String id) {
+        Outcome(String id, List<String> apis) {
             super(id, "outcome", LookupApiStatus.this);
             Map<String, Boolean> reachability = LookupApis.checkReachability(apis);
             boolean allReachable = getUnreachable(reachability).isEmpty();
@@ -119,7 +166,7 @@ public class LookupApiStatus extends Panel {
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    retry(target);
+                    retry(target, apis);
                 }
 
             }.setVisible(!allReachable));
