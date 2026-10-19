@@ -35,16 +35,12 @@ import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.JavaScriptResourceReference;
 import org.apache.wicket.util.string.Strings;
-import org.owasp.html.Encoding;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.ResourceBundle;
-import java.util.regex.Pattern;
 
 /**
  * Abstract base class for Nanodash pages.
@@ -73,12 +69,6 @@ public abstract class NanodashPage extends WebPage {
     private static final int MAX_META_DESCRIPTION_LENGTH = 300;
 
     private String metaDescription = defaultMetaDescription();
-
-    private static final PolicyFactory TEXT_ONLY_POLICY = new HtmlPolicyBuilder().toFactory();
-
-    private static final Pattern BLOCK_BOUNDARY = Pattern.compile(
-            "</?(?:p|div|br|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|section|article)\\b[^>]*>",
-            Pattern.CASE_INSENSITIVE);
 
     /**
      * Returns the mount path for this page.
@@ -450,23 +440,11 @@ public abstract class NanodashPage extends WebPage {
      */
     static String toMetaDescription(String description) {
         if (description == null) return null;
-        String oneLine = toPlainText(description).strip().replaceAll("\\s+", " ");
+        String oneLine = Utils.toPlainText(description).strip().replaceAll("\\s+", " ");
         if (oneLine.isEmpty()) return null;
         return oneLine.length() <= MAX_META_DESCRIPTION_LENGTH
                 ? oneLine
                 : oneLine.substring(0, MAX_META_DESCRIPTION_LENGTH).stripTrailing() + "\u2026";
-    }
-
-    /**
-     * The text of an HTML fragment, with block-level boundaries kept as spaces so that
-     * paragraphs and list items do not run into each other.
-     *
-     * @param html the HTML fragment, or plain text
-     * @return the text, with markup removed and entities decoded
-     */
-    static String toPlainText(String html) {
-        String spaced = BLOCK_BOUNDARY.matcher(html).replaceAll(" ");
-        return Encoding.decodeHtml(TEXT_ONLY_POLICY.sanitize(spaced));
     }
 
     /**

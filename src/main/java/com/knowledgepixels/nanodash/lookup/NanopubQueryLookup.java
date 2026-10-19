@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.nanopub.extra.services.ApiResponse;
@@ -26,8 +27,9 @@ import java.util.Map;
  * {@code https://w3id.org/np/l/nanopub-query-1.1/api/RAyMrQ89.../find-things?type=...}, rather
  * than by calling the URL. The query is run through the query cache with the URL's parameters
  * and the search term, which replaces any value the URL gives the search parameter, e.g. the
- * empty one of {@code ?query=}. The values are read from its {@code thing} column, their labels from
- * {@code label} and {@code description}. The legacy
+ * empty one of {@code ?query=}. The values are read from its {@code thing} column, their labels
+ * from {@code label} and {@code description}, the description as plain text even where it is
+ * HTML, as a Space's often is. The legacy
  * {@code http://purl.org/nanopub/api/find_signed_things?} URLs run the find-things query. The
  * results are read newest first, by their {@code date} column, each thing once, and at most ten
  * of them; the {@code pubkey} column tells {@link ThingOrigins} who signed each (issue #765).
@@ -117,9 +119,18 @@ public class NanopubQueryLookup implements LookupApi {
         return "query";
     }
 
-    private static String descriptionOf(ApiResponseEntry entry) {
+    /**
+     * Returns the description of a query result as it is appended to its label: as plain text on
+     * one line, shortened if it is long.
+     *
+     * @param entry the query result
+     * @return the description with its separator, or an empty string if there is none
+     */
+    static String descriptionOf(ApiResponseEntry entry) {
         String description = entry.get("description");
-        if (description == null || description.isEmpty()) return "";
+        if (description == null) return "";
+        description = Utils.toPlainText(description).strip().replaceAll("\\s+", " ");
+        if (description.isEmpty()) return "";
         if (description.length() > MAX_DESCRIPTION_LENGTH) {
             description = description.substring(0, MAX_DESCRIPTION_LENGTH - 3) + "...";
         }

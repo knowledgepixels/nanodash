@@ -45,6 +45,7 @@ import org.nanopub.extra.services.QueryCall;
 import org.nanopub.extra.setting.IntroNanopub;
 import org.nanopub.vocabulary.FIP;
 import org.nanopub.vocabulary.NPX;
+import org.owasp.html.Encoding;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.slf4j.Logger;
@@ -836,6 +837,24 @@ public class Utils {
             .allowElements("img").allowAttributes("src").onElements("img")
             .allowElements("pre")
             .requireRelNofollowOnLinks()).toFactory();
+
+    /**
+     * The text of an HTML fragment, with block-level boundaries kept as spaces so that
+     * paragraphs and list items do not run into each other.
+     *
+     * @param html the HTML fragment, or plain text
+     * @return the text, with markup removed and entities decoded
+     */
+    public static String toPlainText(String html) {
+        String spaced = BLOCK_BOUNDARY.matcher(html).replaceAll(" ");
+        return Encoding.decodeHtml(TEXT_ONLY_POLICY.sanitize(spaced));
+    }
+
+    private static final PolicyFactory TEXT_ONLY_POLICY = new HtmlPolicyBuilder().toFactory();
+
+    private static final Pattern BLOCK_BOUNDARY = Pattern.compile(
+            "</?(?:p|div|br|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|pre|section|article)\\b[^>]*>",
+            Pattern.CASE_INSENSITIVE);
 
     /**
      * Sanitizes raw HTML input to ensure safe rendering. Inline SVG is kept, reduced
