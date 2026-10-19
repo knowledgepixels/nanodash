@@ -1028,6 +1028,19 @@ public class Template implements Serializable {
     }
 
     /**
+     * Returns the APIs a placeholder looks its possible values up in, as given by
+     * {@code nt:possibleValuesFromApi}.
+     *
+     * @param iri the IRI of the placeholder.
+     * @return the API URLs, in the order the template gives them; empty if there are none.
+     */
+    public List<String> getPossibleValuesApis(IRI iri) {
+        List<String> apiList = apiMap.get(transform(iri));
+        if (apiList == null) return new ArrayList<>();
+        return new ArrayList<>(apiList);
+    }
+
+    /**
      * Returns the possible values from an API for a given IRI and search term.
      *
      * @param iri        the IRI for which to get possible values from the API.

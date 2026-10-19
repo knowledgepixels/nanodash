@@ -1179,6 +1179,59 @@ a.actionlink {
   margin-top: 3px;
 }
 
+/* Whether the APIs a field is about can be reached, on a line under the field (issue #763). */
+span.field-with-status {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  vertical-align: baseline;
+}
+
+span.api-status > span:not(.api-status-indent),
+span.api-status > span span,
+span.api-status > span div,
+span.api-status a.api-status-retry {
+  font-size: 8pt;
+}
+
+span.api-status {
+  display: block;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+span.api-status div {
+  display: inline;
+}
+
+span.api-status-indent {
+  display: none;
+}
+
+.quoted-field span.api-status-indent {
+  display: inline-block;
+  visibility: hidden;
+}
+
+span.api-status-checking {
+  color: #777;
+}
+
+span.api-status-ok {
+  color: #2e7d32;
+}
+
+span.api-status-failed {
+  color: #c62828;
+}
+
+span.api-status a.api-status-retry {
+  margin-left: 6px;
+  padding: 0 6px;
+  line-height: 14px !important;
+  vertical-align: baseline;
+}
+
 .select2-dropdown span.term {
   font-weight: bold;
 }

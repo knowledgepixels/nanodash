@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,16 @@ public class LookupApis {
     private static final Cache<String, LookupResult> lookupCache = CacheBuilder.newBuilder()
             .maximumSize(5_000)
             .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build();
+
+    /**
+     * The term an API is searched for to check that it can be reached.
+     */
+    static final String PROBE_TERM = "test";
+
+    private static final Cache<String, Boolean> reachabilityCache = CacheBuilder.newBuilder()
+            .maximumSize(1_000)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
 
     /**
@@ -153,10 +164,92 @@ public class LookupApis {
     }
 
     /**
-     * Empties the lookup cache.
+     * Checks whether APIs can be reached, by searching each of them for {@link #PROBE_TERM} and
+     * reading its answer (issue #763). An API counts as reachable if the search goes through,
+     * whether or not it finds anything, and as unreachable if it fails or takes longer than
+     * {@link #ALL_LOOKUPS_TIMEOUT}. The APIs not checked in the last minutes are checked, several
+     * of them in parallel, and the outcome is cached.
+     *
+     * @param apiStrings the API endpoint URLs
+     * @return whether each API is reachable, by URL, in the order given
+     */
+    public static Map<String, Boolean> checkReachability(List<String> apiStrings) {
+        List<String> unknown = apiStrings.stream().distinct().filter(api -> reachabilityCache.getIfPresent(api) == null).toList();
+        if (unknown.size() == 1) {
+            reachabilityCache.put(unknown.get(0), probe(unknown.get(0)));
+        } else {
+            probeInParallel(unknown);
+        }
+        Map<String, Boolean> reachability = new LinkedHashMap<>();
+        for (String apiString : apiStrings) {
+            reachability.put(apiString, Boolean.TRUE.equals(reachabilityCache.getIfPresent(apiString)));
+        }
+        return reachability;
+    }
+
+    /**
+     * Tells whether it is known from the last minutes whether all of the given APIs can be reached,
+     * so that {@link #checkReachability(List)} answers without contacting any of them.
+     *
+     * @param apiStrings the API endpoint URLs
+     * @return true if the reachability of every API is cached
+     */
+    public static boolean isReachabilityKnown(List<String> apiStrings) {
+        for (String apiString : apiStrings) {
+            if (reachabilityCache.getIfPresent(apiString) == null) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Forgets whether the given APIs can be reached, so that they are contacted again on the next
+     * check.
+     *
+     * @param apiStrings the API endpoint URLs
+     */
+    public static void forgetReachability(List<String> apiStrings) {
+        reachabilityCache.invalidateAll(apiStrings);
+    }
+
+    private static void probeInParallel(List<String> apiStrings) {
+        Map<String, Future<Boolean>> pending = new LinkedHashMap<>();
+        for (String apiString : apiStrings) {
+            pending.put(apiString, NanodashThreadPool.submit(() -> probe(apiString)));
+        }
+        long deadline = System.nanoTime() + ALL_LOOKUPS_TIMEOUT.toNanos();
+        pending.forEach((apiString, probe) -> reachabilityCache.put(apiString, awaitProbe(probe, apiString, deadline)));
+    }
+
+    private static boolean probe(String apiString) {
+        try {
+            fetchPossibleValues(apiString, PROBE_TERM, new HashMap<>(), new ArrayList<>());
+            return true;
+        } catch (Exception ex) {
+            logLookupFailure(apiString, ex);
+            return false;
+        }
+    }
+
+    private static boolean awaitProbe(Future<Boolean> probe, String apiString, long deadline) {
+        try {
+            return probe.get(Math.max(0, deadline - System.nanoTime()), TimeUnit.NANOSECONDS);
+        } catch (TimeoutException ex) {
+            probe.cancel(true);
+            logger.warn("API did not answer within {}: {}", ALL_LOOKUPS_TIMEOUT, apiString);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException ex) {
+            logger.error("API check failed: {}", apiString, ex.getCause());
+        }
+        return false;
+    }
+
+    /**
+     * Empties the lookup cache and forgets which APIs can be reached.
      */
     static void clearCache() {
         lookupCache.invalidateAll();
+        reachabilityCache.invalidateAll();
     }
 
     /**
