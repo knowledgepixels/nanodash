@@ -133,8 +133,18 @@ public class ValueItem extends AbstractContextComponent {
         if (!givesAnApi) return new LookupApiStatus(API_STATUS_ID, List.of());
         LookupApiStatus status = LookupApiStatus.forField(API_STATUS_ID, (IModel<String>) fieldModel);
         context.getComponents().add(status);
-        add(AttributeAppender.append("class", "field-with-status"));
+        add(AttributeAppender.append("class", isQuoted() ? "field-with-status quoted-field" : "field-with-status"));
         return status;
+    }
+
+    /**
+     * Tells whether the field of this item opens with a quotation mark, which the line under it
+     * then leaves room for, so that the line starts where the input does.
+     *
+     * @return true if the field is a quoted literal field
+     */
+    private boolean isQuoted() {
+        return component instanceof LiteralTextfieldItem || component instanceof LiteralTextareaItem;
     }
 
     private static boolean introducesAnything(Nanopub np) {

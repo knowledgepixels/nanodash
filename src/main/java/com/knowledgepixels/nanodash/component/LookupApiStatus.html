@@ -7,12 +7,9 @@
 <body>
 
 <wicket:panel>
-<span class="api-status"><span wicket:id="check"></span></span>
+<span class="api-status"><span class="quote api-status-indent" aria-hidden="true">"</span><span wicket:id="check"></span></span>
 
-<wicket:fragment wicket:id="outcome">
-<span wicket:id="message"></span>
-<a wicket:id="retry" href="#" class="smallbutton button light api-status-retry">Retry</a>
-</wicket:fragment>
+<wicket:fragment wicket:id="outcome"><span wicket:id="message"></span><a wicket:id="retry" href="#" class="smallbutton button light api-status-retry">Retry</a></wicket:fragment>
 </wicket:panel>
 
 </body>
