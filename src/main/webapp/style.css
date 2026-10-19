@@ -1189,6 +1189,7 @@ span.field-with-status {
 
 span.api-status > span:not(.api-status-indent),
 span.api-status > span span,
+span.api-status > span div,
 span.api-status a.api-status-retry {
   font-size: 8pt;
 }
@@ -1197,6 +1198,10 @@ span.api-status {
   display: block;
   margin-top: 2px;
   white-space: nowrap;
+}
+
+span.api-status div {
+  display: inline;
 }
 
 span.api-status-indent {
