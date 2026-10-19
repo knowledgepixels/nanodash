@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+<link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen" title="Stylesheet" />
+</head>
+<body>
+
+<wicket:panel>
+<span class="api-status"><span wicket:id="check"></span></span>
+
+<wicket:fragment wicket:id="outcome">
+<span wicket:id="message"></span>
+<a wicket:id="retry" href="#" class="smallbutton button light api-status-retry">Retry</a>
+</wicket:fragment>
+</wicket:panel>
+
+</body>
+
+</html>
