@@ -149,26 +149,31 @@ public class NetworkGraph {
                 break;
             }
 
-            String edgeIri = trimmed(row.get("edge"));
+            String edgeType = trimmed(row.get("edge_type"));
             String edgeLabel = trimmed(row.get("edge_label"));
+            String edgeDesc = trimmed(row.get("edge_desc"));
             String npId = trimmed(row.get("np"));
             // One line per edge, so repeated rows (a relation asserted twice, or reported
             // once per nanopublication) do not stack into a thicker-looking one.
-            String key = source + "\u0000" + target + "\u0000" + (edgeIri == null ? edgeLabel : edgeIri);
+            String key = source + "\u0000" + target + "\u0000" + (edgeType == null ? edgeLabel : edgeType);
             if (!seenEdges.add(key)) continue;
 
-            node(nodes, source, trimmed(row.get("source_label")), trimmed(row.get("source_type")));
-            node(nodes, target, trimmed(row.get("target_label")), trimmed(row.get("target_type")));
+            node(nodes, source, trimmed(row.get("source_label")), trimmed(row.get("source_desc")),
+                    trimmed(row.get("source_type")));
+            node(nodes, target, trimmed(row.get("target_label")), trimmed(row.get("target_desc")),
+                    trimmed(row.get("target_type")));
 
             String caption = edgeLabel != null ? edgeLabel
-                    : (edgeIri != null ? Utils.getShortNameFromURI(edgeIri) : null);
-            // The relation's own page when the query names it, else the nanopublication
-            // that asserts the edge — so a "where does this come from?" click lands
-            // somewhere useful either way.
-            String clickTarget = edgeIri != null ? edgeIri : npId;
+                    : (edgeType != null ? Utils.getShortNameFromURI(edgeType) : null);
+            // A click on an edge leads to the nanopublication it was read from: what an
+            // edge raises is the question of who says so, and that is where the answer is.
+            // Of several nanopublications asserting the same relation, the first the result
+            // named for it, since the edge itself is drawn once.
             edges.add(new Edge(source, target, Utils.truncateLinkLabel(caption),
-                    edgeTitle(caption, edgeIri, npId),
-                    clickTarget == null || pageUrl == null ? null : pageUrl.apply(clickTarget)));
+                    // The hover text is the edge's own description where the query writes
+                    // one, and its caption otherwise.
+                    edgeTitle(edgeDesc != null ? edgeDesc : edgeLabel, edgeType, npId),
+                    npId == null || pageUrl == null ? null : pageUrl.apply(npId)));
         }
 
         List<Node> nodeList = new ArrayList<>(nodes.size());
@@ -176,7 +181,9 @@ public class NetworkGraph {
         for (NodeBuilder nb : nodes.values()) {
             // A query that names its nodes decides what they are called. Where it does not,
             // the IRI may still be one Nanodash can name — a space, a user, a maintained
-            // resource — and a node reads better as that than as the tail of its IRI.
+            // resource — and a node reads better as that than as the tail of its IRI. This
+            // happens before the tooltip is built, so a node the query neither names nor
+            // describes still opens its hover box with the name Nanodash knows for it.
             if (nb.label == null && knownLabel != null) nb.label = trimmed(knownLabel.apply(nb.id));
             String color = UNTYPED_COLOR;
             if (nb.type != null) {
@@ -208,31 +215,38 @@ public class NetworkGraph {
         return Utils.truncateLinkLabel(label);
     }
 
-    private static void node(Map<String, NodeBuilder> nodes, String iri, String label, String type) {
+    private static void node(Map<String, NodeBuilder> nodes, String iri, String label, String desc,
+                             String type) {
         NodeBuilder nb = nodes.computeIfAbsent(iri, NodeBuilder::new);
-        // First non-empty value wins: a node reached by several edges is named and typed
-        // by the first row that knows, and later rows cannot blank it out.
+        // First non-empty value wins: a node reached by several edges is named, described
+        // and typed by the first row that knows, and later rows cannot blank it out.
         if (nb.label == null) nb.label = label;
+        if (nb.desc == null) nb.desc = desc;
         if (nb.type == null) nb.type = type;
     }
 
-    // The tooltip is plain text, shown over several lines. It carries the full label, which
-    // the caption may have had to cut, and always the IRI, so a node can be identified
-    // without clicking through.
+    // The tooltip is plain text, shown over several lines. It opens with what the query
+    // has to say about the node — its description, or its full label, which the caption may
+    // have had to cut — and always carries the IRI, so a node can be identified without
+    // clicking through.
     private static String nodeTitle(NodeBuilder nb) {
         StringBuilder sb = new StringBuilder();
-        if (nb.label != null) sb.append(nb.label).append("\n");
+        String desc = nb.desc != null ? nb.desc : nb.label;
+        if (desc != null) sb.append(desc).append("\n");
         sb.append(nb.id);
         if (nb.type != null) sb.append("\n").append(nb.type);
         return sb.toString();
     }
 
-    private static String edgeTitle(String caption, String edgeIri, String npId) {
+    // The hover box over an edge opens with what the query says about it, and then names
+    // the relation by its IRI: the text says what the edge is, the IRI says which relation
+    // it is an instance of.
+    private static String edgeTitle(String desc, String edgeType, String npId) {
         StringBuilder sb = new StringBuilder();
-        if (caption != null) sb.append(caption);
-        if (edgeIri != null) {
+        if (desc != null) sb.append(desc);
+        if (edgeType != null) {
             if (!sb.isEmpty()) sb.append("\n");
-            sb.append(edgeIri);
+            sb.append(edgeType);
         }
         if (npId != null) {
             if (!sb.isEmpty()) sb.append("\n");
@@ -250,6 +264,7 @@ public class NetworkGraph {
     private static final class NodeBuilder {
         private final String id;
         private String label;
+        private String desc;
         private String type;
 
         private NodeBuilder(String id) {

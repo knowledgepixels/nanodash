@@ -26,9 +26,10 @@ import java.util.List;
  * Component for displaying query results as an interactive network (gen:NetworkView,
  * issue #792). The query returns one row per edge — {@code source} and {@code target}
  * node IRIs, with the usual {@code _label} companions, optional {@code _type} columns
- * grouping the nodes by colour, and optional {@code edge}/{@code edge_label} naming the
- * relation — and {@link NetworkGraph} turns those rows into the node and edge sets that
- * the browser lays out, draws and makes hoverable.
+ * grouping the nodes by colour, and optional {@code edge_type}/{@code edge_label} naming
+ * the relation, and optional {@code _desc} columns setting the hover text — and
+ * {@link NetworkGraph} turns those rows into the node and edge sets that the browser lays
+ * out, draws and makes hoverable.
  *
  * <p>The graph travels to the page as JSON in a script block rather than as markup: a
  * diagram on a canvas is not something the HTML sanitizer could carry (it drops

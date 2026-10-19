@@ -110,6 +110,88 @@ class NetworkGraphTest {
                 nodeById(graph, "https://example.org/space").get("label").getAsString());
     }
 
+    /**
+     * The hover box says what the query gives it to say: a description where there is one,
+     * the label otherwise. The caption under the node is the label either way — which is
+     * the point of having two columns.
+     */
+    @Test
+    void nodeHoverTextComesFromItsDescriptionColumn() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "source_label", "source_desc", "target"},
+                new String[]{"https://example.org/a", "Ay",
+                        "Ay, the first of its kind, described at length", "https://example.org/b"}), PAGE_URL);
+
+        JsonObject node = nodeById(graph, "https://example.org/a");
+        assertEquals("Ay", node.get("label").getAsString());
+        assertTrue(node.get("title").getAsString()
+                .startsWith("Ay, the first of its kind, described at length"), node.toString());
+        assertTrue(node.get("title").getAsString().contains("https://example.org/a"));
+    }
+
+    @Test
+    void nodeHoverTextFallsBackToTheLabel() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "source_label", "source_desc", "target"},
+                new String[]{"https://example.org/a", "Ay", "", "https://example.org/b"}), PAGE_URL);
+
+        assertTrue(nodeById(graph, "https://example.org/a").get("title").getAsString().startsWith("Ay\n"));
+    }
+
+    @Test
+    void nodeDescriptionIsTakenFromTheFirstRowThatHasOne() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "source_desc", "target", "target_desc"},
+                new String[]{"https://example.org/a", "", "https://example.org/b", "What b is"},
+                new String[]{"https://example.org/b", "What b is, said again", "https://example.org/a", "What a is"}),
+                PAGE_URL);
+
+        assertTrue(nodeById(graph, "https://example.org/b").get("title").getAsString().startsWith("What b is\n"));
+        // a was described by no row until the second one, which is still allowed to.
+        assertTrue(nodeById(graph, "https://example.org/a").get("title").getAsString().startsWith("What a is\n"));
+    }
+
+    /**
+     * A node the query neither names nor describes falls back to the name Nanodash knows
+     * for it, in the hover box as well as in the caption.
+     */
+    @Test
+    void hoverTextFallsBackToTheLabelNanodashKnows() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                        new String[]{"source", "target"},
+                        new String[]{"https://example.org/space", "https://example.org/b"}),
+                PAGE_URL, iri -> "https://example.org/space".equals(iri) ? "The Space" : null);
+
+        assertTrue(nodeById(graph, "https://example.org/space").get("title").getAsString()
+                .startsWith("The Space\n"));
+    }
+
+    @Test
+    void edgeHoverTextComesFromItsDescriptionColumn() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "edge_type", "edge_label", "edge_desc", "target", "np"},
+                new String[]{"https://example.org/a", "https://example.org/p", "points at",
+                        "points at it, since the third of March", "https://example.org/b",
+                        "https://w3id.org/np/RA1"}), PAGE_URL);
+
+        JsonObject edge = edges(graph).get(0).getAsJsonObject();
+        // The caption on the line stays the label; only the hover box takes the description.
+        assertEquals("points at", edge.get("label").getAsString());
+        assertEquals("points at it, since the third of March\nhttps://example.org/p"
+                + "\nsource: https://w3id.org/np/RA1", edge.get("title").getAsString());
+    }
+
+    @Test
+    void edgeHoverTextFallsBackToItsLabel() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "edge_type", "edge_label", "target"},
+                new String[]{"https://example.org/a", "https://example.org/p", "points at",
+                        "https://example.org/b"}), PAGE_URL);
+
+        assertEquals("points at\nhttps://example.org/p",
+                edges(graph).get(0).getAsJsonObject().get("title").getAsString());
+    }
+
     @Test
     void nodeWithoutLabelFallsBackToItsShortName() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
@@ -134,7 +216,7 @@ class NetworkGraphTest {
     @Test
     void repeatedEdgeIsDrawnOnce() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
-                new String[]{"source", "target", "edge", "np"},
+                new String[]{"source", "target", "edge_type", "np"},
                 new String[]{"https://example.org/a", "https://example.org/b", "https://example.org/p", "https://w3id.org/np/RA1"},
                 new String[]{"https://example.org/a", "https://example.org/b", "https://example.org/p", "https://w3id.org/np/RA2"}), PAGE_URL);
 
@@ -144,7 +226,7 @@ class NetworkGraphTest {
     @Test
     void differentRelationsBetweenTheSameNodesStayDistinct() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
-                new String[]{"source", "target", "edge"},
+                new String[]{"source", "target", "edge_type"},
                 new String[]{"https://example.org/a", "https://example.org/b", "https://example.org/p"},
                 new String[]{"https://example.org/a", "https://example.org/b", "https://example.org/q"}), PAGE_URL);
 
@@ -185,23 +267,28 @@ class NetworkGraphTest {
                 nodeById(graph, "https://example.org/b").get("color").getAsString());
     }
 
+    /**
+     * An edge is captioned by its label and identified by its type, and leads to the
+     * nanopublication it was read from rather than to the relation it is an instance of.
+     */
     @Test
-    void edgeLeadsToItsRelationWhenTheQueryNamesOne() {
+    void edgeLeadsToTheNanopublicationThatAssertsIt() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
-                new String[]{"source", "target", "edge", "edge_label", "np"},
-                new String[]{"https://example.org/a", "https://example.org/b",
-                        "https://example.org/p", "points at", "https://w3id.org/np/RA1"}), PAGE_URL);
+                new String[]{"source", "edge_type", "edge_label", "target", "np"},
+                new String[]{"https://example.org/a", "https://example.org/p", "points at",
+                        "https://example.org/b", "https://w3id.org/np/RA1"}), PAGE_URL);
 
         JsonObject edge = edges(graph).get(0).getAsJsonObject();
         assertEquals("points at", edge.get("label").getAsString());
-        assertEquals("/explore?id=https://example.org/p", edge.get("url").getAsString());
-        // The tooltip names the relation, its IRI, and where the edge was asserted.
-        assertTrue(edge.get("title").getAsString().contains("https://example.org/p"));
+        assertEquals("/explore?id=https://w3id.org/np/RA1", edge.get("url").getAsString());
+        // The hover box says what the edge is, names the relation by its IRI, and says
+        // where the edge comes from.
+        assertTrue(edge.get("title").getAsString().startsWith("points at\nhttps://example.org/p"));
         assertTrue(edge.get("title").getAsString().contains("https://w3id.org/np/RA1"));
     }
 
     @Test
-    void edgeFallsBackToItsSourceNanopublication() {
+    void untypedEdgeStillLeadsToItsNanopublication() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
                 new String[]{"source", "target", "np"},
                 new String[]{"https://example.org/a", "https://example.org/b", "https://w3id.org/np/RA1"}), PAGE_URL);
@@ -221,10 +308,23 @@ class NetworkGraphTest {
         assertNull(stringOrNull(edge, "url"));
     }
 
+    /**
+     * A typed edge is not a link to its type: without a nanopublication there is nothing
+     * for a click on it to open.
+     */
+    @Test
+    void typedEdgeWithoutANanopublicationHasNoUrl() {
+        NetworkGraph.Graph graph = NetworkGraph.build(response(
+                new String[]{"source", "edge_type", "target"},
+                new String[]{"https://example.org/a", "https://example.org/p", "https://example.org/b"}), PAGE_URL);
+
+        assertNull(stringOrNull(edges(graph).get(0).getAsJsonObject(), "url"));
+    }
+
     @Test
     void edgeCaptionFallsBackToTheRelationsShortName() {
         NetworkGraph.Graph graph = NetworkGraph.build(response(
-                new String[]{"source", "target", "edge"},
+                new String[]{"source", "target", "edge_type"},
                 new String[]{"https://example.org/a", "https://example.org/b",
                         "https://w3id.org/kpxl/gen/terms/isMaintainedBy"}), PAGE_URL);
 

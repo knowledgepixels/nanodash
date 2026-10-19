@@ -42,10 +42,12 @@ public class KPXL_TERMS {
      * {@code target} hold the node IRIs, which are deduplicated into the node set,
      * with the usual {@code _label} companions as captions, optional
      * {@code source_type}/{@code target_type} grouping the nodes by colour, and
-     * optional {@code edge}/{@code edge_label} describing the relation. Nodes and
-     * edges are hoverable and lead to their resource pages on click; the layout is
-     * computed in the browser, unlike {@link #SVG_VIEW}, where the query lays the
-     * figure out itself.
+     * optional {@code edge_type}/{@code edge_label} describing the relation. A
+     * {@code _desc} companion sets the hover text of either end or of the edge, which
+     * otherwise shows the label. Nodes and edges are hoverable; a node leads to
+     * its resource page on click and an edge to the nanopublication asserting it. The
+     * layout is computed in the browser, unlike {@link #SVG_VIEW}, where the query
+     * lays the figure out itself.
      *
      * @see com.knowledgepixels.nanodash.NetworkGraph
      */
