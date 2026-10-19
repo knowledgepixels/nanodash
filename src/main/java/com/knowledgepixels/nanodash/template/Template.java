@@ -449,7 +449,9 @@ public class Template implements Serializable {
      * Returns human-readable descriptions of the statements of this template that cannot
      * produce valid RDF, because their subject or predicate is a literal, is a placeholder
      * that can only be filled with a literal, or is missing altogether. Only URIs are allowed
-     * in subject and predicate position.
+     * in subject and predicate position. Also reported is a resource marked as introduced or
+     * embedded under a fixed IRI, which every nanopublication made from the template would
+     * then declare as its own.
      *
      * @return the error descriptions, empty if all statements are well-formed.
      */
@@ -457,30 +459,63 @@ public class Template implements Serializable {
         List<String> errors = new ArrayList<>();
         List<IRI> topIris = getStatementIris();
         if (topIris == null) return errors;
+        Set<IRI> reportedFixedIris = new HashSet<>();
         int i = 0;
         for (IRI top : topIris) {
             i++;
             List<IRI> memberIris = getStatementIris(top);
             if (memberIris == null) {
-                collectStatementErrors(top, "Statement " + i, errors);
+                collectStatementErrors(top, "Statement " + i, errors, reportedFixedIris);
             } else {
                 int j = 0;
                 for (IRI member : memberIris) {
                     j++;
-                    collectStatementErrors(member, "Statement " + i + "." + j, errors);
+                    collectStatementErrors(member, "Statement " + i + "." + j, errors, reportedFixedIris);
                 }
             }
         }
         return errors;
     }
 
-    private void collectStatementErrors(IRI statementIri, String statementNumber, List<String> errors) {
+    private void collectStatementErrors(IRI statementIri, String statementNumber, List<String> errors, Set<IRI> reportedFixedIris) {
         String statementName = statementNumber + " (" + getLocalName(statementIri) + ")";
         collectPositionError(getDeclaredSubject(statementIri), "subject", statementName, errors);
         collectPositionError(getDeclaredPredicate(statementIri), "predicate", statementName, errors);
         collectReservedNameError(getDeclaredSubject(statementIri), "subject", statementName, errors);
         collectReservedNameError(getDeclaredPredicate(statementIri), "predicate", statementName, errors);
         collectReservedNameError(getObject(statementIri), "object", statementName, errors);
+        collectFixedIntroductionError(getDeclaredSubject(statementIri), "subject", statementName, errors, reportedFixedIris);
+        collectFixedIntroductionError(getDeclaredPredicate(statementIri), "predicate", statementName, errors, reportedFixedIris);
+        collectFixedIntroductionError(getObject(statementIri), "object", statementName, errors, reportedFixedIris);
+    }
+
+    /**
+     * Reports a resource marked as introduced or embedded that every nanopublication made from
+     * the template would publish under the same IRI: one that is neither a placeholder, nor
+     * minted under the nanopublication, nor given an artifact code with
+     * {@code ~~ARTIFACTCODE~~}. Each of those nanopublications would declare the same resource
+     * as its own, while display and supersede take a resource to be introduced only once
+     * (issue #749). Each such IRI is reported only at the first statement it appears in.
+     *
+     * @param value             the value in this position, or null
+     * @param position          the position the value is in, for the message
+     * @param statementName     the statement the value belongs to, for the message
+     * @param errors            the list the error is added to
+     * @param reportedFixedIris the IRIs reported so far, to which this one is added
+     */
+    private void collectFixedIntroductionError(Value value, String position, String statementName, List<String> errors, Set<IRI> reportedFixedIris) {
+        if (!(value instanceof IRI iri) || !isFixedIntroduction(iri) || !reportedFixedIris.add(iri)) return;
+        boolean introduced = isIntroducedResource(iri);
+        errors.add(statementName + ": the " + position + " " + describeValue(iri) + " is marked as "
+                + (introduced ? "introduced" : "embedded") + " but is a fixed IRI outside the template, so every"
+                + " nanopublication would " + (introduced ? "introduce" : "embed") + " the same resource. Make it a placeholder, an IRI under the template's own namespace, or add the"
+                + " ~~ARTIFACTCODE~~ marker to it.");
+    }
+
+    private boolean isFixedIntroduction(IRI iri) {
+        if (!isIntroducedResource(iri) && !isEmbeddedResource(iri)) return false;
+        if (isPlaceholder(iri) || isLocalResource(iri)) return false;
+        return !iri.stringValue().contains("~~ARTIFACTCODE~~");
     }
 
     /**
