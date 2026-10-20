@@ -139,7 +139,9 @@ The server turns the rows into a node set and an edge set
 `script/network.js` reads it and draws the diagram with
 [vis-network](https://visjs.github.io/vis-network/docs/network/), loaded from a webjar
 with the component, so a page without a network view loads neither the library nor the
-script.
+script. Only the library's script is loaded; its stylesheet is 220 KB of mostly base64
+icons for a navigation bar, an editing toolbar and a configuration panel that a network
+view does not turn on, so the one rule its popup needs lives in `style.css` instead.
 
 Nothing in the graph is markup. Labels and tooltips are put on the page as text —
 the JSON is escaped HTML-safe, so a label containing `</script>` cannot close the block
