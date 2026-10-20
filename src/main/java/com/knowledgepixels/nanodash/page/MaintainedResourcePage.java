@@ -71,6 +71,39 @@ public class MaintainedResourcePage extends NanodashPage {
      */
     private final IModel<MaintainedResource> resourceModel;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A resource with a profile picture is shown with it in a link preview (issue #804).
+     */
+    @Override
+    protected String getMetaImageUrl() {
+        String own = ownPicture();
+        return own != null ? own : super.getMetaImageUrl();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A profile picture is a small square; stretching it into the wide card shape looks
+     * worse than the small card it suits.
+     */
+    @Override
+    protected boolean hasWideMetaImage() {
+        return ownPicture() == null;
+    }
+
+    /**
+     * This resource's own picture, where it has one that a link preview can use.
+     *
+     * @return the picture URL, or null
+     */
+    private String ownPicture() {
+        MaintainedResource resource = resourceModel == null ? null : resourceModel.getObject();
+        ProfilePicture picture = resource == null ? null : resource.getProfilePicture();
+        return picture == null ? null : sharableImageUrl(picture.getSrc());
+    }
+
     public MaintainedResourcePage(final PageParameters parameters) {
         super(parameters);
 

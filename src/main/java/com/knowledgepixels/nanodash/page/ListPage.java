@@ -307,4 +307,13 @@ public class ListPage extends NanodashPage {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A slice of nanopublications by type, each of which has a page of its own.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

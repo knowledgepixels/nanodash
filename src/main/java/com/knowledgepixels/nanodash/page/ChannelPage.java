@@ -198,4 +198,13 @@ public class ChannelPage extends NanodashPage {
 //		}
 //	}
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A user's nanopublications, which the user page shows.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

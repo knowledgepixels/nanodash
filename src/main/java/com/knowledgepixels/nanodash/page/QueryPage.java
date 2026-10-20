@@ -237,4 +237,13 @@ public class QueryPage extends NanodashPage {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A query's details, which its own nanopublication page covers.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

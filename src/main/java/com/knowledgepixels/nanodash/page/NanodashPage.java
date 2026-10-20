@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.CrawlerRequest;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.NavigationContext;
@@ -11,6 +12,7 @@ import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.chat.ClaudeChatService;
 import com.knowledgepixels.nanodash.chat.RemoteAgentService;
 import com.knowledgepixels.nanodash.component.ClaudeChatPanel;
+import com.knowledgepixels.nanodash.component.ResourceTabs;
 import com.knowledgepixels.nanodash.domain.*;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.Component;
@@ -40,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -128,15 +131,14 @@ public abstract class NanodashPage extends WebPage {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer("body");
         if (SiteMode.isEnabled()) body.add(new AttributeAppender("class", "site"));
         add(body);
-        add(new ClaudeChatPanel("claudechat", true) {
-
-            @Override
-            protected void onConfigure() {
-                super.onConfigure();
-                setVisible(ClaudeChatService.get().isEnabled() && hasClaudeChatDock());
-            }
-
-        });
+        // Built only where it is actually shown: the panel binds a session and attaches a
+        // polling behaviour in its constructor, which every page -- including every crawled
+        // one -- used to pay for even with the feature switched off (issue #804).
+        if (ClaudeChatService.get().isEnabled() && hasClaudeChatDock()) {
+            add(new ClaudeChatPanel("claudechat", true));
+        } else {
+            add(new WebMarkupContainer("claudechat").setVisible(false));
+        }
         addPageFooter();
         addRemoteNavigationPollIfNeeded();
     }
@@ -229,6 +231,10 @@ public abstract class NanodashPage extends WebPage {
      * their query components.
      */
     private void markIfBrowserReload() {
+        // A crawler's no-cache means "do not serve me from your HTTP cache", not "run every
+        // query again": reading it as a reload is what turns a crawled page into a set of
+        // loading spinners and a fan-out into the query fleet (issue #804).
+        if (CrawlerRequest.isCrawler()) return;
         RequestCycle rc = RequestCycle.get();
         if (rc == null || !(rc.getRequest() instanceof WebRequest req)) return;
         String cacheControl = req.getHeader("Cache-Control");
@@ -464,6 +470,116 @@ public abstract class NanodashPage extends WebPage {
         return title == null ? siteName() : title.toString();
     }
 
+    // What a link adds to say where the visitor came from, rather than what the page is
+    // about. Each one makes a different URL for the same subject.
+    private static final List<String> NAVIGATION_PARAMS = List.of(
+            NavigationContext.CONTEXT_PARAM, NavigationContext.PART_PARAM,
+            NavigationContext.PART_LABEL_PARAM, "label", "forward-to-part",
+            "just-published", "postpub-redirect-url");
+
+    /**
+     * The parameters that say what this page is about, which is what its canonical URL is
+     * built from (issue #804).
+     * <p>
+     * The default drops the navigation-only ones, so that the same subject reached from the
+     * home page, from a space, or under a resource part is one URL for a search engine
+     * rather than one per route. Pages whose identity needs more than that — or less —
+     * override this; a page that keeps a parameter here is saying that parameter selects
+     * different content, not a different way in.
+     *
+     * @return the parameters the canonical URL carries
+     */
+    protected PageParameters getCanonicalParameters() {
+        PageParameters params = new PageParameters(getPageParameters());
+        for (String name : NAVIGATION_PARAMS) params.remove(name);
+        return params;
+    }
+
+    /**
+     * Whether search engines should keep this page in their index (issue #804). A page that
+     * is not about a subject of its own — a form, an error, a listing that is a different
+     * slice of content already indexed elsewhere — answers false, and so does any tab other
+     * than the main one, which otherwise puts three near-copies of every resource page into
+     * the index.
+     *
+     * @return true if this page belongs in a search index
+     */
+    protected boolean isIndexable() {
+        return ResourceTabs.activeFromParam(getPageParameters()) == ResourceTabs.Tab.CONTENT;
+    }
+
+    /**
+     * What a {@code robots} meta tag should say about this page, or null for no tag at all.
+     * {@code follow} is kept even where the page itself is not indexed: these pages are how
+     * a crawler reaches the ones that are.
+     *
+     * @return the directive, or null to leave the page's indexing to the crawler
+     */
+    protected String getRobotsDirective() {
+        return isIndexable() ? null : "noindex, follow";
+    }
+
+    // The picture link previews fall back on: the Nanodash wordmark, at the size the
+    // preview cards expect.
+    private static final String DEFAULT_SOCIAL_IMAGE = "images/social-card.png";
+
+    /**
+     * The picture a link preview shows for this page (issue #804). Pages about a resource
+     * that has a picture of its own override this; the default is this instance's own.
+     *
+     * @return the image URL, or null for a page that offers no picture
+     */
+    protected String getMetaImageUrl() {
+        String siteLogo = SiteMode.getLogoSrc();
+        return siteLogo != null ? sharableImageUrl(siteLogo) : absoluteImageUrl(DEFAULT_SOCIAL_IMAGE);
+    }
+
+    /**
+     * Whether this page's picture fills a preview card edge to edge, which is what the wide
+     * card shape needs. The social card is drawn at that shape; a profile picture is a small
+     * square and would be cropped or stretched into it, so a page showing one says false.
+     *
+     * @return true if the picture suits the wide card
+     */
+    protected boolean hasWideMetaImage() {
+        return true;
+    }
+
+    /**
+     * Turns a picture meant for an {@code img} tag on this page into one a link preview can
+     * use, or answers null where it cannot be used at all.
+     * <p>
+     * A profile picture may be an SVG carried in the page as a {@code data:} URI (see
+     * {@link com.knowledgepixels.nanodash.domain.ProfilePicture}). That works in a browser
+     * and nowhere else: a preview card is rendered by a service that fetches the picture
+     * over HTTP, and most of them do not render SVG even when they can fetch it. Such a
+     * picture is dropped rather than advertised.
+     *
+     * @param src the picture as the page uses it, or null
+     * @return an absolute {@code http(s)} URL, or null if there is no usable picture
+     */
+    protected static String sharableImageUrl(String src) {
+        if (src == null || src.isBlank()) return null;
+        if (src.startsWith("data:")) return null;
+        if (src.endsWith(".svg")) return null;
+        if (src.startsWith("http://") || src.startsWith("https://")) return src;
+        return absoluteImageUrl(src);
+    }
+
+    /**
+     * Makes a path inside this application absolute, which is what a link preview needs:
+     * the service rendering the card fetches the picture from outside and has no page to
+     * resolve a relative path against.
+     *
+     * @param path the path, relative to the application root
+     * @return the absolute URL, or null where this instance does not know its own address
+     */
+    private static String absoluteImageUrl(String path) {
+        String websiteUrl = NanodashPreferences.get().getConfiguredWebsiteUrl();
+        if (websiteUrl == null || websiteUrl.isBlank()) return null;
+        return websiteUrl.replaceFirst("/+$", "") + "/" + path;
+    }
+
     /**
      * What this page offers as RDF (issue #710). Pages about a resource that the download
      * page can serve override this; the default is nothing, which leaves the page HTML-only.
@@ -534,17 +650,23 @@ public abstract class NanodashPage extends WebPage {
     private void renderPageMetadata(IHeaderResponse response) {
         String title = getMetaTitle();
         String description = getMetaDescription();
-        String url = Utils.absolutePageUrl(getClass(), getPageParameters());
+        String url = Utils.absolutePageUrl(getClass(), getCanonicalParameters());
+        String robots = getRobotsDirective();
         response.render(headTag("meta", "name", "description", "content", description));
+        if (robots != null) response.render(headTag("meta", "name", "robots", "content", robots));
         response.render(headTag("link", "rel", "canonical", "href", url));
         response.render(headTag("meta", "property", "og:type", "content", "website"));
         response.render(headTag("meta", "property", "og:site_name", "content", siteName()));
         response.render(headTag("meta", "property", "og:title", "content", title));
         response.render(headTag("meta", "property", "og:description", "content", description));
         response.render(headTag("meta", "property", "og:url", "content", url));
-        response.render(headTag("meta", "name", "twitter:card", "content", "summary"));
+        String image = getMetaImageUrl();
+        if (image != null) response.render(headTag("meta", "property", "og:image", "content", image));
+        response.render(headTag("meta", "name", "twitter:card", "content",
+                image != null && hasWideMetaImage() ? "summary_large_image" : "summary"));
         response.render(headTag("meta", "name", "twitter:title", "content", title));
         response.render(headTag("meta", "name", "twitter:description", "content", description));
+        if (image != null) response.render(headTag("meta", "name", "twitter:image", "content", image));
     }
 
     /**

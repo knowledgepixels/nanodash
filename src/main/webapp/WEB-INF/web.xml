@@ -59,6 +59,15 @@
 
   <session-config>
     <session-timeout>1</session-timeout>
+    <!--
+         Sessions are kept in a cookie only. Without this, the container appends
+         ;jsessionid=... to every URL it hands a client that sent no cookie, which
+         means every crawl of a page is a different URL and every link on it carries a
+         live session identifier (nanodash#804). Clients that refuse cookies cannot hold
+         a session at all now, so they cannot log in or publish, which is what the
+         privacy page already tells visitors a session cookie is needed for.
+    -->
+    <tracking-mode>COOKIE</tracking-mode>
   </session-config>
 
 </web-app>

@@ -75,4 +75,13 @@ public class PublishPage extends NanodashPage {
                 "custom-functions"));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A form, and one that only works for a signed-in user.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

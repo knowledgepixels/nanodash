@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.CrawlerRequest;
 import com.knowledgepixels.nanodash.View;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -65,6 +66,19 @@ public class LazyContentPanel extends AjaxLazyLoadPanel<Component> {
     public LazyContentPanel(String id, ContentFactory factory) {
         super(id);
         this.factory = factory;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A crawler never comes back for the follow-up request, so a section that is still
+     * waiting is left out of its page rather than indexed as a loading spinner (issue
+     * #804). Once the content has loaded it is shown as it is to everyone.
+     */
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        if (CrawlerRequest.isCrawler() && !isLoaded()) setVisible(false);
     }
 
     /**

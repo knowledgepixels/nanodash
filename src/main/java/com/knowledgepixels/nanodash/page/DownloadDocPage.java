@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.export.PdfWriter;
 import com.knowledgepixels.nanodash.export.RtfWriter;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
@@ -90,6 +91,12 @@ public class DownloadDocPage extends WebPage {
                 return contentType;
             }
         };
+
+        // A downloaded document is not a page: this is served without markup, so
+        // a robots meta tag could never reach a crawler (issue #804).
+        if (getResponse() instanceof WebResponse webResponse) {
+            webResponse.setHeader("X-Robots-Tag", "noindex");
+        }
 
         ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(stream, filename);
         // HTML is the "view it in the browser" format; RTF and PDF are files by nature.

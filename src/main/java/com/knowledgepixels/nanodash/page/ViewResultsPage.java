@@ -102,4 +102,13 @@ public class ViewResultsPage extends NanodashPage {
         add(results);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * One view's results on their own, shown in place on the page the view belongs to.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

@@ -57,4 +57,13 @@ public class TestPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * For development.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.CrawlerRequest;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
@@ -245,7 +246,11 @@ public class NanodashLink extends Panel {
         }
         boolean isNp = TrustyUriUtils.isPotentialTrustyUri(uri);
         PageParameters params = new PageParameters().set("id", uri);
-        if (contextId != null) params.set("context", contextId);
+        // The context says where the visitor came from; it is left off a crawler's links so
+        // that one target is one URL rather than one per route (issue #804). None of the
+        // pages linked here needs it to resolve -- a resource part, which does, is linked
+        // through NavigationContext.getPartPageRef instead.
+        if (contextId != null && !CrawlerRequest.isCrawler()) params.set("context", contextId);
         // TODO Improve this
         if (isNp && uri.startsWith(DsConfig.get().getTargetNamespace())) {
             return new BookmarkablePageLink<Void>(markupId, DsNanopubPage.class, params.set("mode", "final")).setBody(Model.of(displayLabel(label, explicitLabel)));

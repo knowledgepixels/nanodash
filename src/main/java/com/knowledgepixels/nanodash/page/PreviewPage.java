@@ -214,4 +214,13 @@ public class PreviewPage extends NanodashPage {
         return !PublishForm.isSourceOutdated(preview.getPageParams());
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * An unpublished nanopublication, only meaningful inside the session that made it.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

@@ -208,6 +208,12 @@ public class NavigationContext {
      * @return the same page parameters, for chaining
      */
     public static PageParameters withContext(PageParameters params, String contextId) {
+        // A crawler's links carry no record of the route taken to them: this parameter says
+        // where the visitor came from, so adding it turns one page into a link per route and
+        // a crawl into the whole cross-product (issue #804). The canonical URL tells a search
+        // engine which of those is the real one; leaving them off a crawled page in the first
+        // place is what keeps it from following them at all.
+        if (CrawlerRequest.isCrawler()) return params;
         if (contextId != null && !contextId.isEmpty() && params.get(CONTEXT_PARAM).isEmpty()) {
             params.set(CONTEXT_PARAM, contextId);
         }
@@ -228,6 +234,8 @@ public class NavigationContext {
      * @return the same page parameters, for chaining
      */
     public static PageParameters withPart(PageParameters params, String partId, String partLabel, String partContextId) {
+        // Not for crawlers; see withContext.
+        if (CrawlerRequest.isCrawler()) return params;
         if (partId == null || partId.isEmpty() || partContextId == null || partContextId.isEmpty()) return params;
         if (!partContextId.equals(params.get(CONTEXT_PARAM).toString(""))) return params;
         String targetId = params.get("id").toString("");
@@ -273,6 +281,9 @@ public class NavigationContext {
      * @return the context-fallback behavior
      */
     public static Behavior hrefContextFallback() {
+        // Not for crawlers; see withContext. Gated here rather than there because this one
+        // works on the rendered href rather than on page parameters.
+        if (CrawlerRequest.isCrawler()) return new Behavior() {};
         return new Behavior() {
             @Override
             public void onComponentTag(Component component, ComponentTag tag) {

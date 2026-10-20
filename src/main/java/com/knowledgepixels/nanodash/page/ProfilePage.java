@@ -107,4 +107,13 @@ public class ProfilePage extends NanodashPage {
         add(new FeedbackPanel("feedback"));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The signed-in user's own page, which forwards to their About page.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

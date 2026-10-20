@@ -42,6 +42,39 @@ public class SpacePage extends NanodashPage {
 
     /**
      * {@inheritDoc}
+     * <p>
+     * A space with a profile picture is shown with it in a link preview (issue #804).
+     */
+    @Override
+    protected String getMetaImageUrl() {
+        String own = ownPicture();
+        return own != null ? own : super.getMetaImageUrl();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A profile picture is a small square; stretching it into the wide card shape looks
+     * worse than the small card it suits.
+     */
+    @Override
+    protected boolean hasWideMetaImage() {
+        return ownPicture() == null;
+    }
+
+    /**
+     * This space's own picture, where it has one that a link preview can use.
+     *
+     * @return the picture URL, or null
+     */
+    private String ownPicture() {
+        Space space = spaceModel == null ? null : spaceModel.getObject();
+        ProfilePicture picture = space == null ? null : space.getProfilePicture();
+        return picture == null ? null : sharableImageUrl(picture.getSrc());
+    }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getMountPath() {
