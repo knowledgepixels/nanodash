@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Looks up values with a query of the nanopub network, e.g.
@@ -33,6 +34,8 @@ import java.util.Map;
  * {@code http://purl.org/nanopub/api/find_signed_things?} URLs run the find-things query. The
  * results are read newest first, by their {@code date} column, each thing once, and at most ten
  * of them; the {@code pubkey} column tells {@link ThingOrigins} who signed each (issue #765).
+ * The versions of the find-things query that the current one replaces are read as the current
+ * one, so that templates naming an older one are ordered newest first too (issue #797).
  */
 public class NanopubQueryLookup implements LookupApi {
 
@@ -45,6 +48,26 @@ public class NanopubQueryLookup implements LookupApi {
      * The prefix of the legacy nanopub API URLs that run the find-things query.
      */
     public static final String LEGACY_FIND_THINGS_PREFIX = "http://purl.org/nanopub/api/find_signed_things?";
+
+    /**
+     * The IDs of the find-things query versions that the current one replaces, read as the
+     * current one (issue #797). The ordering it adds would otherwise reach almost nobody: the
+     * query is named in the {@code nt:possibleValuesFromApi} of 128 published templates, which
+     * name a version by its exact artifact code, and republishing them is not an option because
+     * most are signed with keys that are not ours. The first five are the versions the current
+     * one supersedes, newest first. The last two are the same query published beside that chain
+     * rather than into it, and are mapped on the same grounds: one is the other head of a fork
+     * at the second entry, under a local name of its own; the other supersedes nothing at all.
+     * Neither is known to be referenced, but both return the same columns unordered.
+     */
+    private static final Set<String> SUPERSEDED_FIND_THINGS = Set.of(
+            "RAyMrQ89RECTi9gZK5q7gjL1wKTiP8StkLy0NIkkCiyew/find-things",
+            "RAVEmFh3d6qonTFQ5S9SVqXZh0prrH1YLhSSs0dJvyvpM/find-things",
+            "RAbMpqeFUU8I67D4xa0Vi2eaddSxsV05ETde4fktJ8cCY/find-things",
+            "RAz6f1v82BCG0SjYMfHUe-m927VTVKdwvsuq1X7j1qcA8/find-things",
+            "RARSKb2yBuB8IqiQ_6MEmdPK07XxY-c-YlsRGocHqSR8E/find-things",
+            "RARqGauUpDMEA1o4KBSKC8AeP694qJjpbf7x7FOWHDfM8/find-valid-things",
+            "RA99xFu2qrCrpOYc1zc7h0SYV4m6Z4OE530dguEhYeoOM/find-things");
 
     private static final int MAX_RESULTS = 10;
 
@@ -96,10 +119,19 @@ public class NanopubQueryLookup implements LookupApi {
         }
     }
 
-    private static String queryId(String apiUrl) {
+    /**
+     * Returns the ID of the query that a lookup API URL runs: the one it names, except that a
+     * superseded version of the find-things query is read as the current one, and a legacy URL
+     * runs that query as well.
+     *
+     * @param apiUrl the lookup API URL
+     * @return the ID of the query to run
+     */
+    static String queryId(String apiUrl) {
         if (!apiUrl.startsWith(QUERY_API_PREFIX)) return QueryApiAccess.FIND_THINGS;
         String queryId = apiUrl.substring(QUERY_API_PREFIX.length());
-        return queryId.contains("?") ? queryId.substring(0, queryId.indexOf("?")) : queryId;
+        if (queryId.contains("?")) queryId = queryId.substring(0, queryId.indexOf("?"));
+        return SUPERSEDED_FIND_THINGS.contains(queryId) ? QueryApiAccess.FIND_THINGS : queryId;
     }
 
     private static Multimap<String, String> urlParams(String apiUrl) {
