@@ -1217,8 +1217,10 @@ span.api-status-checking {
   color: #777;
 }
 
-span.api-status-ok {
-  color: #2e7d32;
+/* A line that is checking the APIs without saying so is hidden, but still rendered, so that the
+   Ajax request that does the check is made (issue #815). */
+span.api-status-pending {
+  display: none;
 }
 
 span.api-status-failed {
