@@ -55,6 +55,17 @@ function friendlyRelative(date, absDateFallback) {
   return absDateFallback; // older than a week → absolute date
 }
 
+/* The dates in a piece of text that is built outside the DOM, such as a dropdown entry's note,
+   which is assembled as one string and so cannot carry a <time> element: rendered in the same
+   short relative form ("3 days ago") and the viewer's own timezone as the elements above. */
+function friendlyDateTextIn(text) {
+  return text.replace(/\d{4}-\d{2}-\d{2}T[\d:.]+(?:Z|[+-]\d{2}:\d{2})?/g, function (value) {
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    return friendlyRelative(d, d.toLocaleDateString(undefined, { dateStyle: "medium" }));
+  });
+}
+
 /* A date without a time ("2026-09-17", optionally with a zone as xsd:date allows) names a
    calendar day, not an instant: new Date() would read it as midnight UTC, so a talk later
    today showed as "8 hours ago". It is compared by day in the viewer's calendar instead. */
