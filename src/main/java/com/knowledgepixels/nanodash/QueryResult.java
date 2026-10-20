@@ -354,6 +354,12 @@ public abstract class QueryResult extends Panel {
      * @return the URL parameter suffix, possibly empty
      */
     protected String linkNavParams(String url) {
+        // Not for a crawler: these say where the visitor came from, and adding them makes
+        // one target page a different URL per route, which is a crawl of the cross-product
+        // (issue #804). A link that needs its context to resolve at all -- a resource part,
+        // which cannot be found without its maintaining resource -- is not built here but
+        // through NavigationContext.getPartPageRef, and keeps it.
+        if (CrawlerRequest.isCrawler()) return "";
         String ctx = renderContextId();
         if (ctx == null) return "";
         StringBuilder params = new StringBuilder("&context=").append(Utils.urlEncode(ctx));

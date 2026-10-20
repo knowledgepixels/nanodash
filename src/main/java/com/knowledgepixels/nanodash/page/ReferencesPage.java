@@ -53,4 +53,13 @@ public class ReferencesPage extends NanodashPage {
         add(QueryResultTableBuilder.create("reftable", queryRef, new ViewDisplay(view)).build());
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The References view on its own, which is part of the resource's page.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

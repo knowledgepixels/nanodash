@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 /**
  * Tests the search engine and link preview metadata that every Nanodash page renders
  * into its head (issue #704).
@@ -135,6 +137,165 @@ class NanodashPageMetadataTest {
         String document = tester.getLastResponse().getDocument();
         assertTrue(document.contains("<meta name=\"description\" content=\"This year\u2019s theme, &quot;Interoperable Europe&quot;, comes at a key moment.\" />"), document);
         assertFalse(document.contains("content=\"<span>"), document);
+    }
+
+    /**
+     * A page's canonical URL names what the page is about, not the route the visitor took to
+     * it: without this the same subject is a different URL for every space, part or label a
+     * link happened to carry (issue #804).
+     */
+    @Test
+    void theCanonicalUrlDropsNavigationParameters() {
+        PageParameters parameters = new PageParameters()
+                .set("id", "https://example.org/thing")
+                .set("context", "https://example.org/spaces/somewhere")
+                .set("part", "https://example.org/parts/p1")
+                .set("part-label", "P1")
+                .set("label", "Thing")
+                .set("forward-to-part", "true")
+                .set("just-published", "https://example.org/np/RA123");
+        tester.startPage(DescribedPage.class, parameters);
+        String document = tester.getLastResponse().getDocument();
+        String canonical = valueOf(document, "<link rel=\"canonical\" href=\"");
+        assertTrue(canonical.contains("id=https://example.org/thing"), canonical);
+        for (String dropped : List.of("context=", "part=", "part-label=", "label=", "forward-to-part=", "just-published=")) {
+            assertFalse(canonical.contains(dropped), dropped + " should be gone from " + canonical);
+        }
+        // og:url says the same thing to a link preview as canonical says to a search engine.
+        assertTrue(document.contains("property=\"og:url\" content=\"" + canonical.replace("&", "&amp;") + "\""), document);
+    }
+
+    /**
+     * A page that is not about a subject of its own says so, rather than being left to
+     * compete in search results with the pages that are.
+     */
+    @Test
+    void aPageWithoutASubjectAsksNotToBeIndexed() {
+        tester.startPage(ListPage.class, new PageParameters().set("type", "https://example.org/Type"));
+        assertTrue(tester.getLastResponse().getDocument().contains("<meta name=\"robots\" content=\"noindex, follow\""),
+                tester.getLastResponse().getDocument());
+    }
+
+    /**
+     * Content pages carry no directive at all, which is how a crawler is left to index them.
+     */
+    @Test
+    void aContentPageCarriesNoRobotsDirective() {
+        tester.startPage(PrivacyPage.class);
+        assertFalse(tester.getLastResponse().getDocument().contains("name=\"robots\""),
+                tester.getLastResponse().getDocument());
+    }
+
+    /**
+     * The tabs of a resource page are the same resource seen from a different side. Indexing
+     * them would put three near-copies of every space, user and resource into the index.
+     */
+    @Test
+    void aTabOtherThanTheMainOneIsNotIndexed() {
+        tester.startPage(PrivacyPage.class, new PageParameters().set("tab", "about"));
+        assertTrue(tester.getLastResponse().getDocument().contains("<meta name=\"robots\" content=\"noindex, follow\""),
+                tester.getLastResponse().getDocument());
+        tester.startPage(PrivacyPage.class, new PageParameters().set("tab", "content"));
+        assertFalse(tester.getLastResponse().getDocument().contains("name=\"robots\""),
+                tester.getLastResponse().getDocument());
+    }
+
+    /**
+     * A page that has a picture offers it to link previews, which otherwise show a bare line
+     * of text.
+     */
+    @Test
+    void offersAPictureToLinkPreviews() {
+        PicturedPage.imageUrl = "https://nanodash.example.org/images/social-card.png";
+        PicturedPage.wide = true;
+        tester.startPage(PicturedPage.class);
+        String document = tester.getLastResponse().getDocument();
+        assertTrue(document.contains("property=\"og:image\" content=\"https://nanodash.example.org/images/social-card.png\""), document);
+        assertTrue(document.contains("<meta name=\"twitter:image\" content=\"https://nanodash.example.org/images/social-card.png\""), document);
+        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary_large_image\""), document);
+    }
+
+    /**
+     * A profile picture is a small square: the wide card would crop or stretch it, so a page
+     * showing one asks for the small card instead.
+     */
+    @Test
+    void asksForTheSmallCardWhereThePictureIsASquare() {
+        PicturedPage.imageUrl = "https://example.org/profile.png";
+        PicturedPage.wide = false;
+        tester.startPage(PicturedPage.class);
+        String document = tester.getLastResponse().getDocument();
+        assertTrue(document.contains("property=\"og:image\" content=\"https://example.org/profile.png\""), document);
+        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary\""), document);
+    }
+
+    /**
+     * A page offering the given picture, standing in for one whose subject has a picture of
+     * its own. The website URL cannot be configured from a test, so the real default picture
+     * is checked against a running instance instead.
+     */
+    public static class PicturedPage extends ErrorPage {
+
+        static String imageUrl;
+        static boolean wide;
+
+        /**
+         * @param parameters the page parameters
+         */
+        public PicturedPage(PageParameters parameters) {
+            super(parameters);
+        }
+
+        @Override
+        protected String getMetaImageUrl() {
+            return imageUrl;
+        }
+
+        @Override
+        protected boolean hasWideMetaImage() {
+            return wide;
+        }
+
+    }
+
+    /**
+     * A profile picture may be an SVG carried in the page itself. That is no use to the
+     * service rendering a preview card, which fetches the picture over HTTP and mostly
+     * cannot draw SVG, so such a picture is left out rather than advertised.
+     */
+    @Test
+    void doesNotOfferAnInlineOrSvgPictureToLinkPreviews() {
+        assertNull(NanodashPage.sharableImageUrl("data:image/svg+xml;base64,PHN2Zz48L3N2Zz4="));
+        assertNull(NanodashPage.sharableImageUrl("https://example.org/picture.svg"));
+        assertNull(NanodashPage.sharableImageUrl(""));
+        assertNull(NanodashPage.sharableImageUrl(null));
+        assertEquals("https://example.org/picture.png", NanodashPage.sharableImageUrl("https://example.org/picture.png"));
+    }
+
+    /**
+     * An instance that has not been told its own address cannot build a URL a preview
+     * service could fetch, and says nothing rather than something wrong.
+     */
+    @Test
+    void offersNoPictureWithoutAConfiguredAddress() {
+        String document = renderedPage();
+        assertFalse(document.contains("og:image"), document);
+        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary\""), document);
+    }
+
+    /**
+     * Every page says what language it is in.
+     */
+    @Test
+    void declaresThePageLanguage() {
+        assertTrue(renderedPage().contains("<html lang=\"en\""), renderedPage());
+    }
+
+    private static String valueOf(String document, String prefix) {
+        int start = document.indexOf(prefix);
+        assertTrue(start >= 0, "not found: " + prefix);
+        start += prefix.length();
+        return document.substring(start, document.indexOf('"', start));
     }
 
     @Test

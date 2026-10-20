@@ -132,4 +132,13 @@ public class NanopubNotFoundPage extends NanodashPage {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A nanopublication that could not be found is not content.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

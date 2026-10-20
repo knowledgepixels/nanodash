@@ -58,4 +58,13 @@ public class ResultTablePage extends NanodashPage {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A query result table, reached from the query it belongs to.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

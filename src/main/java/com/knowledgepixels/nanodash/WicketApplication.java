@@ -19,6 +19,7 @@ import com.knowledgepixels.nanodash.page.*;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import de.agilecoders.wicket.webjars.WicketWebjars;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -30,11 +31,15 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.Url.QueryParameter;
 import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.handler.render.WebPageRenderer;
 import org.apache.wicket.request.http.WebResponse;
+import org.apache.wicket.request.mapper.info.PageComponentInfo;
 import org.apache.wicket.settings.ExceptionSettings;
 import org.apache.wicket.util.lang.Bytes;
+import org.apache.wicket.util.string.Strings;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.services.QueryRef;
 import org.slf4j.Logger;
@@ -138,6 +143,38 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
     }
 
     /**
+     * Whether the client has shown it can hold a session, by sending back a session cookie.
+     * False on the first request of every visit, and on every request from a client that
+     * refuses cookies. See the page renderer in {@link #init()} for what it is for.
+     *
+     * @return true if this request carries a session id
+     */
+    private static boolean isHoldingASession() {
+        RequestCycle cycle = RequestCycle.get();
+        if (cycle == null) return false;
+        return cycle.getRequest().getContainerRequest() instanceof HttpServletRequest request
+                && request.getRequestedSessionId() != null;
+    }
+
+    /**
+     * Whether this request names a page instance, i.e. whether it is where a buffered
+     * rendering sent the client. Wicket writes that as a valueless first query parameter
+     * ({@code /?3}), which only its own parser can tell from an ordinary one.
+     *
+     * @return true if the URL asks for a stored page instance
+     */
+    private static boolean isAskingForAPageInstance() {
+        RequestCycle cycle = RequestCycle.get();
+        if (cycle == null) return false;
+        for (QueryParameter parameter : cycle.getRequest().getUrl().getQueryParameters()) {
+            if (Strings.isEmpty(parameter.getValue()) && PageComponentInfo.parse(parameter.getName()) != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns the home page class for the application: Nanodash's own home page, or the
      * site's space page when this instance is a site (issue #692). Wicket asks on every
      * request, so the answer can follow the configuration.
@@ -219,9 +256,42 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         mountPage(DownloadDocPage.MOUNT_PATH, DownloadDocPage.class);
         mountPage(CalendarFeedPage.MOUNT_PATH, CalendarFeedPage.class);
         mountPage(SiteLoadingPage.MOUNT_PATH, SiteLoadingPage.class);
+        // Both generated rather than served as static files, so that the Sitemap line names
+        // the host this instance is actually published at (issue #804).
+        mountPage(RobotsPage.MOUNT_PATH, RobotsPage.class);
+        mountPage(SitemapPage.MOUNT_PATH, SitemapPage.class);
 
         getCspSettings().blocking().disabled();
         getStoreSettings().setMaxSizePerSession(Bytes.megabytes(100));
+
+        // Write the page straight into the response for a client that cannot be sent to a
+        // page instance and come back for it (issue #804). Wicket renders into a buffer by
+        // default and redirects to a URL carrying the page instance number, which needs a
+        // session to hold that instance. Two kinds of client cannot play along:
+        //
+        //  - a crawler, which would pay a redirect per fetch, index a URL that differs per
+        //    session, and leave behind a bound session holding a whole rendered page;
+        //  - a client that has been sent to a page instance and arrived there with no
+        //    session. Sessions live in a cookie alone now, so there is no instance to find:
+        //    it would be rendered and redirected to again, and a client that refuses cookies
+        //    would bounce between the two URLs forever. Its first request is still buffered
+        //    and redirected, which is what sets the cookie and what every browser needs --
+        //    rendering that one in a single pass would leave the page without an instance
+        //    for its own Ajax calls to reach.
+        //
+        // Only the render strategy changes, not the forwards: a RestartResponseException or
+        // setResponsePage to a page class always redirects, so /explore still sends a visitor
+        // on to the space or user page its id belongs to. Everyone else keeps the buffered
+        // rendering, which is what lands a form submission on the page's own URL rather than
+        // on one that submits again when reloaded.
+        setPageRendererProvider(handler -> new WebPageRenderer(handler) {
+            @Override
+            protected boolean isOnePassRender() {
+                return CrawlerRequest.isCrawler()
+                        || (isAskingForAPageInstance() && !isHoldingASession())
+                        || super.isOnePassRender();
+            }
+        });
 
         getRequestCycleListeners().add(new IRequestCycleListener() {
             @Override

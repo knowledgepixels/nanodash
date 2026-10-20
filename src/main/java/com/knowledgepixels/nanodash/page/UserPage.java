@@ -64,6 +64,38 @@ public class UserPage extends NanodashPage {
     }
 
     private IRI userIri;
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A user with a profile picture is shown with it in a link preview (issue #804).
+     */
+    @Override
+    protected String getMetaImageUrl() {
+        String own = ownPicture();
+        return own != null ? own : super.getMetaImageUrl();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A profile picture is a small square; stretching it into the wide card shape looks
+     * worse than the small card it suits.
+     */
+    @Override
+    protected boolean hasWideMetaImage() {
+        return ownPicture() == null;
+    }
+
+    /**
+     * This user's own picture, where they have one that a link preview can use.
+     *
+     * @return the picture URL, or null
+     */
+    private String ownPicture() {
+        ProfilePicture picture = userIri == null ? null : User.getProfilePicture(userIri);
+        return picture == null ? null : sharableImageUrl(picture.getSrc());
+    }
     private String pubkeyHashes = "";
 
     /**

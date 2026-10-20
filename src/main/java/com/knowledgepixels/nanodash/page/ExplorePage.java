@@ -20,6 +20,7 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.http.flow.AbortWithHttpErrorCodeException;
 import org.apache.wicket.request.mapper.parameter.INamedParameters.NamedPair;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -133,6 +134,8 @@ public class ExplorePage extends NanodashPage {
     private Nanopub publishedNanopub = null;
 
     private RdfSource rdfSource = null;
+    private String canonicalId = null;
+    private boolean indexable = true;
 
     /**
      * Constructor for ExplorePage.
@@ -191,6 +194,13 @@ public class ExplorePage extends NanodashPage {
 
     private void initPage() {
         PageParameters parameters = getPageParameters();
+
+        // This page answers the same URL with HTML or with the nanopublication's RDF,
+        // depending on the Accept header (see below), so a cache in between must keep the two
+        // apart rather than serving one client the other's answer (issue #804).
+        if (getResponse() instanceof WebResponse webResponse) {
+            webResponse.setHeader("Vary", "Accept");
+        }
 
         String tempRef = parameters.get("id").toString("");
         // Sometimes these Wicket session IDs end up here and they can mess up the query cache:
@@ -324,6 +334,10 @@ public class ExplorePage extends NanodashPage {
         // views come here for exactly this decision, since at link time nothing can tell a
         // part of the site (which the rules above forward) from a foreign resource.
         boolean outsideSite = publishedNanopub == null && !isNanopubId && SiteMode.isEnabled() && !SiteMode.belongsToSite(tempRef);
+        // A just-published nanopublication is shown as a confirmation, and a thing outside
+        // this site is shown with a notice instead of its content: neither is this page's own
+        // subject to put in a search index (issue #804).
+        indexable = publishedNanopub == null && !outsideSite;
 
         WebMarkupContainer nanopubSection = new WebMarkupContainer("nanopub-section");
 
@@ -397,6 +411,7 @@ public class ExplorePage extends NanodashPage {
         add(nanopubSection);
 
         final String ref = tempRef;
+        canonicalId = (np != null && isNanopubId) ? np.getUri().stringValue() : ref;
         final String shortName;
         // Prefer the resolved nanopub's own (full) label whenever we are exploring the
         // nanopub itself — this avoids showing the truncated/ellipsised value carried in
@@ -525,6 +540,30 @@ public class ExplorePage extends NanodashPage {
     @Override
     protected RdfSource getRdfSource() {
         return rdfSource;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean isIndexable() {
+        return indexable && super.isIndexable();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * One URL per nanopublication, spelled as the nanopublication's own IRI (issue #804).
+     * The same nanopublication is reached under its bare artifact code — which is what
+     * w3id.org forwards to — and under its full IRI, which is what links inside Nanodash
+     * use; without this the two are indexed as separate pages. The resolved id is used, so
+     * that an id naming an older version canonicalises to the version actually shown.
+     */
+    @Override
+    protected PageParameters getCanonicalParameters() {
+        PageParameters params = super.getCanonicalParameters();
+        if (canonicalId != null) params.set("id", canonicalId);
+        return params;
     }
 
     /**

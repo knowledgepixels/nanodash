@@ -54,4 +54,13 @@ public class ClaudeChatPage extends NanodashPage {
         add(new ClaudeChatPanel("chatpanel", false).setVisible(enabled));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A chat window.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

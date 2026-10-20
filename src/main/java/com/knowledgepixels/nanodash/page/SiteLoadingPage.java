@@ -64,4 +64,13 @@ public class SiteLoadingPage extends NanodashPage {
                 "<meta http-equiv=\"refresh\" content=\"" + RETRY_SECONDS + ";url=" + SiteHomePage.MOUNT_PATH + "\" />\n"));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A placeholder shown until the site's space has loaded.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

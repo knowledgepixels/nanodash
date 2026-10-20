@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.http.flow.AbortWithHttpErrorCodeException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ContentDisposition;
@@ -100,6 +101,12 @@ public class CalendarFeedPage extends WebPage {
                 return "text/calendar; charset=utf-8";
             }
         };
+
+        // A calendar feed is not a page: this is served without markup, so
+        // a robots meta tag could never reach a crawler (issue #804).
+        if (getResponse() instanceof WebResponse webResponse) {
+            webResponse.setHeader("X-Robots-Tag", "noindex");
+        }
 
         ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(stream, filenameFor(space));
         handler.setContentDisposition(parameters.get("download").isNull()

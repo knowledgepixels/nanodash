@@ -49,4 +49,13 @@ public class OrcidLinkingPage extends NanodashPage {
         add(new Label("introuri", introUri).setEscapeModelStrings(false));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Part of signing in.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

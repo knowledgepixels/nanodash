@@ -377,6 +377,21 @@ public class ResourcePartPage extends NanodashPage {
         return IndividualAgent.isUser(contextId) ? IndividualAgent.get(contextId) : null;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A part is identified by its own IRI together with the resource maintaining it: the
+     * {@code context} here is not a record of where the visitor came from but half of what
+     * the page is about, so it stays in the canonical URL (issue #804).
+     */
+    @Override
+    protected PageParameters getCanonicalParameters() {
+        PageParameters params = super.getCanonicalParameters();
+        String contextId = getPageParameters().get(NavigationContext.CONTEXT_PARAM).toString("");
+        if (!contextId.isEmpty()) params.set(NavigationContext.CONTEXT_PARAM, contextId);
+        return params;
+    }
+
     public ResourcePartPage(final PageParameters parameters) {
         super(parameters);
 

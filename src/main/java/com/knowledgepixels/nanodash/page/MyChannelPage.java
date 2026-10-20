@@ -42,4 +42,13 @@ public class MyChannelPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Whoever is signed in; there is no subject to index.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

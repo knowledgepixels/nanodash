@@ -575,6 +575,14 @@ public class ApiCache {
         if (cachedResponses.getIfPresent(cacheId) == null) {
             loadResponseFromStore(cacheId);
         }
+        // A crawler is served whatever is already here and nothing is queued for it
+        // (issue #804): every view on every crawled page would otherwise submit a query,
+        // which is the fan-out that made crawlers an outage risk. The cache age is
+        // deliberately ignored -- an answer from yesterday is real content served for free,
+        // which beats the loading spinner a crawler would be given instead.
+        if (CrawlerRequest.isCrawler()) {
+            return cachedResponses.getIfPresent(cacheId);
+        }
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
@@ -737,6 +745,10 @@ public class ApiCache {
             // As in retrieveResponseAsync: mark for re-fetch but keep the model, so a failed
             // refresh still has the previous one to fall back on.
             forcedRefresh.add(cacheId);
+        }
+        // Nothing is queued for a crawler; see retrieveResponseAsync (issue #804).
+        if (CrawlerRequest.isCrawler()) {
+            return cachedRdfModels.getIfPresent(cacheId);
         }
         boolean forced = forcedRefresh.contains(cacheId);
         boolean isCached = false;

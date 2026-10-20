@@ -32,4 +32,13 @@ public class GroupDemoPageSoc extends NanodashPage {
         add(new TitleBar("titlebar", this));
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A demo.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

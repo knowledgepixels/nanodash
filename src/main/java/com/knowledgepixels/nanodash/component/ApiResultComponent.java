@@ -1,6 +1,7 @@
 package com.knowledgepixels.nanodash.component;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.CrawlerRequest;
 
 /**
  * A component that retrieves and displays the result of an API call.
@@ -75,6 +77,12 @@ public abstract class ApiResultComponent extends ResultComponent {
         ApiResponse staleResponse = ApiCache.retrieveStaleResponse(queryRef);
         if (staleResponse != null) {
             return new RefreshingResultPanel(markupId, queryRef, staleResponse, renderer);
+        }
+        if (CrawlerRequest.isCrawler()) {
+            // Nothing is cached and a crawler does not wait for a poll to fill the section
+            // in, so it is left out rather than shown a spinner it will index (issue #804).
+            // Less than a visitor sees, never more: both are told there is nothing here yet.
+            return new WebMarkupContainer(markupId).setVisible(false);
         }
         ApiResultComponent comp = new ApiResultComponent(markupId, queryRef) {
             @Override

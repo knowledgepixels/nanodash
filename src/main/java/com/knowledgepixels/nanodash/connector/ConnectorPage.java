@@ -55,4 +55,14 @@ public abstract class ConnectorPage extends NanodashPage {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A connector guides one journal's authors through publishing; its pages are
+     * steps in that rather than content of their own.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

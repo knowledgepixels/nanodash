@@ -99,4 +99,13 @@ public class ViewPage extends NanodashPage {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A view definition, which is the subject of its own nanopublication page.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

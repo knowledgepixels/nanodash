@@ -57,7 +57,7 @@ public final class HtmlWriter {
     public static String writeXhtml(DocumentModel doc, boolean stripEmbeddedHtml) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n");
-        sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n");
+        sb.append("<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n");
         sb.append("<meta charset=\"utf-8\"/>\n");
         sb.append("<title>").append(escape(doc.title())).append("</title>\n");
         sb.append("<style>\n").append(STYLE).append("</style>\n");

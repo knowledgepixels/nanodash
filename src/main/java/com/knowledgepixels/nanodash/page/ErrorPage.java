@@ -382,4 +382,13 @@ public class ErrorPage extends NanodashPage {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * An error is not content; a search result pointing at one helps nobody.
+     */
+    @Override
+    protected boolean isIndexable() {
+        return false;
+    }
 }

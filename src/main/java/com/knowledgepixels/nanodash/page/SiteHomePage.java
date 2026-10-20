@@ -34,4 +34,16 @@ public class SiteHomePage extends SpacePage {
         super(parameters);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The front page of a site is its root URL. Taking the space id from the parameters, as
+     * the space page does, would canonicalise the front page to a URL that is a second way
+     * to reach the same thing (issue #804).
+     */
+    @Override
+    protected PageParameters getCanonicalParameters() {
+        return new PageParameters();
+    }
+
 }
