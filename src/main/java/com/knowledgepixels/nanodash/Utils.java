@@ -1079,7 +1079,7 @@ public class Utils {
         // in it put in the short relative form used elsewhere ("3 days ago") by nanodash.js,
         // which knows the viewer's timezone (issue #817).
         String noteRegex = TO_BE_MINTED_NOTE.replace("(", "\\(").replace(")", "\\)");
-        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/" + ORIGIN_NOTE_SEPARATOR + "((?:(?:governed )?by |\\d{4}-)[^<]*)(<br><code>|$)/, function(m, note, tail) {" + "return '<br><span class=\"origin-note\">' + (typeof friendlyDateTextIn === 'function' ? friendlyDateTextIn(note) : note) + '</span>' + tail; })" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
+        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/" + ORIGIN_NOTE_SEPARATOR + "((?:by |\\d{4}-)[^<]*)(<br><code>|$)/, function(m, note, tail) {" + "return '<br><span class=\"origin-note\">' + (typeof friendlyDateTextIn === 'function' ? friendlyDateTextIn(note) : note) + '</span>' + tail; })" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
     }
 
     /**
@@ -1376,7 +1376,7 @@ public class Utils {
      * Returns the note on who a value comes from and when it was published as it is appended to
      * the label of the value in a dropdown (issues #765 and #817).
      *
-     * @param originNote the note, e.g. "by Jane Doe", or null
+     * @param originNote the note, e.g. "by Jane Doe \u00b7 2026-10-17T09:12:00Z", or null
      * @return the note with its separator, or an empty string if there is no note
      */
     public static String getOriginNoteSuffix(String originNote) {

@@ -203,15 +203,16 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                     }
                 }
                 Map<String, Boolean> alreadyAddedMap = new HashMap<>();
+                Set<String> shownThings = new HashSet<>();
                 term = term.toLowerCase();
                 for (String s : possibleValues) {
                     if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
-                        response.add(s);
+                        addOnce(response, s, shownThings);
                         alreadyAddedMap.put(s, true);
                     }
                 }
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
-                    if (!alreadyAddedMap.containsKey(v)) response.add(v);
+                    if (!alreadyAddedMap.containsKey(v)) addOnce(response, v, shownThings);
                 }
                 boolean nothingFound = response.getResults().isEmpty();
 
@@ -227,6 +228,37 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 if (nothingFound && !response.getResults().isEmpty()) {
                     listNoResultsFirst(response);
                 }
+            }
+
+            /**
+             * Lists a value, unless a value naming the same thing is listed already. A lookup
+             * finds every version of a thing the nanopub network holds, and a template can name
+             * one of them itself, so the same view, template or query is easily suggested several
+             * times over, under one and the same label (issue #817). The first one listed wins:
+             * the results of a lookup come newest first, and a version that has been superseded
+             * is resolved to the current one where it is used.
+             *
+             * @param response the suggestions listed so far
+             * @param value    the value to list
+             * @param shown    the things listed so far, added to
+             */
+            private void addOnce(Response<String> response, String value, Set<String> shown) {
+                if (shown.add(getThingKey(value))) response.add(value);
+            }
+
+            /**
+             * What tells two versions of a thing apart from two different things: a label and a
+             * local name that are both the same are the same thing in two versions. The label
+             * alone is not enough, since several views are called just "view" in their IRI and
+             * are told apart by their label, nor is the local name.
+             *
+             * @param value the value
+             * @return the key, the value itself if it has no label to go by
+             */
+            private String getThingKey(String value) {
+                String label = getChoiceLabel(value);
+                if (label == null || label.isBlank()) return value;
+                return label.toLowerCase() + "\n" + Utils.getUriPostfix(value);
             }
 
             private void listNoResultsFirst(Response<String> response) {

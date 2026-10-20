@@ -98,7 +98,7 @@ class ThingOriginsTest {
         when(resource.getSpace()).thenReturn(space);
         when(repository.findByNamespace("https://example.org/things/")).thenReturn(resource);
         ThingOrigins.record(THING, PUBKEY, null);
-        assertEquals("governed by Knowledge Pixels", ThingOrigins.getOriginNote(THING));
+        assertEquals("by Knowledge Pixels", ThingOrigins.getOriginNote(THING));
     }
 
     @Test
@@ -107,7 +107,7 @@ class ThingOriginsTest {
         Space space = space("Knowledge Pixels");
         when(resource.getSpace()).thenReturn(space);
         resources.when(() -> AbstractResourceWithProfile.get(THING)).thenReturn(resource);
-        assertEquals("governed by Knowledge Pixels", ThingOrigins.getOriginNote(THING));
+        assertEquals("by Knowledge Pixels", ThingOrigins.getOriginNote(THING));
     }
 
     @Test
@@ -162,7 +162,7 @@ class ThingOriginsTest {
         resources.when(() -> AbstractResourceWithProfile.get(SPACE)).thenReturn(space);
         ThingOrigins.record(VIEW, PUBKEY, null);
         ThingOrigins.resolveGoverningSpaces(List.of(VIEW));
-        assertEquals("governed by Knowledge Pixels", ThingOrigins.getOriginNote(VIEW));
+        assertEquals("by Knowledge Pixels", ThingOrigins.getOriginNote(VIEW));
     }
 
     @Test

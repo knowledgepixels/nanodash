@@ -154,7 +154,7 @@ public final class ThingOrigins {
 
     /**
      * Returns a note that says who a thing comes from and when it was published, e.g.
-     * "governed by Knowledge Pixels · 2026-10-17T09:12:00Z". The date is left as it is: the
+     * "by Knowledge Pixels · 2026-10-17T09:12:00Z". The date is left as it is: the
      * dropdown renders it in the short relative form ("3 days ago") used elsewhere, in the
      * viewer's own timezone.
      *
@@ -172,7 +172,7 @@ public final class ThingOrigins {
 
     private static String getOrigin(String thing) {
         Space space = getGoverningSpace(thing);
-        if (space != null && space.getLabel() != null) return "governed by " + space.getLabel();
+        if (space != null && space.getLabel() != null) return "by " + space.getLabel();
         String signer = getSignerName(thing);
         if (signer != null) return "by " + signer;
         return null;
