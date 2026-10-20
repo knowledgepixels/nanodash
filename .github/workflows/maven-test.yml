@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ master ]
 
+# One run per branch or pull request: pushing again makes the run already going obsolete, and
+# the tests still make enough calls to the public nanopub services that overlapping runs are
+# worth avoiding (issue #809).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest

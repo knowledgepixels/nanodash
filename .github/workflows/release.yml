@@ -12,6 +12,12 @@ env:
   DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
+# One release at a time, queued rather than cancelled: a run that is already publishing must
+# be allowed to finish.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   test:
     runs-on: ubuntu-latest
