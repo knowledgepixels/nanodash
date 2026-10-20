@@ -19,7 +19,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +37,6 @@ class ApiCachePersistenceTest {
 
     private static final String RESPONSE_ID = "RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-latest-nanopubs-from-pubkeys";
     private static final String MAP_ID = "RAe-oA5eSmkCXCALZ99-0k4imnlI74KPqURfhHOmnzo6A/get-some-map";
-
-    private static final Duration QUIESCENCE_TIMEOUT = Duration.ofSeconds(5);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -60,14 +57,14 @@ class ApiCachePersistenceTest {
     }
 
     /**
-     * Closes the entry store and lets the background tasks finish before JUnit deletes the
-     * temp directory, so that a refresh submitted elsewhere in the suite cannot write into
-     * it mid-deletion (issue #668).
+     * Closes the entry store before JUnit deletes the temp directory. Closing it waits for the
+     * writes already under way and lets no other write in, so a refresh submitted elsewhere in
+     * the suite cannot write into the directory mid-deletion (issue #668), however busy the
+     * shared pool is.
      */
     @AfterEach
     void tearDown() {
         ApiCachePersistence.initEntryStore(null);
-        NanodashThreadPool.awaitQuiescence(QUIESCENCE_TIMEOUT);
     }
 
     private void resetMap(String fieldName) throws Exception {
