@@ -36,6 +36,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Set<IRI> appliesToNamespaces = new HashSet<>();
     private IRI resource;
     private boolean presetDerived = false;
+    private boolean hideWhenEmpty = false;
+    private String emptyMessage;
 
     /**
      * Constructor for ViewDisplay with only a View. This is used for temporary view displays used in profiles as defaults.
@@ -341,6 +343,49 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     public ViewDisplay withTitle(String title) {
         this.title = title;
         return this;
+    }
+
+    /**
+     * Marks this display as having nothing to say when its query finds no rows: it then
+     * leaves the page altogether instead of printing the empty note. For the generic
+     * panels of the Explore page, where four such notes used to be the whole page.
+     *
+     * @return this view display, for chaining
+     */
+    public ViewDisplay hiddenWhenEmpty() {
+        this.hideWhenEmpty = true;
+        return this;
+    }
+
+    /**
+     * Whether this display leaves the page when its query finds no rows.
+     *
+     * @return true if it hides itself rather than showing the empty note
+     */
+    public boolean isHideWhenEmpty() {
+        return hideWhenEmpty;
+    }
+
+    /**
+     * Overrides the note shown in place of the generic "(nothing found)" when the result is
+     * genuinely empty — for a view that is the only thing left on its page, and so speaks
+     * for the page rather than for itself.
+     *
+     * @param emptyMessage the note to show instead
+     * @return this view display, for chaining
+     */
+    public ViewDisplay withEmptyMessage(String emptyMessage) {
+        this.emptyMessage = emptyMessage;
+        return this;
+    }
+
+    /**
+     * The note to show in place of "(nothing found)", if this display declares one.
+     *
+     * @return the note, or null to use the generic one
+     */
+    public String getEmptyMessage() {
+        return emptyMessage;
     }
 
     public String getStructuralPosition() {

@@ -236,7 +236,7 @@ public class QueryResultTable extends QueryResult {
             // Hidden when the empty-actions line below shows instead, which carries
             // its own "Nothing here yet:" text; this note still covers the case of
             // the filter text matching no row.
-            noRecordsLabel = new Label("no-records", "(nothing found)") {
+            noRecordsLabel = new Label("no-records", emptyNote()) {
                 @Override
                 protected void onConfigure() {
                     super.onConfigure();

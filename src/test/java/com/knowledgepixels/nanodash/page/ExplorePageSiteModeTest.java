@@ -47,7 +47,8 @@ class ExplorePageSiteModeTest {
         assertTrue(document.contains("This is not part of Test Site. Follow the address above to open it."), document);
         assertTrue(document.contains("href=\"" + ELSEWHERE + "\""), document);
         assertFalse(document.contains("tabs-container"), document);
-        assertFalse(document.contains("references-section"), document);
+        assertFalse(document.contains("explore-section"), document);
+        assertFalse(document.contains("No nanopublication mentions this"), document);
     }
 
 }

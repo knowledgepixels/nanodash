@@ -103,7 +103,7 @@ public class QueryResultListBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildList);
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildList, viewDisplay.isHideWhenEmpty());
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
     }

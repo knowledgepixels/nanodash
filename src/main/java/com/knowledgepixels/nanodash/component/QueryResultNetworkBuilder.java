@@ -97,7 +97,7 @@ public class QueryResultNetworkBuilder implements Serializable {
      */
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildNetwork);
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildNetwork, viewDisplay.isHideWhenEmpty());
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
     }
