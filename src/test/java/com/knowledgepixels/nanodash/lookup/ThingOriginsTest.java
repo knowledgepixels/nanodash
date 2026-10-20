@@ -15,12 +15,21 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.extra.security.SignNanopub;
+import org.nanopub.extra.security.SignatureAlgorithm;
+import org.nanopub.extra.security.TransformContext;
 import org.nanopub.extra.services.ApiResponseEntry;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -161,7 +170,7 @@ class ThingOriginsTest {
         utils.when(() -> Utils.getNanopub(NP)).thenReturn(np);
         resources.when(() -> AbstractResourceWithProfile.get(SPACE)).thenReturn(space);
         ThingOrigins.record(VIEW, PUBKEY, null);
-        ThingOrigins.resolveGoverningSpaces(List.of(VIEW));
+        ThingOrigins.resolveOrigins(List.of(VIEW));
         assertEquals("by Knowledge Pixels", ThingOrigins.getOriginNote(VIEW));
     }
 
@@ -170,16 +179,46 @@ class ThingOriginsTest {
         Nanopub np = nanopub(null);
         utils.when(() -> Utils.getNanopub(NP)).thenReturn(np);
         ThingOrigins.record(VIEW, PUBKEY, null);
-        ThingOrigins.resolveGoverningSpaces(List.of(VIEW));
+        ThingOrigins.resolveOrigins(List.of(VIEW));
         assertEquals("by Jane Doe", ThingOrigins.getOriginNote(VIEW));
     }
 
     @Test
     void aThingThatIsNotPartOfANanopublicationIsNotLookedUp() {
         ThingOrigins.record(THING, PUBKEY, null);
-        ThingOrigins.resolveGoverningSpaces(List.of(THING));
+        ThingOrigins.resolveOrigins(List.of(THING));
         utils.verify(() -> Utils.getNanopub(THING), never());
         assertEquals("by Jane Doe", ThingOrigins.getOriginNote(THING));
+    }
+
+    /**
+     * A value a template names itself is found by no lookup query, so there is no result to read
+     * a signer or a date off: they come from the thing's own nanopublication (issue #817).
+     */
+    @Test
+    void aThingNoQueryReportedGetsItsNoteFromItsOwnNanopublication() throws Exception {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(1024);
+        KeyPair keyPair = keyGen.generateKeyPair();
+        NanopubCreator creator = new NanopubCreator("https://example.org/np/temp");
+        creator.addAssertionStatement(Utils.vf.createIRI("https://example.org/np/temp/view"), RDFS.LABEL, Utils.vf.createLiteral("A view"));
+        creator.addProvenanceStatement(RDFS.SEEALSO, creator.getAssertionUri());
+        creator.addPubinfoStatement(RDFS.SEEALSO, creator.getNanopubUri());
+        creator.addTimestamp(Date.from(Instant.parse(DATE)));
+        Nanopub signed = SignNanopub.signAndTransform(creator.finalizeNanopub(), new TransformContext(
+                SignatureAlgorithm.RSA, keyPair, Utils.vf.createIRI("https://example.org/signer"), false, false, false));
+        String thing = signed.getUri().stringValue() + "/view";
+        String pubkeyHash = Utils.createSha256HexHash(java.util.Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()));
+        users.when(() -> User.findSingleIdForPubkeyhash(pubkeyHash)).thenReturn(JANE);
+        users.when(() -> User.getShortDisplayNameForPubkeyhash(JANE, pubkeyHash)).thenReturn("Jane Doe");
+        utils.when(() -> Utils.getNanopub(signed.getUri().stringValue())).thenReturn(signed);
+
+        ThingOrigins.resolveOrigins(List.of(thing));
+        String note = ThingOrigins.getOriginNote(thing);
+        assertTrue(note.startsWith("by Jane Doe \u00b7 "), note);
+        // The timestamp is passed on as the nanopublication spells it, which is the local time
+        // of whoever published it; it names the instant the test gave it.
+        assertEquals(Instant.parse(DATE), OffsetDateTime.parse(note.substring(note.indexOf("\u00b7 ") + 2)).toInstant());
     }
 
     @Test

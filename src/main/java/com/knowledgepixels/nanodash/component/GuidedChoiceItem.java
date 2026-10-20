@@ -194,6 +194,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             public void query(String term, int page, Response<String> response) {
                 if (term == null) {
                     response.addAll(possibleValues);
+                    ThingOrigins.resolveOrigins(possibleValues);
                     return;
                 }
                 final String typedTerm = term;
@@ -214,6 +215,9 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
                     if (!alreadyAddedMap.containsKey(v)) addOnce(response, v, shownThings);
                 }
+                // A value the template names itself is found by no lookup, so what is known
+                // about where it comes from is read from its own nanopublication (issue #817).
+                ThingOrigins.resolveOrigins(response.getResults());
                 boolean nothingFound = response.getResults().isEmpty();
 
                 // A guided choice only suggests values, it doesn't limit them, so a plain name for

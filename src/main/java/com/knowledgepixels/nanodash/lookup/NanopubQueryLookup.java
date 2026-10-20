@@ -74,7 +74,7 @@ public class NanopubQueryLookup implements LookupApi {
             labels.put(value, entry.get("label") + descriptionOf(entry));
             ThingOrigins.record(value, entry.get("pubkey"), entry.get("date"));
         }
-        ThingOrigins.resolveGoverningSpaces(found);
+        ThingOrigins.resolveOrigins(found);
     }
 
     /**
