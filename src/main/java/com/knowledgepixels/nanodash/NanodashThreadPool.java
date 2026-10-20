@@ -19,23 +19,40 @@ public class NanodashThreadPool {
     private static final long KEEP_ALIVE_SECONDS = 60;
     private static final long QUIESCENCE_POLL_INTERVAL_MS = 20;
 
-    private static final ThreadPoolExecutor POOL = new ThreadPoolExecutor(
-            CORE_POOL_SIZE,
-            MAX_POOL_SIZE,
-            KEEP_ALIVE_SECONDS,
-            TimeUnit.SECONDS,
-            new SynchronousQueue<>(),
-            new ThreadFactory() {
-                private final AtomicInteger counter = new AtomicInteger(1);
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r, "nanodash-bg-" + counter.getAndIncrement());
-                    t.setDaemon(true);
-                    return t;
-                }
-            },
-            new ThreadPoolExecutor.CallerRunsPolicy()
-    );
+    private static final ThreadPoolExecutor POOL = newPool("nanodash-bg-");
+
+    /**
+     * A new pool of the shape background tasks run in: a core of threads that grows under
+     * load, no queue of its own — a {@link SynchronousQueue} hands each task straight to a
+     * thread — and the caller running the task itself when every thread is taken.
+     *
+     * <p>Package-private because a test needs a pool nothing else submits to. The shared
+     * one is busy for as long as the application runs, and under a full test suite it is
+     * never idle for more than a moment, so anything asserting that it went quiet asserts
+     * something about the rest of the suite rather than about the code under test.
+     *
+     * @param threadNamePrefix what this pool's threads are called, numbered from one
+     * @return the new pool
+     */
+    static ThreadPoolExecutor newPool(String threadNamePrefix) {
+        return new ThreadPoolExecutor(
+                CORE_POOL_SIZE,
+                MAX_POOL_SIZE,
+                KEEP_ALIVE_SECONDS,
+                TimeUnit.SECONDS,
+                new SynchronousQueue<>(),
+                new ThreadFactory() {
+                    private final AtomicInteger counter = new AtomicInteger(1);
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        Thread t = new Thread(r, threadNamePrefix + counter.getAndIncrement());
+                        t.setDaemon(true);
+                        return t;
+                    }
+                },
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+    }
 
     public static Future<?> submit(Runnable task) {
         return POOL.submit(task);
@@ -68,8 +85,21 @@ public class NanodashThreadPool {
      *         was interrupted
      */
     public static boolean awaitQuiescence(Duration timeout) {
+        return awaitQuiescence(POOL, timeout);
+    }
+
+    /**
+     * The same wait, on a pool given to it rather than on the shared one, so that the
+     * waiting itself can be tested.
+     *
+     * @param pool    the pool to wait on
+     * @param timeout how long to wait at most
+     * @return true once that pool is idle, false if the timeout lapsed first or the wait
+     *         was interrupted
+     */
+    static boolean awaitQuiescence(ThreadPoolExecutor pool, Duration timeout) {
         long deadline = System.nanoTime() + timeout.toNanos();
-        while (POOL.getActiveCount() > 0 || !POOL.getQueue().isEmpty()) {
+        while (pool.getActiveCount() > 0 || !pool.getQueue().isEmpty()) {
             if (System.nanoTime() - deadline >= 0) return false;
             try {
                 Thread.sleep(QUIESCENCE_POLL_INTERVAL_MS);
