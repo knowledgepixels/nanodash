@@ -63,6 +63,14 @@
       </exclusions>
     </dependency>
 
+    <!-- The layout engine for network views; the standalone UMD build is self-contained,
+         so the webjar declares no dependencies of its own. -->
+    <dependency>
+      <groupId>org.webjars.npm</groupId>
+      <artifactId>vis-network</artifactId>
+      <version>9.1.2</version>
+    </dependency>
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>

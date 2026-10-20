@@ -3495,6 +3495,90 @@ button.svg-zoom-toggle:hover {
   fill: #6eb2f7;
 }
 
+/* Network views (gen:NetworkView, issue #792). The canvas needs a height of its own:
+   it has no content to be sized by, and the layout inside it is computed against
+   whatever box it is given. Draggable at the bottom edge, because how much room a
+   graph wants depends on the graph. */
+.network-view-content {
+  height: 420px;
+  min-height: 160px;
+  /* The status line in the corner is positioned against this box. */
+  position: relative;
+  margin-top: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fcfcfc;
+  resize: vertical;
+  overflow: hidden;
+}
+
+/* A view sharing its stripe with others gets less room, so it asks for less height. */
+.col-6 .network-view-content,
+.col-5 .network-view-content,
+.col-4 .network-view-content,
+.col-3 .network-view-content,
+.col-2 .network-view-content,
+.col-1 .network-view-content {
+  height: 320px;
+}
+
+/* Set as text by network.js, so the line breaks need declaring here. The library's own
+   popup brings Verdana with it; the page's font belongs in it like anywhere else. */
+.network-view-tooltip {
+  white-space: pre-line;
+  max-width: 460px;
+  word-break: break-word;
+  font-family: Inter, Verdana, Helvetica, sans-serif, "Noto Emoji";
+  font-size: 10pt;
+}
+
+/* The IRI of whatever the pointer is on, in the bottom-left corner of the diagram, where
+   a browser shows the target of the link under the cursor. */
+.network-view-status {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1px 6px;
+  font-size: 8.5pt;
+  color: #555;
+  background-color: rgba(255, 255, 255, 0.92);
+  border-top: 1px solid #e8e8e8;
+  border-right: 1px solid #e8e8e8;
+  border-top-right-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.network-view-legend {
+  margin: 4px 0 0 0;
+  font-size: 9pt;
+  color: #666;
+}
+
+.network-view-legend-entry {
+  margin-right: 12px;
+  white-space: nowrap;
+}
+
+.network-view-swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: baseline;
+}
+
+.network-view-note {
+  margin: 4px 0 0 0;
+  font-size: 9pt;
+  color: #888;
+}
+
 .paragraph-header span.buttons {
   float: none;
   margin: 0;

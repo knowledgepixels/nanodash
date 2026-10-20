@@ -151,6 +151,11 @@ public final class DocumentModelBuilder {
                 return new Section(heading, null, List.of(buildNanopubList(response)));
             } else if (KPXL_TERMS.THREAD_VIEW.equals(viewType)) {
                 return new Section(heading, null, List.of(buildThread(response)));
+            } else if (KPXL_TERMS.NETWORK_VIEW.equals(viewType)) {
+                // A diagram laid out in the browser cannot travel into a document, but the
+                // edges it draws are rows like any other, so the export lists them. Better
+                // than a note saying nothing could be shown.
+                return new Section(heading, sectionDescription(vd), List.of(buildTable(view, response)));
             } else {
                 return new Section(heading, sectionDescription(vd), List.of(Paragraph.of("(view type not supported in document export)")));
             }
