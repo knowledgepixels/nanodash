@@ -52,6 +52,26 @@ public class UserData implements Serializable {
     private boolean complete = true;
 
     /**
+     * Empty user data, with nothing read from any service and nothing left to retry: it
+     * counts as {@link #isComplete() complete}, so the retry that incomplete data sets off
+     * does not fire either.
+     * <p>
+     * This is what an instance holds whose
+     * {@link NanodashPreferences#isDataRefreshEnabled() background data refresh} is switched
+     * off (issue #809). Reading the user lists is of no use to a test, and the whole-store
+     * queries behind them, multiplied by the test JVMs and by the CI runners that overlap,
+     * were enough to overload the public query services.
+     *
+     * @return user data that knows nothing
+     */
+    static UserData empty() {
+        return new UserData();
+    }
+
+    private UserData() {
+    }
+
+    /**
      * Constructor for UserData.
      * Initializes the user data by fetching nanopublications settings.
      *

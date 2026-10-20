@@ -69,6 +69,7 @@ public class NanodashPreferences implements Serializable {
     private String siteLogo;
     private String siteCss;
     private Boolean siteExternalLinks;
+    private Boolean dataRefresh;
     public static final String DEFAULT_SETTING_PATH = "/.nanopub/nanodash-preferences.yml";
 
     /**
@@ -479,6 +480,35 @@ public class NanodashPreferences implements Serializable {
      */
     public void setApiCacheFile(String apiCacheFile) {
         this.apiCacheFile = apiCacheFile;
+    }
+
+    /**
+     * Whether this instance loads and periodically refreshes the shared data sets -- the
+     * users, templates, spaces, maintained resources and resource profiles -- from the
+     * nanopub services, from the {@code NANODASH_DATA_REFRESH} environment variable or the
+     * preferences file. On unless explicitly switched off.
+     * <p>
+     * Switching it off leaves every one of those data sets to be built on demand, which is
+     * what a test run wants: a test that starts a {@link WicketApplication} has no interest
+     * in the full user list or template list, and a suite of them, run across several JVMs
+     * and several CI runners at once, put enough whole-store queries on the public query
+     * services to overload them (issue #809).
+     *
+     * @return true if the shared data sets are loaded and refreshed in the background
+     */
+    public boolean isDataRefreshEnabled() {
+        String s = System.getenv("NANODASH_DATA_REFRESH");
+        if (s == null || s.isBlank()) return dataRefresh == null || dataRefresh;
+        return !"false".equalsIgnoreCase(s.trim());
+    }
+
+    /**
+     * Set whether the shared data sets are loaded and refreshed in the background.
+     *
+     * @param dataRefresh false to switch the background loading off
+     */
+    public void setDataRefresh(Boolean dataRefresh) {
+        this.dataRefresh = dataRefresh;
     }
 
     /**

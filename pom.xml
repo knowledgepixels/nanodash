@@ -319,12 +319,20 @@
           <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Djava.awt.headless=true</argLine>
           <!-- Four test JVMs share the tests, matching the four cores of a GitHub-hosted runner.
                Many tests wait on the nanopub network, and the others now run meanwhile. -->
-          <forkCount>4</forkCount>
+          <forkCount>${test.forkCount}</forkCount>
           <reuseForks>true</reuseForks>
+          <!-- The "live" tests read the live nanopub corpus, which is far too much traffic to
+               put on the public services on every push and pull request (issue #809); the
+               live-tests workflow runs them nightly instead. -->
+          <excludedGroups>${test.excludedGroups}</excludedGroups>
           <environmentVariables>
             <!-- Tests that start a WicketApplication must not read or write the developer's
                  real API cache persistence (snapshot file and entry store) in ~/.nanopub. -->
             <NANODASH_API_CACHE_FILE>none</NANODASH_API_CACHE_FILE>
+            <!-- Nor load and periodically refresh the users, templates, spaces and resources:
+                 those are whole-store queries, and 81 test classes start an application
+                 (issue #809). Whatever a test itself asks for is still fetched. -->
+            <NANODASH_DATA_REFRESH>false</NANODASH_DATA_REFRESH>
           </environmentVariables>
         </configuration>
       </plugin>
@@ -352,6 +360,11 @@
   </build>
   <properties>
     <wicket.version>10.8.0</wicket.version>
+    <!-- JUnit tags left out of an ordinary test run; the nightly live-tests workflow clears
+         this and selects the "live" group instead. -->
+    <test.excludedGroups>live</test.excludedGroups>
+    <!-- How many JVMs share the tests; overridable so a single run can be serialised. -->
+    <test.forkCount>4</test.forkCount>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
