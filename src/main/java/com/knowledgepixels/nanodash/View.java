@@ -51,6 +51,7 @@ public class View implements Serializable {
             KPXL_TERMS.NANOPUB_SET_VIEW,
             KPXL_TERMS.ITEM_LIST_VIEW,
             KPXL_TERMS.SVG_VIEW,
+            KPXL_TERMS.NETWORK_VIEW,
             KPXL_TERMS.THREAD_VIEW,
             KPXL_TERMS.HEADER_VIEW
     );

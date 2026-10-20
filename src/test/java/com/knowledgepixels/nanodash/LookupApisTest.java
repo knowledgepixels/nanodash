@@ -1652,6 +1652,65 @@ class LookupApisTest {
     }
 
 
+    // ---- reachability (issue #763) ----
+
+    @Test
+    void anApiThatAnswersIsReachable() throws Exception {
+        try (MockedStatic<HttpClientBuilder> http = mockHttp(GBIF_FIXTURE)) {
+            assertEquals(Map.of(GBIF_API, true), LookupApis.checkReachability(List.of(GBIF_API)));
+        }
+    }
+
+    @Test
+    void anApiThatAnswersWithAnErrorIsNotReachable() throws Exception {
+        try (var ignored = mockHttp("<html>502</html>", 502)) {
+            assertEquals(Map.of(GBIF_API, false), LookupApis.checkReachability(List.of(GBIF_API)));
+        }
+    }
+
+    @Test
+    void anApiWhoseAnswerCannotBeReadIsNotReachable() throws Exception {
+        try (var ignored = mockHttp("not json")) {
+            assertEquals(Map.of(GBIF_API, false), LookupApis.checkReachability(List.of(GBIF_API)));
+        }
+    }
+
+    @Test
+    void reachabilityIsCachedUntilItIsForgotten() throws Exception {
+        assertFalse(LookupApis.isReachabilityKnown(List.of(GBIF_API)));
+        try (MockedStatic<HttpClientBuilder> http = mockHttp("<html>502</html>", 502)) {
+            LookupApis.checkReachability(List.of(GBIF_API));
+            LookupApis.checkReachability(List.of(GBIF_API));
+            http.verify(HttpClientBuilder::create, times(1));
+        }
+        assertTrue(LookupApis.isReachabilityKnown(List.of(GBIF_API)));
+        LookupApis.forgetReachability(List.of(GBIF_API));
+        assertFalse(LookupApis.isReachabilityKnown(List.of(GBIF_API)));
+        try (var ignored = mockHttp(GBIF_FIXTURE)) {
+            assertEquals(Map.of(GBIF_API, true), LookupApis.checkReachability(List.of(GBIF_API)), "a retry finds the API back");
+        }
+    }
+
+    @Test
+    void severalApisAreCheckedInTheirOrder() throws Exception {
+        try (var ignored = mockHttp(GBIF_FIXTURE)) {
+            LookupApis.checkReachability(List.of(GBIF_API));
+        }
+        String unreachable = "http://localhost:1/lookup?q=";
+        try (var ignored = mockHttp("<html>502</html>", 502)) {
+            LookupApis.checkReachability(List.of(unreachable));
+        }
+        Map<String, Boolean> reachability = LookupApis.checkReachability(List.of(unreachable, GBIF_API));
+        assertEquals(List.of(unreachable, GBIF_API), List.copyOf(reachability.keySet()));
+        assertEquals(List.of(false, true), List.copyOf(reachability.values()));
+    }
+
+    @Test
+    void severalUncheckedApisAreCheckedInParallel() {
+        Map<String, Boolean> reachability = LookupApis.checkReachability(List.of("http://localhost:1/a?q=", "http://localhost:1/b?q="));
+        assertEquals(List.of(false, false), List.copyOf(reachability.values()));
+    }
+
     // ---- blank search terms ----
 
     @Test
