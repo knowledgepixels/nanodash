@@ -258,22 +258,28 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
         // the snapshot, and queueing it behind the user data (which always makes a few live
         // registry calls) would leave the home page showing its loading spinner for exactly
         // that long to anyone reloading the moment the server is up.
-        NanodashThreadPool.submit(() -> {
-            try {
-                MaintainedResource homeResource = MaintainedResourceRepository.get()
-                        .findById(NanodashPreferences.get().getHomeResource());
-                if (homeResource != null) homeResource.triggerDataUpdate();
-            } catch (Exception ex) {
-                logger.error("Startup home-resource warm-up failed", ex);
-            }
-        });
-        NanodashThreadPool.submit(() -> {
-            try {
-                User.ensureLoaded();
-            } catch (Exception ex) {
-                logger.error("Startup user-data warm-up failed", ex);
-            }
-        });
+        // Both are skipped where the background data refresh is switched off (issue #809),
+        // which is how a test run keeps its many short-lived applications off the services.
+        if (NanodashPreferences.get().isDataRefreshEnabled()) {
+            NanodashThreadPool.submit(() -> {
+                try {
+                    MaintainedResource homeResource = MaintainedResourceRepository.get()
+                            .findById(NanodashPreferences.get().getHomeResource());
+                    if (homeResource != null) homeResource.triggerDataUpdate();
+                } catch (Exception ex) {
+                    logger.error("Startup home-resource warm-up failed", ex);
+                }
+            });
+            NanodashThreadPool.submit(() -> {
+                try {
+                    User.ensureLoaded();
+                } catch (Exception ex) {
+                    logger.error("Startup user-data warm-up failed", ex);
+                }
+            });
+        } else {
+            logger.info("Background data refresh is switched off; the shared data sets are built on demand");
+        }
 
         if (SiteMode.isEnabled()) {
             logger.info("Site mode: this instance is the site of space {}", SiteMode.getSpaceId());

@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.domain;
 
+import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
@@ -33,6 +34,7 @@ public class User {
      * Refreshes the user data by creating a new UserData instance.
      */
     public static void refreshUsers() {
+        if (!NanodashPreferences.get().isDataRefreshEnabled()) return;
         logger.info("Refreshing user data...");
         synchronized (User.class) {
             if (userData == null || System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
@@ -57,7 +59,9 @@ public class User {
             synchronized (User.class) {
                 if (userData == null) {
                     lastRefresh = System.currentTimeMillis();
-                    install(new UserData(false));
+                    install(NanodashPreferences.get().isDataRefreshEnabled()
+                            ? new UserData(false)
+                            : UserData.empty());
                 }
             }
         }
