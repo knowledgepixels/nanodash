@@ -247,6 +247,10 @@ public abstract class NanodashPage extends WebPage {
     }
 
     private void ensureRefreshed() {
+        // Not where the background data refresh is switched off (issue #809): every one of
+        // these re-reads a whole store, and a test suite that renders pages in several JVMs
+        // at once made enough of them to overload the public query services.
+        if (!NanodashPreferences.get().isDataRefreshEnabled()) return;
         synchronized (getClass()) {
             state = lastRefresh;
             if (!refreshRunning && System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {

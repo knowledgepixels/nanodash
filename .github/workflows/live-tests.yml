@@ -1,0 +1,33 @@
+name: Live corpus tests
+
+# The tests tagged "live" read the live nanopub corpus: AllAssertionTemplatesLoadingTest alone
+# fetches 195 templates and everything they point at. That is worth checking, but not on every
+# push and pull request across three Java versions and four test JVMs each -- that much traffic
+# overloaded the public query services (issue #809). Once a day, on one Java version, in one
+# JVM, is enough to notice a template that stopped loading.
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up JDK
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: 'maven'
+
+      - name: Run the live tests
+        run: ./mvnw -B test -Dgroups=live -Dtest.excludedGroups= -Dtest.forkCount=1

@@ -421,4 +421,39 @@ class NanodashPreferencesTest {
         assertNull(preferences.getSiteSpace());
     }
 
+    // The background data refresh (issue #809): on unless something switches it off, which the
+    // test run does so that its applications stay off the public query services.
+    @Test
+    void dataRefreshIsOnWhenNothingSwitchesItOff() {
+        envVars.set("NANODASH_DATA_REFRESH", null);
+        assertTrue(get().isDataRefreshEnabled());
+    }
+
+    @Test
+    void dataRefreshIsSwitchedOffFromTheEnvironment() {
+        envVars.set("NANODASH_DATA_REFRESH", "false");
+        assertFalse(get().isDataRefreshEnabled());
+        envVars.set("NANODASH_DATA_REFRESH", "FALSE");
+        assertFalse(get().isDataRefreshEnabled());
+    }
+
+    @Test
+    void dataRefreshCanBeSet() {
+        envVars.set("NANODASH_DATA_REFRESH", null);
+        NanodashPreferences preferences = get();
+        preferences.setDataRefresh(false);
+        assertFalse(preferences.isDataRefreshEnabled());
+        preferences.setDataRefresh(true);
+        assertTrue(preferences.isDataRefreshEnabled());
+    }
+
+    // The environment wins over the preferences file, as it does for the other settings.
+    @Test
+    void dataRefreshFromTheEnvironmentBeatsThePreferencesFile() {
+        envVars.set("NANODASH_DATA_REFRESH", "false");
+        NanodashPreferences preferences = get();
+        preferences.setDataRefresh(true);
+        assertFalse(preferences.isDataRefreshEnabled());
+    }
+
 }

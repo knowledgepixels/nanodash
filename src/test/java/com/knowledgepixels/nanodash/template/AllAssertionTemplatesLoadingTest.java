@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,6 +10,15 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Checks that every published assertion template still loads. This is the one test that
+ * reads the live corpus: each of the 195 templates is fetched from a registry, as are the
+ * nanopubs its {@code nt:possibleValuesFrom} statements point at. That is most of the
+ * nanopub traffic the whole suite makes, and multiplied by the test JVMs and the CI runners
+ * it was enough to overload the public services (issue #809) -- hence the {@code live} tag,
+ * which keeps it out of an ordinary {@code mvn test} and leaves it to the nightly run.
+ */
+@Tag("live")
 class AllAssertionTemplatesLoadingTest {
 
     /**
