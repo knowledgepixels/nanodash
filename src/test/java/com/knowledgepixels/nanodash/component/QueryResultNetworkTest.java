@@ -145,12 +145,12 @@ class QueryResultNetworkTest {
      * The layout engine is referenced by a path inside its webjar, which nothing would
      * check at compile time: a wrong one serves a 404 and draws no network at all. The
      * reference resolves "current" to the version actually on the classpath, so this also
-     * fails if the dependency is dropped or moved.
+     * fails if the dependency is dropped or moved. Only the script is loaded; the library's
+     * stylesheet is replaced by one rule in style.css.
      */
     @Test
     void theLayoutEngineIsOnTheClasspathWhereTheComponentLooksForIt() {
-        for (String path : List.of("vis-network/current/standalone/umd/vis-network.min.js",
-                "vis-network/current/styles/vis-network.min.css")) {
+        for (String path : List.of("vis-network/current/standalone/umd/vis-network.min.js")) {
             String resolved = new WebjarsJavaScriptResourceReference(path).getName();
             assertFalse(resolved.contains("current"), "version not resolved: " + resolved);
             // The reference resolves to a servable path ("/webjars/..."); on the classpath

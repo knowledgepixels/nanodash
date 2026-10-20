@@ -3522,6 +3522,24 @@ button.svg-zoom-toggle:hover {
   height: 320px;
 }
 
+/* vis-network's own popup element, which it positions and shows as the pointer moves —
+   the absolute positioning and the hidden default are what make that work. The library's
+   stylesheet is not loaded for it: 220 KB, 93% of that base64 icons for a navigation bar,
+   an editing toolbar and a configuration panel this view does not turn on. The colours are
+   the ones that stylesheet used, so nothing looks different for the saving. */
+.vis-tooltip {
+  position: absolute;
+  visibility: hidden;
+  z-index: 5;
+  padding: 5px;
+  border: 1px solid #808074;
+  border-radius: 3px;
+  background-color: #f5f4ed;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  color: #000;
+  pointer-events: none;
+}
+
 /* Set as text by network.js, so the line breaks need declaring here. The library's own
    popup brings Verdana with it; the page's font belongs in it like anywhere else. */
 .network-view-tooltip {

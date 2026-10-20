@@ -4,11 +4,9 @@ import com.knowledgepixels.nanodash.NetworkGraph;
 import com.knowledgepixels.nanodash.QueryResult;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.WicketApplication;
-import de.agilecoders.wicket.webjars.request.resource.WebjarsCssResourceReference;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -45,10 +43,12 @@ public class QueryResultNetwork extends QueryResult {
     // The layout engine is loaded with the component, not with every page, exactly as the
     // rich-text editor's resources are: a page without a network view pays for none of it.
     // The standalone UMD build is self-contained and exposes the "vis" global.
+    //
+    // Its stylesheet is deliberately not loaded: 220 KB of which 205 KB is base64 icons for
+    // the navigation buttons, the manipulation toolbar and the configuration panel, none of
+    // which this view turns on. The one rule the popup needs is in style.css instead.
     private static final WebjarsJavaScriptResourceReference VIS_NETWORK_JS =
             new WebjarsJavaScriptResourceReference("vis-network/current/standalone/umd/vis-network.min.js");
-    private static final WebjarsCssResourceReference VIS_NETWORK_CSS =
-            new WebjarsCssResourceReference("vis-network/current/styles/vis-network.min.css");
     private static final JavaScriptResourceReference NETWORK_JS =
             new JavaScriptResourceReference(WicketApplication.class, "script/network.js");
 
@@ -169,7 +169,6 @@ public class QueryResultNetwork extends QueryResult {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.render(CssHeaderItem.forReference(VIS_NETWORK_CSS));
         response.render(JavaScriptHeaderItem.forReference(VIS_NETWORK_JS));
         response.render(JavaScriptHeaderItem.forReference(NETWORK_JS));
     }
