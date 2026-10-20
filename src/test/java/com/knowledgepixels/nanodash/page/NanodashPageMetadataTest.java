@@ -66,7 +66,7 @@ class NanodashPageMetadataTest {
         assertTrue(document.contains("property=\"og:title\""), document);
         assertTrue(document.contains("property=\"og:description\""), document);
         assertTrue(document.contains("property=\"og:url\" content=\"http"), document);
-        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary\""), document);
+        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary"), document);
     }
 
     /**
@@ -273,14 +273,19 @@ class NanodashPageMetadataTest {
     }
 
     /**
-     * An instance that has not been told its own address cannot build a URL a preview
-     * service could fetch, and says nothing rather than something wrong.
+     * A page with no picture to offer — an instance that has not been told its own address
+     * cannot build a URL a preview service could fetch — says nothing rather than something
+     * wrong, and asks for the card shape that does not expect a picture.
      */
     @Test
-    void offersNoPictureWithoutAConfiguredAddress() {
-        String document = renderedPage();
+    void offersNoPictureWhereThereIsNone() {
+        PicturedPage.imageUrl = null;
+        PicturedPage.wide = false;
+        tester.startPage(PicturedPage.class);
+        String document = tester.getLastResponse().getDocument();
         assertFalse(document.contains("og:image"), document);
-        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary\""), document);
+        assertFalse(document.contains("twitter:image"), document);
+        assertTrue(document.contains("<meta name=\"twitter:card\" content=\"summary\" />"), document);
     }
 
     /**
