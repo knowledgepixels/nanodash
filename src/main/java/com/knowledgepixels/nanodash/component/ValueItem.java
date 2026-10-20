@@ -117,13 +117,14 @@ public class ValueItem extends AbstractContextComponent {
     /**
      * Returns the line under a field in which a template gives the API that another placeholder
      * looks its values up in, i.e. the object of an {@code nt:possibleValuesFromApi} statement,
-     * which says whether the API entered can be reached (issue #763). Other fields get no such
-     * line.
+     * which says it if the API entered cannot be reached (issues #763 and #815). Other fields get
+     * no such line.
      *
      * @param id              the position of the value in its statement
      * @param value           the value of this item
      * @param statementPartId the IRI of the statement part this value belongs to
-     * @return the status line, hidden unless this is such a field
+     * @return the status line, which shows nothing unless this is such a field whose API
+     *         cannot be reached
      */
     @SuppressWarnings("unchecked")
     private Component newApiStatus(String id, Value value, IRI statementPartId) {
