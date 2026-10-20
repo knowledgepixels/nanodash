@@ -305,6 +305,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
 
         });
         add(textfield);
+        add(new LookupApiStatus("apiStatus", template.getPossibleValuesApis(iri)));
     }
 
     /**

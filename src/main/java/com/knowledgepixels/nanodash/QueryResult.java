@@ -282,11 +282,12 @@ public abstract class QueryResult extends Panel {
     /**
      * The navigation context to stamp on links in result cells: this view's context
      * resource if bound to one, else the page's navigation context. Only usable at
-     * render time (needs the page).
+     * render time (needs the page). Visible to the view types that build their links
+     * as URLs rather than components (see the network view).
      *
      * @return the context id, or null if neither is set
      */
-    private String renderContextId() {
+    protected String renderContextId() {
         if (contextId != null) return contextId;
         if (getPage() instanceof NanodashPage nanodashPage) return nanodashPage.getContextId();
         return null;
