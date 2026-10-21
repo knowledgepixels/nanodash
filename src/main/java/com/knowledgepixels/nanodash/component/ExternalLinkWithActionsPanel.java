@@ -14,6 +14,13 @@ import org.eclipse.rdf4j.model.IRI;
  */
 public class ExternalLinkWithActionsPanel extends Panel {
 
+    /**
+     * Length beyond which the link's label is cropped. The link itself keeps the whole URI:
+     * an auto-escaped IRI -- an AIDA sentence, say -- can run to several hundred characters,
+     * and spelling all of it out crowds out everything else on the page.
+     */
+    private static final int MAX_LABEL_LENGTH = 120;
+
     private final IModel<String> urlModel;
     private IModel<String> labelModel;
     private IRI sourceNanopub;
@@ -43,7 +50,13 @@ public class ExternalLinkWithActionsPanel extends Panel {
     protected void onInitialize() {
         super.onInitialize();
 
-        ExternalLink externalLink = new ExternalLink("externalLink", urlModel, urlModel);
+        // Cropped for the label only: the href keeps the full URI, as does what "copy" copies.
+        IModel<String> croppedUrlModel = () -> {
+            String url = urlModel.getObject();
+            if (url == null || url.length() <= MAX_LABEL_LENGTH) return url;
+            return url.substring(0, MAX_LABEL_LENGTH) + "...";
+        };
+        ExternalLink externalLink = new ExternalLink("externalLink", urlModel, croppedUrlModel);
         add(externalLink);
 
         // The "copy link" action is the single entry of a borderless dropdown menu
