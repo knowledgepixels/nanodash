@@ -1252,11 +1252,22 @@ span.mint-note {
 }
 
 /* Who a value found in the nanopub network comes from (issue #765): the Space governing it or the
-   user who introduced it, on a line of its own below the term. */
+   user who introduced it, with the date it was published (issue #817), on a line of its own below
+   the term. The entry under the pointer is set in white on blue, which the note joins in. */
 .select2-dropdown span.origin-note {
   font-weight: normal;
   font-style: italic;
   color: #555;
+}
+
+.select2-dropdown .select2-results__option--highlighted span.origin-note {
+  color: inherit;
+}
+
+/* Two to three entries of the dropdown are in view at a time; an entry takes up to three lines
+   (issue #817). */
+.select2-dropdown .select2-results > .select2-results__options {
+  max-height: 320px;
 }
 
 .select2-dropdown.select2-dropdown--below {
@@ -1307,6 +1318,22 @@ code {
   background: #00000008;
   padding: 1px 3px;
   margin: 1px 3px;
+  /* Long enough to need more than a line, a piece of code is broken rather than left to run
+     out of its box, and its frame is drawn around each of its lines rather than only at its
+     two ends (issue #817). */
+  overflow-wrap: break-word;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* A URL is one long word, and the few places a line may be broken in it -- after a slash or a
+   hyphen -- fall wherever they fall, which leaves a line half empty and the next one full. Where
+   a URL is spelled out in full it is broken to fill each line instead (issue #817). */
+.select2-dropdown code,
+code.chars,
+.api-token-reveal code,
+.uri.uri-full {
+  word-break: break-all;
 }
 
 code.chars {

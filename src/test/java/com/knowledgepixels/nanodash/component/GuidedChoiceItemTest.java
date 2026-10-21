@@ -89,6 +89,16 @@ public class GuidedChoiceItemTest {
      * possible value (none if null), and returns an initialized context for it.
      */
     private TemplateContext guidedContext(String prefix, boolean external, IRI possibleValue) throws Exception {
+        return guidedContext(prefix, external, possibleValue, null);
+    }
+
+    /**
+     * Builds a one-statement template whose object is a guided choice placeholder with the given
+     * prefix (none if null), optionally typed as an external URI placeholder and with a fixed
+     * possible value (none if null) under the given label (none if null), and returns an
+     * initialized context for it.
+     */
+    private TemplateContext guidedContext(String prefix, boolean external, IRI possibleValue, String valueLabel) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -110,6 +120,9 @@ public class GuidedChoiceItemTest {
         }
         if (possibleValue != null) {
             creator.addAssertionStatement(THING, NTEMPLATE.POSSIBLE_VALUE, possibleValue);
+            if (valueLabel != null) {
+                creator.addAssertionStatement(possibleValue, RDFS.LABEL, vf.createLiteral(valueLabel));
+            }
         }
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
@@ -197,6 +210,60 @@ public class GuidedChoiceItemTest {
     @Test
     void externalGuidedChoiceIsNotShownAsMintedLocally() throws Exception {
         assertEquals("john", fieldOf(guidedContext(null, true)).getProvider().getDisplayValue("john"));
+    }
+
+    /**
+     * The nanopub network holds every version of a view, template or query, and a template can
+     * name one of them itself, so the same thing is easily suggested several times over under one
+     * and the same label (issue #817). Only the first of them is listed. A thing that merely
+     * shares its label with another is a different thing and stays on the list -- as is one that
+     * merely shares its local name, which the views called just "view" in their IRI do.
+     */
+    @Test
+    void theSameThingIsSuggestedOnlyOnce() throws Exception {
+        IRI version1 = vf.createIRI("http://example.com/np1/thing-view");
+        IRI version2 = vf.createIRI("http://example.com/np2/thing-view");
+        IRI otherThing = vf.createIRI("http://example.com/np3/other-view");
+
+        NanopubCreator creator = new NanopubCreator(NP_URI);
+        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
+        IRI templateNode = creator.getAssertionUri();
+        IRI st1 = vf.createIRI(NP_URI + "/st1");
+        creator.addAssertionStatement(templateNode, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
+        creator.addAssertionStatement(templateNode, RDFS.LABEL, vf.createLiteral("Duplicate suggestion test template"));
+        creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, st1);
+        creator.addAssertionStatement(st1, RDF.SUBJECT, vf.createIRI("http://example.com/subject"));
+        creator.addAssertionStatement(st1, RDF.PREDICATE, vf.createIRI("http://example.com/hasThing"));
+        creator.addAssertionStatement(st1, RDF.OBJECT, THING);
+        creator.addAssertionStatement(THING, RDF.TYPE, NTEMPLATE.GUIDED_CHOICE_PLACEHOLDER);
+        creator.addAssertionStatement(THING, RDFS.LABEL, vf.createLiteral("thing"));
+        for (IRI value : List.of(version1, version2, otherThing)) {
+            creator.addAssertionStatement(THING, NTEMPLATE.POSSIBLE_VALUE, value);
+            creator.addAssertionStatement(value, RDFS.LABEL, vf.createLiteral("Thing view"));
+        }
+        Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
+        TemplateData templateDataMock = mock(TemplateData.class);
+        templateDataMockedStatic.when(TemplateData::get).thenReturn(templateDataMock);
+        when(templateDataMock.getTemplate(NP_URI)).thenReturn(template);
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        context.initStatements();
+
+        List<String> suggestions = suggestionsFor(context, "thing view");
+        assertTrue(suggestions.contains(version1.stringValue()));
+        assertFalse(suggestions.contains(version2.stringValue()), "a second version of the same thing is left out");
+        assertTrue(suggestions.contains(otherThing.stringValue()), "another thing with the same label stays");
+    }
+
+    /**
+     * A value is named below its label by the URI it is, with the artifact code of a trusty URI
+     * shortened the way it is wherever a URI is shown as a link.
+     */
+    @Test
+    void theUriOfAChoiceIsShownWithAShortenedArtifactCode() throws Exception {
+        IRI view = vf.createIRI(NP_URI + "/view");
+        TemplateContext context = guidedContext(null, false, view, "A view");
+        assertEquals("A view (https://w3id.org/np/RAAbCdEfGh.../view)", fieldOf(context).getProvider().getDisplayValue(view.stringValue()));
     }
 
     /**
