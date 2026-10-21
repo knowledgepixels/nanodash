@@ -326,7 +326,7 @@ public class ReadonlyItem extends AbstractContextComponent {
         String s = model.getObject();
         if (s == null) return null;
         if (template.isAutoEscapePlaceholder(iri)) {
-            s = Utils.urlEncode(s);
+            s = context.autoEscape(iri, s);
         }
         if (!prefix.isEmpty()) {
             s = prefix + s;
@@ -470,6 +470,9 @@ public class ReadonlyItem extends AbstractContextComponent {
 //				vs = Utils.getUriPostfix(vs);
             }
             if (template.isAutoEscapePlaceholder(iri)) {
+                // Before decoding, so the exact IRI can be given back unchanged:
+                // see TemplateContext.autoEscape.
+                context.setAutoEscapeSource(iri, vs);
                 vs = Utils.urlDecode(vs);
             }
             model.setObject(vs);
@@ -547,7 +550,7 @@ public class ReadonlyItem extends AbstractContextComponent {
             String sv = s.getValue();
             String p = prefix;
             if (template.isAutoEscapePlaceholder(iri)) {
-                sv = Utils.urlEncode(sv);
+                sv = context.autoEscape(iri, sv);
             }
             if (Utils.isUriValue(sv)) {
                 p = "";

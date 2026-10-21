@@ -197,7 +197,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             String value = textfield.getModelObject();
             if (value == null || value.isEmpty()) return "";
             if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
-                value = Utils.urlEncode(value);
+                value = context.autoEscape(iri, value);
             }
             if (Utils.isUriValue(value)) return value;
             if (!context.hasDynamicPrefix(iri) && context.getTemplate().isLocalResource(iri)) {
@@ -343,6 +343,9 @@ public class IriTextfieldItem extends AbstractContextComponent {
             vs = Utils.getUriPostfix(vs);
         }
         if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
+            // Before decoding, so the exact IRI can be given back unchanged:
+            // see TemplateContext.autoEscape.
+            context.setAutoEscapeSource(iri, vs);
             vs = Utils.urlDecode(vs);
         }
         textfield.setModelObject(vs);
@@ -500,7 +503,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             String p = prefixModel.getObject();
             if (p == null) p = "";
             if (template.isAutoEscapePlaceholder(iri)) {
-                sv = Utils.urlEncode(sv);
+                sv = context.autoEscape(iri, sv);
             }
             if (Utils.isUriValue(sv)) {
                 p = "";
