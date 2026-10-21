@@ -1,3 +1,82 @@
+## [5.20.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.19.1...nanodash-5.20.0) (2026-10-21)
+
+### Features
+
+* **forms:** add a date placeholder typed by the precision entered ([c4caf69](https://github.com/knowledgepixels/nanodash/commit/c4caf69ba1f70e1d37598f3e85cf583ec76b4e2a)), closes [#726](https://github.com/knowledgepixels/nanodash/issues/726)
+* **forms:** list a governed thing with its space and its date ([9850531](https://github.com/knowledgepixels/nanodash/commit/9850531d5db441fe7b394a5e62c8d6e5d84d5638)), closes [#817](https://github.com/knowledgepixels/nanodash/issues/817)
+* **forms:** list the values on offer newest first ([49cadec](https://github.com/knowledgepixels/nanodash/commit/49cadec124c439134ccf96663ea71b519a6e820c))
+* **forms:** make the timezone dropdown searchable ([cfa4de1](https://github.com/knowledgepixels/nanodash/commit/cfa4de1ae8f89d938d9cb52959c37ca43abb1c33)), closes [#266](https://github.com/knowledgepixels/nanodash/issues/266)
+* **forms:** note where a value the template names comes from ([8d15fce](https://github.com/knowledgepixels/nanodash/commit/8d15fce92f78905bf2256838f36dac2f5ec6ab0d))
+* **forms:** say under a guided choice whether its lookup APIs are reachable ([b5bd325](https://github.com/knowledgepixels/nanodash/commit/b5bd325b13f08da93977c6f5d73834239804c89f)), closes [#763](https://github.com/knowledgepixels/nanodash/issues/763)
+* **forms:** shorten the artifact code in the URLs on offer ([4fd390d](https://github.com/knowledgepixels/nanodash/commit/4fd390d2c9e7ac04a019be540e918fa5851a32f3))
+* **forms:** show who a found thing comes from, newest first ([890b7c6](https://github.com/knowledgepixels/nanodash/commit/890b7c66cfb67d2ee1183a712fb5c0c1f41aeac5)), closes [#765](https://github.com/knowledgepixels/nanodash/issues/765)
+* **forms:** tidy up the dropdown entries ([5531588](https://github.com/knowledgepixels/nanodash/commit/553158898aeba8a921c834cd950b37668975faac))
+* **lookup:** run the newest-first find-things query ([84299e1](https://github.com/knowledgepixels/nanodash/commit/84299e132aac63af3bb1ecaca49e354daa44c16e)), closes [#796](https://github.com/knowledgepixels/nanodash/issues/796)
+* **seo:** make Nanodash findable by search engines ([ceb010b](https://github.com/knowledgepixels/nanodash/commit/ceb010b5dc1c7f74852b5d5ebfd8bd7ffb0715ef)), closes [#704](https://github.com/knowledgepixels/nanodash/issues/704) [#710](https://github.com/knowledgepixels/nanodash/issues/710) [#168](https://github.com/knowledgepixels/nanodash/issues/168) [#804](https://github.com/knowledgepixels/nanodash/issues/804) [#168](https://github.com/knowledgepixels/nanodash/issues/168)
+* **templates:** describe how to fill in each statement ([04b606e](https://github.com/knowledgepixels/nanodash/commit/04b606e0c60660cdb8f76062808bede22cd613ac)), closes [#45](https://github.com/knowledgepixels/nanodash/issues/45)
+* **templates:** report introduced resources with a fixed foreign IRI ([057735b](https://github.com/knowledgepixels/nanodash/commit/057735b068b346a9701ac5449983532308bf2e68)), closes [#749](https://github.com/knowledgepixels/nanodash/issues/749)
+* **templates:** say whether the API a template gives can be reached ([6ca81ba](https://github.com/knowledgepixels/nanodash/commit/6ca81ba92f93be41b5a72cc8f25039948e00b940)), closes [#763](https://github.com/knowledgepixels/nanodash/issues/763)
+* **views:** draw a view's result as an interactive network ([7b6f564](https://github.com/knowledgepixels/nanodash/commit/7b6f5649cc29d65000390cdc155e6907faf8e81c)), closes [#792](https://github.com/knowledgepixels/nanodash/issues/792)
+* **views:** name a network edge's relation, and describe its nodes on hover ([ba1eead](https://github.com/knowledgepixels/nanodash/commit/ba1eead1af31a2a5bea49cc0be77f988d0e34c94)), closes [#792](https://github.com/knowledgepixels/nanodash/issues/792)
+* **views:** read a network's IRIs from a status line, its words from the hover box ([81a1ea6](https://github.com/knowledgepixels/nanodash/commit/81a1ea6fd2996ce5807466ac17c619884b6d3db6))
+
+### Bug Fixes
+
+* **explore:** show what is known about a term instead of four empty boxes ([3fc452a](https://github.com/knowledgepixels/nanodash/commit/3fc452aaf51b6573c14bc8fc350cf95fa57bedf3))
+* **forms:** ask for the browser's timezone only where a time can be entered ([4459eac](https://github.com/knowledgepixels/nanodash/commit/4459eac345d8da7e713d9600eb12c7e03bea5dcc))
+* **forms:** ask for the parts the coarsest accepted precision needs upfront ([0604b8f](https://github.com/knowledgepixels/nanodash/commit/0604b8fed6f097de725b14c66edc4f4be95e3872))
+* **forms:** keep a lazily checked API status on its line under the field ([542fd2c](https://github.com/knowledgepixels/nanodash/commit/542fd2c856fc841d04715803163f124fb10d45d5)), closes [#763](https://github.com/knowledgepixels/nanodash/issues/763)
+* **forms:** keep newlines in literals of value placeholder fields ([7297a3c](https://github.com/knowledgepixels/nanodash/commit/7297a3cf9538ded8abbfac705c5428b3ac5801e7)), closes [#103](https://github.com/knowledgepixels/nanodash/issues/103)
+* **forms:** line the API status up with the start of its field ([486dcb5](https://github.com/knowledgepixels/nanodash/commit/486dcb5669ec7bdb498a8b318d6fda075e215d7e)), closes [#763](https://github.com/knowledgepixels/nanodash/issues/763)
+* **forms:** offer every part of a date placeholder from the start ([862e2f3](https://github.com/knowledgepixels/nanodash/commit/862e2f37d8c1489df26cce0243cd3992bdf1c865))
+* **forms:** offer only the days the month picked has ([cd82e2e](https://github.com/knowledgepixels/nanodash/commit/cd82e2ea14ffbc590a7fed3c1f3052b98a7200eb))
+* **forms:** prompt for a search term when opening a lookup-only guided choice ([7fd06ec](https://github.com/knowledgepixels/nanodash/commit/7fd06ec6e19923ea7282745f460c47fbccbeb07f))
+* **forms:** report only lookup APIs that cannot be reached ([5c23c81](https://github.com/knowledgepixels/nanodash/commit/5c23c817f4eb0bf2fa62808efa7afa86ee3b5143)), closes [#815](https://github.com/knowledgepixels/nanodash/issues/815)
+* **forms:** say "No results found" above the entry that mints a new term ([254a1a3](https://github.com/knowledgepixels/nanodash/commit/254a1a3296085310cb3caa1c2348f9883f79ca50))
+* **forms:** show a locked field's URI in a hover box ([15b21d1](https://github.com/knowledgepixels/nanodash/commit/15b21d175c4e2497591b32514bb0325746faab8a)), closes [#786](https://github.com/knowledgepixels/nanodash/issues/786)
+* **forms:** show the text of an HTML description in guided choices ([883d97f](https://github.com/knowledgepixels/nanodash/commit/883d97f4897f62a803460eb7140082402b63f373))
+* **lookup:** don't log an error for an OLS term without a description ([b6d32cb](https://github.com/knowledgepixels/nanodash/commit/b6d32cb8ee6084cfb57401a75e734128c64bcda8))
+* **lookup:** send the search term once to nanopub queries, and treat HTTP errors as outages ([50ea16f](https://github.com/knowledgepixels/nanodash/commit/50ea16f096f1e9cbe1a8864c4963923fecbbfd0a))
+* **lookup:** skip a blank search term for nanopub queries too ([97515fd](https://github.com/knowledgepixels/nanodash/commit/97515fd54414fe6a8668f764b0143d95e1544b88))
+* **lookup:** skip blank terms for HTTP APIs and log their outages as warnings ([3238b04](https://github.com/knowledgepixels/nanodash/commit/3238b04943dbb4177a1618313d68523f826d6f21))
+* **privacy:** name protected nanopubs only where they are possible ([3dac9ec](https://github.com/knowledgepixels/nanodash/commit/3dac9ec241aecee7e765529ce1e02f9eac9524a4))
+* **templates:** keep links in a statement description on the text line ([eeb9921](https://github.com/knowledgepixels/nanodash/commit/eeb9921f72089c2dc041e58ebdaf92fef70d32a5))
+* **templates:** keep the IRI an auto-escape placeholder was filled from ([d2aaf7e](https://github.com/knowledgepixels/nanodash/commit/d2aaf7ef679d8be435cf507549583bb46bbe58b7))
+* **test:** keep the test suite off the production nanopub services ([5044a07](https://github.com/knowledgepixels/nanodash/commit/5044a07699c08b84613b2fdec771624f4a09afa4)), closes [#809](https://github.com/knowledgepixels/nanodash/issues/809)
+* **test:** read preferences from a temp directory, not the developer's home ([1e507f3](https://github.com/knowledgepixels/nanodash/commit/1e507f38cd52c748558f5190a652f2f60c2baa57)), closes [#808](https://github.com/knowledgepixels/nanodash/issues/808) [#812](https://github.com/knowledgepixels/nanodash/issues/812) [#813](https://github.com/knowledgepixels/nanodash/issues/813)
+* **test:** stop the metadata tests reading the ambient configuration ([a903534](https://github.com/knowledgepixels/nanodash/commit/a9035340279096328d738b855d537b65f8347f28)), closes [#808](https://github.com/knowledgepixels/nanodash/issues/808) [#804](https://github.com/knowledgepixels/nanodash/issues/804)
+* **ui:** wrap long URI links and crop their labels ([935edaa](https://github.com/knowledgepixels/nanodash/commit/935edaa9a220357a112d1f95ccd5a0c61cb38ed2))
+
+### Documentation
+
+* note that a "now" default for date placeholders is not planned ([3dcf210](https://github.com/knowledgepixels/nanodash/commit/3dcf2102d089b25e81ce94498d18abbb82c9dad5))
+* **notes:** say how the test suite is kept off the public services ([ea00962](https://github.com/knowledgepixels/nanodash/commit/ea009621ce9169ea7fff0b714ec2f0f32b582831)), closes [#809](https://github.com/knowledgepixels/nanodash/issues/809)
+* point the date placeholder's open ends to their own issues ([d0888f7](https://github.com/knowledgepixels/nanodash/commit/d0888f7980e66d5567344b875e9d2a011ed8321b)), closes [#444](https://github.com/knowledgepixels/nanodash/issues/444) [#799](https://github.com/knowledgepixels/nanodash/issues/799) [#800](https://github.com/knowledgepixels/nanodash/issues/800) [#444](https://github.com/knowledgepixels/nanodash/issues/444)
+
+### Performance improvements
+
+* **views:** stop loading vis-network's 220 KB stylesheet for one rule ([778974a](https://github.com/knowledgepixels/nanodash/commit/778974a471c826e11fa2b71beb2ac108d4945d5a))
+
+### Tests
+
+* **cache:** stop waiting on the shared pool after each persistence test ([59b14f1](https://github.com/knowledgepixels/nanodash/commit/59b14f19cbe47de5fea5fd62cb310498969bff2d)), closes [#805](https://github.com/knowledgepixels/nanodash/issues/805)
+* **threadpool:** wait on a pool of the test's own, not on the shared one ([cfee9ea](https://github.com/knowledgepixels/nanodash/commit/cfee9ea57ce0de4e23fee5b3568669700165811d))
+
+### Build and continuous integration
+
+* one test run per ref, one release at a time ([e213222](https://github.com/knowledgepixels/nanodash/commit/e21322218568070c1626ef46782ae1cc800196a8)), closes [#809](https://github.com/knowledgepixels/nanodash/issues/809) [#809](https://github.com/knowledgepixels/nanodash/issues/809)
+* **test:** run the tests in four JVMs ([edccf6f](https://github.com/knowledgepixels/nanodash/commit/edccf6fc50424fea2ae97ec9d80d2369c7042184))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([efa164d](https://github.com/knowledgepixels/nanodash/commit/efa164d5b3f370ccedeaad87fa9ac87bc74d02d6))
+
+### Refactoring
+
+* **forms:** share the timezone choice and time picker of date and time fields ([2993d2a](https://github.com/knowledgepixels/nanodash/commit/2993d2a5abdb99211d931031f2882d9dc9e36367))
+* **lookup:** move the parsers into a lookup.parser subpackage ([050024b](https://github.com/knowledgepixels/nanodash/commit/050024beb0b439710652165dfdf1b630c7213612))
+* **lookup:** one parser per lookup API, registered by URL ([822141f](https://github.com/knowledgepixels/nanodash/commit/822141ff413ed12421c9d5ba8b558e3ed47f9641)), closes [#151](https://github.com/knowledgepixels/nanodash/issues/151)
+
 ## [5.19.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.19.0...nanodash-5.19.1) (2026-10-16)
 
 ### Bug Fixes
