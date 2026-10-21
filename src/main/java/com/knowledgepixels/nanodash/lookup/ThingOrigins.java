@@ -22,7 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +43,8 @@ import java.util.concurrent.TimeoutException;
  * {@code gen:governedBy} as a governed view, template, query or preset version does, and
  * otherwise from the user who signed the nanopublication that introduced it. The signers and
  * dates are recorded by {@link NanopubQueryLookup} as it reads its results, and read from the
- * nanopublication itself for a thing a template names, which no query of ours finds.
+ * nanopublication itself for a thing a template names, which no query of ours finds. They also
+ * order the things offered, newest first.
  */
 public final class ThingOrigins {
 
@@ -234,6 +240,32 @@ public final class ThingOrigins {
     }
 
     /**
+     * Orders things newest first, by the date the nanopublication each was found in was
+     * published. A thing whose date is not known comes last, in the order it was given in: one
+     * whose nanopublication has not been read yet keeps its place rather than jumping to the top
+     * of the next search.
+     *
+     * @param things the things to be listed
+     * @return the things, newest first
+     */
+    public static List<String> newestFirst(Collection<String> things) {
+        List<String> sorted = new ArrayList<>(things);
+        sorted.sort(Comparator.comparing(ThingOrigins::getPublicationTime, Comparator.nullsLast(Comparator.reverseOrder())));
+        return sorted;
+    }
+
+    private static Instant getPublicationTime(String thing) {
+        String date = thing == null ? null : publicationDates.getIfPresent(thing);
+        if (date == null) return null;
+        try {
+            return OffsetDateTime.parse(date).toInstant();
+        } catch (DateTimeParseException ex) {
+            logger.info("Could not read the publication date {} of {}", date, thing);
+            return null;
+        }
+    }
+
+    /**
      * Returns the Space that governs a thing: the Space of the maintained resource it is, or
      * of the maintained resource whose namespace it lies in, or the one it declares with
      * {@code gen:governedBy}.
@@ -253,7 +285,7 @@ public final class ThingOrigins {
     /**
      * Returns the Space a governed definition declares with {@code gen:governedBy}. Only a
      * resolution already made is used, so that showing a thing never waits for a
-     * nanopublication; {@link #resolveGoverningSpaces(Collection)} makes them.
+     * nanopublication; {@link #resolveOrigins(Collection)} makes them.
      *
      * @param thing the thing
      * @return the declared Space, or null if the thing declares none or is not resolved yet

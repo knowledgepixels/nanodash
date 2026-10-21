@@ -233,6 +233,42 @@ class ThingOriginsTest {
         assertEquals(DATE, ThingOrigins.getOriginNote(THING));
     }
 
+    /**
+     * The things offered are listed newest first, however their date became known: a lookup
+     * reports it for the things it finds, and it is read from its own nanopublication for a
+     * thing a template names.
+     */
+    @Test
+    void thingsAreListedNewestFirst() {
+        ThingOrigins.record("https://example.org/a", null, "2026-03-23T06:45:09.054+01:00");
+        ThingOrigins.record("https://example.org/b", null, "2026-09-04T08:20:08Z");
+        ThingOrigins.record("https://example.org/c", null, "2026-07-03T10:00:00Z");
+        assertEquals(
+                List.of("https://example.org/b", "https://example.org/c", "https://example.org/a"),
+                ThingOrigins.newestFirst(List.of("https://example.org/a", "https://example.org/b", "https://example.org/c")));
+    }
+
+    /**
+     * A thing whose date is not known -- one whose nanopublication has not been read yet -- is
+     * taken for neither the newest nor the oldest: it keeps its place, at the end of the list.
+     */
+    @Test
+    void aThingWithoutADateIsListedLast() {
+        ThingOrigins.record("https://example.org/dated", null, DATE);
+        assertEquals(
+                List.of("https://example.org/dated", "https://example.org/undated1", "https://example.org/undated2"),
+                ThingOrigins.newestFirst(List.of("https://example.org/undated1", "https://example.org/dated", "https://example.org/undated2")));
+    }
+
+    @Test
+    void aDateThatCannotBeReadDoesNotDecideTheOrder() {
+        ThingOrigins.record("https://example.org/odd", null, "whenever");
+        ThingOrigins.record("https://example.org/dated", null, DATE);
+        assertEquals(
+                List.of("https://example.org/dated", "https://example.org/odd"),
+                ThingOrigins.newestFirst(List.of("https://example.org/odd", "https://example.org/dated")));
+    }
+
     @Test
     void theOriginNoteGetsItsSeparator() {
         assertEquals(" · by Jane Doe", Utils.getOriginNoteSuffix("by Jane Doe"));

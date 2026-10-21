@@ -193,8 +193,8 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             @Override
             public void query(String term, int page, Response<String> response) {
                 if (term == null) {
-                    response.addAll(possibleValues);
                     ThingOrigins.resolveOrigins(possibleValues);
+                    response.addAll(ThingOrigins.newestFirst(possibleValues));
                     return;
                 }
                 final String typedTerm = term;
@@ -205,19 +205,23 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 }
                 Map<String, Boolean> alreadyAddedMap = new HashMap<>();
                 Set<String> shownThings = new HashSet<>();
+                List<String> suggestions = new ArrayList<>();
                 term = term.toLowerCase();
                 for (String s : possibleValues) {
                     if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
-                        addOnce(response, s, shownThings);
+                        addOnce(suggestions, s, shownThings);
                         alreadyAddedMap.put(s, true);
                     }
                 }
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
-                    if (!alreadyAddedMap.containsKey(v)) addOnce(response, v, shownThings);
+                    if (!alreadyAddedMap.containsKey(v)) addOnce(suggestions, v, shownThings);
                 }
                 // A value the template names itself is found by no lookup, so what is known
                 // about where it comes from is read from its own nanopublication (issue #817).
-                ThingOrigins.resolveOrigins(response.getResults());
+                ThingOrigins.resolveOrigins(suggestions);
+                // The values a template names and the ones a lookup finds are one list to the
+                // user, so they are dated and ordered as one, newest first.
+                response.addAll(ThingOrigins.newestFirst(suggestions));
                 boolean nothingFound = response.getResults().isEmpty();
 
                 // A guided choice only suggests values, it doesn't limit them, so a plain name for
@@ -242,12 +246,12 @@ public class GuidedChoiceItem extends AbstractContextComponent {
              * the results of a lookup come newest first, and a version that has been superseded
              * is resolved to the current one where it is used.
              *
-             * @param response the suggestions listed so far
-             * @param value    the value to list
-             * @param shown    the things listed so far, added to
+             * @param suggestions the suggestions listed so far, added to
+             * @param value       the value to list
+             * @param shown       the things listed so far, added to
              */
-            private void addOnce(Response<String> response, String value, Set<String> shown) {
-                if (shown.add(getThingKey(value))) response.add(value);
+            private void addOnce(List<String> suggestions, String value, Set<String> shown) {
+                if (shown.add(getThingKey(value))) suggestions.add(value);
             }
 
             /**
