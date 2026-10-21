@@ -104,7 +104,7 @@ public class QueryResultSvgBuilder implements Serializable {
 
     private Component buildFromTabularResult() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        return ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildSvg);
+        return ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildSvg, viewDisplay.isHideWhenEmpty());
     }
 
     private Component buildFromRdfResult() {

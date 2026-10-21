@@ -109,7 +109,7 @@ public class QueryResultNanopubSetBuilder implements Serializable {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         long resolvedItemsPerPage = itemsPerPage != null ? itemsPerPage : viewDisplay.getPageSize();
         Component comp = ApiResultComponent.create(markupId, queryRef, response, hasTitle ? viewDisplay.getTitle() : null,
-                (id, r) -> buildNanopubSet(id, r, resolvedItemsPerPage));
+                (id, r) -> buildNanopubSet(id, r, resolvedItemsPerPage), viewDisplay.isHideWhenEmpty());
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
     }

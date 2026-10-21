@@ -177,7 +177,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 if (label == null || label.isBlank()) {
                     return choiceId;
                 }
-                return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(choiceId)) + " (" + choiceId + ")";
+                return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(choiceId)) + Utils.getUriSuffix(choiceId);
             }
 
             @Override
@@ -193,7 +193,8 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             @Override
             public void query(String term, int page, Response<String> response) {
                 if (term == null) {
-                    response.addAll(possibleValues);
+                    ThingOrigins.resolveOrigins(possibleValues);
+                    response.addAll(ThingOrigins.newestFirst(possibleValues));
                     return;
                 }
                 final String typedTerm = term;
@@ -203,16 +204,24 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                     }
                 }
                 Map<String, Boolean> alreadyAddedMap = new HashMap<>();
+                Set<String> shownThings = new HashSet<>();
+                List<String> suggestions = new ArrayList<>();
                 term = term.toLowerCase();
                 for (String s : possibleValues) {
                     if (s.toLowerCase().contains(term) || getDisplayValue(s).toLowerCase().contains(term)) {
-                        response.add(s);
+                        addOnce(suggestions, s, shownThings);
                         alreadyAddedMap.put(s, true);
                     }
                 }
                 for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
-                    if (!alreadyAddedMap.containsKey(v)) response.add(v);
+                    if (!alreadyAddedMap.containsKey(v)) addOnce(suggestions, v, shownThings);
                 }
+                // A value the template names itself is found by no lookup, so what is known
+                // about where it comes from is read from its own nanopublication (issue #817).
+                ThingOrigins.resolveOrigins(suggestions);
+                // The values a template names and the ones a lookup finds are one list to the
+                // user, so they are dated and ordered as one, newest first.
+                response.addAll(ThingOrigins.newestFirst(suggestions));
                 boolean nothingFound = response.getResults().isEmpty();
 
                 // A guided choice only suggests values, it doesn't limit them, so a plain name for
@@ -227,6 +236,37 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 if (nothingFound && !response.getResults().isEmpty()) {
                     listNoResultsFirst(response);
                 }
+            }
+
+            /**
+             * Lists a value, unless a value naming the same thing is listed already. A lookup
+             * finds every version of a thing the nanopub network holds, and a template can name
+             * one of them itself, so the same view, template or query is easily suggested several
+             * times over, under one and the same label (issue #817). The first one listed wins:
+             * the results of a lookup come newest first, and a version that has been superseded
+             * is resolved to the current one where it is used.
+             *
+             * @param suggestions the suggestions listed so far, added to
+             * @param value       the value to list
+             * @param shown       the things listed so far, added to
+             */
+            private void addOnce(List<String> suggestions, String value, Set<String> shown) {
+                if (shown.add(getThingKey(value))) suggestions.add(value);
+            }
+
+            /**
+             * What tells two versions of a thing apart from two different things: a label and a
+             * local name that are both the same are the same thing in two versions. The label
+             * alone is not enough, since several views are called just "view" in their IRI and
+             * are told apart by their label, nor is the local name.
+             *
+             * @param value the value
+             * @return the key, the value itself if it has no label to go by
+             */
+            private String getThingKey(String value) {
+                String label = getChoiceLabel(value);
+                if (label == null || label.isBlank()) return value;
+                return label.toLowerCase() + "\n" + Utils.getUriPostfix(value);
             }
 
             private void listNoResultsFirst(Response<String> response) {

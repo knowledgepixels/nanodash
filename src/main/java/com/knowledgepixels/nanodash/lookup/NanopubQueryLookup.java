@@ -33,9 +33,10 @@ import java.util.Set;
  * HTML, as a Space's often is. The legacy
  * {@code http://purl.org/nanopub/api/find_signed_things?} URLs run the find-things query. The
  * results are read newest first, by their {@code date} column, each thing once, and at most ten
- * of them; the {@code pubkey} column tells {@link ThingOrigins} who signed each (issue #765).
- * The versions of the find-things query that the current one replaces are read as the current
- * one, so that templates naming an older one are ordered newest first too (issue #797).
+ * of them; the {@code pubkey} and {@code date} columns tell {@link ThingOrigins} who signed each
+ * and when it was published (issues #765 and #817). The versions of the find-things query that
+ * the current one replaces are read as the current one, so that templates naming an older one
+ * are ordered newest first too (issue #797).
  */
 public class NanopubQueryLookup implements LookupApi {
 
@@ -86,14 +87,17 @@ public class NanopubQueryLookup implements LookupApi {
         Multimap<String, String> params = urlParams(apiUrl);
         params.replaceValues(searchParamName(query), List.of(searchTerm));
         ApiResponse response = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
+        List<String> found = new ArrayList<>();
         for (ApiResponseEntry entry : newestFirst(response.getData())) {
-            if (values.size() >= MAX_RESULTS) return;
+            if (values.size() >= MAX_RESULTS) break;
             String value = entry.get("thing");
             if (values.contains(value)) continue;
             values.add(value);
+            found.add(value);
             labels.put(value, entry.get("label") + descriptionOf(entry));
-            ThingOrigins.recordSigner(value, entry.get("pubkey"));
+            ThingOrigins.record(value, entry.get("pubkey"), entry.get("date"));
         }
+        ThingOrigins.resolveOrigins(found);
     }
 
     /**

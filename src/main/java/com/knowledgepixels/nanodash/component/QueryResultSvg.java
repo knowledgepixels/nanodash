@@ -91,7 +91,7 @@ public class QueryResultSvg extends QueryResult {
                 item.add(new Label("content", svg == null ? null : withNavParamsInHtmlLinks(Utils.sanitizeSvg(svg))).setEscapeModelStrings(false));
             }
         });
-        container.add(new Label("no-records", "(nothing found)").setVisible(response.getData().isEmpty()));
+        container.add(new Label("no-records", emptyNote()).setVisible(response.getData().isEmpty()));
         add(container);
     }
 

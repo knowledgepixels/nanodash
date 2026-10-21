@@ -99,7 +99,7 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
                 if (label == null || label.isBlank()) {
                     return choiceId;
                 }
-                return label + " (" + choiceId + ")";
+                return label + Utils.getUriSuffix(choiceId);
             }
 
             @Override

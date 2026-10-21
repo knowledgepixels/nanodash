@@ -17,10 +17,13 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
- * Says under a field whether the APIs it is about can be reached (issue #763): in green if they
- * all can, in red, naming the ones that cannot, with a button to try them again, if any cannot.
+ * Says under a field that an API it is about cannot be reached (issues #763 and #815): in red,
+ * naming the APIs that cannot, with a button to try them again. Only that is reported: while the
+ * APIs are being checked, and once they have all answered, the line says nothing, so that it does
+ * not clutter every field that works.
  * A guided choice field is about the APIs it looks its values up in; the field in which a
  * template gives such an API, as the object of {@code nt:possibleValuesFromApi}, is about the API
  * entered, and is checked again whenever it changes, including when the form fills it in. The APIs are contacted in a follow-up Ajax
@@ -31,9 +34,16 @@ public class LookupApiStatus extends Panel {
 
     static final String CHECK_ID = "check";
 
+    /**
+     * The class of a line that is checking APIs without saying so, which hides it.
+     */
+    static final String PENDING_CLASS = "api-status-pending";
+
     private final List<String> fixedApis;
 
     private List<String> checkedApis;
+
+    private boolean showProgress;
 
     /**
      * Creates the status line of a field that looks its values up in the given APIs.
@@ -49,6 +59,8 @@ public class LookupApiStatus extends Panel {
         super(id, apiModel);
         this.fixedApis = fixedApis;
         setOutputMarkupPlaceholderTag(true);
+        IModel<String> pendingClass = () -> isCheckingSilently() ? PENDING_CLASS : null;
+        add(AttributeModifier.append("class", pendingClass));
         add(newCheck());
     }
 
@@ -84,7 +96,31 @@ public class LookupApiStatus extends Panel {
     protected void onConfigure() {
         super.onConfigure();
         if (!getApis().equals(checkedApis)) replace(newCheck());
-        setVisible(!checkedApis.isEmpty());
+        setVisible(hasAnythingToSay());
+    }
+
+    /**
+     * Tells whether this line has anything to say. Only an API that cannot be reached is
+     * reported, so the line is there while a check is still pending, in case it fails, and
+     * otherwise only once it has failed.
+     *
+     * @return true if the line is to be rendered
+     */
+    private boolean hasAnythingToSay() {
+        if (checkedApis.isEmpty()) return false;
+        if (!LookupApis.isReachabilityKnown(checkedApis)) return true;
+        return !getUnreachable(LookupApis.checkReachability(checkedApis)).isEmpty();
+    }
+
+    /**
+     * Tells whether this line is checking APIs without showing anything, which it does unless the
+     * check was asked for with the retry button. It is then hidden by {@link #PENDING_CLASS}
+     * rather than left out, so that the Ajax request that does the check is still made.
+     *
+     * @return true if a silent check is pending
+     */
+    private boolean isCheckingSilently() {
+        return !showProgress && !checkedApis.isEmpty() && !LookupApis.isReachabilityKnown(checkedApis);
     }
 
     private Component newCheck() {
@@ -101,8 +137,17 @@ public class LookupApiStatus extends Panel {
 
             @Override
             public Component getLoadingComponent(String markupId) {
+                if (!showProgress) return new WebMarkupContainer(markupId);
                 return new Label(markupId, "checking the lookup " + apiNoun(apis.size()) + "...")
                         .add(AttributeModifier.replace("class", "api-status-checking"));
+            }
+
+            @Override
+            protected void onContentLoaded(Component content, Optional<AjaxRequestTarget> target) {
+                showProgress = false;
+                // The whole line is repainted, not just the outcome, because the line is hidden
+                // unless the outcome is that an API cannot be reached.
+                target.ifPresent(t -> t.add(LookupApiStatus.this));
             }
 
         };
@@ -110,19 +155,20 @@ public class LookupApiStatus extends Panel {
 
     private void retry(AjaxRequestTarget target, List<String> apis) {
         LookupApis.forgetReachability(apis);
+        // A check the user asked for says that it is running, so that the button is seen to do
+        // something even when the APIs stay unreachable.
+        showProgress = true;
         replace(newCheck());
         target.add(this);
     }
 
     /**
-     * Returns the message for the outcome of a check.
+     * Returns the message naming the APIs that cannot be reached.
      *
-     * @param reachability whether each API is reachable, by URL
+     * @param unreachable the URLs of the APIs that cannot be reached, at least one of them
      * @return the message
      */
-    static String getMessage(Map<String, Boolean> reachability) {
-        List<String> unreachable = getUnreachable(reachability);
-        if (unreachable.isEmpty()) return "lookup " + apiNoun(reachability.size()) + " reachable";
+    static String getMessage(List<String> unreachable) {
         List<String> hosts = unreachable.stream().map(LookupApiStatus::getHost).distinct().toList();
         return "lookup " + apiNoun(unreachable.size()) + " not reachable: " + String.join(", ", hosts);
     }
@@ -151,17 +197,19 @@ public class LookupApiStatus extends Panel {
     }
 
     /**
-     * The outcome of a check, with a button to check again if an API could not be reached.
+     * The outcome of a check, shown only if an API could not be reached, with a button to check
+     * again.
      */
     private class Outcome extends Fragment {
 
         Outcome(String id, List<String> apis) {
             super(id, "outcome", LookupApiStatus.this);
-            Map<String, Boolean> reachability = LookupApis.checkReachability(apis);
-            boolean allReachable = getUnreachable(reachability).isEmpty();
-            add(new Label("message", getMessage(reachability))
-                    .add(AttributeModifier.replace("class", allReachable ? "api-status-ok" : "api-status-failed"))
-                    .add(AttributeModifier.replace("title", String.join("\n", getUnreachable(reachability)))));
+            List<String> unreachable = getUnreachable(LookupApis.checkReachability(apis));
+            boolean failed = !unreachable.isEmpty();
+            add(new Label("message", failed ? getMessage(unreachable) : "")
+                    .add(AttributeModifier.replace("class", "api-status-failed"))
+                    .add(AttributeModifier.replace("title", String.join("\n", unreachable)))
+                    .setVisible(failed));
             add(new AjaxLink<Void>("retry") {
 
                 @Override
@@ -169,7 +217,7 @@ public class LookupApiStatus extends Panel {
                     retry(target, apis);
                 }
 
-            }.setVisible(!allReachable));
+            }.setVisible(failed));
         }
 
     }

@@ -94,7 +94,7 @@ public class QueryResultItemList extends QueryResult {
         navigation.setVisible(dataView.getPageCount() > 1);
         navigation.add(pagingNavigator);
 
-        Label noRecordsLabel = new Label("no-records", "(nothing found)") {
+        Label noRecordsLabel = new Label("no-records", emptyNote()) {
             @Override
             protected void onConfigure() {
                 super.onConfigure();

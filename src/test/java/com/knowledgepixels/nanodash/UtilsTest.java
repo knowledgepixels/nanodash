@@ -385,6 +385,19 @@ class UtilsTest {
         assertEquals(expected, result);
     }
 
+    /**
+     * A dropdown entry names its value below its label, shortened the way a URI shown as a link
+     * is, so that the artifact code of a trusty URI does not fill a line on its own.
+     */
+    @Test
+    void getUriSuffixShortensTheArtifactCode() {
+        assertEquals(" (" + BASE_URI + "RAAnO3U0Lc.../extra)",
+                Utils.getUriSuffix(BASE_URI + "RAAnO3U0Lc56gbYHz5MZD440460c88Qfiz8cTfP58nvvs/extra"));
+        assertEquals(" (https://orcid.org/0000-0000-0000-0001)", Utils.getUriSuffix("https://orcid.org/0000-0000-0000-0001"));
+        assertEquals("", Utils.getUriSuffix(null));
+        assertEquals("", Utils.getUriSuffix(""));
+    }
+
     @Test
     void getUriLabelReturnsUriAsIsForShortUri() {
         String uri = BASE_URI + "short";

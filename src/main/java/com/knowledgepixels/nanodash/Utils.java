@@ -1075,8 +1075,11 @@ public class Utils {
     public static void setSelect2ChoiceMinimalEscapeMarkup(Select2Choice<?> selectItem) {
         // The note of a to-be-minted value is not part of the value, so it is set in its own
         // span and styled as an aside rather than as the term itself (issue #652).
+        // The note on where a value comes from goes on a line of its own as well, with the date
+        // in it put in the short relative form used elsewhere ("3 days ago") by nanodash.js,
+        // which knows the viewer's timezone (issue #817).
         String noteRegex = TO_BE_MINTED_NOTE.replace("(", "\\(").replace(")", "\\)");
-        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/" + ORIGIN_NOTE_SEPARATOR + "((?:governed )?by [^<]*)(<br><code>|$)/, '<br><span class=\"origin-note\">$1</span>$2')" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
+        selectItem.getSettings().setEscapeMarkup("function(markup) {" + "return markup" + ".replaceAll('<','&lt;').replaceAll('>', '&gt;')" + ".replace(/^(.*?) - /, '<span class=\"term\">$1</span><br>')" + ".replace(/\\((https?:[\\S]+)\\)$/, '<br><code>$1</code>')" + ".replace(/" + ORIGIN_NOTE_SEPARATOR + "((?:by |\\d{4}-)[^<]*)(<br><code>|$)/, function(m, note, tail) {" + "return '<br><span class=\"origin-note\">' + (typeof friendlyDateTextIn === 'function' ? friendlyDateTextIn(note) : note) + '</span>' + tail; })" + ".replace(/^(.*) " + noteRegex + "$/, '<span class=\"term\">$1</span> <span class=\"mint-note\">" + TO_BE_MINTED_NOTE + "</span>')" + ".replace(/^([^<].*)$/, '<span class=\"term\">$1</span>')" + ";}");
     }
 
     /**
@@ -1362,21 +1365,36 @@ public class Utils {
     private static final String TO_BE_MINTED_NOTE = "(mint locally)";
 
     /**
-     * What separates the note on who a value comes from from the label of the value, so that
-     * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)} can set it on a line of its own.
+     * What separates the note on who a value comes from and when it was published from the label
+     * of the value, and its two parts from each other, so that
+     * {@link #setSelect2ChoiceMinimalEscapeMarkup(Select2Choice)} can set the note on a line of
+     * its own.
      */
-    private static final String ORIGIN_NOTE_SEPARATOR = " \u00b7 ";
+    public static final String ORIGIN_NOTE_SEPARATOR = " \u00b7 ";
 
     /**
-     * Returns the note on who a value comes from as it is appended to the label of the value in a
-     * dropdown (issue #765).
+     * Returns the note on who a value comes from and when it was published as it is appended to
+     * the label of the value in a dropdown (issues #765 and #817).
      *
-     * @param originNote the note, e.g. "by Jane Doe", or null
+     * @param originNote the note, e.g. "by Jane Doe \u00b7 2026-10-17T09:12:00Z", or null
      * @return the note with its separator, or an empty string if there is no note
      */
     public static String getOriginNoteSuffix(String originNote) {
         if (originNote == null || originNote.isEmpty()) return "";
         return ORIGIN_NOTE_SEPARATOR + originNote;
+    }
+
+    /**
+     * Returns the URI of a choice as it is appended to the label of the choice in a dropdown.
+     * It is shortened the way a URI shown as a link is, so that the artifact code of a trusty
+     * URI does not fill a line on its own.
+     *
+     * @param uri the URI of the choice
+     * @return the shortened URI in brackets, or an empty string if there is no URI
+     */
+    public static String getUriSuffix(String uri) {
+        if (uri == null || uri.isEmpty()) return "";
+        return " (" + getUriLabel(uri) + ")";
     }
 
     /**

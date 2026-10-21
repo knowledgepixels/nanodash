@@ -40,6 +40,11 @@ public abstract class QueryResult extends Panel {
     public record MenuAction(String label, Class<? extends NanodashPage> pageClass, PageParameters params) implements Serializable {
     }
 
+    /**
+     * The note shown where a view has no results to show.
+     */
+    protected static final String NOTHING_FOUND_NOTE = "(nothing found)";
+
     protected final List<MenuAction> menuActions = new ArrayList<>();
     protected String contextId;
     protected String partId;
@@ -516,6 +521,31 @@ public abstract class QueryResult extends Panel {
      */
     protected boolean hasEmptyStateActions() {
         return response.getData().isEmpty() && !menuActions.isEmpty();
+    }
+
+    /**
+     * Whether this view has nothing at all to put on the page: no rows, and no action to
+     * offer in their place. A view display marked {@link ViewDisplay#hiddenWhenEmpty()}
+     * leaves the page in that case instead of printing the empty note.
+     *
+     * @return true if there is neither a row nor an action to show
+     */
+    public boolean hasNothingToShow() {
+        return response != null && response.getData().isEmpty() && !hasEmptyStateActions();
+    }
+
+    /**
+     * The note to print in place of the results. A view display may override it (see
+     * {@link ViewDisplay#withEmptyMessage(String)}), but only for a genuinely empty
+     * result: the same note also covers "the filter matched no row", where a message
+     * written to speak for the whole page would be a lie.
+     *
+     * @return the note to show instead of results
+     */
+    protected String emptyNote() {
+        String message = viewDisplay.getEmptyMessage();
+        if (message != null && response != null && response.getData().isEmpty()) return message;
+        return NOTHING_FOUND_NOTE;
     }
 
     /**

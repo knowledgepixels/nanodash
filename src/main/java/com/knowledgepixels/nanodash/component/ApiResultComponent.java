@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.CrawlerRequest;
+import com.knowledgepixels.nanodash.QueryResult;
+import com.knowledgepixels.nanodash.ViewDisplay;
 
 /**
  * A component that retrieves and displays the result of an API call.
@@ -17,9 +19,16 @@ import com.knowledgepixels.nanodash.CrawlerRequest;
  */
 public abstract class ApiResultComponent extends ResultComponent {
 
+    /**
+     * The markup id Wicket's lazy-loading panel gives its content.
+     */
+    private static final String CONTENT_ID = "content";
+
     private final QueryRef queryRef;
     private ApiResponse response = null;
     private String loadingTitle = null;
+    private boolean hideWhenEmpty = false;
+    private boolean quietlyGaveUp = false;
     private static final Logger logger = LoggerFactory.getLogger(ApiResultComponent.class);
 
     /**
@@ -31,6 +40,19 @@ public abstract class ApiResultComponent extends ResultComponent {
     public ApiResultComponent(String id, QueryRef queryRef) {
         super(id);
         this.queryRef = queryRef;
+    }
+
+    /**
+     * Makes this panel leave the page once its results turn out to be empty, instead of
+     * showing the view with its empty note. Set from {@link ViewDisplay#isHideWhenEmpty()}.
+     *
+     * @param hideWhenEmpty true to hide the panel rather than show an empty view
+     */
+    private void setHideWhenEmpty(boolean hideWhenEmpty) {
+        this.hideWhenEmpty = hideWhenEmpty;
+        // The panel hides itself in the middle of its own Ajax update, which needs
+        // something to replace in the DOM.
+        if (hideWhenEmpty) setOutputMarkupPlaceholderTag(true);
     }
 
     /**
@@ -71,12 +93,41 @@ public abstract class ApiResultComponent extends ResultComponent {
      * @return the component to show
      */
     public static Component create(String markupId, QueryRef queryRef, ApiResponse response, String loadingTitle, ApiResultRenderer renderer) {
+        return create(markupId, queryRef, response, loadingTitle, renderer, false);
+    }
+
+    /**
+     * As {@link #create(String, QueryRef, ApiResponse, String, ApiResultRenderer)}, but for a
+     * view that has nothing to say when it finds nothing: with {@code hideWhenEmpty}, an empty
+     * result takes the whole panel off the page instead of leaving a titled box with an empty
+     * note in it. The hiding happens here rather than inside the view, because in the lazy and
+     * refreshing states it is the wrapper that owns the page's {@code <div>} — hiding only the
+     * view inside it would leave that div behind, floated and padded by its {@code col-*} class.
+     *
+     * @param markupId      the markup ID for the component
+     * @param queryRef      the query reference the response belongs to
+     * @param response      the current results, or null if the cache has none to serve
+     * @param loadingTitle  the view's title, shown beside the spinner while waiting for a
+     *                      first result; null for views that carry no title
+     * @param renderer      builds the component showing a set of results
+     * @param hideWhenEmpty whether an empty result should hide the panel altogether
+     * @return the component to show
+     */
+    public static Component create(String markupId, QueryRef queryRef, ApiResponse response, String loadingTitle, ApiResultRenderer renderer, boolean hideWhenEmpty) {
         if (response != null) {
-            return renderer.render(markupId, response);
+            Component comp = renderer.render(markupId, response);
+            // Warm cache: the view itself is the page's div here, so hiding it leaves no
+            // markup behind at all.
+            if (hideWhenEmpty && hasNothingToShow(comp)) comp.setVisible(false);
+            return comp;
         }
         ApiResponse staleResponse = ApiCache.retrieveStaleResponse(queryRef);
-        if (staleResponse != null) {
-            return new RefreshingResultPanel(markupId, queryRef, staleResponse, renderer);
+        // An outdated empty result is not worth showing when we would hide it anyway, so such
+        // a panel waits for its refresh like a cold one instead. That is what keeps a reload —
+        // which sends every cached entry down the stale path — from bringing the empty boxes
+        // back, while still picking up a fact that arrived since.
+        if (staleResponse != null && !(hideWhenEmpty && staleResponse.getData().isEmpty())) {
+            return new RefreshingResultPanel(markupId, queryRef, staleResponse, renderer, hideWhenEmpty);
         }
         if (CrawlerRequest.isCrawler()) {
             // Nothing is cached and a crawler does not wait for a poll to fill the section
@@ -91,7 +142,20 @@ public abstract class ApiResultComponent extends ResultComponent {
             }
         };
         comp.setLoadingTitle(loadingTitle);
+        comp.setHideWhenEmpty(hideWhenEmpty);
         return comp;
+    }
+
+    /**
+     * Whether a rendered result component turned out to have nothing to put on the page.
+     * Anything that is not a view — a loading placeholder, an error label — counts as having
+     * something to show, so a panel is never hidden before its results are in.
+     *
+     * @param component the component holding a view's results, or standing in for them
+     * @return true if it is a view with neither a row nor an action to show
+     */
+    static boolean hasNothingToShow(Component component) {
+        return component instanceof QueryResult view && view.hasNothingToShow();
     }
 
     // How long to keep waiting for a first result before giving up on it.
@@ -109,14 +173,32 @@ public abstract class ApiResultComponent extends ResultComponent {
      */
     @Override
     public Component getLazyLoadComponent(String markupId) {
-        if (queryFailed) {
-            return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
-        }
-        if (response == null) {
-            logger.error("Timed out waiting for API response for {}", queryRef);
-            return new Label(markupId, "<span class=\"negative\">Loading timed out. Please reload the page.</span>").setEscapeModelStrings(false);
+        if (queryFailed || response == null) {
+            if (!queryFailed) logger.error("Timed out waiting for API response for {}", queryRef);
+            if (hideWhenEmpty) {
+                // A secondary panel that would have gone quiet anyway has nothing to gain
+                // from an error box of its own.
+                quietlyGaveUp = true;
+                return new WebMarkupContainer(markupId).setVisible(false);
+            }
+            String message = queryFailed ? "API call failed." : "Loading timed out. Please reload the page.";
+            return new Label(markupId, "<span class=\"negative\">" + message + "</span>").setEscapeModelStrings(false);
         }
         return getApiResultComponent(markupId, response);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Takes the panel off the page once its results are in and turn out empty. One-way
+     * only: a panel the page itself hid stays hidden. While the results are still on their
+     * way the content is the loading placeholder, which never counts as empty, so the panel
+     * stays visible and the page's timer keeps polling it.
+     */
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        if (hideWhenEmpty && (quietlyGaveUp || hasNothingToShow(get(CONTENT_ID)))) setVisible(false);
     }
 
     /**

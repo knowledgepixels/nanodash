@@ -90,7 +90,7 @@ public class QueryResultNanopubSet extends QueryResult {
         nanopubsContainer = new WebMarkupContainer("nanopubs-container");
         nanopubsContainer.setOutputMarkupId(true);
         nanopubsContainer.add(buildNanopubResults());
-        Label noRecordsLabel = new Label("no-records", "(nothing found)") {
+        Label noRecordsLabel = new Label("no-records", emptyNote()) {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
