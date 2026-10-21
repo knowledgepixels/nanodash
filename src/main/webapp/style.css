@@ -3952,10 +3952,18 @@ a.source:hover {
   align-items: center;
   gap: 8px;
   font-family: "Noto Emoji", sans-serif;
+  max-width: 100%;
 }
 
+/* The link shows a full URI, which can run for hundreds of characters without a break
+   opportunity -- an AIDA sentence IRI is a single such "word". break-all makes every
+   character one, so the lines fill rather than being left short by the "/" the browser
+   would otherwise hold out for; it also shrinks the min-content width, which together
+   with min-width:0 is what lets the flex item wrap instead of widening the page. */
 .link-actions-panel>a:first-child {
   margin-right: 2px;
+  min-width: 0;
+  word-break: break-all;
 }
 
 .link-actions-panel>a:not(:first-child) {
@@ -4107,11 +4115,6 @@ a.source:hover {
   .link-actions-panel {
     display: flex;
     flex-wrap: wrap;
-  }
-
-  .link-actions-panel>a:first-child {
-    overflow-wrap: anywhere;
-    min-width: 0;
   }
 
   span.internal {

@@ -416,6 +416,56 @@ public class TemplateContext implements Serializable {
     }
 
     /**
+     * Suffix under which the escaped spelling that an auto-escape placeholder's value was
+     * filled from is keyed in the component models (appended after any repetition suffix).
+     */
+    public static final String AUTO_ESCAPE_SOURCE_SUFFIX = "__autoescape-source";
+
+    /**
+     * Returns the component-model key for the source spelling of the given auto-escape
+     * placeholder IRI, which must already carry its repetition suffix if any.
+     *
+     * @param iri the (repetition-suffixed) auto-escape placeholder IRI
+     * @return the derived key for the source-spelling model
+     */
+    public static IRI getAutoEscapeSourceModelKey(IRI iri) {
+        return vf.createIRI(iri.stringValue() + AUTO_ESCAPE_SOURCE_SUFFIX);
+    }
+
+    /**
+     * Remembers the escaped postfix an auto-escape placeholder's value was filled from, so
+     * that {@link #autoEscape(IRI, String)} can give back the IRI the source nanopublication
+     * actually used rather than a re-escaped equivalent of it.
+     *
+     * @param iri     the (repetition-suffixed) auto-escape placeholder IRI
+     * @param escaped the escaped postfix, as it appeared in the value filled in
+     */
+    public void setAutoEscapeSource(IRI iri, String escaped) {
+        componentModels.put(getAutoEscapeSourceModelKey(iri), Model.of(escaped));
+    }
+
+    /**
+     * The escaped postfix to build an auto-escape placeholder's IRI from.
+     * {@link Utils#urlEncode} is not the inverse of {@link Utils#urlDecode}: both "+" and
+     * "%20" decode to a space, and encoding only ever gives back "+". Re-escaping an
+     * untouched value would therefore silently respell an IRI that its source nanopublication
+     * wrote with "%20" -- a different IRI, and one nothing else refers to, which both the
+     * links on the filled form and a superseding version would then point at. So where the
+     * text still decodes from the spelling it was filled with, that spelling is kept
+     * verbatim; only text the user actually changed is escaped afresh.
+     *
+     * @param iri  the (repetition-suffixed) auto-escape placeholder IRI
+     * @param text the placeholder's current text, not escaped
+     * @return the escaped postfix
+     */
+    public String autoEscape(IRI iri, String text) {
+        IModel<?> sourceModel = componentModels.get(getAutoEscapeSourceModelKey(iri));
+        Object source = (sourceModel == null) ? null : sourceModel.getObject();
+        if (source != null && Utils.urlDecode(source).equals(text)) return source.toString();
+        return Utils.urlEncode(text);
+    }
+
+    /**
      * Suffix of the URL parameter that pre-fills the chosen base of a
      * space-/namespace-dependent prefix, appended to a placeholder's postfix
      * (e.g. {@code param_resource__prefix}).
@@ -710,7 +760,7 @@ public class TemplateContext implements Serializable {
                 }
                 String v;
                 if (template.isAutoEscapePlaceholder(iri)) {
-                    v = prefix + Utils.urlEncode(tf.getObject());
+                    v = prefix + autoEscape(iri, tfObject);
                 } else {
                     if (Utils.isUriValue(tfObject)) {
                         prefix = "";
