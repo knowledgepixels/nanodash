@@ -177,7 +177,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                 if (label == null || label.isBlank()) {
                     return choiceId;
                 }
-                return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(choiceId)) + " (" + choiceId + ")";
+                return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(choiceId)) + Utils.getUriSuffix(choiceId);
             }
 
             @Override

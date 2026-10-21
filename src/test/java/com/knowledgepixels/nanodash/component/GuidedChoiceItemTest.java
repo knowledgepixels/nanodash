@@ -89,6 +89,16 @@ public class GuidedChoiceItemTest {
      * possible value (none if null), and returns an initialized context for it.
      */
     private TemplateContext guidedContext(String prefix, boolean external, IRI possibleValue) throws Exception {
+        return guidedContext(prefix, external, possibleValue, null);
+    }
+
+    /**
+     * Builds a one-statement template whose object is a guided choice placeholder with the given
+     * prefix (none if null), optionally typed as an external URI placeholder and with a fixed
+     * possible value (none if null) under the given label (none if null), and returns an
+     * initialized context for it.
+     */
+    private TemplateContext guidedContext(String prefix, boolean external, IRI possibleValue, String valueLabel) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -110,6 +120,9 @@ public class GuidedChoiceItemTest {
         }
         if (possibleValue != null) {
             creator.addAssertionStatement(THING, NTEMPLATE.POSSIBLE_VALUE, possibleValue);
+            if (valueLabel != null) {
+                creator.addAssertionStatement(possibleValue, RDFS.LABEL, vf.createLiteral(valueLabel));
+            }
         }
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
@@ -240,6 +253,17 @@ public class GuidedChoiceItemTest {
         assertTrue(suggestions.contains(version1.stringValue()));
         assertFalse(suggestions.contains(version2.stringValue()), "a second version of the same thing is left out");
         assertTrue(suggestions.contains(otherThing.stringValue()), "another thing with the same label stays");
+    }
+
+    /**
+     * A value is named below its label by the URI it is, with the artifact code of a trusty URI
+     * shortened the way it is wherever a URI is shown as a link.
+     */
+    @Test
+    void theUriOfAChoiceIsShownWithAShortenedArtifactCode() throws Exception {
+        IRI view = vf.createIRI(NP_URI + "/view");
+        TemplateContext context = guidedContext(null, false, view, "A view");
+        assertEquals("A view (https://w3id.org/np/RAAbCdEfGh.../view)", fieldOf(context).getProvider().getDisplayValue(view.stringValue()));
     }
 
     /**

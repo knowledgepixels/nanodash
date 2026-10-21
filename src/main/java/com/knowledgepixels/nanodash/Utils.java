@@ -1385,6 +1385,19 @@ public class Utils {
     }
 
     /**
+     * Returns the URI of a choice as it is appended to the label of the choice in a dropdown.
+     * It is shortened the way a URI shown as a link is, so that the artifact code of a trusty
+     * URI does not fill a line on its own.
+     *
+     * @param uri the URI of the choice
+     * @return the shortened URI in brackets, or an empty string if there is no URI
+     */
+    public static String getUriSuffix(String uri) {
+        if (uri == null || uri.isEmpty()) return "";
+        return " (" + getUriLabel(uri) + ")";
+    }
+
+    /**
      * Gets an ExternalLink with a URI label.
      *
      * @param markupId the markup ID for the link

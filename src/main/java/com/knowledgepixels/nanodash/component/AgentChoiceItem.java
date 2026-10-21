@@ -117,7 +117,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
                 if (label == null || label.isBlank() || label.equals(choiceId)) {
                     return choiceId;
                 }
-                return label + " (" + choiceId + ")";
+                return label + Utils.getUriSuffix(choiceId);
             }
 
             @Override

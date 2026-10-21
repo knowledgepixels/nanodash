@@ -420,7 +420,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
             if (choiceId == null || choiceId.isEmpty()) return "";
             String label = DynamicPrefix.getOptions(token).get(choiceId);
             if (label == null || label.isBlank()) return choiceId;
-            return label + " (" + choiceId + ")";
+            return label + Utils.getUriSuffix(choiceId);
         }
 
         @Override
