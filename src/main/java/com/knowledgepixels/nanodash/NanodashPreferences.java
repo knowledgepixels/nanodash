@@ -21,6 +21,7 @@ import java.util.Map;
 public class NanodashPreferences implements Serializable {
 
     private static NanodashPreferences obj;
+    private static File settingFile;
     private static final Logger logger = LoggerFactory.getLogger(NanodashPreferences.class);
 
     /**
@@ -30,7 +31,7 @@ public class NanodashPreferences implements Serializable {
      */
     public static NanodashPreferences get() {
         if (obj == null) {
-            File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
+            File prefFile = getSettingFile();
             if (!prefFile.exists()) {
                 return new NanodashPreferences();
             }
@@ -39,10 +40,37 @@ public class NanodashPreferences implements Serializable {
                 obj = mapper.readValue(prefFile, NanodashPreferences.class);
             } catch (JacksonException ex) {
                 obj = new NanodashPreferences();
-                logger.error("Could not read preferences file at '{}' using defaults", DEFAULT_SETTING_PATH, ex);
+                logger.error("Could not read preferences file at '{}' using defaults", prefFile, ex);
             }
         }
         return obj;
+    }
+
+    /**
+     * The file preferences are read from: {@link #DEFAULT_SETTING_PATH} in the user's home
+     * directory, unless {@link #setSettingFile(File)} has pointed somewhere else.
+     *
+     * @return the preferences file, which need not exist
+     */
+    public static File getSettingFile() {
+        if (settingFile != null) return settingFile;
+        return new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
+    }
+
+    /**
+     * Read preferences from the given file instead of the one in the user's home directory,
+     * and forget what has been read so far.
+     * <p>
+     * For tests, which must not read or write the developer's own configuration: it lives in
+     * {@code ~/.nanopub} next to their nanopub signing keys, and with several test JVMs at
+     * once a fixture put there is visible to all of them (issue #813). A test points this at
+     * a temporary directory instead, and passes null in its teardown to restore the default.
+     *
+     * @param file the file to read preferences from, or null for the default location
+     */
+    static void setSettingFile(File file) {
+        settingFile = file;
+        obj = null;
     }
 
     private List<String> nanopubActions = new ArrayList<>();

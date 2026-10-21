@@ -1,17 +1,16 @@
 package com.knowledgepixels.nanodash;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -28,42 +27,58 @@ class NanodashPreferencesTest {
     @SystemStub
     private final EnvironmentVariables envVars = new EnvironmentVariables();
 
-    @BeforeAll
-    static void beforeAll() throws IOException {
-        File prefDir = new File(System.getProperty("user.home") + "/.nanopub");
-        if (!prefDir.exists()) {
-            Files.createDirectory(prefDir.toPath());
-        }
-        assertTrue(prefDir.exists());
-        assertTrue(prefDir.isDirectory());
-    }
+    /**
+     * Preferences are read from here for the length of a test, rather than from the
+     * developer's own {@code ~/.nanopub} — which holds a configuration they actually use and
+     * their nanopub signing keys, and which the other three test JVMs are reading at the same
+     * time (issue #813). A fresh directory per test, so no test sees another's fixture.
+     */
+    @TempDir
+    Path configDir;
+
+    private Path prefFile;
 
     @BeforeEach
-    void setUp() throws IOException {
-        File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
-        if (prefFile.exists()) {
-            Files.delete(Path.of(prefFile.toURI()));
-        }
-        assertFalse(prefFile.exists());
+    void setUp() {
+        prefFile = configDir.resolve("nanodash-preferences.yml");
+        NanodashPreferences.setSettingFile(prefFile.toFile());
+        assertFalse(Files.exists(prefFile));
     }
 
     @AfterEach
-    void tearDown() throws NoSuchFieldException, IllegalAccessException {
-        // Reset the singleton instance to null for isolation between tests
-        Field objField = NanodashPreferences.class.getDeclaredField("obj");
-        objField.setAccessible(true);
-        objField.set(null, null);
+    void tearDown() {
+        // Back to the default location, and the singleton read from this test's file forgotten.
+        NanodashPreferences.setSettingFile(null);
+    }
+
+    /**
+     * Put the test preferences file in place, as a configured instance would have it.
+     */
+    private void writePreferencesFile() throws IOException {
+        Files.copy(
+                Path.of("src/test/resources/nanodash-preferences-test.yml"),
+                prefFile,
+                StandardCopyOption.REPLACE_EXISTING
+        );
+        assertTrue(Files.exists(prefFile));
+    }
+
+    /**
+     * The seam only says where to read from; left alone, that is the file in the user's home
+     * directory which a deployment configures.
+     */
+    @Test
+    void theDefaultSettingFileIsTheOneInTheHomeDirectory() {
+        NanodashPreferences.setSettingFile(null);
+        assertEquals(
+                new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH),
+                NanodashPreferences.getSettingFile()
+        );
     }
 
     @Test
     void getWhenInstanceAlreadyExists() throws IOException {
-        File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
-        Files.copy(
-                Path.of("src/test/resources/nanodash-preferences-test.yml"),
-                prefFile.toPath(),
-                StandardCopyOption.REPLACE_EXISTING
-        );
-        assertTrue(prefFile.exists());
+        writePreferencesFile();
 
         NanodashPreferences firstInstance = get();
         NanodashPreferences secondInstance = get();
@@ -85,9 +100,8 @@ class NanodashPreferencesTest {
 
     @Test
     void getWithCorruptedPreferencesFile() throws IOException {
-        File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
-        Files.createFile(prefFile.toPath());
-        assertTrue(prefFile.exists());
+        Files.createFile(prefFile);
+        assertTrue(Files.exists(prefFile));
 
         NanodashPreferences preferences = get();
         assertNotNull(preferences);
@@ -103,13 +117,7 @@ class NanodashPreferencesTest {
 
     @Test
     void getWithExistingPreferences() throws IOException {
-        File prefFile = new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH);
-        Files.copy(
-                Path.of("src/test/resources/nanodash-preferences-test.yml"),
-                prefFile.toPath(),
-                StandardCopyOption.REPLACE_EXISTING
-        );
-        assertTrue(prefFile.exists());
+        writePreferencesFile();
         NanodashPreferences preferences = get();
         assertFalse(preferences.isReadOnlyMode());
         assertEquals("http://localhost:37373/", preferences.getWebsiteUrl());
@@ -237,11 +245,7 @@ class NanodashPreferencesTest {
 
     @Test
     void getConfiguredWebsiteUrlFromPreferencesFile() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/nanodash-preferences-test.yml"),
-                new File(System.getProperty("user.home") + DEFAULT_SETTING_PATH).toPath(),
-                StandardCopyOption.REPLACE_EXISTING
-        );
+        writePreferencesFile();
         assertEquals("http://localhost:37373/", get().getConfiguredWebsiteUrl());
     }
 
