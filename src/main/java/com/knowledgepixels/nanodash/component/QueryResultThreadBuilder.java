@@ -68,7 +68,7 @@ public class QueryResultThreadBuilder implements Serializable {
 
     public Component build() {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
-        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildThread);
+        Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildThread, viewDisplay.isHideWhenEmpty());
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
         return comp;
     }

@@ -64,6 +64,12 @@ public class ExplorePage extends NanodashPage {
     private static final String TEMPLATES_VIEW = "https://w3id.org/np/RAP0-S9PUUVF1rQiqo8vq8z6XWsXkeGBUo60DJf8JsXsc/templates-view";
 
     /**
+     * What the page says when even the references view finds nothing: the thing is not
+     * mentioned anywhere, rather than this one view having come up empty.
+     */
+    private static final String NOTHING_KNOWN_NOTE = "No nanopublication mentions this yet.";
+
+    /**
      * The part-of relation as it was written by the term-defining templates for a long time:
      * {@code http://purl.org/dc/terms/partOf}, a term DCMI never defined — the intended one is
      * {@link DCTERMS#IS_PART_OF} (#511). Nanopublications are immutable, so the hundreds of
@@ -136,6 +142,11 @@ public class ExplorePage extends NanodashPage {
     private RdfSource rdfSource = null;
     private String canonicalId = null;
     private boolean indexable = true;
+
+    // Whether the Content/Explore tab strip was shown. It is not for a plain term, whose
+    // single page now holds both what the strip used to split; the "tab" parameter is then
+    // dropped from the canonical URL so that ?tab=explore does not canonicalise to itself.
+    private boolean tabsShown = false;
 
     /**
      * Constructor for ExplorePage.
@@ -443,51 +454,79 @@ public class ExplorePage extends NanodashPage {
         } else {
             add(new Label("statusLine").setVisible(false));
         }
-        WebMarkupContainer infoSection = new WebMarkupContainer("info-section");
-        if (publishedNanopub != null) {
-            infoSection.add(new Label("classes-panel").setVisible(false));
-        } else {
+        boolean hasNanopub = (np != null);
+        // A nanopublication (or a thing minted in one) shows itself on the Content tab and
+        // keeps its references on the Explore tab; a plain term has only the one page, so it
+        // shows both what is known about it and where it is mentioned. Note that
+        // publishedNanopub != null implies np != null, so "has a nanopublication to show"
+        // covers the just-published case too.
+        boolean showTermViews = !outsideSite && !hasNanopub;
+        // The tab strip only has something to split where there is a nanopublication to put
+        // on one side of it. A plain term gets a single page instead, so an old ?tab=explore
+        // link lands on that page rather than on a tab that is no longer there.
+        tabsShown = !outsideSite && hasNanopub;
+        if (!tabsShown) activeTab = ResourceTabs.Tab.CONTENT;
+        boolean contentTab = (activeTab == ResourceTabs.Tab.CONTENT);
+        // Shown wherever the tabs are not holding them back: on a plain term's single page,
+        // and on a nanopublication's Explore tab.
+        boolean showReferences = !outsideSite && (!hasNanopub || !contentTab);
+
+        // Everything the network knows about the explored thing, in one section: the term
+        // views that find anything, and the nanopublications mentioning it. Keeping them
+        // together is what stops the section from ever being an empty grey band -- the
+        // references view is always in it, and always renders either rows or one line.
+        WebMarkupContainer exploreSection = new WebMarkupContainer("explore-section");
+        WebMarkupContainer termViews = new WebMarkupContainer("term-views");
+        if (showTermViews) {
+            // Each of these is marked hiddenWhenEmpty: a term that is in no class, described
+            // nowhere, has no instances and no templates used to get four boxes all saying
+            // "(nothing found)", which was the whole page.
             View classesView = View.get(CLASSES_VIEW);
             QueryRef classesQueryRef = new QueryRef(classesView.getQuery().getQueryId(), "thing", ref);
-            infoSection.add(QueryResultListBuilder.create("classes-panel", classesQueryRef, new ViewDisplay(classesView)).build());
-        }
-        if (isNanopubId) {
-            infoSection.add(new Label("definitions-panel").setVisible(false));
-            infoSection.add(new Label("instances-panel").setVisible(false));
-            infoSection.add(new Label("templates-panel").setVisible(false));
-        } else {
+            termViews.add(QueryResultListBuilder.create("classes-panel", classesQueryRef, new ViewDisplay(classesView).hiddenWhenEmpty()).build());
+
             View describedInView = View.get(DESCRIBED_IN_VIEW);
             QueryRef describedInQueryRef = new QueryRef(describedInView.getQuery().getQueryId(), "term", ref);
-            infoSection.add(QueryResultNanopubSetBuilder.create("definitions-panel", describedInQueryRef, new ViewDisplay(describedInView)).build());
+            termViews.add(QueryResultNanopubSetBuilder.create("definitions-panel", describedInQueryRef, new ViewDisplay(describedInView).hiddenWhenEmpty()).build());
 
             View instancesView = View.get(INSTANCES_VIEW);
             QueryRef instancesQueryRef = new QueryRef(instancesView.getQuery().getQueryId(), "class", ref);
-            infoSection.add(QueryResultListBuilder.create("instances-panel", instancesQueryRef, new ViewDisplay(instancesView)).build());
+            termViews.add(QueryResultListBuilder.create("instances-panel", instancesQueryRef, new ViewDisplay(instancesView).hiddenWhenEmpty()).build());
 
             View templatesView = View.get(TEMPLATES_VIEW);
             QueryRef templatesQueryRef = new QueryRef(templatesView.getQuery().getQueryId(), "thing", ref);
-            infoSection.add(QueryResultListBuilder.create("templates-panel", templatesQueryRef, new ViewDisplay(templatesView)).build());
+            termViews.add(QueryResultListBuilder.create("templates-panel", templatesQueryRef, new ViewDisplay(templatesView).hiddenWhenEmpty()).build());
+        } else {
+            termViews.add(new Label("classes-panel").setVisible(false));
+            termViews.add(new Label("definitions-panel").setVisible(false));
+            termViews.add(new Label("instances-panel").setVisible(false));
+            termViews.add(new Label("templates-panel").setVisible(false));
         }
-        add(infoSection);
+        termViews.setVisible(showTermViews);
+        exploreSection.add(termViews);
 
-        // References to the explored thing (the References view, moved here from
-        // the About pages).
-        WebMarkupContainer referencesSection = new WebMarkupContainer("references-section");
+        // References to the explored thing (the References view, moved here from the About
+        // pages). Built even where it is not shown, so a nanopublication's Content tab warms
+        // the query its Explore tab is about to need.
+        //
+        // It also carries the empty state for the whole page: its query matches the IRI in
+        // subject, predicate or object across every graph of every nanopublication, so it
+        // finds everything the four term views above could find and more. If it is empty,
+        // they are empty too -- hence a note about the thing rather than about this view.
+        // (The queries are separately published nanopubs that can be superseded without
+        // touching this code, which is why the note says only what this query tested.)
         View refView = View.get(ReferencesPage.REFERENCES_VIEW);
         QueryRef refQueryRef = new QueryRef(refView.getQuery().getQueryId(), "ref", ref);
-        referencesSection.add(QueryResultTableBuilder.create("references", refQueryRef, new ViewDisplay(refView)).build());
-        add(referencesSection);
+        exploreSection.add(QueryResultTableBuilder.create("references", refQueryRef,
+                new ViewDisplay(refView).withEmptyMessage(NOTHING_KNOWN_NOTE)).build());
 
-        // Tab layout: the Content tab shows the nanopublication itself (for
-        // nanopub / minted-in-nanopub things) or, for plain terms, the info
-        // section (Assigned to, Described in, instances, templates). The Explore
-        // tab shows only References (for all cases).
-        if (!outsideSite) titleBar.setTabs(new ResourceTabs("tabs", exploreTabParams(ref, contextId, parameters), activeTab));
-        boolean contentTab = (activeTab == ResourceTabs.Tab.CONTENT);
-        boolean hasNanopub = (np != null);
+        // Written as a disjunction although the first implies the second, so that a later
+        // change to either cannot quietly leave an empty striped band behind.
+        exploreSection.setVisible(showTermViews || showReferences);
+        add(exploreSection);
+
+        if (tabsShown) titleBar.setTabs(new ResourceTabs("tabs", exploreTabParams(ref, contextId, parameters), activeTab));
         nanopubSection.setVisible(contentTab && hasNanopub);
-        infoSection.setVisible(!outsideSite && publishedNanopub == null && contentTab && !hasNanopub);
-        referencesSection.setVisible(!outsideSite && !contentTab);
     }
 
     /**
@@ -563,6 +602,9 @@ public class ExplorePage extends NanodashPage {
     protected PageParameters getCanonicalParameters() {
         PageParameters params = super.getCanonicalParameters();
         if (canonicalId != null) params.set("id", canonicalId);
+        // Without the tab strip there is only one page, so an old ?tab=explore link
+        // canonicalises to it rather than pointing at itself.
+        if (!tabsShown) params.remove("tab");
         return params;
     }
 

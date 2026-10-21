@@ -46,14 +46,13 @@
     </div>
   </div>
 
-  <div wicket:id="info-section" class="row-section">
-    <div wicket:id="classes-panel"></div>
-    <div wicket:id="definitions-panel"></div>
-    <div wicket:id="instances-panel"></div>
-    <div wicket:id="templates-panel"></div>
-  </div>
-
-  <div wicket:id="references-section" class="row-section">
+  <div wicket:id="explore-section" class="row-section">
+    <wicket:container wicket:id="term-views">
+      <div wicket:id="classes-panel"></div>
+      <div wicket:id="definitions-panel"></div>
+      <div wicket:id="instances-panel"></div>
+      <div wicket:id="templates-panel"></div>
+    </wicket:container>
     <div wicket:id="references"></div>
   </div>
 

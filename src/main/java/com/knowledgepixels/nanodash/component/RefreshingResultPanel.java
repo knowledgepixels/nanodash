@@ -66,6 +66,7 @@ public class RefreshingResultPanel extends Panel {
 
     private final long deadline;
     private final WebMarkupContainer spinner;
+    private final boolean hideWhenEmpty;
 
     private boolean refreshing = true;
 
@@ -76,12 +77,28 @@ public class RefreshingResultPanel extends Panel {
      * @param renderer      builds the component showing a set of results
      */
     public RefreshingResultPanel(String id, QueryRef queryRef, ApiResponse staleResponse, ApiResultRenderer renderer) {
+        this(id, queryRef, staleResponse, renderer, false);
+    }
+
+    /**
+     * @param id            the Wicket markup id
+     * @param queryRef      the query being refreshed
+     * @param staleResponse the outdated results to show meanwhile (not null, and not empty
+     *                      when {@code hideWhenEmpty} is set)
+     * @param renderer      builds the component showing a set of results
+     * @param hideWhenEmpty whether the panel should leave the page once a refresh empties it
+     */
+    public RefreshingResultPanel(String id, QueryRef queryRef, ApiResponse staleResponse, ApiResultRenderer renderer, boolean hideWhenEmpty) {
         super(id);
         this.queryRef = queryRef;
         this.renderer = renderer;
         this.shownDigest = digest(staleResponse);
         this.deadline = System.currentTimeMillis() + REFRESH_TIMEOUT_MS;
+        this.hideWhenEmpty = hideWhenEmpty;
         setOutputMarkupId(true);
+        // The panel hides itself in the middle of its own Ajax update, which needs something
+        // to replace in the DOM.
+        if (hideWhenEmpty) setOutputMarkupPlaceholderTag(true);
         add(showSpinnerOn(renderer.render(CONTENT_ID, staleResponse)));
         // Fallback for content that has no title row of its own to put a spinner in. The
         // view components all do, so this normally stays hidden.
@@ -123,6 +140,10 @@ public class RefreshingResultPanel extends Panel {
         // Only the fallback needs its own spinner: the view components show theirs in their
         // title row.
         spinner.setVisible(refreshing && !hasOwnIndicator);
+        // A refresh that empties this view takes the panel off the page. One-way: a panel
+        // the page itself hid stays hidden. It never starts out empty — such a panel is sent
+        // down the lazy path instead (see ApiResultComponent.create).
+        if (hideWhenEmpty && ApiResultComponent.hasNothingToShow(get(CONTENT_ID))) setVisible(false);
     }
 
     /**

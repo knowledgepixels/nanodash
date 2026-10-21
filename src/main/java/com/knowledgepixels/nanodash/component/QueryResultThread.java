@@ -65,7 +65,7 @@ public class QueryResultThread extends QueryResult {
         WebMarkupContainer threadContainer = new WebMarkupContainer("thread-container");
         threadContainer.setOutputMarkupId(true);
         threadContainer.add(roots);
-        threadContainer.add(new Label("no-records", "(nothing found)").setVisible(thread.isEmpty()));
+        threadContainer.add(new Label("no-records", emptyNote()).setVisible(thread.isEmpty()));
         addOrReplace(threadContainer);
     }
 

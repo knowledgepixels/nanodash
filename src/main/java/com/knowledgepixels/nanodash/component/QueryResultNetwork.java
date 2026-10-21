@@ -108,7 +108,7 @@ public class QueryResultNetwork extends QueryResult {
         }).setEscapeModelStrings(false));
         add(container);
 
-        add(new Label("no-records", "(nothing found)") {
+        add(new Label("no-records", emptyNote()) {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
