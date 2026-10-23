@@ -1,14 +1,17 @@
 package com.knowledgepixels.nanodash;
 
+import com.knowledgepixels.nanodash.component.NanodashLink;
 import com.knowledgepixels.nanodash.component.QueryResultComponentFactory;
 import com.knowledgepixels.nanodash.component.menu.ViewDisplayMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.Strings;
 import org.nanopub.extra.services.ApiResponse;
@@ -379,6 +382,33 @@ public abstract class QueryResult extends Panel {
             }
         }
         return params.toString();
+    }
+
+    /**
+     * The URL for a result row's agent cell: the person's part page under this view's
+     * navigation context where that context shows something about people, else their own
+     * page. Carries the name the row already resolved, so the part page is titled with it
+     * rather than with the bare ORCID number.
+     * <p>
+     * A cell naming a person is built as a plain {@code href} rather than through
+     * {@link NanodashLink}, so neither its routing nor the navigation-parameter behaviors
+     * reach it. That is why a space's own listings -- its organizers, its programme
+     * committee -- led to the general profile while the same person clicked in an ordinary
+     * IRI cell led to their page in that space (issue #822).
+     *
+     * @param agentIri the person's IRI
+     * @param label    the name shown for them, or null if none was resolved
+     * @return the cell link's URL, navigation parameters included
+     */
+    protected String agentCellUrl(String agentIri, String label) {
+        if (NanodashLink.leadsToAgentPartPage(agentIri, renderContextId())) {
+            NanodashPageRef partRef = partPageRef(agentIri, label);
+            if (partRef != null) {
+                return RequestCycle.get().urlFor(partRef.getPageClass(), partRef.getParameters()).toString();
+            }
+        }
+        String url = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(agentIri);
+        return url + linkNavParams(url);
     }
 
     /**

@@ -118,8 +118,7 @@ public class QueryResultList extends QueryResult {
                             }
                             String userLabel = entry.get(key + "_label");
                             String displayLabel = userLabel != null && !userLabel.isBlank() ? userLabel : User.getShortDisplayName(userIri);
-                            String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(entryValue);
-                            userUrl += linkNavParams(userUrl);
+                            String userUrl = agentCellUrl(entryValue, displayLabel);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                             components.add(new ComponentSequence("component", " ", List.of(
                                     new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),

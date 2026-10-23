@@ -5,7 +5,6 @@ import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -141,8 +140,7 @@ public class QueryResultItemList extends QueryResult {
                     iconClass = "user-icon";
                 }
                 String displayLabel = (entryLabel != null && !entryLabel.isBlank()) ? entryLabel : User.getShortDisplayName(userIri);
-                String userUrl = UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(value);
-                userUrl += linkNavParams(userUrl);
+                String userUrl = agentCellUrl(value, displayLabel);
                 String html = "<img class=\"" + iconClass + "\" src=\"" + imgSrc + "\" /> <a href=\"" + Strings.escapeMarkup(userUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
                 return new Label("listItem", html).setEscapeModelStrings(false);
             } else if (key.endsWith("template_iri")) {
