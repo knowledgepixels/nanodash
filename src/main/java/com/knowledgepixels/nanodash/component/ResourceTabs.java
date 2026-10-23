@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.MaintainedResourcePage;
 import com.knowledgepixels.nanodash.page.ResourcePartPage;
@@ -178,6 +179,10 @@ public class ResourceTabs extends Panel {
 
     private BookmarkablePageLink<Void> tabLink(String id, Class<? extends WebPage> pageClass, PageParameters params, boolean selected) {
         BookmarkablePageLink<Void> link = new BookmarkablePageLink<>(id, pageClass, params);
+        // A tab switch leads back into the same page, so the context and the part it was
+        // reached under have to come along or the back-link dies on the first click
+        // (issue #697). Attached as a behavior because the page is not available here.
+        link.add(NavigationContext.incomingNavFallback());
         if (selected) {
             link.add(new AttributeAppender("class", " selected"));
         }

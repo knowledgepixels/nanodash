@@ -1,9 +1,11 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.CrawlerRequest;
+import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
@@ -23,6 +25,7 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.Component;
@@ -266,6 +269,12 @@ public class NanodashLink extends Panel {
                 label = User.getShortDisplayName(userIri);
                 explicitLabel = false;
             }
+            // A person met inside a context that shows something about people belongs on
+            // their part page there -- their role, their contributions -- rather than on
+            // the profile that says the same wherever it is read from (issue #822).
+            if (leadsToAgentPartPage(uri, contextId)) {
+                return partPageLink(markupId, uri, label, contextId, explicitLabel);
+            }
             return new BookmarkablePageLink<Void>(markupId, UserPage.class, params).setBody(Model.of(displayLabel(label, explicitLabel)));
         } else if (SpaceRepository.get().findById(uri) != null) {
             label = SpaceRepository.get().findById(uri).getLabel();
@@ -283,13 +292,13 @@ public class NanodashLink extends Panel {
             if (!isCaret) params.set("label", label);
             BookmarkablePageLink<Void> link;
             if (isPartOfResource(uri, contextId)) {
-                link = new BookmarkablePageLink<Void>(markupId, ResourcePartPage.class, params);
+                link = partPageLink(markupId, uri, isCaret ? null : label, contextId, explicitLabel);
             } else {
                 link = new BookmarkablePageLink<Void>(markupId, ExplorePage.class, params.set("forward-to-part", "true"));
+                // Truncate only derived labels; the full label stays in the page
+                // params above so the destination page can still show it as its title.
+                link.setBody(Model.of(displayLabel(label, explicitLabel)));
             }
-            // Truncate only derived labels; the full label stays in the page
-            // params above so the destination page can still show it as its title.
-            link.setBody(Model.of(displayLabel(label, explicitLabel)));
             // The "^" source-nanopub caret is styled like the admin lists (subtle, with
             // hover-darken), reusing SourceNanopub's `a.source` styling.
             if (isCaret) link.add(new AttributeAppender("class", "source"));
@@ -343,8 +352,10 @@ public class NanodashLink extends Panel {
      * @return the page URL
      */
     public static String getPageUrl(String uri, String contextId) {
-        if (isPartOfResource(uri, contextId)) {
-            return ResourcePartPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8);
+        if (isPartOfResource(uri, contextId) || leadsToAgentPartPage(uri, contextId)) {
+            // The context travels even for a crawler; see partPageLink.
+            return ResourcePartPage.MOUNT_PATH + "?id=" + URLEncoder.encode(uri, java.nio.charset.StandardCharsets.UTF_8)
+                    + "&" + NavigationContext.CONTEXT_PARAM + "=" + URLEncoder.encode(contextId, java.nio.charset.StandardCharsets.UTF_8);
         }
         String url = getPageUrl(uri);
         // Only the Explore fallback takes it; an external or resolver URL is not ours to extend.
@@ -378,6 +389,56 @@ public class NanodashLink extends Panel {
             return MaintainedResourceRepository.get().findById(uri).getLabel();
         }
         return null;
+    }
+
+    /**
+     * A link to a resource part. Built through {@link NavigationContext#getPartPageRef},
+     * which carries the context whatever the request is: the part page cannot resolve
+     * without it, so unlike every other page linked here it does not get the crawler
+     * treatment that leaves the context off (issue #804). Its canonical URL keeps the
+     * context too, so one part page is still one URL.
+     * <p>
+     * Both callers have established a non-empty context, which is all
+     * {@link NavigationContext#getPartPageRef} needs to return a reference.
+     */
+    private static BookmarkablePageLink<Void> partPageLink(String markupId, String uri, String label, String contextId, boolean explicitLabel) {
+        NanodashPageRef ref = NavigationContext.getPartPageRef(uri, label, contextId);
+        BookmarkablePageLink<Void> link = new BookmarkablePageLink<Void>(markupId, ref.getPageClass(), ref.getParameters());
+        // Truncate only derived labels; the full label stays in the page parameters above
+        // so the destination page can still show it as its title.
+        link.setBody(Model.of(displayLabel(label, explicitLabel)));
+        return link;
+    }
+
+    /**
+     * Whether a link to a person met inside a context leads to their part page there,
+     * rather than to the profile that reads the same wherever it is met: the context
+     * resource has a view display that would render something for them (issue #822).
+     * <p>
+     * Asked with the class the part page itself computes for an agent
+     * ({@code ResourcePartPage.getPartClasses}) -- without it an agent-targeted view would
+     * never match and the link would lead to an empty page -- and asked of displays that are
+     * about people rather than ones people merely fit, so a space whose only match is a
+     * generic list it shows on its own page keeps its people on their profiles. The context
+     * is resolved through {@link NavigationContext#resolve}, which rejects one that is an
+     * agent but not a user.
+     * <p>
+     * The reading is only as warm as the context's display set: before it has been fetched
+     * this answers false and the link goes to the profile, the same race the Explore page
+     * already lives with.
+     *
+     * @param uri       the IRI linked to
+     * @param contextId the context resource id, or null
+     * @return true if the link belongs on the person's part page under that context
+     */
+    public static boolean leadsToAgentPartPage(String uri, String contextId) {
+        if (contextId == null || contextId.isEmpty() || contextId.equals(uri)) return false;
+        // Only a person has an agent's part page. Every caller but getPageUrl knows that
+        // already; that one is handed whatever IRI a network view drew as a node.
+        if (!IndividualAgent.isAgentId(uri)) return false;
+        AbstractResourceWithProfile context = NavigationContext.resolve(contextId);
+        if (context == null) return false;
+        return context.hasPartSpecificDisplay(uri, Set.of(KPXL_TERMS.INDIVIDUAL_AGENT));
     }
 
     private static boolean isPartOfResource(String uri, String contextId) {

@@ -709,6 +709,33 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * @param classes   the set of classes to check for applicability
      * @return true if any view display of this resource applies to the given element ID and set of classes, false otherwise
      */
+    /**
+     * Whether any view display of this resource is about the given element <em>specifically</em>:
+     * one the element's part page would render that does not equally apply to this resource
+     * itself.
+     * <p>
+     * The distinction is what tells a space that keeps pages about its people from one that
+     * merely owns a view they also match. A conference declares a view
+     * {@code gen:appliesToInstancesOf gen:IndividualAgent} -- a person's role, the talks they
+     * are giving -- and that view is about people and nothing else. A pinned-resources list
+     * declares {@code gen:IndividualAgent, gen:MaintainedResource, gen:Space} and is shown on
+     * the space's own page: it fits a person, but it is not a reason to give every person in
+     * that space a page of their own (issue #822).
+     * <p>
+     * Asked of the displays the part page would actually render, so a deactivated display, or
+     * one superseded by a newer of the same kind, does not keep a page alive.
+     *
+     * @param partId  the id of the element the page would be about
+     * @param classes the classes it is known to have
+     * @return true if some display is about it rather than merely fitting it
+     */
+    public boolean hasPartSpecificDisplay(String partId, Set<IRI> classes) {
+        for (ViewDisplay v : getPartLevelViewDisplays(partId, classes)) {
+            if (!v.appliesTo(getId(), getOwnClasses())) return true;
+        }
+        return false;
+    }
+
     public boolean appliesTo(String elementId, Set<IRI> classes) {
         triggerDataUpdate();
         for (ViewDisplay v : getViewDisplays()) {

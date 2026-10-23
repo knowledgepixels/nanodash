@@ -181,4 +181,57 @@ class NavigationContextTest {
         assertNull(NavigationContext.getPartPageRef(null, null, RESOURCE_IRI.stringValue()));
     }
 
+    /**
+     * The subtle one. {@link NavigationContext#withPart} drops the part when the link's
+     * target id is the part itself, because within a context such a target is the part page
+     * and its back-link would point at itself. A link to another page of that same resource
+     * -- its own page, or another tab of it -- is where the part page is exactly what to go
+     * back to, so there the part has to survive.
+     */
+    @Test
+    void selfPageNavCarriesThePartWhereWithPartRefusesIt() {
+        PageParameters viaWithPart = NavigationContext.withPart(
+                new PageParameters().set("id", PART_ID).set(NavigationContext.CONTEXT_PARAM, RESOURCE_IRI.stringValue()),
+                PART_ID, PART_LABEL, RESOURCE_IRI.stringValue());
+        assertTrue(viaWithPart.get(NavigationContext.PART_PARAM).isEmpty(),
+                "withPart is expected to refuse this shape");
+
+        PageParameters params = NavigationContext.withSelfPageNav(new PageParameters().set("id", PART_ID),
+                RESOURCE_IRI.stringValue(), PART_ID, PART_LABEL);
+        assertEquals(RESOURCE_IRI.stringValue(), params.get(NavigationContext.CONTEXT_PARAM).toString());
+        assertEquals(PART_ID, params.get(NavigationContext.PART_PARAM).toString());
+        assertEquals(PART_LABEL, params.get(NavigationContext.PART_LABEL_PARAM).toString());
+    }
+
+    @Test
+    void selfPageNavCarriesNoPartWithoutAContextToCarryItUnder() {
+        PageParameters params = NavigationContext.withSelfPageNav(new PageParameters().set("id", PART_ID),
+                null, PART_ID, PART_LABEL);
+        assertTrue(params.get(NavigationContext.CONTEXT_PARAM).isEmpty());
+        assertTrue(params.get(NavigationContext.PART_PARAM).isEmpty());
+    }
+
+    /**
+     * A part only ever travels under its own context, and {@code withContext} leaves an
+     * existing one alone — so a link already bound to a different context keeps that one
+     * and takes no part.
+     */
+    @Test
+    void selfPageNavLeavesALinkBoundToAnotherContextAlone() {
+        PageParameters params = NavigationContext.withSelfPageNav(
+                new PageParameters().set("id", PART_ID).set(NavigationContext.CONTEXT_PARAM, OTHER_SPACE_IRI.stringValue()),
+                RESOURCE_IRI.stringValue(), PART_ID, PART_LABEL);
+        assertEquals(OTHER_SPACE_IRI.stringValue(), params.get(NavigationContext.CONTEXT_PARAM).toString());
+        assertTrue(params.get(NavigationContext.PART_PARAM).isEmpty());
+    }
+
+    @Test
+    void selfPageNavKeepsAnExplicitPart() {
+        PageParameters params = NavigationContext.withSelfPageNav(
+                new PageParameters().set("id", PART_ID).set(NavigationContext.PART_PARAM, "https://example.com/other-part"),
+                RESOURCE_IRI.stringValue(), PART_ID, PART_LABEL);
+        assertEquals("https://example.com/other-part", params.get(NavigationContext.PART_PARAM).toString());
+        assertTrue(params.get(NavigationContext.PART_LABEL_PARAM).isEmpty());
+    }
+
 }

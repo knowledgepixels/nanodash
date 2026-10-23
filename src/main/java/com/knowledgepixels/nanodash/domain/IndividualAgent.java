@@ -59,6 +59,20 @@ public class IndividualAgent extends AbstractResourceWithProfile {
     }
 
     /**
+     * Whether the given id names an individual agent: a known user or software agent, or a
+     * well-formed ORCID that is not (yet) one. This is the pair of checks that decides, all
+     * over the application, that an id is a person -- which page a link to them leads to,
+     * which class their part page computes for them, whether their page shows a user icon.
+     * Those decisions have to agree, so they ask here rather than each spelling it out.
+     *
+     * @param id the id to check
+     * @return true if the id names an individual agent
+     */
+    public static boolean isAgentId(String id) {
+        return isUser(id) || isOrcidIri(id);
+    }
+
+    /**
      * Checks if a given IRI represents a software agent.
      *
      * @param userIri The IRI to check.

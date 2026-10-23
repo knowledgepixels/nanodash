@@ -326,7 +326,7 @@ public class ResourcePartPage extends NanodashPage {
      * @return true if the id names an individual agent
      */
     static boolean isIndividualAgent(String id) {
-        return IndividualAgent.isUser(id) || IndividualAgent.isOrcidIri(id);
+        return IndividualAgent.isAgentId(id);
     }
 
     /**
@@ -465,11 +465,19 @@ public class ResourcePartPage extends NanodashPage {
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
-        add(new Label("pagetitle", label + " (resource part)" + titleSuffix()));
+        // The heading names the resource; what makes this page that resource *here* is the
+        // context, which the breadcrumb states and the views imply ("Role in this space")
+        // but the name itself did not. Said once, in the grey the tab name already uses.
+        String contextSuffix = TitleBar.contextSuffix(resourceWithProfile);
+        add(new Label("pagetitle", label + contextSuffix + titleSuffix()));
+        // A part that is a person is shown with the same face as their own page, so the
+        // two read as one resource seen from two sides.
+        add(UserIcon.ofPerson("userIcon", id));
         add(new Label("name", label));
-        add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
-        add(PageTitleMenu.forPart("titlemenu", resourceWithProfile, id, label));
+        add(new Label("titlesuffix", contextSuffix + ResourceTabs.titleSuffix(activeTab)));
+        add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
+        add(OwnPageLink.of("ownpagelink", id, label, resourceWithProfile));
 
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
