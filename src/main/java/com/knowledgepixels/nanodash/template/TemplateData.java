@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.lookup.ThingOrigins;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GovernedVersions;
 import com.knowledgepixels.nanodash.QueryApiAccess;
@@ -76,6 +77,9 @@ public class TemplateData implements Serializable {
         logger.info("Loading templates...");
         for (ApiResponseEntry entry : templateEntries.getData()) {
             if ("true".equals(entry.get("unlisted"))) continue;
+            // Who published each template and when, so the dropdowns can say so without
+            // reading the nanopublications again (the listings report both per row).
+            ThingOrigins.record(entry.get("np"), entry.get("pubkey"), entry.get("date"));
             if (!entry.get("np").equals(previousId)) {
                 templates.add(entry);
             }

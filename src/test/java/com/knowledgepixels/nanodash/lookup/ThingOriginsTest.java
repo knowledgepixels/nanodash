@@ -134,6 +134,22 @@ class ThingOriginsTest {
     }
 
     @Test
+    void aThingInheritsTheNoteOfItsNanopublication() {
+        // Nothing was recorded for the view itself, only for the nanopublication it is part
+        // of: a listing that reports nanopublications still lights up notes for the IRIs
+        // inside them, which is what the template dropdowns rely on.
+        ThingOrigins.record(NP, PUBKEY, DATE);
+        assertEquals("by Jane Doe" + Utils.ORIGIN_NOTE_SEPARATOR + DATE, ThingOrigins.getOriginNote(VIEW));
+    }
+
+    @Test
+    void aThingsOwnNoteWinsOverItsNanopublications() {
+        ThingOrigins.record(NP, PUBKEY, "2020-01-01T00:00:00Z");
+        ThingOrigins.record(VIEW, PUBKEY, DATE);
+        assertEquals("by Jane Doe" + Utils.ORIGIN_NOTE_SEPARATOR + DATE, ThingOrigins.getOriginNote(VIEW));
+    }
+
+    @Test
     void aThingWithoutARecordedSignerHasNoNote() {
         assertNull(ThingOrigins.getOriginNote(THING));
     }
