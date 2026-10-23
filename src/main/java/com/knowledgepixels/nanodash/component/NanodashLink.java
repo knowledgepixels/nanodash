@@ -433,7 +433,7 @@ public class NanodashLink extends Panel {
         if (contextId == null || contextId.isEmpty() || contextId.equals(uri)) return false;
         // Only a person has an agent's part page. Every caller but getPageUrl knows that
         // already; that one is handed whatever IRI a network view drew as a node.
-        if (!IndividualAgent.isUser(uri) && !IndividualAgent.isOrcidIri(uri)) return false;
+        if (!IndividualAgent.isAgentId(uri)) return false;
         AbstractResourceWithProfile context = NavigationContext.resolve(contextId);
         if (context == null) return false;
         return context.appliesTo(uri, Set.of(KPXL_TERMS.INDIVIDUAL_AGENT));

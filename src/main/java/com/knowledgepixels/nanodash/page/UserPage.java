@@ -13,8 +13,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.ExternalImage;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
@@ -22,7 +20,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.setting.IntroNanopub;
@@ -121,21 +118,7 @@ public class UserPage extends NanodashPage {
         add(new TitleBar("titlebar", this)
                 .setTabs(new ResourceTabs("tabs", "user", userIriString, activeTab)));
 
-        ProfilePicture profilePicture = User.getProfilePicture(userIri);
-        if (profilePicture != null) {
-            ExternalImage userIcon = new ExternalImage("userIcon", profilePicture.getSrc());
-            add(userIcon);
-        } else {
-            boolean isSoftware = IndividualAgent.isSoftware(userIri);
-            Image userIcon;
-            if (isSoftware) {
-                userIcon = new Image("userIcon", new ContextRelativeResourceReference("images/bot-icon.svg", false));
-            } else {
-                userIcon = new Image("userIcon", new ContextRelativeResourceReference("images/user-icon.svg", false));
-
-            }
-            add(userIcon);
-        }
+        add(UserIcon.of("userIcon", userIri));
 
         final String displayName = User.getShortDisplayName(userIri);
         add(new Label("pagetitle", displayName + " (user)" + titleSuffix()));

@@ -36,7 +36,7 @@ public class OwnPageLink {
      * A space or a maintained resource is <em>resolved</em> rather than merely recognised:
      * an id that merely looks like one has no page to offer. A person is recognised instead,
      * by the same test that routes a link to them here in the first place
-     * ({@code NanodashLink}, {@code ResourcePartPage.isIndividualAgent}). The two have to
+     * ({@link IndividualAgent#isAgentId}). The two have to
      * agree: a well-formed ORCID nobody has introduced still reaches this page — the space
      * knows their role and their talks even where Nanodash knows nothing else about them —
      * and leaving the link out would strand the reader on it with no way on (issue #822).
@@ -51,7 +51,7 @@ public class OwnPageLink {
         AbstractResourceWithProfile own = NavigationContext.resolve(partId);
         Class<? extends NanodashPage> ownPageClass = NavigationContext.getPageClass(own);
         boolean agent = own instanceof IndividualAgent
-                || (ownPageClass == null && isIndividualAgent(partId));
+                || (ownPageClass == null && IndividualAgent.isAgentId(partId));
         if (agent) ownPageClass = UserPage.class;
         if (ownPageClass == null || context == null) {
             return new Label(markupId).setVisible(false);
@@ -60,11 +60,6 @@ public class OwnPageLink {
                 ownPageParameters(partId, partLabel, context.getId()));
         link.setBody(Model.of(agent ? "\uD83D\uDC64 open user page" : icon(own) + " " + label(own)));
         return link;
-    }
-
-    /** A known user or software agent, or a well-formed ORCID that is not (yet) one. */
-    private static boolean isIndividualAgent(String id) {
-        return IndividualAgent.isUser(id) || IndividualAgent.isOrcidIri(id);
     }
 
     /**

@@ -326,7 +326,7 @@ public class ResourcePartPage extends NanodashPage {
      * @return true if the id names an individual agent
      */
     static boolean isIndividualAgent(String id) {
-        return IndividualAgent.isUser(id) || IndividualAgent.isOrcidIri(id);
+        return IndividualAgent.isAgentId(id);
     }
 
     /**
@@ -466,6 +466,9 @@ public class ResourcePartPage extends NanodashPage {
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
         add(new Label("pagetitle", label + " (resource part)" + titleSuffix()));
+        // A part that is a person is shown with the same face as their own page, so the
+        // two read as one resource seen from two sides.
+        add(UserIcon.ofPerson("userIcon", id));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
         add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
