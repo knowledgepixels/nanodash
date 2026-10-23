@@ -23,11 +23,15 @@ import com.knowledgepixels.nanodash.ServiceHealth;
 import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.HomePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
+import com.knowledgepixels.nanodash.page.ResourcePartPage;
 import com.knowledgepixels.nanodash.page.SiteHomePage;
 import com.knowledgepixels.nanodash.page.SpacePage;
+import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 
 /**
  * TitleBar is the top bar of the Nanodash application, which contains the
@@ -116,7 +120,7 @@ public class TitleBar extends Panel {
         if (crumbParts.isEmpty()) {
             NanodashPageRef backRef = createBackContextRef(page);
             if (backRef != null) {
-                backContextContainer.add(backRef.createComponent("backcontext", crumbLabel(backRef.getLabel())));
+                backContextContainer.add(backRef.createComponent("backcontext", backCrumbLabel(backRef)));
                 backCrumbVisible = true;
             }
         }
@@ -283,10 +287,49 @@ public class TitleBar extends Panel {
      * @param label the ref's full label, or null
      * @return the crumb text, or null if there is nothing to show
      */
-    public static String crumbLabel(String label) {
+    static String crumbLabel(String label) {
         if (label == null) return null;
         List<String> segments = splitLabel(label);
         return segments.isEmpty() ? null : truncateLabel(segments.get(0));
+    }
+
+    /**
+     * The text of the back-crumb. A crumb pointing at a part page names a resource seen
+     * inside a context, and the name alone reads as the resource itself: on a person's own
+     * page "&lt; Tobias Kuhn" looks like a link back to where the reader already is. It says
+     * which context instead, the way that part page's own heading does.
+     * <p>
+     * The name is shortened first and the context appended after, so a long name is
+     * truncated where it always was rather than eating into the context.
+     *
+     * @param ref the back-crumb's target
+     * @return the crumb text, or null if there is nothing to show
+     */
+    private static String backCrumbLabel(NanodashPageRef ref) {
+        String label = crumbLabel(ref.getLabel());
+        if (label == null || !ResourcePartPage.class.equals(ref.getPageClass())) return label;
+        String contextId = ref.getParameters().get(NavigationContext.CONTEXT_PARAM).toString("");
+        return label + contextSuffix(NavigationContext.resolve(contextId));
+    }
+
+    /**
+     * What to append to a part's name to say where it is being shown: " at ISWC 2026",
+     * " in KGXL-Query". The preposition follows the context -- one is <em>at</em> an event
+     * and <em>in</em> anything else -- and the label is shortened the way a crumb is, so a
+     * conference whose full name runs to a subtitle does not take over the heading.
+     * <p>
+     * Empty in site mode for the site's own space, which is the context of everything there
+     * and so says nothing; the breadcrumb leaves it out for the same reason.
+     *
+     * @param context the resource the part belongs to, or null
+     * @return the suffix, starting with a space, or "" where there is nothing to say
+     */
+    public static String contextSuffix(AbstractResourceWithProfile context) {
+        if (context == null || SiteMode.isSiteSpace(context.getId())) return "";
+        String contextLabel = crumbLabel(context.getLabel());
+        if (contextLabel == null || contextLabel.isBlank()) return "";
+        boolean atAnEvent = context instanceof Space space && space.isOfType(KPXL_TERMS.EVENT);
+        return (atAnEvent ? " at " : " in ") + contextLabel;
     }
 
     /**

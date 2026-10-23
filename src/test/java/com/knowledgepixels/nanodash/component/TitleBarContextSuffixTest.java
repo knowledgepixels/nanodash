@@ -1,4 +1,4 @@
-package com.knowledgepixels.nanodash.page;
+package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.Space;
@@ -11,12 +11,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * What the part page's heading says about where the part is being shown. The name alone
- * reads the same wherever it is met, so it carries the context: " at ISWC 2026" (issue
- * #822). One is <em>at</em> an event and <em>in</em> anything else, and the label is
- * shortened the way a breadcrumb shortens it.
+ * What a part's name says about where it is being shown. The name alone reads the same
+ * wherever it is met, so the part page's heading and the back-crumb pointing at it both
+ * carry the context: " at ISWC 2026" (issue #822). One is <em>at</em> an event and
+ * <em>in</em> anything else, and the label is shortened the way a crumb is.
  */
-class ResourcePartPageContextSuffixTest {
+class TitleBarContextSuffixTest {
 
     private static final String SPACE_ID = "https://w3id.org/spaces/iswc/2026";
 
@@ -31,12 +31,12 @@ class ResourcePartPageContextSuffixTest {
 
     @Test
     void oneIsAtAnEvent() {
-        assertEquals(" at ISWC 2026", ResourcePartPage.contextSuffix(space("ISWC 2026", true)));
+        assertEquals(" at ISWC 2026", TitleBar.contextSuffix(space("ISWC 2026", true)));
     }
 
     @Test
     void andInAnythingElse() {
-        assertEquals(" in Nanodash", ResourcePartPage.contextSuffix(space("Nanodash", false)));
+        assertEquals(" in Nanodash", TitleBar.contextSuffix(space("Nanodash", false)));
     }
 
     @Test
@@ -45,7 +45,7 @@ class ResourcePartPageContextSuffixTest {
         when(resource.getId()).thenReturn(SPACE_ID + "/r/kgxl-query");
         when(resource.getLabel()).thenReturn("KGXL-Query");
 
-        assertEquals(" in KGXL-Query", ResourcePartPage.contextSuffix(resource));
+        assertEquals(" in KGXL-Query", TitleBar.contextSuffix(resource));
     }
 
     /**
@@ -57,17 +57,17 @@ class ResourcePartPageContextSuffixTest {
     void aLongNameIsShortenedTheWayABreadcrumbShortensIt() {
         Space space = space("ISWC 2026: 25th International Semantic Web Conference", true);
 
-        assertEquals(" at ISWC 2026", ResourcePartPage.contextSuffix(space));
+        assertEquals(" at ISWC 2026", TitleBar.contextSuffix(space));
     }
 
     @Test
     void saysNothingWithoutAContext() {
-        assertEquals("", ResourcePartPage.contextSuffix(null));
+        assertEquals("", TitleBar.contextSuffix(null));
     }
 
     @Test
     void saysNothingForAContextWithNoLabel() {
-        assertEquals("", ResourcePartPage.contextSuffix(space("   ", true)));
+        assertEquals("", TitleBar.contextSuffix(space("   ", true)));
     }
 
 }
