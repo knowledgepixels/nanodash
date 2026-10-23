@@ -8,8 +8,10 @@ var NETWORK_FONT = "Inter, Verdana, Helvetica, sans-serif";
 
 /* The instances drawn so far, so that the ones whose view has since been replaced can be
    shut down. vis-network listens on the window for resizes, which would otherwise pile up
-   one dead listener per view refresh. */
-var networkInstances = [];
+   one dead listener per view refresh. Kept if it is already there: this script is asked for
+   both by a view and by the placeholder that waits in its place, and a second evaluation
+   must not lose hold of what the first one drew. */
+var networkInstances = networkInstances || [];
 
 /* A tooltip is built as an element with its text set as text, never as a string handed
    to the library: vis-network writes a string title into the popup with innerHTML, so a
@@ -25,6 +27,28 @@ function networkTooltip(text) {
 /* Above this many edges, captions on them are noise rather than information: they overlap
    each other and the nodes, and the same text is a hover away. */
 var EDGE_LABEL_LIMIT = 60;
+
+/* How much of the layout is computed before the first frame. vis-network paints nothing
+   while it stabilizes out of sight, so a long hidden phase is a box that stays empty: this
+   is enough to pull the worst crossings out, and the rest of the settling is worth more on
+   screen, where the movement shows the diagram arriving rather than hiding that it is. */
+var PRESETTLE_ITERATIONS = 80;
+
+/* While the graph settles on screen it keeps spreading, so the view follows it: a fit this
+   often, until the layout comes to rest or this long, whichever is first. */
+var FIT_INTERVAL_MS = 250;
+var SETTLE_MAX_MS = 6000;
+
+/* How long a box that never got drawn keeps claiming to be loading. Long enough that no
+   slow connection is called a failure, short enough not to spin at a reader all day. */
+var ENGINE_WAIT_MS = 15000;
+
+/* A reader who has asked for less motion gets the finished layout instead of a settling one:
+   the whole of it is computed before the first frame, the way it was when this view type
+   could do nothing else. Dragging still moves the graph — that motion is theirs to start. */
+function prefersReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
 
 /* Repulsion has to grow with the graph, or everything past a few dozen nodes collapses into
    an unreadable ball in the middle. The numbers come from trying the real data. */
@@ -57,7 +81,20 @@ function networkOptions(nodeCount, edgeCount) {
         damping: 0.4,
         avoidOverlap: 0.2
       },
-      stabilization: {iterations: Math.min(1200, 300 + 12 * nodeCount), fit: true}
+      /* The timestep is deliberately left at the library's 0.5. Raising it does shorten the
+         settling — a graph of a hundred nodes came to rest half a second sooner at 0.7 —
+         but a visible simulation gets no adaptive timestepping to catch an overshoot, and
+         on a graph of several hundred nodes 0.7 left one of them bouncing between two
+         positions at the velocity cap for as long as the page was open (issue #823).
+         "Settled" is measured on the fastest node, though, so one twitching leaf is enough
+         to hold the whole simulation in the render loop at the default threshold — and that
+         is where the time actually was: the same graph took 7.7 s to come to rest at the
+         library's 0.75 and 2.5 s at this one. A node moving this slowly cannot be seen. */
+      minVelocity: 1.5,
+      stabilization: {
+        iterations: prefersReducedMotion() ? Math.min(1200, 300 + 12 * nodeCount) : PRESETTLE_ITERATIONS,
+        fit: true
+      }
     },
     interaction: {hover: true, tooltipDelay: 150, navigationButtons: false, keyboard: false},
     /* A fixed seed so the same graph comes up in the same arrangement on every page load:
@@ -79,6 +116,53 @@ function pruneNetworks() {
   });
 }
 
+/* The pre-settle fits the view to a graph that is not the graph a moment later: the nodes
+   keep spreading as the simulation runs on, and would wander off the canvas while they did.
+   So the view follows them until the layout comes to rest. */
+function followLayout(network, container) {
+  var timer = setInterval(function () {
+    /* A view replaced by a refresh in the meantime leaves a network pruneNetworks has
+       destroyed, and nothing left to fit the view to. */
+    if (!container.isConnected) {
+      stop();
+      return;
+    }
+    network.fit();
+  }, FIT_INTERVAL_MS);
+
+  function stop() {
+    clearInterval(timer);
+  }
+
+  network.once("stabilized", stop);
+  /* From the reader's first pan, drag or zoom the framing is theirs, and a view pulling the
+     graph back into the box would be arguing with them. Both events come only from real
+     input: a fit() of ours moves the view without raising either. */
+  network.on("dragStart", stop);
+  network.on("zoom", stop);
+}
+
+/* Not every graph comes to rest. A few hundred nodes are enough to leave one of them
+   bouncing between two positions at the velocity cap, with the simulation — and the
+   redrawing — going on for as long as the page is open. So every run of the simulation is
+   given a deadline: on load, and again each time a drag wakes it. Stopping it leaves the
+   nodes where they are and takes nothing away, since physics stays enabled and the next
+   drag starts it over. This is deliberately not tied to the fitting above, which the reader
+   calls off as soon as they touch the diagram: a reader who zooms in on a flickering node
+   is the last person who should lose the thing that stops it. */
+function capSettling(network, container) {
+  var cap = null;
+  network.on("startStabilizing", function () {
+    clearTimeout(cap);
+    cap = setTimeout(function () {
+      if (container.isConnected) network.stopSimulation();
+    }, SETTLE_MAX_MS);
+  });
+  network.on("stabilized", function () {
+    clearTimeout(cap);
+  });
+}
+
 /* One container. A failure is left in the console rather than taking the rest of the
    page's views down with it. */
 function initNetwork(container) {
@@ -94,6 +178,22 @@ function initNetwork(container) {
   }
   if (!graph || !graph.nodes || !graph.nodes.length) return;
 
+  /* Claimed before anything is drawn, so a second pass leaves this container alone. */
+  container.setAttribute("data-network-ready", "1");
+  /* Taken hold of now because vis-network empties the container as it takes it over, and
+     put back below: on a graph of any size the first frame is a few hundred milliseconds
+     after that, and the box should not stand empty in between. */
+  var spinner = container.querySelector(".refresh-spinner");
+
+  /* One frame's grace before any of it: laying out a few hundred edges holds the main
+     thread, and the box and its spinner are worth painting before it does. */
+  requestAnimationFrame(function () {
+    if (container.isConnected) drawNetwork(container, graph, spinner);
+  });
+}
+
+/* The drawing itself, once the browser has had its frame. */
+function drawNetwork(container, graph, spinner) {
   var urls = {};
   var nodes = graph.nodes.map(function (n) {
     urls[n.id] = n.url;
@@ -124,8 +224,16 @@ function initNetwork(container) {
   var network = new vis.Network(container,
       {nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges)},
       networkOptions(nodes.length, edges.length));
-  container.setAttribute("data-network-ready", "1");
   networkInstances.push({el: container, net: network});
+
+  /* The spinner, back in the box the library just emptied, until there is something in it
+     to look at instead. */
+  if (spinner) {
+    container.appendChild(spinner);
+    network.once("afterDrawing", function () {
+      if (spinner.parentNode) spinner.parentNode.removeChild(spinner);
+    });
+  }
 
   /* Added after the network, because vis-network empties the container when it takes it
      over. Nothing in it is interactive, so it never gets in the way of a click. */
@@ -165,11 +273,14 @@ function initNetwork(container) {
     }
   }
 
-  /* The layout is worth the CPU once; leaving the simulation running would keep every
-     network view on the page busy for as long as it is open. */
-  network.once("stabilizationIterationsDone", function () {
-    network.setOptions({physics: false});
-  });
+  /* Nothing switches the simulation off for good here, and that is the point: vis-network
+     stops its own render loop as soon as the fastest node is slower than
+     physics.minVelocity, so a settled graph costs nothing until something wakes it — and a
+     drag does, which is what makes a dragged node bring its neighbours along instead of
+     sliding out of its own diagram. capSettling is what handles the graphs that never
+     settle; where the rest of the layout happens on screen, the view follows it there. */
+  capSettling(network, container);
+  if (!prefersReducedMotion()) followLayout(network, container);
 
   /* A click on a node or an edge goes to its page. Dragging a node reports no click, so
      rearranging the layout by hand does not navigate away from it. */
@@ -213,13 +324,45 @@ function initNetworks() {
   }
 }
 
+/* Draws a view arriving in an AJAX response. The hook has to be installed even when this
+   script is evaluated before Wicket's own has been — which it now can be, since it is
+   loaded with the placeholder a lazily loaded view shows, so that the engine is on its way
+   while the query is still running. A later AJAX contribution of the same script is skipped
+   by its src rather than evaluated again, so this is the only chance there is to install it:
+   without the hook, the view replacing the placeholder would never be drawn. */
+function hookNetworkAjax() {
+  if (window.networkAjaxHooked) return true;
+  if (typeof Wicket === "undefined" || !Wicket.Event) return false;
+  window.networkAjaxHooked = true;
+  Wicket.Event.subscribe("/ajax/call/complete", function () {
+    initNetworks();
+  });
+  return true;
+}
+
+/* A box the drawing never reached stops claiming to be loading: an engine that 404s or is
+   blocked would otherwise leave the spinner turning at a reader for nothing. Armed once. */
+function watchForMissingEngine() {
+  if (window.networkEngineWatched) return;
+  window.networkEngineWatched = true;
+  setTimeout(function () {
+    /* A drawn view takes its own spinner down with its first frame, so whatever is still
+       here by now is waiting for something that is not coming. */
+    var left = document.querySelectorAll(".network-view-content .refresh-spinner");
+    for (var i = 0; i < left.length; i++) {
+      left[i].parentNode.removeChild(left[i]);
+    }
+  }, ENGINE_WAIT_MS);
+}
+
 function startNetworks() {
   initNetworks();
-  if (typeof Wicket !== "undefined" && Wicket.Event && !window.networkAjaxHooked) {
-    window.networkAjaxHooked = true;
-    Wicket.Event.subscribe("/ajax/call/complete", function () {
-      initNetworks();
-    });
+  watchForMissingEngine();
+  if (!hookNetworkAjax()) {
+    /* Wicket's script is loaded synchronously in the head, so by either of these it is
+       certainly there. Both are no-ops once the hook is in. */
+    document.addEventListener("DOMContentLoaded", hookNetworkAjax);
+    window.addEventListener("load", hookNetworkAjax);
   }
 }
 

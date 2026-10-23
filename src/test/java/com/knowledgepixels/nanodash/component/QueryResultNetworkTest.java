@@ -1,10 +1,12 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.WicketApplication;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
+import org.apache.wicket.Component;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +17,9 @@ import org.nanopub.extra.services.QueryRef;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -150,7 +154,7 @@ class QueryResultNetworkTest {
      */
     @Test
     void theLayoutEngineIsOnTheClasspathWhereTheComponentLooksForIt() {
-        for (String path : List.of("vis-network/current/standalone/umd/vis-network.min.js")) {
+        for (String path : List.of("vis-network/current/dist/vis-network.min.js")) {
             String resolved = new WebjarsJavaScriptResourceReference(path).getName();
             assertFalse(resolved.contains("current"), "version not resolved: " + resolved);
             // The reference resolves to a servable path ("/webjars/..."); on the classpath
@@ -158,6 +162,38 @@ class QueryResultNetworkTest {
             assertNotNull(QueryResultNetwork.class.getClassLoader()
                             .getResource("META-INF/resources" + resolved),
                     "not on the classpath: " + resolved);
+        }
+    }
+
+    /**
+     * The layout engine is the largest request a page carrying a network view makes, and on
+     * a cold cache the view that asks for it is not built until its query has returned —
+     * which put the download after the waiting instead of inside it (issue #823). The
+     * placeholder waiting in the view's place asks for it, so the page has the engine on its
+     * way while the query runs.
+     */
+    @Test
+    void theEngineIsAskedForWhileTheQueryIsStillRunning() {
+        try (MockedStatic<ApiCache> apiCache = mockStatic(ApiCache.class)) {
+            // Nothing cached and nothing stale: what goes on the page is the lazily loading
+            // placeholder, and it is the one that has to ask for the scripts.
+            Component waiting = QueryResultNetworkBuilder.create("comp", QUERY_REF, viewDisplay()).build();
+            assertInstanceOf(ApiResultComponent.class, waiting);
+            assertEquals(1, waiting.getBehaviors(QueryResultNetwork.Resources.class).size(),
+                    "the placeholder does not ask for the layout engine");
+            tester.startComponentInPage(waiting);
+            String html = tester.getLastResponseAsString();
+            assertTrue(html.contains("refresh-spinner"), html);
+            assertFalse(html.contains("network-view-content"), html);
+
+            // A view that is on the page already renders the scripts in its own head
+            // contribution, so nothing is added for it here.
+            apiCache.when(() -> ApiCache.retrieveResponseAsync(any(QueryRef.class))).thenReturn(response(
+                    new String[]{"source", "target"},
+                    new String[]{"https://example.org/a", "https://example.org/b"}));
+            Component view = QueryResultNetworkBuilder.create("comp", QUERY_REF, viewDisplay()).build();
+            assertInstanceOf(QueryResultNetwork.class, view);
+            assertTrue(view.getBehaviors(QueryResultNetwork.Resources.class).isEmpty(), "asked for twice");
         }
     }
 
