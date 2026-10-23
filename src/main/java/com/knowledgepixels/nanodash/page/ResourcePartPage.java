@@ -3,12 +3,14 @@ package com.knowledgepixels.nanodash.page;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
+import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
@@ -369,6 +371,26 @@ public class ResourcePartPage extends NanodashPage {
      * @param contextId the id of the resource this page's part belongs to
      * @return the resource, or null when the id names none of the three
      */
+    /**
+     * What to append to the part's name to say where it is being shown: " at ISWC 2026",
+     * " in KGXL-Query". The preposition follows the context -- one is *at* an event and *in*
+     * anything else -- and the label is shortened the way a breadcrumb shortens it, so a
+     * conference whose full name runs to a subtitle does not take over the heading.
+     * <p>
+     * Empty in site mode for the site's own space, which is the context of everything there
+     * and so says nothing; the breadcrumb leaves it out for the same reason.
+     *
+     * @param context the resource the part belongs to
+     * @return the suffix, starting with a space, or "" where there is nothing to say
+     */
+    static String contextSuffix(AbstractResourceWithProfile context) {
+        if (context == null || SiteMode.isSiteSpace(context.getId())) return "";
+        String contextLabel = TitleBar.crumbLabel(context.getLabel());
+        if (contextLabel == null || contextLabel.isBlank()) return "";
+        boolean atAnEvent = context instanceof Space space && space.isOfType(KPXL_TERMS.EVENT);
+        return (atAnEvent ? " at " : " in ") + contextLabel;
+    }
+
     private static AbstractResourceWithProfile resolveResourceWithProfile(String contextId) {
         AbstractResourceWithProfile resource = MaintainedResourceRepository.get().findById(contextId);
         if (resource != null) return resource;
@@ -465,12 +487,16 @@ public class ResourcePartPage extends NanodashPage {
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
-        add(new Label("pagetitle", label + " (resource part)" + titleSuffix()));
+        // The heading names the resource; what makes this page that resource *here* is the
+        // context, which the breadcrumb states and the views imply ("Role in this space")
+        // but the name itself did not. Said once, in the grey the tab name already uses.
+        String contextSuffix = contextSuffix(resourceWithProfile);
+        add(new Label("pagetitle", label + contextSuffix + titleSuffix()));
         // A part that is a person is shown with the same face as their own page, so the
         // two read as one resource seen from two sides.
         add(UserIcon.ofPerson("userIcon", id));
         add(new Label("name", label));
-        add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
+        add(new Label("titlesuffix", contextSuffix + ResourceTabs.titleSuffix(activeTab)));
         add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
         add(OwnPageLink.of("ownpagelink", id, label, resourceWithProfile));

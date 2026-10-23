@@ -283,7 +283,7 @@ public class TitleBar extends Panel {
      * @param label the ref's full label, or null
      * @return the crumb text, or null if there is nothing to show
      */
-    static String crumbLabel(String label) {
+    public static String crumbLabel(String label) {
         if (label == null) return null;
         List<String> segments = splitLabel(label);
         return segments.isEmpty() ? null : truncateLabel(segments.get(0));
