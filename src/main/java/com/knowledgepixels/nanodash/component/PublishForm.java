@@ -274,24 +274,29 @@ public class PublishForm extends Panel {
         assertionContext.setFillMode(fillMode);
         final String prTemplateId;
         if (pageParams.get("prtemplate").toString() != null) {
-            prTemplateId = pageParams.get("prtemplate").toString();
+            prTemplateId = td.getGovernedTemplateId(pageParams.get("prtemplate").toString());
         } else {
             if (fillNp != null && !fillOnlyAssertion) {
                 if (td.getProvenanceTemplateId(fillNp) != null) {
+                    // Deliberately not resolved: this form reproduces an existing
+                    // nanopublication, so it needs the template version that nanopublication
+                    // was made with, not the one its space vouches for today.
                     prTemplateId = td.getProvenanceTemplateId(fillNp).stringValue();
                 } else {
                     prTemplateId = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
                 }
             } else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
-                prTemplateId = assertionContext.getTemplate().getDefaultProvenance().stringValue();
+                prTemplateId = td.getGovernedTemplateId(assertionContext.getTemplate().getDefaultProvenance().stringValue());
             } else {
-                prTemplateId = DEFAULT_PROV_TEMPLATE;
+                prTemplateId = td.getGovernedTemplateId(DEFAULT_PROV_TEMPLATE);
             }
         }
         provenanceContext = newContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
         for (String t : fixedPubInfoTemplates) {
-            // TODO consistently check for latest versions of templates here and below:
-            TemplateContext c = newContext(ContextType.PUBINFO, t, "pi-statement");
+            // Space-governed templates float to the version their space vouches for; every
+            // other reference is used exactly as given, here and at the pubinfo call sites
+            // below (TemplateData.getGovernedTemplateId).
+            TemplateContext c = newContext(ContextType.PUBINFO, td.getGovernedTemplateId(t), "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplate().getId(), c);
             requiredPubInfoContexts.add(c);
@@ -330,7 +335,7 @@ public class PublishForm extends Panel {
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) {
                 continue;
             }
-            TemplateContext c = newContext(ContextType.PUBINFO, r.stringValue(), "pi-statement");
+            TemplateContext c = newContext(ContextType.PUBINFO, td.getGovernedTemplateId(r.stringValue()), "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplateId(), c);
             requiredPubInfoContexts.add(c);
@@ -342,9 +347,9 @@ public class PublishForm extends Panel {
             }
             Integer i = Integer.parseInt(k.replaceFirst("^pitemplate([1-9][0-9]*)$", "$1"));
             String tid = pageParams.get(k).toString();
-            // TODO Allow for automatically using latest template version:
-            //String piTemplateIdLatest = QueryApiAccess.getLatestVersionId(tid);
-            TemplateContext c = createPubInfoContext(tid);
+            // A space-governed reference floats; any other is used as given. Following
+            // npx:supersedes here too would silently change which form a link opens.
+            TemplateContext c = createPubInfoContext(td.getGovernedTemplateId(tid));
             if (piParamIdMap.containsKey(i)) {
                 // TODO: handle this error better
                 logger.error("Publication Info template param identifier defined multiple times: {}", i);
@@ -369,7 +374,8 @@ public class PublishForm extends Panel {
                     continue;
                 }
                 if (!pubInfoContextMap.containsKey(piTemplateIdLatest)) {
-                    // TODO Allow for automatically using latest template version
+                    // Deliberately not resolved, as for the provenance template above: these
+                    // carry over the fill source's own content and need the version it used.
                     createPubInfoContext(piTemplateId.stringValue());
                 }
             }

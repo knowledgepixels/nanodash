@@ -185,7 +185,7 @@ public class TemplateData implements Serializable {
      */
     public String getLatestTemplateId(String templateId) {
         Template pinned = getTemplate(templateId);
-        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getTemplateKindIri() != null) {
+        if (isSpaceGoverned(pinned)) {
             String governedId = resolveGovernedTemplateId(pinned);
             if (governedId != null) return governedId;
             return pinned.getId();
@@ -197,6 +197,47 @@ public class TemplateData implements Serializable {
         return templateId;
     }
 
+
+    /**
+     * Resolves a template reference that declares space-based governance to the version its
+     * governing space currently vouches for, and leaves every other reference untouched.
+     * <p>
+     * This is the narrow counterpart of {@link #getLatestTemplateId(String)}, for the places
+     * that load a provenance or pubinfo template. A reference that says nothing about
+     * governance resolves exactly as before — in particular it is <em>not</em> moved along its
+     * {@code npx:supersedes} chain — so every template predating this mechanism behaves
+     * identically whichever Nanodash version serves it. A reference that does declare
+     * {@code dct:isVersionOf} plus {@code gen:governedBy} floats within its
+     * {@code (resource, space)} pair, which is what declaring those asks for.
+     * <p>
+     * That split is what makes the two directions safe while a release rolls out: an older
+     * Nanodash meeting a governed provenance or pubinfo template keeps using the exact version
+     * referenced (the declaration is inert, never broken), and a newer Nanodash meeting an
+     * ungoverned one behaves as the old one did. Instances on either side therefore keep
+     * producing valid nanopublications from the same links.
+     *
+     * @param templateId the template reference to resolve
+     * @return the governed version's ID, or the given ID unchanged
+     */
+    public String getGovernedTemplateId(String templateId) {
+        if (templateId == null) return null;
+        Template pinned = getTemplate(templateId);
+        if (!isSpaceGoverned(pinned)) return templateId;
+        String governedId = resolveGovernedTemplateId(pinned);
+        return governedId != null ? governedId : templateId;
+    }
+
+    /**
+     * Whether a template declares space-based governance, i.e. both a version-independent IRI
+     * ({@code dct:isVersionOf}) and a governing space ({@code gen:governedBy}). Only these are
+     * floated by {@link #getGovernedTemplateId(String)}.
+     *
+     * @param template the template to check, may be null
+     * @return true if the template declares both
+     */
+    public static boolean isSpaceGoverned(Template template) {
+        return template != null && template.getGoverningSpace() != null && template.getTemplateKindIri() != null;
+    }
     /**
      * Resolves the latest space-governed version of the pinned template's
      * (kind, space) pair, or, if the kind isn't a maintained resource of the space,
