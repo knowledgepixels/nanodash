@@ -26,6 +26,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.nanopub.Nanopub;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -242,6 +243,35 @@ public class NavigationContext {
         // Nothing to point back to on a link to the part itself, and a link up to the
         // maintaining resource leaves the part behind rather than carrying it along.
         if (partId.equals(targetId) || partContextId.equals(targetId)) return params;
+        return setPart(params, partId, partLabel);
+    }
+
+    /**
+     * Stamps the context and the part onto a link leading to another page of the resource
+     * the part itself names: the part's own page, or another tab of that page.
+     * {@link #withPart} refuses this shape, because within a context a link whose target id
+     * is the part leads to the part page and its back-link would point at itself. Here the
+     * target is a different page of the same resource -- one that is a context page in its
+     * own right -- so it lands with an incoming context differing from its own, and the part
+     * page is exactly what it should offer to go back to (issue #697).
+     *
+     * @param params    the page parameters to extend
+     * @param contextId the context the part is shown under, or null to carry none
+     * @param partId    the part resource id, or null to carry none
+     * @param partLabel the part's label, or null to carry none
+     * @return the same page parameters, for chaining
+     */
+    public static PageParameters withSelfPageNav(PageParameters params, String contextId, String partId, String partLabel) {
+        withContext(params, contextId);
+        if (contextId == null || contextId.isEmpty() || partId == null || partId.isEmpty()) return params;
+        // Only under the context the part was reached in. withContext leaves an existing
+        // context alone and sets none at all for a crawler, so what it left on the
+        // parameters -- not what was asked for -- is what the part has to match.
+        if (!contextId.equals(params.get(CONTEXT_PARAM).toString(""))) return params;
+        return setPart(params, partId, partLabel);
+    }
+
+    private static PageParameters setPart(PageParameters params, String partId, String partLabel) {
         if (!params.get(PART_PARAM).isEmpty()) return params;
         params.set(PART_PARAM, partId);
         if (partLabel != null && !partLabel.isBlank()) params.set(PART_LABEL_PARAM, partLabel);
@@ -265,6 +295,31 @@ public class NavigationContext {
                     withContext(link.getPageParameters(), page.getContextId());
                     withPart(link.getPageParameters(), page.getPartId(), page.getPartLabel(), page.getIncomingContextId());
                 }
+            }
+        };
+    }
+
+    /**
+     * A behavior that carries the context and the part a page was <em>reached under</em>
+     * onto a link leading back into that same page: a tab switch. {@link #pageContextFallback()}
+     * cannot serve those, because on a context page {@link NanodashPage#getContextId()} is the
+     * page's own resource -- it would stamp the page itself as the context, and the trail back
+     * to the part would be lost on the first tab click (issue #697).
+     *
+     * @return the incoming-navigation fallback behavior
+     */
+    public static Behavior incomingNavFallback() {
+        return new Behavior() {
+            @Override
+            public void onConfigure(Component component) {
+                if (!(component instanceof BookmarkablePageLink<?> link)) return;
+                if (!(component.getPage() instanceof NanodashPage page)) return;
+                if (link.getPageParameters() == null) return;
+                // A page that is its own context and was reached under no other one has
+                // nothing incoming to carry, so its own tabs stay clean.
+                String incomingContextId = page.getIncomingContextId();
+                if (page.isContextPage() && Objects.equals(page.getContextId(), incomingContextId)) return;
+                withSelfPageNav(link.getPageParameters(), incomingContextId, page.getPartId(), page.getPartLabel());
             }
         };
     }
