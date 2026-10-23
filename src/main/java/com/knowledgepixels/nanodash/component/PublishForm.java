@@ -921,6 +921,10 @@ public class PublishForm extends Panel {
         Select2Choice<String> prTemplateChoice = new Select2Choice<String>("prtemplate", prTemplateModel, prTemplateChoiceProvider);
         prTemplateChoice.setRequired(true);
         prTemplateChoice.getSettings().setCloseOnSelect(true);
+        // Structure the entries the way every other dropdown structures them: the name on its
+        // own line, then where the template comes from with the date in relative form, then
+        // the URI. The closed field is clipped to the first line, so it shows just the name.
+        Utils.setSelect2ChoiceMinimalEscapeMarkup(prTemplateChoice);
         prTemplateChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
@@ -1056,6 +1060,7 @@ public class PublishForm extends Panel {
         Select2Choice<String> piTemplateChoice = new Select2Choice<String>("pitemplate", newPiTemplateModel, piTemplateChoiceProvider);
         piTemplateChoice.getSettings().setCloseOnSelect(true);
         piTemplateChoice.getSettings().setPlaceholder("add element...");
+        Utils.setSelect2ChoiceMinimalEscapeMarkup(piTemplateChoice);
         piTemplateChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
