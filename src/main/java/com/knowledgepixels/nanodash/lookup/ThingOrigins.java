@@ -90,7 +90,7 @@ public final class ThingOrigins {
      * @param pubkey the public key the nanopublication it was found in was signed with
      * @param date   the date that nanopublication was published, in ISO-8601
      */
-    static void record(String thing, String pubkey, String date) {
+    public static void record(String thing, String pubkey, String date) {
         if (thing == null) return;
         if (pubkey != null && !pubkey.isEmpty()) signerPubkeyHashes.put(thing, Utils.createSha256HexHash(pubkey));
         if (date != null && !date.isEmpty()) publicationDates.put(thing, date);
@@ -226,6 +226,18 @@ public final class ThingOrigins {
         if (thing == null) return null;
         String origin = getOrigin(thing);
         String date = publicationDates.getIfPresent(thing);
+        if (origin == null && date == null) {
+            // Nothing is known about the thing itself. A thing is part of exactly one
+            // nanopublication, so what is known about that nanopublication — who signed it,
+            // when it was published — holds for the thing too. This is what lets a listing
+            // that reports nanopublications (the template listings, say) light up notes for
+            // the IRIs inside them.
+            String npId = Utils.stripToNanopubId(thing);
+            if (npId != null && !npId.equals(thing)) {
+                origin = getOrigin(npId);
+                date = publicationDates.getIfPresent(npId);
+            }
+        }
         if (origin == null) return date;
         if (date == null) return origin;
         return origin + Utils.ORIGIN_NOTE_SEPARATOR + date;

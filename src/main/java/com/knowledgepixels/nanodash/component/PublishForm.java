@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
+import com.knowledgepixels.nanodash.lookup.ThingOrigins;
 import com.knowledgepixels.nanodash.*;
 import com.knowledgepixels.nanodash.component.menu.EntryActionMenu;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -860,14 +861,7 @@ public class PublishForm extends Panel {
 
             @Override
             public String getDisplayValue(String object) {
-                if (object == null || object.isEmpty()) {
-                    return "";
-                }
-                Template t = td.getTemplate(object);
-                if (t != null) {
-                    return t.getLabel();
-                }
-                return object;
+                return templateChoiceLabel(td, object);
             }
 
             @Override
@@ -886,6 +880,8 @@ public class PublishForm extends Panel {
                     term = "";
                 }
                 term = term.toLowerCase();
+                ThingOrigins.resolveOrigins(recommendedProvTemplateOptionIds);
+                ThingOrigins.resolveOrigins(provTemplateOptionIds);
                 if (pageParams.get("prtemplate").toString() != null) {
                     // Using this work-around with "——" because 'optgroup' is not available through Wicket's Select2 classes
                     response.add("—— default for this link ——");
@@ -989,14 +985,7 @@ public class PublishForm extends Panel {
 
             @Override
             public String getDisplayValue(String object) {
-                if (object == null || object.isEmpty()) {
-                    return "";
-                }
-                Template t = td.getTemplate(object);
-                if (t != null) {
-                    return t.getLabel();
-                }
-                return object;
+                return templateChoiceLabel(td, object);
             }
 
             @Override
@@ -1015,6 +1004,8 @@ public class PublishForm extends Panel {
                     term = "";
                 }
                 term = term.toLowerCase();
+                ThingOrigins.resolveOrigins(recommendedPiTemplateOptionIds);
+                ThingOrigins.resolveOrigins(piTemplateOptionIds);
                 if (!recommendedPiTemplateOptionIds.isEmpty()) {
                     response.add("—— recommended ——");
                     for (String s : recommendedPiTemplateOptionIds) {
@@ -1271,6 +1262,26 @@ public class PublishForm extends Panel {
      * Creates a template context for this form, carrying the form's target namespace and
      * navigation context (the latter resolves space-/namespace-dependent prefixes).
      */
+    /**
+     * The label a template dropdown shows for one entry: the template's name, then who it comes
+     * from and when, then its URI — the same three parts a guided-choice dropdown shows for any
+     * other thing, so that two templates of the same name can be told apart. The separator
+     * entries standing in for optgroups, and references that name no template, are passed
+     * through as they are.
+     *
+     * @param td the template data to look the reference up in
+     * @param id the template reference
+     * @return the label to show
+     */
+    private static String templateChoiceLabel(TemplateData td, String id) {
+        if (id == null || id.isEmpty()) return "";
+        if (id.startsWith("——")) return id;
+        Template t = td.getTemplate(id);
+        String label = (t == null) ? null : t.getLabel();
+        if (label == null || label.isBlank()) return id;
+        return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(id)) + Utils.getUriSuffix(id);
+    }
+
     private TemplateContext newContext(ContextType contextType, String templateId, String componentId) {
         TemplateContext context = new TemplateContext(contextType, templateId, componentId, targetNamespace);
         context.setNavigationContextId(navigationContextId);
