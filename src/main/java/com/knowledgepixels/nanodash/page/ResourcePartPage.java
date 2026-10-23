@@ -468,8 +468,9 @@ public class ResourcePartPage extends NanodashPage {
         add(new Label("pagetitle", label + " (resource part)" + titleSuffix()));
         add(new Label("name", label));
         add(new Label("titlesuffix", ResourceTabs.titleSuffix(activeTab)));
-        add(PageTitleMenu.forPart("titlemenu", resourceWithProfile, id, label));
+        add(PageTitleMenu.forResource("titlemenu", resourceWithProfile));
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
+        add(OwnPageLink.of("ownpagelink", id, label, resourceWithProfile));
 
         final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
