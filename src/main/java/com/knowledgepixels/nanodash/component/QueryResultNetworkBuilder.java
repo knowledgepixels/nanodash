@@ -99,6 +99,15 @@ public class QueryResultNetworkBuilder implements Serializable {
         ApiResponse response = ApiCache.retrieveResponseAsync(queryRef);
         Component comp = ApiResultComponent.create(markupId, queryRef, response, viewDisplay.getTitle(), this::buildNetwork, viewDisplay.isHideWhenEmpty());
         comp.add(new AttributeAppender("class", " col-" + viewDisplay.getDisplayWidth()));
+        // Exactly the cold path: with nothing cached, what goes on the page is a placeholder
+        // with a spinner in it and the view follows in an Ajax response, so the scripts are
+        // asked for here and the engine downloads while the query is still running rather
+        // than after it. The warm path renders the view itself and the stale one renders the
+        // previous results, and both carry the scripts with them already; a crawler's
+        // placeholder is invisible, renders no head, and so still pays for none of it.
+        // A view that turns out empty will have fetched the engine for nothing, which is one
+        // download per browser per release: the response is immutably cacheable.
+        if (comp instanceof ApiResultComponent) comp.add(new QueryResultNetwork.Resources());
         return comp;
     }
 

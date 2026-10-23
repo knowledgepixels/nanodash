@@ -85,10 +85,18 @@ the graph travels as ordinary result cells.
   navigation context so the destination's back-link leads back here. Clicking an edge
   opens the nanopublication the edge was read from — the answer to the question an edge
   raises, which is who says so.
-- **Dragging** a node rearranges the layout. A drag reports no click, so moving nodes
-  around never navigates away.
-- The force simulation stops once the layout has settled, so an open page with several
-  network views is not left spinning.
+- **Dragging** a node rearranges the layout around it: the simulation wakes up and the
+  node's neighbours follow it, so a graph can be pulled apart to read a crowded corner. A
+  drag reports no click, so moving nodes around never navigates away.
+- **The layout happens on screen.** Only a short pre-settle is computed before the first
+  frame — enough to pull the worst crossings out — and the rest of it runs in view, with the
+  diagram zooming out to keep up as the nodes spread. That the layout is being computed is
+  then something the reader can see, rather than something a blank box hides. The view stops
+  following the graph as soon as the reader touches it, and the simulation stops itself once
+  the layout has come to rest, so an open page with several network views is not left
+  spinning; a graph too dense ever to come to rest is stopped after a few seconds, its nodes
+  left where they are and still draggable. A reader whose system asks for reduced motion gets
+  the whole layout computed before the first frame instead, as before.
 
 ## Limits
 
@@ -108,7 +116,10 @@ the graph travels as ordinary result cells.
 
 - **Keep the result small.** A force layout over a few hundred edges is already dense;
   past that it is a hairball, whatever the library does. Aggregate or scope in SPARQL
-  rather than leaning on the 1000-edge cap, which is a backstop, not a setting.
+  rather than leaning on the 1000-edge cap, which is a backstop, not a setting. A graph of
+  several hundred nodes also never comes to rest at all: it is still drifting when the
+  layout is stopped after a few seconds, so what such a view settles on is wherever it had
+  got to, not a finished arrangement.
 - **Label every node the query can.** Nanodash names users, spaces and maintained
   resources by itself, but anything else falls back to the short name of its IRI, which for
   many vocabularies is a code. Hand the `*_label` columns the same labels a table would show.
@@ -138,10 +149,12 @@ The server turns the rows into a node set and an edge set
 `<script type="application/json">` block inside the view's container;
 `script/network.js` reads it and draws the diagram with
 [vis-network](https://visjs.github.io/vis-network/docs/network/), loaded from a webjar
-with the component, so a page without a network view loads neither the library nor the
-script. Only the library's script is loaded; its stylesheet is 220 KB of mostly base64
-icons for a navigation bar, an editing toolbar and a configuration panel that a network
-view does not turn on, so the one rule its popup needs lives in `style.css` instead.
+with the view — or, while a cold query is still running, with the placeholder waiting in its
+place, so that the engine and the query are not waited for one after the other. Either way a
+page without a network view loads neither the library nor the script. Only the library's
+script is loaded; its stylesheet is 220 KB of mostly base64 icons for a navigation bar, an
+editing toolbar and a configuration panel that a network view does not turn on, so the one
+rule its popup needs lives in `style.css` instead.
 
 Nothing in the graph is markup. Labels and tooltips are put on the page as text —
 the JSON is escaped HTML-safe, so a label containing `</script>` cannot close the block

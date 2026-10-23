@@ -3551,6 +3551,17 @@ button.svg-zoom-toggle:hover {
   height: 320px;
 }
 
+/* An empty canvas box says that it is still filling, rather than looking like a diagram
+   that came up blank: what is being waited for here is the layout engine — by far the
+   largest request a page carrying a network view makes — and then the first frame it draws,
+   which is when network.js takes this spinner back out. */
+.network-view-content > .refresh-spinner.standalone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -11px 0 0 -11px;
+}
+
 /* vis-network's own popup element, which it positions and shows as the pointer moves —
    the absolute positioning and the hidden default are what make that work. The library's
    stylesheet is not loaded for it: 220 KB, 93% of that base64 icons for a navigation bar,

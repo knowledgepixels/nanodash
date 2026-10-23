@@ -6,7 +6,9 @@ import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.WicketApplication;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -42,13 +44,16 @@ public class QueryResultNetwork extends QueryResult {
 
     // The layout engine is loaded with the component, not with every page, exactly as the
     // rich-text editor's resources are: a page without a network view pays for none of it.
-    // The standalone UMD build is self-contained and exposes the "vis" global.
+    // This UMD build is self-contained and exposes the "vis" global, from which the drawing
+    // script uses Network and DataSet. The standalone build exposes three more entry points
+    // the view does not use and carries 213 KB more, nearly all of it polyfills for browsers
+    // that could not run script/nanodash.js either.
     //
     // Its stylesheet is deliberately not loaded: 220 KB of which 205 KB is base64 icons for
     // the navigation buttons, the manipulation toolbar and the configuration panel, none of
     // which this view turns on. The one rule the popup needs is in style.css instead.
     private static final WebjarsJavaScriptResourceReference VIS_NETWORK_JS =
-            new WebjarsJavaScriptResourceReference("vis-network/current/standalone/umd/vis-network.min.js");
+            new WebjarsJavaScriptResourceReference("vis-network/current/dist/vis-network.min.js");
     private static final JavaScriptResourceReference NETWORK_JS =
             new JavaScriptResourceReference(WicketApplication.class, "script/network.js");
 
@@ -169,8 +174,31 @@ public class QueryResultNetwork extends QueryResult {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
+        renderResources(response);
+    }
+
+    private static void renderResources(IHeaderResponse response) {
         response.render(JavaScriptHeaderItem.forReference(VIS_NETWORK_JS));
         response.render(JavaScriptHeaderItem.forReference(NETWORK_JS));
+    }
+
+    /**
+     * Asks for the network view's scripts from a component that is not the view itself. On a
+     * cold cache the view is built only once its query has returned, so a head contribution
+     * of its own starts the engine's download — the largest request a page carrying a network
+     * view makes — after the waiting is already over. Put on the placeholder that waits in
+     * the view's place, this makes the two overlap. Contributing the same URLs twice is
+     * harmless: a script already in the page's head is not fetched or run again when the
+     * view's own Ajax response names it.
+     */
+    static class Resources extends Behavior {
+
+        @Override
+        public void renderHead(Component component, IHeaderResponse response) {
+            super.renderHead(component, response);
+            renderResources(response);
+        }
+
     }
 
     @Override
