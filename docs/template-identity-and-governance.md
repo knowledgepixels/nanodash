@@ -1,5 +1,13 @@
 # Templates: embedded identity & space governance
 
+> **Naming (2026-10-23).** What this document calls a definition's *kind* — the object of
+> `dct:isVersionOf` — is now called the **version-independent IRI**, or simply the view or
+> template itself, with the per-nanopub node named `…Version` (`<np>/templateVersion`,
+> `<np>/viewVersion`). "Kind" read as a type, which is the one relation this is not.
+> Already-minted `…Kind` IRIs keep their names — nothing reads the suffix — and the `kind=`
+> parameter of `get-latest-governed-version` keeps its name as a wire name. The wording
+> below is left as the record of the design.
+
 **Status:** partly implemented — embedded identity (rollout steps 1–2) merged in PR #545;
 governed resolution (steps 3–4) live: the generalized `get-latest-governed-version` query
 (`RAPSWgzHef9bIJyCoLodFH-BWtlESf1jIstEb0kn4B5Cw`, serving views and templates; since
@@ -26,6 +34,29 @@ template on the unbound cross-join) and risked per-row re-evaluation of the fede
 spaces-repo `SERVICE`. Remaining: migration of real templates (only after production runs the new
 parser); dedup arms for further listing surfaces as governance adoption grows (template
 views, view listings) — or #138.
+
+## Provenance and pubinfo templates (2026-10-23, issue #787)
+
+The two meta templates now offer the same fields as the assertion one — an embedded node for
+the template being defined (replacing `nt:ASSERTION`, defaulting to `templateVersion`),
+`dct:isVersionOf` + `gen:governedBy`, `dct:description`, language-tagged placeholders:
+`RAdBR_u_Ai7H-7xJhqIjPtqeOop_gXd0AZTXvYoAE2DGc` (provenance) and
+`RA-AgakdU88vxLkUGZ0vqYuha4S06ckWJd37EPK6xq4AU` (pubinfo).
+
+`PublishForm` follows those declarations through `TemplateData.getGovernedTemplateId`, which
+floats a reference **only** when it declares both `dct:isVersionOf` and `gen:governedBy`, and
+returns every other reference unchanged — deliberately not following `npx:supersedes` there.
+That split is what makes a staged rollout safe in both directions: an older Nanodash meeting a
+governed provenance or pubinfo template keeps using the exact version referenced (the
+declaration is inert, never broken), and a newer Nanodash meeting an ungoverned one behaves
+exactly as before, so instances on either side keep producing valid nanopublications from the
+same links.
+
+Resolution applies where a template is *selected*: the `prtemplate` parameter, the assertion
+template's `nt:hasDefaultProvenance`, the global default, and the fixed, required and
+`pitemplateN` pubinfo templates. It deliberately does **not** apply to the paths that
+reconstruct an existing nanopublication — the fill source's own provenance and pubinfo
+templates — which need the version that nanopublication was made with.
 
 ## Goal
 

@@ -16,8 +16,8 @@ OntoSVG vocabulary. Both end up in the same sanitizer and the same container.
 Exactly like any other view, with `gen:SvgView` as the display type:
 
 ```turtle
-sub:my-svg-view a gen:ResourceView, gen:SvgView ;
-  dct:isVersionOf sub:my-svg-view-kind ;
+sub:viewVersion a gen:ResourceView, gen:SvgView ;
+  dct:isVersionOf sub:my-svg-view ;
   rdfs:label "My typology diagram view" ;
   dct:title "🌳 Typology" ;
   gen:hasViewQuery <query-np-uri> ;

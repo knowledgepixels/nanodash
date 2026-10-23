@@ -180,6 +180,39 @@ public class TemplateIdentityTest {
     }
 
     @Test
+    void spaceGovernanceIsRecognisedOnlyWithBothDeclarations() throws Exception {
+        IRI space = vf.createIRI("https://w3id.org/spaces/test-space");
+        NanopubCreator creator = newCreator();
+        addTemplateBody(creator, TEMPLATE_NODE);
+        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(TEMPLATE_NODE, KPXL_TERMS.GOVERNED_BY, space);
+        assertTrue(TemplateData.isSpaceGoverned(new Template(creator.finalizeNanopub())));
+
+        // dct:isVersionOf alone is not governance: such a template still follows its own
+        // supersedes chain, and must not be floated by a (resource, space) lookup.
+        assertFalse(TemplateData.isSpaceGoverned(new Template(embeddedTemplateNanopub())));
+        assertFalse(TemplateData.isSpaceGoverned(null));
+    }
+
+    @Test
+    void ungovernedTemplateReferenceIsReturnedUnchanged() throws Exception {
+        TemplateData td = TemplateData.get();
+        td.registerTemplate(embeddedTemplateNanopub());
+        // The reference declares no governing space, so it must come back exactly as given,
+        // in either ID form: provenance and pubinfo templates predating space governance keep
+        // resolving as they did before, whichever Nanodash version serves them.
+        assertEquals(NP_URI, td.getGovernedTemplateId(NP_URI));
+        assertEquals(TEMPLATE_NODE.stringValue(), td.getGovernedTemplateId(TEMPLATE_NODE.stringValue()));
+    }
+
+    @Test
+    void unloadableTemplateReferenceIsReturnedUnchanged() {
+        TemplateData td = TemplateData.get();
+        assertEquals("https://example.com/no-template", td.getGovernedTemplateId("https://example.com/no-template"));
+        assertNull(td.getGovernedTemplateId(null));
+    }
+
+    @Test
     void registeredTemplateResolvesUnderBothIdForms() throws Exception {
         TemplateData td = TemplateData.get();
         Template t = td.registerTemplate(embeddedTemplateNanopub());
