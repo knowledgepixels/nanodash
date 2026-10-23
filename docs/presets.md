@@ -33,12 +33,12 @@ All terms use the `gen:` namespace `https://w3id.org/kpxl/gen/terms/`.
 ## 1. Defining a preset
 
 A preset is published as a nanopublication whose assertion describes a
-`gen:Preset`. Like a resource view, it carries a stable *kind* (via
+`gen:Preset`. Like a resource view, it carries a stable *version-independent IRI* (via
 `dct:isVersionOf`) so that the identity survives across superseding versions.
 
 ```turtle
-sub:preset a gen:Preset ;
-    dct:isVersionOf sub:presetKind ;          # stable identity across versions
+sub:presetVersion a gen:Preset ;
+    dct:isVersionOf sub:my-preset ;           # stable identity across versions
     rdfs:label "Nano Session" ;               # the preset name
     dct:description "..." ;                    # optional
 
@@ -52,17 +52,17 @@ sub:preset a gen:Preset ;
     gen:hasRole         <a-space-member-role> . # role definition to set up
 ```
 
-The preset node is both an embedded (`nt:EmbeddedResource`) and introduced
-local resource; the introduced `presetKind` is what other nanopubs and lookups
-reference so that the link is version-independent — exactly as done for
-resource views.
+The node carrying the content is embedded (`nt:EmbeddedResource`) and the IRI it
+declares with `dct:isVersionOf` is introduced; that introduced IRI is what other
+nanopubs and lookups reference so that the link is version-independent — exactly
+as done for resource views.
 
 ### Properties
 
 | Property                   | Cardinality          | Range / value                                                          |
 |----------------------------|----------------------|------------------------------------------------------------------------|
 | `rdf:type`                 | required             | `gen:Preset`                                                           |
-| `dct:isVersionOf`          | required             | the stable preset *kind*                                               |
+| `dct:isVersionOf`          | required             | the preset's version-independent IRI                                   |
 | `rdfs:label`               | required             | the preset name (used as the nanopub label)                            |
 | `dct:description`          | optional             | free text                                                              |
 | `gen:appliesToInstancesOf` | repeatable           | `gen:IndividualAgent`, `gen:Space`, or `gen:MaintainedResource`        |
@@ -92,18 +92,19 @@ sub:assignment a gen:PresetAssignment ;
 ```
 
 The crucial design point — copied directly from view displays — is that **the
-assignment is identified by the `(preset kind, resource)` pair, not by the
+assignment is identified by the `(preset, resource)` pair — *preset* meaning its
+version-independent IRI — not by the
 nanopublication's URI.** The `sub:assignment` node is a fresh local resource
 minted in each nanopub; what ties two nanopubs together is that they describe an
 assignment of the *same* preset for the *same* resource.
 
-The key is the preset's stable **kind** (`dct:isVersionOf`), not the pinned
-version the assignment references — exactly as a view display's identity is
-`(view kind, resource)` and not the view version it points at. So assigning
+The key is the preset's **version-independent IRI** (`dct:isVersionOf`), not the
+pinned version the assignment references — exactly as a view display's identity is
+`(view, resource)` and not the view version it points at. So assigning
 another version of the same preset *replaces* the earlier assignment rather than
 adding a second, competing one (see [Updating to a newer preset
-version](#updating-to-a-newer-preset-version)). A preset version that declares no
-kind keys on itself.
+version](#updating-to-a-newer-preset-version)). A preset version that declares none
+keys on itself.
 
 ### Activation and cross-user deactivation
 
@@ -190,7 +191,7 @@ implementation can largely follow the existing code paths:
 | `gen:DeactivatedViewDisplay`           | `gen:DeactivatedPresetAssignment`        |
 | `gen:isDisplayOfView`                  | `gen:isAssignmentOfPreset`               |
 | `gen:isDisplayFor`                     | `gen:isAssignmentFor`                    |
-| identity by `(view kind, resource)`    | identity by `(preset kind, resource)`    |
+| identity by `(view, resource)`         | identity by `(preset, resource)`         |
 | "Displaying a view for a resource"     | "Assigning a preset to a resource"       |
 | "Deactivating a view display ..."      | (covered by the deactivated type toggle) |
 
@@ -219,27 +220,27 @@ These were open during design; the implementation has since settled them.
   `appliesToInstancesOf` / `appliesToNamespace`. See `Preset` (`topLevelViews`
   vs `views`) and `ViewDisplay.forPresetView(…, topLevel, …)`.
 - **Deactivation:** an assignment is deactivated by publishing a
-  `gen:DeactivatedPresetAssignment` for the same `(preset kind, resource)` pair
+  `gen:DeactivatedPresetAssignment` for the same `(preset, resource)` pair
   (latest-wins among authorized agents), so a different agent can deactivate one
   they did not create — mirroring view-display deactivation. The preset-assignments
   view exposes a per-row deactivate action; `PresetAssignment.isActive()` reads the
   type. (No separate "deactivating" template was needed.)
 - **Assignment target granularity:** an assignment *references* a concrete preset
   version and that pin is what takes effect — a preset never auto-updates, which
-  matters because presets carry roles. Assignment *identity*, though, is by preset
-  kind (see above), so a newer version is adopted by assigning it, and the older
+  matters because presets carry roles. Assignment *identity*, though, is by the preset's
+  version-independent IRI (see above), so a newer version is adopted by assigning it, and the older
   assignment then loses on publication time.
 
 ## Updating to a newer preset version
 
-Presets deliberately do not follow their kind forward on their own: the views and
+Presets deliberately do not move to newer versions on their own: the views and
 especially the **roles** a resource picks up stay exactly the ones its admins
 signed off on. Adopting a newer version is therefore an explicit act, and the
 "🪟 Assigned presets" table on the About page makes it a one-click one
 ([issue #607](https://github.com/knowledgepixels/nanodash/issues/607)):
 
 - The listing queries (`list-preset-assignments` and its ref-scoped twin) look up
-  the newest non-invalidated version of the assigned preset's kind and report the
+  the newest non-invalidated version of the assigned preset and report the
   verdict in a **`version` column**: `version_label` holds what the cell displays
   ("latest" or "⬆️ update available") and `version` the dates behind it. That way
   round because `QueryResultTable` displays a literal column's `_label` companion and
@@ -251,7 +252,7 @@ signed off on. Adopting a newer version is therefore an explicit act, and the
 - The views carry an "⬆️ update to latest version" entry action, gated to
   maintainers and above, that opens the page's own assignment template pre-filled
   with the newer version (`updatePreset:preset`). Publishing it makes the newer
-  assignment the latest for that `(preset kind, resource)` pair; nothing needs to
+  assignment the latest for that `(preset, resource)` pair; nothing needs to
   be deactivated first. Rows with no newer version carry an empty `updatePreset`,
   which hides the button for them.
 
@@ -281,10 +282,10 @@ before it is a view-side one.
 
 ### What the query service already does — and where it still differs
 
-Worth knowing, because it is not symmetric: **roles are already resolved by kind
-server-side.** `AuthorityResolver.presetAttachmentValidationUpdate` maps an
+Worth knowing, because it is not symmetric: **roles are already resolved per preset,
+not per version, server-side.** `AuthorityResolver.presetAttachmentValidationUpdate` maps an
 assignment's preset reference to its `npa:presetKind` and then draws the roles from
-the *latest live declaration of that kind* (steps 5–5c; see
+the *latest live declaration of that preset* (steps 5–5c; see
 `doc/design-preset-role-materialization.md`, "a superseded preset version's roles
 never leak"). So the roles a resource picks up follow the newest preset version on
 their own, whichever version an assignment pins — it is the **views** that stay
@@ -294,11 +295,11 @@ What is still keyed on the pinned `(preset version, resource)` pair server-side 
 **which assignment counts** — the latest-wins/anti-hijack filter in that same update
 (step 7) and `presetDeactivationCheckWhere`. That is consistent with the update
 action (assigning a newer version leaves the roles resolving to that version anyway),
-but it diverges on **deactivation** while two versions of one kind are assigned:
-Nanodash treats the newest row for the kind as decisive and drops the preset
+but it diverges on **deactivation** while two versions of one preset are assigned:
+Nanodash treats the newest row for the preset as decisive and drops the preset
 entirely, whereas the materializer only sees that one *version's* assignment
 switched off and keeps the role attachments alive through the older version's
-assignment. Aligning it means keying those two filters on the kind as well — a
+assignment. Aligning it means keying those two filters on the preset as well — a
 contained nanopub-query change; both blocks already have `?kind` in scope or one
 join away.
 

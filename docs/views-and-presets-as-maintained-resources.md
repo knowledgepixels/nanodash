@@ -1,5 +1,13 @@
 # Views & presets as space-maintained resources
 
+> **Naming (2026-10-23).** What this document calls a definition's *kind* — the object of
+> `dct:isVersionOf` — is now called the **version-independent IRI**, or simply the view or
+> template itself, with the per-nanopub node named `…Version` (`<np>/templateVersion`,
+> `<np>/viewVersion`). "Kind" read as a type, which is the one relation this is not.
+> Already-minted `…Kind` IRIs keep their names — nothing reads the suffix — and the `kind=`
+> parameter of `get-latest-governed-version` keeps its name as a wire name. The wording
+> below is left as the record of the design.
+
 **Status:** design / not yet implemented
 
 ## Goal

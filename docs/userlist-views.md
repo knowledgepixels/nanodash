@@ -22,7 +22,7 @@ with multiple `foaf:name` values (now `group by ?user_iri` + `sample(?name)`):
 | 🤖 Software Agents | `RAFMW55TSw7rwAi-mLRsgnhOugd7ZYf4L5zvzFeoU9OWQ/get-approved-software-agents` | `RAr4qrDh77rNoRcodAoGDOJLEECu3sBvrUJPAhuK73e1c/software-agents-view` |
 | ❓ Non-Approved Users | `RAOnj3-qfGOYazNRGoOiAZRck3PxGT8zJMzucI4DUGQU0/get-non-approved-users` | `RA8Xkr-SnsRqu0RBGExZ3Ms8J1TviL_1bRQVRnymaWafw/non-approved-users-view` |
 
-All under the `https://w3id.org/np/` prefix. The view-kind IRIs (stable across
+All under the `https://w3id.org/np/` prefix. The version-independent view IRIs (stable across
 supersedes, used in `dct:isVersionOf`) remain under the v1 nanopubs
 (`RAWM…/human-users-view-kind`, `RAe87…/software-agents-view-kind`,
 `RA2p4…/non-approved-users-view-kind`). Signed TriG sources are in `../nanopub-skill/tmp/`.

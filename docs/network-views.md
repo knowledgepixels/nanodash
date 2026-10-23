@@ -16,8 +16,8 @@ view.
 Exactly like any other view, with `gen:NetworkView` as the display type:
 
 ```turtle
-sub:my-network-view a gen:ResourceView, gen:NetworkView ;
-  dct:isVersionOf sub:my-network-view-kind ;
+sub:viewVersion a gen:ResourceView, gen:NetworkView ;
+  dct:isVersionOf sub:my-network-view ;
   rdfs:label "My space structure network view" ;
   dct:title "🕸 Structure" ;
   gen:hasViewQuery <query-np-uri> ;
