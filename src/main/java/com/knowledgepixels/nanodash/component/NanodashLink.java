@@ -415,11 +415,13 @@ public class NanodashLink extends Panel {
      * rather than to the profile that reads the same wherever it is met: the context
      * resource has a view display that would render something for them (issue #822).
      * <p>
-     * This is the question {@code ExplorePage} asks before forwarding to a part page, asked
-     * with the class the part page itself computes for an agent
+     * Asked with the class the part page itself computes for an agent
      * ({@code ResourcePartPage.getPartClasses}) -- without it an agent-targeted view would
-     * never match and the link would lead to an empty page. The context is resolved through
-     * {@link NavigationContext#resolve}, which rejects one that is an agent but not a user.
+     * never match and the link would lead to an empty page -- and asked of displays that are
+     * about people rather than ones people merely fit, so a space whose only match is a
+     * generic list it shows on its own page keeps its people on their profiles. The context
+     * is resolved through {@link NavigationContext#resolve}, which rejects one that is an
+     * agent but not a user.
      * <p>
      * The reading is only as warm as the context's display set: before it has been fetched
      * this answers false and the link goes to the profile, the same race the Explore page
@@ -436,7 +438,7 @@ public class NanodashLink extends Panel {
         if (!IndividualAgent.isAgentId(uri)) return false;
         AbstractResourceWithProfile context = NavigationContext.resolve(contextId);
         if (context == null) return false;
-        return context.appliesTo(uri, Set.of(KPXL_TERMS.INDIVIDUAL_AGENT));
+        return context.hasPartSpecificDisplay(uri, Set.of(KPXL_TERMS.INDIVIDUAL_AGENT));
     }
 
     private static boolean isPartOfResource(String uri, String contextId) {

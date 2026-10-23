@@ -66,10 +66,10 @@ class NanodashLinkAgentRoutingTest {
         tester.destroy();
     }
 
-    /** A context whose view displays render something for a person, or nothing. */
+    /** A context that keeps views about people, or none. */
     private void contextShowsPeople(String contextId, boolean shows) {
         AbstractResourceWithProfile context = mock(Space.class);
-        when(context.appliesTo(anyString(), any())).thenReturn(shows);
+        when(context.hasPartSpecificDisplay(anyString(), any())).thenReturn(shows);
         navigationContextMock.when(() -> NavigationContext.resolve(contextId)).thenReturn(context);
     }
 
@@ -89,6 +89,11 @@ class NanodashLinkAgentRoutingTest {
                 () -> assertEquals(NAME, internal.getPageParameters().get("label").toString()));
     }
 
+    /**
+     * A space whose only match is a view it also shows on its own page -- a pinned-resources
+     * list that fits a space, a resource and a person alike -- keeps its people on their
+     * profiles. Owning such a view is not a decision to keep pages about people.
+     */
     @Test
     void aPersonInASpaceThatShowsNothingAboutThemLeadsToTheirProfile() {
         contextShowsPeople(SPACE, false);
