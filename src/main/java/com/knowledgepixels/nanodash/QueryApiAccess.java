@@ -64,9 +64,15 @@ public class QueryApiAccess {
     // RDF4J's left join is non-standard (under strict SPARQL semantics the unbound cross-join
     // would drop every non-governed template), and at risk of re-evaluating the federated
     // spaces-repo SERVICE per row. Verified identical row counts (656/26/38) against v3.
-    public static final String GET_ASSERTION_TEMPLATES = "RAi6EPio6sbvJ06mqfYm_QBmisWQnJ8cvzm-DKRHKPGUg/get-assertion-templates";
-    public static final String GET_PROVENANCE_TEMPLATES = "RA4ynLpmZXQjnMQzvm7OPt-q8uPPXU8qMxSHm4oSxlw5Y/get-provenance-templates";
-    public static final String GET_PUBINFO_TEMPLATES = "RAxzYV8Pr9vgTcajVMKrZ4GRO8xjxYgEzHCLN_BE0FQfs/get-pubinfo-templates";
+    // The three listing queries require the typed template node to carry at least one
+    // nt:hasStatement, as get-all-templates does: a nanopublication that only claims the
+    // type -- a maintained-resource declaration of a template's version-independent IRI, a
+    // preset assignment, an FDO/SHACL profile -- defines no form and cannot be parsed as a
+    // template. Before this they were listed and then failed to load, with a stack trace per
+    // entry (77 assertion, 1 provenance, 1 pubinfo rows network-wide).
+    public static final String GET_ASSERTION_TEMPLATES = "RA1RlUGUZ1cUJYzT00k2PaX-nHgpczcJiFjVSzxMtXVTA/get-assertion-templates";
+    public static final String GET_PROVENANCE_TEMPLATES = "RAd49_ERRKQxWqrXZ0Gdy9cluP9H8vbCTtW5Un4yKBVqw/get-provenance-templates";
+    public static final String GET_PUBINFO_TEMPLATES = "RAi5QKbupXbqI0JGyHJBAZVB3MYfG3PkiPyJrI13XEQ8s/get-pubinfo-templates";
     public static final String GET_LATEST_ACCEPTED_BDJ = "RAkoDiXZG_CYt978-dZ_vffK-UTbN6e1bmtFy6qdmFzC4/get-latest-accepted-bdj";
     public static final String GET_LATEST_BIODIV_CANDIDATES = "RAgnLJH8kcI_e488VdoyQ0g3-wcumj4mSiusxPmeAYsSI/get-latest-biodiv-candidates";
     public static final String GET_LATEST_ACCEPTED_DS = "RATpsBysLf8yXeMpY7PHKj-aKNCa4-4Okg1hi97OLDXIo/get-latest-accepted-ds";

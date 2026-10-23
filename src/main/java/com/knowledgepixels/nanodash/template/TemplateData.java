@@ -135,6 +135,14 @@ public class TemplateData implements Serializable {
                 templateMap.put(npId, t);
                 templateMap.put(t.getId(), t);
                 return t;
+            } catch (MalformedTemplateException ex) {
+                // Not an error on our side: a nanopublication that claims a template type
+                // without defining a template (an FDO/SHACL profile, a maintained-resource
+                // declaration of a template's version-independent IRI). The listing queries
+                // filter these out, but anything may still be referenced by ID, so say what
+                // happened without a stack trace. Callers treat null as "not a template".
+                logger.warn("Not a template: {} ({})", npId, ex.getMessage());
+                return null;
             } catch (Exception ex) {
                 logger.error("Could not load template: {}", npId, ex);
                 return null;
