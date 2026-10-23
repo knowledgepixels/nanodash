@@ -1,3 +1,30 @@
+## [5.21.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.20.0...nanodash-5.21.0) (2026-10-23)
+
+### Features
+
+* **links:** take a person to their page inside the space they are met in ([18edb47](https://github.com/knowledgepixels/nanodash/commit/18edb47a24a8589e30efa691a095511d722d4cc1)), closes [#822](https://github.com/knowledgepixels/nanodash/issues/822)
+* **part-page:** give a person's part page the same face as their own page ([a2a158e](https://github.com/knowledgepixels/nanodash/commit/a2a158e9caffb5edca3335cedfa47995b273ee4c))
+* **part-page:** say in the heading which space the part is shown in ([ef5db35](https://github.com/knowledgepixels/nanodash/commit/ef5db35797dd1c9c6287f92b213deb2600e64ff9))
+* **part-page:** show the way to a resource's own page instead of hiding it ([03a9b35](https://github.com/knowledgepixels/nanodash/commit/03a9b350cdd1adae2d0fb063ec9f1325fa489e5c))
+
+### Bug Fixes
+
+* **links:** keep people on their profiles where a space only owns a view they fit ([8a71021](https://github.com/knowledgepixels/nanodash/commit/8a7102103d84a399bf2c1fcace631a2d7d4a76f1))
+* **nav:** keep the back-link to a part across a tab switch ([5c71c7b](https://github.com/knowledgepixels/nanodash/commit/5c71c7b5a764fbfeccd9a6de6b0bdf59781b7c31)), closes [#697](https://github.com/knowledgepixels/nanodash/issues/697)
+* **nav:** name the context in a back-crumb pointing at a part page ([ac2929d](https://github.com/knowledgepixels/nanodash/commit/ac2929da491391cc84799ccd73f58fee049d4b91))
+
+### Documentation
+
+* version-independent IRI instead of "kind", and the [#787](https://github.com/knowledgepixels/nanodash/issues/787) behaviour ([571239b](https://github.com/knowledgepixels/nanodash/commit/571239bb88f63ad0d32ce114396c5a17861c7f99))
+
+### Performance improvements
+
+* **views:** lay a network out on screen instead of behind a blank box ([a5bb3ba](https://github.com/knowledgepixels/nanodash/commit/a5bb3bae30a02e131ae1e49d53a2f955db2b3f46)), closes [#823](https://github.com/knowledgepixels/nanodash/issues/823)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([f312675](https://github.com/knowledgepixels/nanodash/commit/f3126755e2c51200319fc4eba5b7ae1e96fabad9))
+
 ## [5.20.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.19.1...nanodash-5.20.0) (2026-10-21)
 
 ### Features
