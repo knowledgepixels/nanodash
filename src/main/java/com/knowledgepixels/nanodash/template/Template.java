@@ -112,10 +112,22 @@ public class Template implements Serializable {
      *
      * @param templateId the id of the template, which is the URI of a nanopublication that contains the template definition.
      * @throws RDF4JException             if there is an error retrieving the nanopublication.
-     * @throws MalformedTemplateException if the template is malformed or not a valid nanopub template.
+     * @throws MalformedTemplateException if the template is malformed, not a valid nanopub
+     *                                    template, or its nanopublication cannot be retrieved.
      */
     Template(String templateId) throws RDF4JException, MalformedTemplateException {
-        this(Utils.getNanopub(templateId));
+        this(retrieveTemplateNanopub(templateId));
+    }
+
+    /**
+     * A referenced template may not be retrievable at all, because it was never published to the
+     * registry this instance reads. Saying so is what lets the caller treat the reference as "no
+     * template", which a null-pointer failure deeper in the parsing did not.
+     */
+    private static Nanopub retrieveTemplateNanopub(String templateId) throws MalformedTemplateException {
+        Nanopub np = Utils.getNanopub(templateId);
+        if (np == null) throw new MalformedTemplateException("nanopublication could not be retrieved");
+        return np;
     }
 
     /**
