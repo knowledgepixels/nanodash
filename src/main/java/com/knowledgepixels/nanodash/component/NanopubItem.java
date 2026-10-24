@@ -322,6 +322,12 @@ public class NanopubItem extends Panel {
             List<TemplateContext> genericContexts = new ArrayList<>();
             for (String s : pubinfoTemplateIds) {
                 TemplateContext piContext = new TemplateContext(ContextType.PUBINFO, s, "pubinfo-statement", n.getNanopub());
+                // A nanopublication can name a pubinfo template this instance cannot load: one
+                // that was never published to the registry we read, or one that is no template
+                // at all. The assertion and provenance sections above fall back to their generic
+                // templates; here the element is left out, and the triples it would have rendered
+                // are taken by the generic context at the end of this list.
+                if (piContext.getTemplate() == null) continue;
                 if (piContext.willMatchAnyTriple()) {
                     genericContexts.add(piContext);
                 } else if (piContext.getTemplate().hasId("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")) {
