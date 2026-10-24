@@ -1,3 +1,13 @@
+## [5.21.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.21.0...nanodash-5.21.1) (2026-10-24)
+
+### Bug Fixes
+
+* **explore:** don't fail a nanopub whose pubinfo template can't be loaded ([bfd335e](https://github.com/knowledgepixels/nanodash/commit/bfd335eb9ca784b9c439f9299431b32c95bffa72))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([ebd2ab9](https://github.com/knowledgepixels/nanodash/commit/ebd2ab96d008a5fbe3de8834e004b22cc6b40724))
+
 ## [5.21.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.20.0...nanodash-5.21.0) (2026-10-23)
 
 ### Features
