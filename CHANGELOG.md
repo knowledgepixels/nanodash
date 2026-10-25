@@ -1,3 +1,13 @@
+## [5.21.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.21.1...nanodash-5.21.2) (2026-10-25)
+
+### Bug Fixes
+
+* **part-page:** name the context only on a person's part page ([046f3f7](https://github.com/knowledgepixels/nanodash/commit/046f3f7b44f53cc1c7aef6db003c1ca15d70a9f7)), closes [#822](https://github.com/knowledgepixels/nanodash/issues/822)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([e6498f7](https://github.com/knowledgepixels/nanodash/commit/e6498f7f550c33da0bdf244fca5854694d7f054d))
+
 ## [5.21.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.21.0...nanodash-5.21.1) (2026-10-24)
 
 ### Bug Fixes
