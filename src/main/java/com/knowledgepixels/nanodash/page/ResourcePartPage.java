@@ -465,10 +465,11 @@ public class ResourcePartPage extends NanodashPage {
                 breadCrumbArray
         ).setTabs(new ResourceTabs("tabs", "part", id, contextId, activeTab)));
 
-        // The heading names the resource; what makes this page that resource *here* is the
-        // context, which the breadcrumb states and the views imply ("Role in this space")
-        // but the name itself did not. Said once, in the grey the tab name already uses.
-        String contextSuffix = TitleBar.contextSuffix(resourceWithProfile);
+        // The heading names the resource; what makes a person's page that person *here* is
+        // the context, which the breadcrumb states and the views imply ("Role in this
+        // space") but their name did not. Said once, in the grey the tab name already uses,
+        // and only for a person -- see TitleBar.contextSuffix.
+        String contextSuffix = TitleBar.contextSuffix(id, resourceWithProfile);
         add(new Label("pagetitle", label + contextSuffix + titleSuffix()));
         // A part that is a person is shown with the same face as their own page, so the
         // two read as one resource seen from two sides.

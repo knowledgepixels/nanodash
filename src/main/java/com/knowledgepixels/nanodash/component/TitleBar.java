@@ -24,6 +24,7 @@ import com.knowledgepixels.nanodash.ServiceMode;
 import com.knowledgepixels.nanodash.SiteMode;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.HomePage;
@@ -294,8 +295,8 @@ public class TitleBar extends Panel {
     }
 
     /**
-     * The text of the back-crumb. A crumb pointing at a part page names a resource seen
-     * inside a context, and the name alone reads as the resource itself: on a person's own
+     * The text of the back-crumb. A crumb pointing at a person's part page names them
+     * inside a context, and their name alone reads as the person themselves: on their own
      * page "&lt; Tobias Kuhn" looks like a link back to where the reader already is. It says
      * which context instead, the way that part page's own heading does.
      * <p>
@@ -308,23 +309,33 @@ public class TitleBar extends Panel {
     private static String backCrumbLabel(NanodashPageRef ref) {
         String label = crumbLabel(ref.getLabel());
         if (label == null || !ResourcePartPage.class.equals(ref.getPageClass())) return label;
+        String partId = ref.getParameters().get("id").toString("");
         String contextId = ref.getParameters().get(NavigationContext.CONTEXT_PARAM).toString("");
-        return label + contextSuffix(NavigationContext.resolve(contextId));
+        return label + contextSuffix(partId, NavigationContext.resolve(contextId));
     }
 
     /**
-     * What to append to a part's name to say where it is being shown: " at ISWC 2026",
+     * What to append to a person's name to say where they are being shown: " at ISWC 2026",
      * " in KGXL-Query". The preposition follows the context -- one is <em>at</em> an event
      * and <em>in</em> anything else -- and the label is shortened the way a crumb is, so a
      * conference whose full name runs to a subtitle does not take over the heading.
      * <p>
+     * Only a person's name gets it (issue #822). A person is met in many places and their
+     * part page is them <em>here</em>, which their name alone does not say. Anything else a
+     * context has parts for -- a paper, a training, a paragraph -- belongs to the context
+     * that defines it, so naming that context again says nothing and reads as part of the
+     * title: "In-depth Analysis of Transformer Architectures at Neural Networks meet
+     * Explicit Knowledge Representation".
+     * <p>
      * Empty in site mode for the site's own space, which is the context of everything there
      * and so says nothing; the breadcrumb leaves it out for the same reason.
      *
+     * @param partId  the id of the part being named
      * @param context the resource the part belongs to, or null
      * @return the suffix, starting with a space, or "" where there is nothing to say
      */
-    public static String contextSuffix(AbstractResourceWithProfile context) {
+    public static String contextSuffix(String partId, AbstractResourceWithProfile context) {
+        if (!IndividualAgent.isAgentId(partId)) return "";
         if (context == null || SiteMode.isSiteSpace(context.getId())) return "";
         String contextLabel = crumbLabel(context.getLabel());
         if (contextLabel == null || contextLabel.isBlank()) return "";

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.page;
 
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -17,6 +18,7 @@ import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -25,15 +27,19 @@ import static org.mockito.Mockito.when;
 /**
  * What the back-crumb says when it points at a part page. "&lt; Tobias Kuhn" on Tobias
  * Kuhn's own page reads as a link back to where the reader already is; it is really the
- * page about him inside a space, so it says which space (issue #822).
+ * page about him inside a space, so it says which space (issue #822). A part that is not
+ * a person is named by itself alone, as its own page's heading names it.
  */
 class BackCrumbContextTest {
 
     private static final String SPACE = "https://w3id.org/spaces/iswc/2026";
     private static final String PART_LABEL = "Josiah Carberry";
+    private static final String PAPER = SPACE + "/in-depth-analysis-of-transformer-architectures";
+    private static final String PAPER_LABEL = "In-depth Analysis of Transformer Architectures";
 
     private WicketTester tester;
     private MockedStatic<NavigationContext> navigationContextMock;
+    private MockedStatic<IndividualAgent> agentMock;
 
     @BeforeEach
     void setUp() {
@@ -41,10 +47,15 @@ class BackCrumbContextTest {
         // Resolving the context goes over the network; what the crumb does with the
         // resolved space is the point. Everything else in NavigationContext stays real.
         navigationContextMock = mockStatic(NavigationContext.class, CALLS_REAL_METHODS);
+        // Asking whether an id is a known user goes over the network too; the ORCID check
+        // next to it, which is what tells a person from a paper here, stays real.
+        agentMock = mockStatic(IndividualAgent.class, CALLS_REAL_METHODS);
+        agentMock.when(() -> IndividualAgent.isUser(anyString())).thenReturn(false);
     }
 
     @AfterEach
     void tearDown() {
+        agentMock.close();
         navigationContextMock.close();
         tester.destroy();
     }
@@ -59,11 +70,15 @@ class BackCrumbContextTest {
     }
 
     private String backCrumb() {
+        return backCrumb(ResourceTabsNavTestPage.USER_IRI, PART_LABEL);
+    }
+
+    private String backCrumb(String partId, String partLabel) {
         tester.startPage(ResourceTabsNavTestPage.class, new PageParameters()
                 .set("id", ResourceTabsNavTestPage.USER_IRI)
                 .set(NavigationContext.CONTEXT_PARAM, SPACE)
-                .set(NavigationContext.PART_PARAM, ResourceTabsNavTestPage.USER_IRI)
-                .set(NavigationContext.PART_LABEL_PARAM, PART_LABEL));
+                .set(NavigationContext.PART_PARAM, partId)
+                .set(NavigationContext.PART_LABEL_PARAM, partLabel));
         String html = tester.getLastResponseAsString();
         Matcher matcher = Pattern.compile(
                 "backcontext-container[\\s\\S]{0,400}?<a href=\"([^\"]*part\\?[^\"]*)\"[^>]*><span[^>]*>([^<]*)</span>")
@@ -101,6 +116,17 @@ class BackCrumbContextTest {
         navigationContextMock.when(() -> NavigationContext.resolve(SPACE)).thenReturn(null);
 
         assertEquals(PART_LABEL, backCrumb());
+    }
+
+    /**
+     * A paper belongs to the space that defines it, which its part page's heading
+     * therefore does not repeat; the crumb leading back there says the same.
+     */
+    @Test
+    void andJustTheNameForAPartThatIsNotAPerson() {
+        contextIs("ISWC 2026", true);
+
+        assertEquals(PAPER_LABEL, backCrumb(PAPER, PAPER_LABEL));
     }
 
 }
