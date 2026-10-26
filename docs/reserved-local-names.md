@@ -46,7 +46,8 @@ under here, rather than about every IRI a nanopublication mentions.
 ## The rule
 
 `TemplateContext.isReservedIri` is the rule itself: an IRI under **this nanopublication's**
-target namespace whose local name is one of `RESERVED_LOCAL_NAMES`. The same local name
-below any other prefix — a space's namespace, say — collides with nothing and is left
+target namespace whose local name is one of nanopub-java's `NanopubUtils.RESERVED_LOCAL_NAMES`,
+the same names `NanopubCreator` and the signature utilities give the parts. The same local
+name below any other prefix — a space's namespace, say — collides with nothing and is left
 alone, and so is a name that only looks like one (`assertions`, `Assertion`), since the
 parts are named in the case a nanopublication writes them.

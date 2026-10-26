@@ -867,15 +867,6 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * The local names a nanopublication keeps for itself: the four graphs
-     * {@link org.nanopub.NanopubCreator} names, and the signature element
-     * {@code org.nanopub.extra.security.SignatureUtils} adds when it signs. A resource minted
-     * under one of these names is not a resource of its own but the graph or the signature it
-     * collides with (issue #29).
-     */
-    public static final Set<String> RESERVED_LOCAL_NAMES = Set.of("Head", "assertion", "provenance", "pubinfo", "sig");
-
-    /**
      * Whether an IRI names one of the parts a nanopublication is made of, rather than
      * something the nanopublication is about. True only for the nanopublication being
      * published here: the same local name under any other namespace collides with nothing.
@@ -887,7 +878,7 @@ public class TemplateContext implements Serializable {
         if (iri == null) return false;
         String value = iri.stringValue();
         if (!value.startsWith(targetNamespace)) return false;
-        return RESERVED_LOCAL_NAMES.contains(value.substring(targetNamespace.length()));
+        return NanopubUtils.isReservedLocalName(value.substring(targetNamespace.length()));
     }
 
     /**

@@ -544,7 +544,7 @@ public class Template implements Serializable {
     private void collectReservedNameError(Value value, String position, String statementName, List<String> errors) {
         if (!(value instanceof IRI iri) || !isLocalResource(iri)) return;
         String localName = Utils.getUriPostfix(iri);
-        if (!TemplateContext.RESERVED_LOCAL_NAMES.contains(localName)) return;
+        if (!NanopubUtils.isReservedLocalName(localName)) return;
         errors.add(statementName + ": the " + position + " is minted as '" + localName + "', which is what a"
                 + " nanopublication calls one of its own parts, so the published resource would be that part"
                 + " rather than a resource of its own.");
