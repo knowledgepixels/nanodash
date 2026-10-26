@@ -24,6 +24,7 @@ import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
+import org.nanopub.NanopubUtils;
 import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
@@ -121,7 +122,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
         // and a legacy template's node really is its own assertion graph (issue #29).
         textfield.add((IValidator<String>) v -> {
             String name = v.getValue();
-            if (context.isToBeMinted(iri, name) && TemplateContext.RESERVED_LOCAL_NAMES.contains(name)) {
+            if (context.isToBeMinted(iri, name) && NanopubUtils.isReservedLocalName(name)) {
                 v.error(new ValidationError("'" + name + "' is what this nanopublication calls one of its own"
                         + " parts, so a resource of that name would be that part rather than something the"
                         + " nanopublication is about. Pick a different name."));

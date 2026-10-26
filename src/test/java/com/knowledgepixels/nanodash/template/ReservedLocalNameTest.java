@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.NanopubCreator;
+import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -106,7 +107,7 @@ class ReservedLocalNameTest {
 
     @Test
     void everyPartOfANanopublicationCounts() throws Exception {
-        for (String reserved : TemplateContext.RESERVED_LOCAL_NAMES) {
+        for (String reserved : NanopubUtils.RESERVED_LOCAL_NAMES) {
             TemplateContext context = context();
             context.getComponentModels().put(LOCAL_FIELD, Model.of(reserved));
             Value processed = context.processValue(LOCAL_FIELD);
