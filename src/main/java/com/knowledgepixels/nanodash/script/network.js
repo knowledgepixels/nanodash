@@ -282,16 +282,45 @@ function drawNetwork(container, graph, spinner) {
   capSettling(network, container);
   if (!prefersReducedMotion()) followLayout(network, container);
 
-  /* A click on a node or an edge goes to its page. Dragging a node reports no click, so
-     rearranging the layout by hand does not navigate away from it. */
+  /* A click on a node or an edge goes to its page — on the release that ends the gesture,
+     and only if nothing was dragged in between. vis-network reports a click from two
+     different gestures: from a tap, which is a press short and still enough to be nothing
+     else, and from a long press, which its gesture library raises on a timer a quarter of a
+     second after the button goes down, while it is still down and before anything has moved.
+     That second one is what made a diagram undraggable: pressing a node, taking aim and only
+     then moving is exactly what a deliberate drag looks like, and the view had navigated away
+     before the pointer ever moved. So a click whose gesture has already ended is followed
+     where it is reported — nothing moved, and nothing more is coming — while one reported
+     mid-gesture is held until the button comes up, by which time a drag, if there was one,
+     has said so. */
+  var heldUrl = null;
+  var dragged = false;
+
+  function clickTarget(params) {
+    if (params.nodes && params.nodes.length) return urls[params.nodes[0]];
+    if (params.edges && params.edges.length) return edgeUrls[params.edges[0]];
+    return null;
+  }
+
   network.on("click", function (params) {
-    var url = null;
-    if (params.nodes && params.nodes.length) {
-      url = urls[params.nodes[0]];
-    } else if (params.edges && params.edges.length) {
-      url = edgeUrls[params.edges[0]];
+    /* A fresh gesture: a long press is reported before the drag it may turn into, so what
+       the flag says at release is this gesture's doing and no earlier one's. */
+    heldUrl = null;
+    dragged = false;
+    var url = clickTarget(params);
+    if (params.event && params.event.isFinal) {
+      if (url) window.location.href = url;
+    } else {
+      heldUrl = url;
     }
-    if (url) window.location.href = url;
+  });
+  network.on("dragStart", function () {
+    dragged = true;
+  });
+  network.on("release", function () {
+    var url = heldUrl;
+    heldUrl = null;
+    if (url && !dragged) window.location.href = url;
   });
 
   /* The pointer says which of the two kinds of hover leads somewhere. */

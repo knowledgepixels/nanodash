@@ -86,8 +86,9 @@ the graph travels as ordinary result cells.
   opens the nanopublication the edge was read from — the answer to the question an edge
   raises, which is who says so.
 - **Dragging** a node rearranges the layout around it: the simulation wakes up and the
-  node's neighbours follow it, so a graph can be pulled apart to read a crowded corner. A
-  drag reports no click, so moving nodes around never navigates away.
+  node's neighbours follow it, so a graph can be pulled apart to read a crowded corner.
+  Moving nodes around never navigates away: a click is acted on when the button comes up,
+  and a gesture that dragged something is not one.
 - **The layout happens on screen.** Only a short pre-settle is computed before the first
   frame — enough to pull the worst crossings out — and the rest of it runs in view, with the
   diagram zooming out to keep up as the nodes spread. That the layout is being computed is
