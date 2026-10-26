@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.webjars.npm</groupId>
       <artifactId>trix</artifactId>
-      <version>2.1.15</version>
+      <version>2.1.19</version>
       <exclusions>
         <exclusion>
           <groupId>org.webjars.npm</groupId>
