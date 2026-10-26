@@ -371,7 +371,7 @@
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
     <jetty.version>11.0.26</jetty.version>
-    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.16</jacoco-maven-plugin.version>
     <slf4j.version>2.0.20</slf4j.version>
     <jib-maven-plugin.version>3.5.1</jib-maven-plugin.version>
     <tomcat-docker-image>tomcat:11.0.11</tomcat-docker-image>
