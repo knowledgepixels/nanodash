@@ -359,7 +359,7 @@
     </plugins>
   </build>
   <properties>
-    <wicket.version>10.8.0</wicket.version>
+    <wicket.version>10.11.0</wicket.version>
     <!-- JUnit tags left out of an ordinary test run; the nightly live-tests workflow clears
          this and selects the "live" group instead. -->
     <test.excludedGroups>live</test.excludedGroups>
