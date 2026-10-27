@@ -70,6 +70,11 @@
       <artifactId>vis-network</artifactId>
       <version>9.1.2</version>
     </dependency>
+    <dependency>
+      <groupId>de.agilecoders.wicket.webjars</groupId>
+      <artifactId>wicket-webjars</artifactId>
+      <version>${wicket-webjars.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -105,14 +110,9 @@
       <version>4.5.14</version>
     </dependency>
     <dependency>
-      <groupId>com.opencsv</groupId>
-      <artifactId>opencsv</artifactId>
-      <version>5.12.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-      <version>20260814</version>
+      <groupId>com.github.openjson</groupId>
+      <artifactId>openjson</artifactId>
+      <version>${openjson.version}</version>
     </dependency>
     <dependency>
       <groupId>tools.jackson.dataformat</groupId>
@@ -377,5 +377,7 @@
     <jib-maven-plugin.version>3.5.2</jib-maven-plugin.version>
     <tomcat-docker-image>tomcat:11.0.11</tomcat-docker-image>
     <mockito.version>5.24.0</mockito.version>
+    <openjson.version>1.0.13</openjson.version>
+    <wicket-webjars.version>4.0.14</wicket-webjars.version>
   </properties>
 </project>
