@@ -39,6 +39,20 @@
       "semanticCommitScope": "deps"
     },
     {
+      "description": "Wicket and Wicketstuff share wicket.version and update together as a core dependency; wicket-tester has its own version and stays test(deps)",
+      "matchFileNames": [
+        "pom.xml"
+      ],
+      "matchPackageNames": [
+        "org.apache.wicket:**",
+        "org.wicketstuff:**",
+        "!org.apache.wicket:wicket-tester"
+      ],
+      "groupName": "wicket",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "core-deps"
+    },
+    {
       "description": "Updates to the dependencies defined in package.json should be tagged as 'build(deps)'",
       "matchFileNames": [
         "package.json"
