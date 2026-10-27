@@ -39,13 +39,14 @@
       "semanticCommitScope": "deps"
     },
     {
-      "description": "Wicket and Wicketstuff share wicket.version, test-scoped wicket-tester included, so they update together as a core dependency",
+      "description": "Wicket and Wicketstuff share wicket.version and update together as a core dependency; wicket-tester has its own version and stays test(deps)",
       "matchFileNames": [
         "pom.xml"
       ],
       "matchPackageNames": [
         "org.apache.wicket:**",
-        "org.wicketstuff:**"
+        "org.wicketstuff:**",
+        "!org.apache.wicket:wicket-tester"
       ],
       "groupName": "wicket",
       "semanticCommitType": "chore",
