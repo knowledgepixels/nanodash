@@ -378,6 +378,6 @@
     <tomcat-docker-image>tomcat:11.0.11</tomcat-docker-image>
     <mockito.version>5.24.0</mockito.version>
     <openjson.version>1.0.13</openjson.version>
-    <wicket-webjars.version>4.0.14</wicket-webjars.version>
+    <wicket-webjars.version>4.0.15</wicket-webjars.version>
   </properties>
 </project>
