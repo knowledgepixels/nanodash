@@ -68,7 +68,7 @@
     <dependency>
       <groupId>org.webjars.npm</groupId>
       <artifactId>vis-network</artifactId>
-      <version>9.1.2</version>
+      <version>10.1.2</version>
     </dependency>
     <dependency>
       <groupId>de.agilecoders.wicket.webjars</groupId>
