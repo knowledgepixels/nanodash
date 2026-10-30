@@ -57,6 +57,15 @@ class LookupApiStatusTest {
     }
 
     @Test
+    void quotationMarksAroundAValueAreRemoved() {
+        assertEquals(REACHABLE, LookupApiStatus.unquote("\"" + REACHABLE + "\""));
+        assertEquals(REACHABLE, LookupApiStatus.unquote(REACHABLE));
+        assertEquals("\"", LookupApiStatus.unquote("\""));
+        assertEquals("", LookupApiStatus.unquote("\"\""));
+        assertEquals("\"half-quoted", LookupApiStatus.unquote("\"half-quoted"));
+    }
+
+    @Test
     void aFieldWithoutApisShowsNoStatus() {
         LookupApiStatus status = tester.startComponentInPage(new LookupApiStatus("status", List.of()));
         assertFalse(status.isVisible());

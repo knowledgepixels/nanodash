@@ -4,11 +4,14 @@ import com.knowledgepixels.nanodash.LookupApis;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.domain.UserData;
+import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
+import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.TemplateTestUtil;
+import com.knowledgepixels.nanodash.template.ValueFiller;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.model.IModel;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
@@ -75,6 +79,16 @@ class ApiFieldStatusTest {
      * placeholder, and returns an initialized context for it.
      */
     private TemplateContext context(IRI predicate) throws Exception {
+        mockTemplate(predicate);
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        context.initStatements();
+        return context;
+    }
+
+    /**
+     * Builds the template of {@link #context(IRI)} and has {@link TemplateData} return it.
+     */
+    private void mockTemplate(IRI predicate) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -95,9 +109,24 @@ class ApiFieldStatusTest {
         TemplateData templateDataMock = mock(TemplateData.class);
         templateDataMockedStatic.when(TemplateData::get).thenReturn(templateDataMock);
         when(templateDataMock.getTemplate(NP_URI)).thenReturn(template);
+    }
 
-        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+    /**
+     * Builds a nanopub made with the template of {@link #context(IRI)} that gives the API, and
+     * returns a context that shows it read-only, as when it is explored.
+     */
+    private TemplateContext readOnlyContext(String api) throws Exception {
+        mockTemplate(NTEMPLATE.POSSIBLE_VALUES_FROM_API);
+        String npUri = "https://w3id.org/np/RAzYxWvUtSrQpOnMlKjIhGfEdCbA9876543210_-ZyXwV";
+        NanopubCreator creator = new NanopubCreator(npUri);
+        creator.addAssertionStatement(vf.createIRI("https://example.org/field"), NTEMPLATE.POSSIBLE_VALUES_FROM_API, vf.createLiteral(api));
+        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
+        Nanopub np = creator.finalizeNanopub();
+
+        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", np);
         context.initStatements();
+        new ValueFiller(np, ContextType.ASSERTION, false).fill(context);
         return context;
     }
 
@@ -158,6 +187,29 @@ class ApiFieldStatusTest {
         reconfigure(line);
         Component outcome = line.get(LookupApiStatus.CHECK_ID);
         assertEquals("Outcome", outcome.getClass().getSimpleName(), "a URL checked lately is shown at once");
+    }
+
+    /**
+     * A nanopub shown read-only, as when a template is explored, holds a literal in quotation
+     * marks; the API checked is the URL inside them, not the quoted text, which cannot be reached.
+     */
+    @Test
+    void aReadOnlyFieldChecksTheUrlWithoutItsQuotationMarks() throws Exception {
+        // The predicate is shown with the label of the space or resource it names, if any; those
+        // are loaded over the network, which the test does without.
+        try (MockedStatic<SpaceRepository> spaces = mockStatic(SpaceRepository.class);
+             MockedStatic<MaintainedResourceRepository> resources = mockStatic(MaintainedResourceRepository.class)) {
+            spaces.when(SpaceRepository::get).thenReturn(mock(SpaceRepository.class));
+            resources.when(MaintainedResourceRepository::get).thenReturn(mock(MaintainedResourceRepository.class));
+            TemplateContext context = readOnlyContext(UNREACHABLE);
+            assertTrue(context.isReadOnly());
+            assertEquals("\"" + UNREACHABLE + "\"", context.getComponentModels().get(API).getObject());
+            List<LookupApiStatus> lines = statusLines(context);
+            assertEquals(1, lines.size());
+            LookupApiStatus line = lines.get(0);
+            reconfigure(line);
+            assertEquals(List.of(UNREACHABLE), line.getApis());
+        }
     }
 
 }

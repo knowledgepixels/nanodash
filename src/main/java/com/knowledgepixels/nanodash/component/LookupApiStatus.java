@@ -85,8 +85,24 @@ public class LookupApiStatus extends Panel {
     List<String> getApis() {
         if (fixedApis != null) return fixedApis;
         Object entered = getDefaultModelObject();
-        if (!(entered instanceof String api) || api.isBlank()) return List.of();
-        return List.of(api.strip());
+        if (!(entered instanceof String value)) return List.of();
+        String api = unquote(value.strip()).strip();
+        if (api.isEmpty()) return List.of();
+        return List.of(api);
+    }
+
+    /**
+     * Removes the quotation marks around a value. A field shown read-only, as when a template is
+     * explored, holds a literal in quotation marks, as it is shown, which are not part of the URL.
+     *
+     * @param value the value of the field
+     * @return the value without the quotation marks around it, if it has them
+     */
+    static String unquote(String value) {
+        if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
     }
 
     /**
