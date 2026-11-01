@@ -97,6 +97,53 @@ public class ExplorePage extends NanodashPage {
     }
 
     /**
+     * The resource that a term's own definition declares the term to be part of, or null if it
+     * declares none. Read from the assertion of the nanopublication that introduces the term,
+     * and only when that nanopublication introduces the term and nothing else: a definition
+     * that introduces several resources says nothing about which of them the statements are
+     * about, and a statement whose subject is not the term says nothing about the term.
+     * <p>
+     * This is what lets a part be opened by its own IRI. A link from inside a space carries the
+     * space as the {@code context} parameter, but an IRI typed into the address bar carries
+     * nothing: {@code https://w3id.org/np/RA…/a-talk} is redirected here with the id alone.
+     * The term's definition already names what it belongs to, so the context does not have to
+     * be supplied for the part page to be the right page.
+     *
+     * @param termNp the nanopublication defining the term, or null
+     * @param termId the term as explored here
+     * @return the declared containing resource, or null
+     */
+    static IRI declaredContainerOf(Nanopub termNp, String termId) {
+        if (termNp == null || termId == null || termId.isEmpty()) return null;
+        Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(termNp);
+        if (introducedIds.size() != 1 || !introducedIds.iterator().next().equals(termId)) return null;
+        for (Statement st : termNp.getAssertion()) {
+            if (!st.getSubject().stringValue().equals(termId)) continue;
+            if (declaresMembership(st.getPredicate()) && st.getObject() instanceof IRI container) {
+                return container;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The id under which a resource that can hold parts is known here, or null if the given id
+     * names neither a space nor a maintained resource. A space is also matched by an alternative
+     * id, since a space that was superseded -- relabelled, say -- keeps the id its parts were
+     * published with, and the canonical id is returned so that the part page is handed the id
+     * the repositories are keyed on.
+     *
+     * @param id the id a membership statement points at
+     * @return the canonical id of the containing resource, or null
+     */
+    private static String knownContainerId(String id) {
+        if (id == null || id.isEmpty()) return null;
+        Space space = SpaceRepository.get().findByIdOrAltId(id);
+        if (space != null) return space.getId();
+        return MaintainedResourceRepository.get().findById(id) != null ? id : null;
+    }
+
+    /**
      * Forwards to the page a resource has of its own — a space, a maintained resource, a user —
      * if the given id names one, so that a known resource is shown there (on its default Content
      * tab) rather than as a generic explored IRI.
@@ -317,7 +364,9 @@ public class ExplorePage extends NanodashPage {
                         if (!st.getSubject().stringValue().equals(tempRef)) continue;
                         if (declaresMembership(st.getPredicate())) {
                             String resourceId = st.getObject().stringValue();
-                            if (MaintainedResourceRepository.get().findById(resourceId) == null) continue;
+                            // A space holds parts as a maintained resource does, and most parts
+                            // declare a space: the repositories are separate, so both are asked.
+                            if (knownContainerId(resourceId) == null) continue;
                             throw new RestartResponseException(ResourcePartPage.class, parameters);
                         } else if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
                             classes.add(objIri);
@@ -337,6 +386,23 @@ public class ExplorePage extends NanodashPage {
         // from, not the resource that owns the term. Never for nanopub identifiers.
         if (publishedNanopub == null && !isNanopubId) {
             ResourcePartPage.forwardToContainingResource(new PageParameters(parameters).set("id", tempRef));
+        }
+
+        // A part opened by its own IRI arrives with no context at all -- that is how w3id.org
+        // redirects a nanopublication sub-IRI here -- and so none of the rules above can place
+        // it: they all need a context to verify the membership against. The term's own
+        // definition names the resource it belongs to, which is the context the part page needs,
+        // so take it from there. Checked against this site, so that a site never forwards into
+        // another space's part page.
+        if (publishedNanopub == null && contextId.isEmpty()) {
+            IRI declaredContainer = declaredContainerOf(np, tempRef);
+            String containerId = declaredContainer == null ? null : knownContainerId(declaredContainer.stringValue());
+            if (containerId != null && SiteMode.belongsToSite(containerId)) {
+                PageParameters partParameters = new PageParameters(parameters)
+                        .set("id", tempRef).set("context", containerId);
+                partParameters.remove("forward-to-part");
+                throw new RestartResponseException(ResourcePartPage.class, partParameters);
+            }
         }
 
         // A site has nothing to say about what is not its own (issue #692): for a term that
