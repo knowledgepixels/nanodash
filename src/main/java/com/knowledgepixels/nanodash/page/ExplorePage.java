@@ -222,6 +222,9 @@ public class ExplorePage extends NanodashPage {
         if (tempRef.isEmpty()) {
             throw new AbortWithHttpErrorCodeException(400, "Parameter 'id' is required");
         }
+        if (!tempRef.contains("://") && !tempRef.matches("^RA[A-Za-z0-9-_]{43}.*")) {
+            throw new AbortWithHttpErrorCodeException(400, "Not a valid IRI: " + tempRef);
+        }
 
         String contextId = parameters.get("context").toString("");
 
