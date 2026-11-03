@@ -19,6 +19,7 @@ class LookupApiRegistryTest {
             "https://grlc.knowledgepixels.com/api-git/knowledgepixels/fairconnect-api/fer_search?query=, SparqlResultsParser",
             "https://vocab.nerc.ac.uk/sparql/sparql?query=, SparqlResultsParser",
             "https://www.ebi.ac.uk/ols/api/select?ontology=bto&q=, OlsParser",
+            "https://www.ebi.ac.uk/ols4/api/select?ontology=ncbitaxon&q=, OlsParser",
             "https://api.openaire.eu/graph/v3/projects?search=, OpenAireParser",
             "https://api.gbif.org/v1/species/suggest?q=, GbifParser",
             "https://api.catalogueoflife.org/dataset/3LR/nameusage/search?q=, CatalogueOfLifeParser",
