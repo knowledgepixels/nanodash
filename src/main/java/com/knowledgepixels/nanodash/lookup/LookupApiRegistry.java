@@ -29,7 +29,7 @@ public final class LookupApiRegistry {
     static {
         register(startsWithAny(NanopubQueryLookup.QUERY_API_PREFIX, NanopubQueryLookup.LEGACY_FIND_THINGS_PREFIX), new NanopubQueryLookup());
         register(startsWithAny("https://w3id.org/np/l/nanopub-query", "https://grlc.").or(url -> url.contains("/sparql?")), new SparqlResultsParser());
-        register(startsWithAny("https://www.ebi.ac.uk/ols/api/select"), new OlsParser());
+        register(startsWithAny("https://www.ebi.ac.uk/ols/api/select", "https://www.ebi.ac.uk/ols4/api/select"), new OlsParser());
         register(startsWithAny("https://api.openaire.eu/graph/v"), new OpenAireParser());
         register(startsWithAny("https://api.gbif.org/v1/species/suggest"), new GbifParser());
         register(startsWithAny("https://api.catalogueoflife.org/dataset/3LR/nameusage/search"), new CatalogueOfLifeParser());

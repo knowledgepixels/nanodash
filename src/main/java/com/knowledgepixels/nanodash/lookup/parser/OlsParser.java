@@ -9,8 +9,9 @@ import java.util.Map;
 
 /**
  * Parser for the search API of the EBI Ontology Lookup Service, e.g.
- * {@code https://www.ebi.ac.uk/ols/api/select?q=}. The label of a term is followed by the
- * first line of its description, when it has one.
+ * {@code https://www.ebi.ac.uk/ols4/api/select?q=} or the older path
+ * {@code https://www.ebi.ac.uk/ols/api/select?q=}, which redirects to it. The label of a term
+ * is followed by the first line of its description, when it has one.
  */
 public class OlsParser extends JsonLookupApi {
 
