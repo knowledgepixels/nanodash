@@ -8,6 +8,8 @@ import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -95,9 +97,39 @@ public abstract class QueryResult extends Panel {
         // to date; hidden until someone turns it on (see RefreshingResultPanel). It lives in
         // the title row, right after the title, where the row's own layout keeps it clear of
         // everything — see the .refresh-spinner rules in style.css.
-        refreshIndicator = new WebMarkupContainer("refresh-indicator");
+        //
+        // When the results are older than a refresh that failed, the same spot holds a short
+        // note saying so instead (issue #889). Results from the cache look current otherwise,
+        // and the query may keep failing for a while.
+        refreshFailed = response != null && ApiCache.lastAttemptFailed(queryRef);
+        refreshIndicator = new WebMarkupContainer("refresh-indicator") {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(refreshing || refreshFailed);
+            }
+
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                if (!refreshing) {
+                    tag.put("class", "refresh-failed");
+                    tag.put("title", "The query failed when it was last run. These results are from an earlier run.");
+                }
+            }
+
+            @Override
+            public void onComponentTagBody(MarkupStream markupStream, ComponentTag openTag) {
+                if (refreshing) {
+                    super.onComponentTagBody(markupStream, openTag);
+                } else {
+                    replaceComponentTagBody(markupStream, openTag, REFRESH_FAILED_NOTE);
+                }
+            }
+
+        };
         refreshIndicator.setOutputMarkupPlaceholderTag(true);
-        refreshIndicator.setVisible(false);
         add(refreshIndicator);
 
         // The view's explaining paragraph, below its title (issue #735). Every view kind
@@ -113,12 +145,15 @@ public abstract class QueryResult extends Panel {
     }
 
     private final WebMarkupContainer refreshIndicator;
+    private boolean refreshing = false;
+    private boolean refreshFailed;
 
     /**
-     * Shows or hides the spinner beside this view's title.
-     *
-     * @param refreshing true while the view's results are being brought up to date
+     * The note shown beside the title of a view whose results are older than a refresh that
+     * failed.
      */
+    public static final String REFRESH_FAILED_NOTE = "Couldn't refresh, showing older results";
+
     /**
      * The query reference this view's results come from.
      *
@@ -150,13 +185,28 @@ public abstract class QueryResult extends Panel {
         return view == null ? null : view.getId();
     }
 
+    /**
+     * Shows or hides the spinner beside this view's title.
+     *
+     * @param refreshing true while the view's results are being brought up to date
+     */
     public void setRefreshing(boolean refreshing) {
-        refreshIndicator.setVisible(refreshing);
+        this.refreshing = refreshing;
     }
 
     /**
-     * The spinner component itself, so a caller that turns it off over Ajax can repaint just
-     * that instead of the whole view.
+     * Sets whether this view's results are older than a refresh that failed, which puts a
+     * short note beside the title while no spinner is showing there.
+     *
+     * @param refreshFailed true if the latest refresh of these results failed or timed out
+     */
+    public void setRefreshFailed(boolean refreshFailed) {
+        this.refreshFailed = refreshFailed;
+    }
+
+    /**
+     * The spinner component itself (or the note in its place), so a caller that changes it
+     * over Ajax can repaint just that instead of the whole view.
      *
      * @return the refresh indicator
      */

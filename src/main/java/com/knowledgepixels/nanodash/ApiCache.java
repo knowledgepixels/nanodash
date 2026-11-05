@@ -51,6 +51,24 @@ public class ApiCache {
     // retrieveResponseSync).
     private static final long SYNC_WAIT_FOR_INFLIGHT_MS = 10 * 1000;
 
+    // How long a query is left alone after its first, second, third, and every further
+    // consecutive failure (issue #889). A query that kept failing used to be asked again
+    // after a second, as fast as pages rendered it, on every instance. On 5 November 2026
+    // that kept 6-9 copies of a single query that never finished in time running on every
+    // query server: an attempt goes to the servers in turn, and a server goes on evaluating
+    // a query for up to a minute after the caller has given up on it.
+    private static final long[] FAILURE_BACKOFF_MS = {10_000, 30_000, 60_000, 5 * 60_000};
+
+    // When a refresh that has not reported back counts as lost, so that another may start.
+    // Only a safety net, since a refresh clears its own mark when it ends. It has to outlast
+    // the slowest attempt: nanopub-java tries each query server in turn, for three rounds,
+    // with up to 10s per try, so one attempt at a query that always times out takes about
+    // 90s. At 60s, a second attempt used to start while the first was still running.
+    private static final long REFRESH_PRESUMED_LOST_MS = 5 * 60 * 1000;
+
+    // What claimRefresh returns when another refresh of the entry is running.
+    private static final long NO_CLAIM = -1;
+
     private static final Cache<String, ApiResponse> cachedResponses = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
         .expireAfterAccess(24, TimeUnit.HOURS)
@@ -61,7 +79,19 @@ public class ApiCache {
         .expireAfterAccess(24, TimeUnit.HOURS)
         .removalListener(ApiCache::cleanupMetadataOnRemoval)
         .build();
-    private transient static ConcurrentMap<String, Integer> failed = new ConcurrentHashMap<>();
+    // A query's consecutive failures and when the next attempt is due (see
+    // FAILURE_BACKOFF_MS). Cleared only by a successful attempt, never by reporting the
+    // failure, and kept apart from the cached content, so that neither showing an error nor
+    // evicting an entry starts the retries over. The expiry only drops queries nobody asks
+    // for anymore; one that keeps failing is written again at least every five minutes.
+    private static final Cache<String, FailureState> failures = CacheBuilder.newBuilder()
+        .maximumSize(MAX_CACHE_ENTRIES)
+        .expireAfterWrite(1, TimeUnit.HOURS)
+        .build();
+
+    private record FailureState(int count, long retryAt) {
+    }
+
     private static final Cache<String, Map<String, String>> cachedMaps = CacheBuilder.newBuilder()
         .maximumSize(MAX_CACHE_ENTRIES)
         .expireAfterAccess(24, TimeUnit.HOURS)
@@ -145,7 +175,6 @@ public class ApiCache {
 
     private static void cleanupMetadata(String cacheId) {
         lastRefresh.remove(cacheId);
-        failed.remove(cacheId);
         runAfter.remove(cacheId);
         forcedRefresh.remove(cacheId);
         publishRefreshes.remove(cacheId);
@@ -198,7 +227,7 @@ public class ApiCache {
     private static boolean isRunning(String cacheId) {
         Long start = refreshStart.get(cacheId);
         if (start == null) return false;
-        return System.currentTimeMillis() - start < 60 * 1000;
+        return System.currentTimeMillis() - start < REFRESH_PRESUMED_LOST_MS;
     }
 
     /**
@@ -209,6 +238,136 @@ public class ApiCache {
      */
     public static boolean isRunning(QueryRef queryRef) {
         return isRunning(queryRef.getAsUrlString());
+    }
+
+    /**
+     * Claims the refresh of a cache entry, unless another refresh of it is running. Atomic, so
+     * that of the many renders asking for the same query at once only one starts an attempt;
+     * checking {@link #isRunning(String)} first and marking the start afterwards left a gap in
+     * which several could.
+     *
+     * @param cacheId the cache id (the query's URL string)
+     * @return the claim, to be released by {@link #runRefresh}, or {@link #NO_CLAIM}
+     */
+    private static long claimRefresh(String cacheId) {
+        long now = System.currentTimeMillis();
+        boolean[] claimed = {false};
+        refreshStart.compute(cacheId, (id, start) -> {
+            if (start != null && now - start < REFRESH_PRESUMED_LOST_MS) return start;
+            claimed[0] = true;
+            return now;
+        });
+        return claimed[0] ? now : NO_CLAIM;
+    }
+
+    /**
+     * How long a query is left alone after the given number of consecutive failures.
+     *
+     * @param consecutiveFailures the number of failed attempts in a row, at least 1
+     * @return the delay in milliseconds before the next attempt
+     */
+    static long backoffAfter(int consecutiveFailures) {
+        int i = Math.min(Math.max(consecutiveFailures, 1), FAILURE_BACKOFF_MS.length) - 1;
+        return FAILURE_BACKOFF_MS[i];
+    }
+
+    private static void recordFailure(String cacheId) {
+        long now = System.currentTimeMillis();
+        FailureState state = failures.asMap().merge(cacheId, new FailureState(1, now + backoffAfter(1)),
+                (previous, first) -> new FailureState(previous.count() + 1, now + backoffAfter(previous.count() + 1)));
+        logger.warn("Query failed {} time(s) in a row; not trying it again for {}s: {}",
+                state.count(), backoffAfter(state.count()) / 1000, cacheId);
+    }
+
+    private static boolean isBackingOff(String cacheId) {
+        FailureState state = failures.getIfPresent(cacheId);
+        return state != null && System.currentTimeMillis() < state.retryAt();
+    }
+
+    /**
+     * Whether the last attempt at a query failed and the next one is not due yet (issue #889).
+     * Until then the cache makes no call for the query and serves whatever it holds for it. A
+     * view with nothing to show from the cache should report the failure instead of waiting,
+     * since nothing is going to arrive before the next attempt.
+     *
+     * @param queryRef the query reference
+     * @return true if the query is being backed off
+     */
+    public static boolean isBackingOff(QueryRef queryRef) {
+        return queryRef != null && isBackingOff(queryRef.getAsUrlString());
+    }
+
+    /**
+     * Whether the most recent attempt at a query failed, whether or not the next one is due
+     * yet. Whatever the cache serves for such a query is from before that attempt, so a view
+     * showing it should say that its results are older than they look.
+     *
+     * @param queryRef the query reference
+     * @return true if the query failed when it was last run
+     */
+    public static boolean lastAttemptFailed(QueryRef queryRef) {
+        return queryRef != null && failures.getIfPresent(queryRef.getAsUrlString()) != null;
+    }
+
+    /**
+     * One fetch updating a cache entry, as run by {@link #runRefresh}.
+     */
+    @FunctionalInterface
+    private interface Fetch {
+        void run() throws Exception;
+    }
+
+    /**
+     * Runs a refresh attempt claimed by {@link #claimRefresh(String)} and records its outcome.
+     * A success clears the entry's failures. A failure keeps whatever is cached — a query that
+     * cannot be answered right now is a reason to go on showing the previous data, never to
+     * throw it away — and puts off the next attempt (see {@link #FAILURE_BACKOFF_MS}). Either
+     * way, the claim and the forced-refresh marking are released.
+     *
+     * @param cacheId the cache id (the query's URL string)
+     * @param claim   the claim the attempt runs under
+     * @param mayWait whether the thread can afford the jitter before fetching, which a request
+     *                thread cannot
+     * @param fetch   the fetch that updates the entry
+     */
+    private static void runRefresh(String cacheId, long claim, boolean mayWait, Fetch fetch) {
+        boolean refreshIsFinal = true;
+        try {
+            refreshIsFinal = waitOutIngestDelay(cacheId);
+            if (mayWait) {
+                // Jitter, so that background refreshes of many queries do not arrive at the API
+                // in lockstep.
+                Thread.sleep(100 + new Random().nextLong(400));
+            }
+        } catch (InterruptedException ex) {
+            logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
+        }
+        try {
+            fetch.run();
+            failures.invalidate(cacheId);
+        } catch (Exception ex) {
+            logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
+            recordFailure(cacheId);
+            lastRefresh.put(cacheId, System.currentTimeMillis());
+        } finally {
+            refreshStart.remove(cacheId, claim);
+            // Dropped on failure too: a query we cannot reach must not keep every later render
+            // on the stale path. Kept only while the publication this refresh waits for is
+            // still unconfirmed, so the early fetch is not taken as the final answer.
+            if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
+        }
+    }
+
+    /**
+     * Runs a claimed refresh attempt on the shared pool (see {@link #runRefresh}).
+     */
+    private static void submitRefresh(String cacheId, long claim, Fetch fetch) {
+        try {
+            NanodashThreadPool.submit(() -> runRefresh(cacheId, claim, true, fetch));
+        } catch (RuntimeException ex) {
+            refreshStart.remove(cacheId, claim);
+            throw ex;
+        }
     }
 
     /**
@@ -463,10 +622,14 @@ public class ApiCache {
             needsRefresh = forcedRefresh.contains(cacheId) || lastRefreshTime == null
                     || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        Integer failedCount = failed.get(cacheId);
-        if (failedCount != null && failedCount > 2) {
-            failed.remove(cacheId);
-            throw new RuntimeException("Query failed: " + cacheId);
+        // A query that failed a moment ago is not asked again before its backoff is over,
+        // whatever the caller wants (issue #889). The answer is what the failed attempt left
+        // behind: the cached response if there is one, null otherwise. That goes for forced
+        // calls too, since insisting on current data cannot make a failing service answer, only
+        // keep it busy.
+        if (isBackingOff(cacheId)) {
+            logger.debug("Not trying {} again yet; it failed recently", cacheId);
+            return cachedResponses.getIfPresent(cacheId);
         }
         // Waiting around is for background threads. A request thread must not sit out an
         // ingest delay or a politeness pause on the user's time: it takes what the cache has
@@ -499,40 +662,10 @@ public class ApiCache {
             retrieveResponseAsync(queryRef);
             return cachedResponses.getIfPresent(cacheId);
         }
-        if ((needsRefresh || forced) && !isRunning(cacheId)) {
+        long claim = (needsRefresh || forced) ? claimRefresh(cacheId) : NO_CLAIM;
+        if (claim != NO_CLAIM) {
             logger.info("Refreshing cache for {}", cacheId);
-            refreshStart.put(cacheId, timeNow);
-            boolean refreshIsFinal = true;
-            try {
-                refreshIsFinal = waitOutIngestDelay(cacheId);
-                if (!onRequestThread) {
-                    if (failed.get(cacheId) != null) {
-                        // 1 second pause between failed attempts;
-                        Thread.sleep(1000);
-                    }
-                    // Jitter, so that background refreshes of many queries do not arrive at
-                    // the API in lockstep. Pure latency on a request thread, so skipped there.
-                    Thread.sleep(100 + new Random().nextLong(400));
-                }
-            } catch (InterruptedException ex) {
-                logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
-            }
-            try {
-                ApiCache.updateResponse(queryRef, forced);
-                failed.remove(cacheId);
-            } catch (Exception ex) {
-                logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                // Keep stale cached data if available, only invalidate if nothing was cached
-                if (cachedResponses.getIfPresent(cacheId) == null) {
-                    failed.merge(cacheId, 1, Integer::sum);
-                }
-                lastRefresh.put(cacheId, System.currentTimeMillis());
-            } finally {
-                refreshStart.remove(cacheId);
-                // Kept on the forced path when the publication it was waiting for had not
-                // arrived yet, so this fetch is not mistaken for the final word on it.
-                if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
-            }
+            runRefresh(cacheId, claim, !onRequestThread, () -> updateResponse(queryRef, forced));
         } else if (isRunning(cacheId)
                 && (cachedResponses.getIfPresent(cacheId) == null || forcedRefresh.contains(cacheId))) {
             // Another thread is fetching this query and what we hold is either nothing at
@@ -583,56 +716,23 @@ public class ApiCache {
         if (CrawlerRequest.isCrawler()) {
             return cachedResponses.getIfPresent(cacheId);
         }
+        // Nothing is fetched for a query that is being backed off, so a pending forced refresh
+        // (a reload, a publish) cannot happen yet either. What is cached is served as it is,
+        // since it is all there will be until the next attempt; the marking stays for that
+        // attempt.
+        boolean backingOff = isBackingOff(cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedResponses.getIfPresent(cacheId) != null) {
             Long lastRefreshTime = lastRefresh.get(cacheId);
-            isCached = !forced && lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            isCached = (!forced || backingOff) && lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
             needsRefresh = forced || lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        Integer failedCount = failed.get(cacheId);
-        if (failedCount != null && failedCount > 2) {
-            failed.remove(cacheId);
-            throw new RuntimeException("Query failed: " + cacheId);
+        if (needsRefresh && !backingOff) {
+            long claim = claimRefresh(cacheId);
+            if (claim != NO_CLAIM) submitRefresh(cacheId, claim, () -> updateResponse(queryRef, false));
         }
-        if (needsRefresh && !isRunning(cacheId)) {
-            NanodashThreadPool.submit(() -> {
-                refreshStart.put(cacheId, System.currentTimeMillis());
-                boolean refreshIsFinal = true;
-                try {
-                    refreshIsFinal = waitOutIngestDelay(cacheId);
-                    if (failed.get(cacheId) != null) {
-                        // 1 second pause between failed attempts;
-                        Thread.sleep(1000);
-                    }
-                    Thread.sleep(100 + new Random().nextLong(400));
-                } catch (InterruptedException ex) {
-                    logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
-                }
-                try {
-                    ApiCache.updateResponse(queryRef, false);
-                    failed.remove(cacheId);
-                } catch (Exception ex) {
-                    logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    if (cachedResponses.getIfPresent(cacheId) == null) {
-                        failed.merge(cacheId, 1, Integer::sum);
-                    }
-                    lastRefresh.put(cacheId, System.currentTimeMillis());
-                } finally {
-                    refreshStart.remove(cacheId);
-                    // Dropped on failure too: a query we cannot reach must not keep every
-                    // later render on the stale path, re-submitting a refresh each time.
-                    // Kept only while the publication this refresh waits for is still
-                    // unconfirmed, so the early fetch is not taken as the final answer.
-                    if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
-                }
-            });
-        }
-        if (isCached) {
-            return cachedResponses.getIfPresent(cacheId);
-        } else {
-            return null;
-        }
+        return isCached ? cachedResponses.getIfPresent(cacheId) : null;
     }
 
     /**
@@ -679,34 +779,11 @@ public class ApiCache {
             isCached = lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
             needsRefresh = lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        if (needsRefresh && !isRunning(cacheId)) {
-            NanodashThreadPool.submit(() -> {
-                refreshStart.put(cacheId, System.currentTimeMillis());
-                try {
-                    waitOutIngestDelay(cacheId);
-                    Thread.sleep(100 + new Random().nextLong(400));
-                } catch (InterruptedException ex) {
-                    logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
-                }
-                try {
-                    ApiCache.updateMap(queryRef);
-                } catch (Exception ex) {
-                    logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-                    // Keep whatever is cached, as the response and RDF-model paths do: a query we
-                    // cannot reach right now is a reason to go on showing the previous data, never
-                    // to throw it away. Only the refresh timestamp is bumped, so the next attempt
-                    // waits out the usual interval instead of retrying on every access.
-                    lastRefresh.put(cacheId, System.currentTimeMillis());
-                }  finally {
-                    refreshStart.remove(cacheId);
-                }
-            });
+        if (needsRefresh && !isBackingOff(cacheId)) {
+            long claim = claimRefresh(cacheId);
+            if (claim != NO_CLAIM) submitRefresh(cacheId, claim, () -> updateMap(queryRef));
         }
-        if (isCached) {
-            return cachedMaps.getIfPresent(cacheId);
-        } else {
-            return null;
-        }
+        return isCached ? cachedMaps.getIfPresent(cacheId) : null;
     }
 
     private static void updateRdfModel(QueryRef queryRef) throws FailedApiCallException, APINotReachableException, NotEnoughAPIInstancesException {
@@ -751,51 +828,21 @@ public class ApiCache {
             return cachedRdfModels.getIfPresent(cacheId);
         }
         boolean forced = forcedRefresh.contains(cacheId);
+        // As in retrieveResponseAsync: nothing is fetched while the query is backed off, so
+        // the cached model is served as it is, forced refresh or not.
+        boolean backingOff = isBackingOff(cacheId);
         boolean isCached = false;
         boolean needsRefresh = true;
         if (cachedRdfModels.getIfPresent(cacheId) != null) {
             Long lastRefreshTime = lastRefresh.get(cacheId);
-            isCached = !forced && lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
+            isCached = (!forced || backingOff) && lastRefreshTime != null && timeNow - lastRefreshTime < MAX_CACHE_AGE_MS;
             needsRefresh = forced || lastRefreshTime == null || timeNow - lastRefreshTime > REFRESH_AGE_THRESHOLD_MS;
         }
-        Integer failedCount = failed.get(cacheId);
-        if (failedCount != null && failedCount > 2) {
-            failed.remove(cacheId);
-            throw new RuntimeException("Query failed: " + cacheId);
+        if (needsRefresh && !backingOff) {
+            long claim = claimRefresh(cacheId);
+            if (claim != NO_CLAIM) submitRefresh(cacheId, claim, () -> updateRdfModel(queryRef));
         }
-        if (needsRefresh && !isRunning(cacheId)) {
-            NanodashThreadPool.submit(() -> {
-                refreshStart.put(cacheId, System.currentTimeMillis());
-                boolean refreshIsFinal = true;
-                try {
-                    refreshIsFinal = waitOutIngestDelay(cacheId);
-                    if (failed.get(cacheId) != null) {
-                        Thread.sleep(1000);
-                    }
-                    Thread.sleep(100 + new Random().nextLong(400));
-                } catch (InterruptedException ex) {
-                    logger.error("Interrupted while waiting to refresh RDF cache: {}", ex.getMessage());
-                }
-                try {
-                    updateRdfModel(queryRef);
-                    failed.remove(cacheId);
-                } catch (Exception ex) {
-                    logger.error("Failed to update RDF cache for {}: {}", cacheId, ex.getMessage());
-                    if (cachedRdfModels.getIfPresent(cacheId) == null) {
-                        failed.merge(cacheId, 1, Integer::sum);
-                    }
-                    lastRefresh.put(cacheId, System.currentTimeMillis());
-                } finally {
-                    refreshStart.remove(cacheId);
-                    if (refreshIsFinal || !retryPublishRefresh(cacheId)) forcedRefresh.remove(cacheId);
-                }
-            });
-        }
-        if (isCached) {
-            return cachedRdfModels.getIfPresent(cacheId);
-        } else {
-            return null;
-        }
+        return isCached ? cachedRdfModels.getIfPresent(cacheId) : null;
     }
 
     /**
@@ -820,7 +867,7 @@ public class ApiCache {
     /**
      * The cache content worth carrying across restarts: the query responses and maps together
      * with when each was last refreshed. The transient bookkeeping (running refreshes, failure
-     * counts, ingest delays, forced-refresh markings) is process-local by nature and stays out.
+     * backoffs, ingest delays, forced-refresh markings) is process-local by nature and stays out.
      * The cached RDF models are also left out for now: they would need a text serialization of
      * their own, and their queries re-fetch quickly enough.
      */

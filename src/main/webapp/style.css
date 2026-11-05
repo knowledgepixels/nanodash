@@ -3114,7 +3114,7 @@ p.waiting {
   flex: none;
 }
 
-.paneltitlerow:has(> .refresh-spinner)>h4 {
+.paneltitlerow:has(> .refresh-spinner, > .refresh-failed)>h4 {
   flex: 0 1 auto;
 }
 
@@ -3122,9 +3122,40 @@ p.waiting {
    end. The auto left margins that normally do that job have to give way: two auto margins
    share the free space between them, which would strand the filter field halfway across the
    row for as long as the spinner shows. */
-.paneltitlerow:has(> .refresh-spinner)>span.buttons,
-.paneltitlerow:not(:has(> h4)):has(> .refresh-spinner)>input.panelfilter {
+.paneltitlerow:has(> .refresh-spinner, > .refresh-failed)>span.buttons,
+.paneltitlerow:not(:has(> h4)):has(> .refresh-spinner, > .refresh-failed)>input.panelfilter {
   margin-left: 0;
+}
+
+/* In the spinner's place once a refresh has failed or timed out, while the view goes on
+   showing the results it had (issue #889): a short note in small grey type, so it says the
+   results are older than they look without competing with them. It sits on the title's
+   baseline, which the row aligns its items on. */
+.paneltitlerow>.refresh-failed {
+  margin-left: 10px;
+  margin-right: auto;
+  flex: none;
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+  /* Only takes effect where the note goes below the title (see below), to keep it off the
+     rule under the row; beside the title, the title's own bottom margin is the larger one. */
+  margin-bottom: 4px;
+}
+
+/* The nanopub-list view keeps its filter and menu in a box pinned over the right end of its
+   title row (.view-selector.with-source, about 220px wide), outside the row's layout. The
+   spinner is too small to ever reach it, but the note is not: while it shows, the row keeps
+   clear of the box, and the note goes below the title where the two do not fit side by side. */
+.paneltitlerow:has(> .refresh-failed):has(> .view-selector.with-source) {
+  box-sizing: border-box;
+  padding-right: 230px;
+}
+
+/* A spinner added for a later update in the panel (filtering, paging; see nanodash.js) goes
+   in the same spot and says more for the moment, so the note makes way for it. */
+.paneltitlerow:has(> .refresh-spinner)>.refresh-failed {
+  display: none;
 }
 
 /* A header view's title row is built differently — an h3 above a rule, baseline-aligned,

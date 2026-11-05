@@ -172,13 +172,19 @@ public class RefreshingResultPanel extends Panel {
         } catch (Exception ex) {
             // The query is failing; the outdated content is all we are going to get.
             logger.error("Failed to refresh {}: {}", queryRef.getAsUrlString(), ex.getMessage());
-            settle(target);
+            settle(target, true);
             return false;
         }
         if (fresh == null) {
+            if (ApiCache.isBackingOff(queryRef)) {
+                // The refresh failed and will not be tried again for a while (issue #889).
+                logger.info("Refresh of {} failed; keeping the outdated content", queryRef.getAsUrlString());
+                settle(target, true);
+                return false;
+            }
             if (System.currentTimeMillis() < deadline) return true;
             logger.warn("Timed out refreshing {}; keeping the outdated content", queryRef.getAsUrlString());
-            settle(target);
+            settle(target, true);
             return false;
         }
         if (shownDigest != null && shownDigest.equals(digest(fresh))) {
@@ -189,8 +195,9 @@ public class RefreshingResultPanel extends Panel {
                 // just-added member missing from the list for good.
                 return true;
             }
-            // Nothing changed, so nothing is worth interrupting the user for.
-            settle(target);
+            // Nothing changed, so nothing is worth interrupting the user for. Unless the
+            // refresh failed: the cache then hands back the results it already had.
+            settle(target, ApiCache.lastAttemptFailed(queryRef));
             return false;
         }
         refreshing = false;
@@ -202,12 +209,15 @@ public class RefreshingResultPanel extends Panel {
     }
 
     // Stops waiting without touching the content: turns the spinner off and repaints just
-    // that, so whatever the user is doing in the panel is left alone.
-    private void settle(AjaxRequestTarget target) {
+    // that, so whatever the user is doing in the panel is left alone. A refresh that failed
+    // or timed out leaves a short note in the spinner's place, since the content on screen
+    // is then older than it looks.
+    private void settle(AjaxRequestTarget target, boolean failed) {
         refreshing = false;
         Component content = get(CONTENT_ID);
         if (content instanceof QueryResult view) {
             view.setRefreshing(false);
+            view.setRefreshFailed(failed);
             target.add(view.getRefreshIndicator());
         }
         spinner.setVisible(false);
