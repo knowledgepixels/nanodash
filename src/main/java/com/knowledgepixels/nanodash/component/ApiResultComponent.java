@@ -220,6 +220,12 @@ public abstract class ApiResultComponent extends ResultComponent {
             queryFailed = true;
             return true;
         }
+        if (response == null && ApiCache.isBackingOff(queryRef)) {
+            // The query just failed and will not be tried again for a while, so there is
+            // nothing to wait for (issue #889).
+            queryFailed = true;
+            return true;
+        }
         return response != null || System.currentTimeMillis() > deadline;
     }
 

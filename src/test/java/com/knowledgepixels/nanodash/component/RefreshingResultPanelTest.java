@@ -2,11 +2,15 @@ package com.knowledgepixels.nanodash.component;
 
 import com.google.common.cache.Cache;
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GrlcQuery;
+import com.knowledgepixels.nanodash.QueryResult;
+import com.knowledgepixels.nanodash.ViewDisplay;
 import org.apache.wicket.Component;
 import org.apache.wicket.util.tester.WicketTester;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -21,6 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Outdated results are shown right away with a spinner beside them; when the refresh lands,
@@ -41,7 +49,7 @@ class RefreshingResultPanelTest {
         clearCacheField("lastRefresh");
         clearCacheField("refreshStart");
         clearCacheField("runAfter");
-        clearCacheField("failed");
+        clearCacheField("failures");
         clearCacheField("forcedRefresh");
     }
 
@@ -182,6 +190,162 @@ class RefreshingResultPanelTest {
 
         assertTrue(elapsed < 1000, "must not wait for the response, but took " + elapsed + "ms");
         assertNotNull(built);
+    }
+
+    /** Records a failed attempt at the query, with the next one not due for a minute. */
+    @SuppressWarnings("unchecked")
+    private void backOff() throws Exception {
+        Class<?> c = Class.forName("com.knowledgepixels.nanodash.ApiCache$FailureState");
+        var ctor = c.getDeclaredConstructors()[0];
+        ctor.setAccessible(true);
+        Field failures = ApiCache.class.getDeclaredField("failures");
+        failures.setAccessible(true);
+        ((Cache<String, Object>) failures.get(null)).put(queryRef.getAsUrlString(),
+                ctor.newInstance(1, System.currentTimeMillis() + 60_000));
+    }
+
+    @Test
+    @DisplayName("a view with nothing cached reports a failure at once while its query is backed off (issue #889)")
+    void backedOffQueryIsReportedAsFailed() throws Exception {
+        backOff();
+
+        Component panel = ApiResultComponent.create("panel", queryRef, null, "A title", RENDERER);
+        tester.startComponentInPage(panel);
+
+        assertTrue(((ApiResultComponent) panel).isContentReady(), "there is nothing to wait for");
+        Component built = ((ApiResultComponent) panel).getLazyLoadComponent("content");
+        assertTrue(built.getDefaultModelObjectAsString().contains("API call failed"), built.getDefaultModelObjectAsString());
+    }
+
+    @Test
+    @DisplayName("a refresh of a backed-off query keeps the outdated content and takes the spinner away (issue #889)")
+    void backedOffRefreshSettlesOnTheOutdatedContent() throws Exception {
+        backOff();
+        RefreshingResultPanel panel = startPanel(response("alpha", "beta"));
+        Component shownContent = panel.get("content");
+
+        runTimer();
+
+        assertSame(shownContent, panel.get("content"));
+        assertFalse(panel.get("spinner").isVisible(), "the spinner should be gone");
+    }
+
+    // A real view, with the title row the spinner and the note go in.
+    private static final ApiResultRenderer PARAGRAPHS = (markupId, response) ->
+            new QueryResultPlainParagraph(markupId, new QueryRef(QUERY_ID), response, new ViewDisplay(10));
+
+    private static ApiResponse paragraph(String title) {
+        ApiResponse response = new ApiResponse();
+        response.setHeader(new String[]{"title", "content"});
+        ApiResponseEntry entry = new ApiResponseEntry();
+        entry.add("title", title);
+        entry.add("content", "<p>Some prose.</p>");
+        response.add(entry);
+        return response;
+    }
+
+    // The view looks its query up for its title, which would otherwise mean fetching it.
+    private static MockedStatic<GrlcQuery> mockQueryLookup() {
+        GrlcQuery query = mock(GrlcQuery.class);
+        when(query.getLabel()).thenReturn("Paragraphs");
+        MockedStatic<GrlcQuery> grlc = mockStatic(GrlcQuery.class);
+        grlc.when(() -> GrlcQuery.get(any(QueryRef.class))).thenReturn(query);
+        return grlc;
+    }
+
+    private RefreshingResultPanel startParagraphPanel(ApiResponse staleResponse) {
+        tester.startComponentInPage(new RefreshingResultPanel("panel", queryRef, staleResponse, PARAGRAPHS));
+        return (RefreshingResultPanel) tester.getComponentFromLastRenderedPage("panel");
+    }
+
+    @Test
+    @DisplayName("results served while the query is failing say they are older than they look (issue #889)")
+    void viewOfResultsFromBeforeAFailureCarriesTheNote() throws Exception {
+        try (MockedStatic<GrlcQuery> grlc = mockQueryLookup()) {
+            backOff();
+            tester.startComponentInPage(PARAGRAPHS.render("view", paragraph("Old")));
+
+            String markup = tester.getLastResponseAsString();
+            assertTrue(markup.contains("class=\"refresh-failed\""), markup);
+            assertTrue(markup.contains(QueryResult.REFRESH_FAILED_NOTE), markup);
+            assertFalse(markup.contains("refresh-spinner"), markup);
+        }
+    }
+
+    @Test
+    @DisplayName("results of a query that is not failing carry no note")
+    void viewOfCurrentResultsHasNoNote() throws Exception {
+        try (MockedStatic<GrlcQuery> grlc = mockQueryLookup()) {
+            tester.startComponentInPage(PARAGRAPHS.render("view", paragraph("Current")));
+
+            String markup = tester.getLastResponseAsString();
+            assertFalse(markup.contains("refresh-failed"), markup);
+            assertFalse(markup.contains(QueryResult.REFRESH_FAILED_NOTE), markup);
+        }
+    }
+
+    @Test
+    @DisplayName("a refresh that fails swaps the spinner for the note (issue #889)")
+    void failedRefreshLeavesTheNote() throws Exception {
+        try (MockedStatic<GrlcQuery> grlc = mockQueryLookup()) {
+            ApiResponse stale = paragraph("Old");
+            cacheAsCurrent(stale);
+            RefreshingResultPanel panel = startParagraphPanel(stale);
+            Component shownContent = panel.get("content");
+            String first = tester.getLastResponseAsString();
+            assertTrue(first.contains("refresh-spinner"), first);
+            assertFalse(first.contains("refresh-failed"), first);
+
+            // The refresh failed: the cache goes on handing out what it had.
+            backOff();
+            runTimer();
+
+            assertSame(shownContent, panel.get("content"));
+            String update = tester.getLastResponseAsString();
+            assertTrue(update.contains("class=\"refresh-failed\""), update);
+            assertTrue(update.contains(QueryResult.REFRESH_FAILED_NOTE), update);
+        }
+    }
+
+    @Test
+    @DisplayName("a refresh that succeeds without changes clears a note left by an earlier failure")
+    void successfulRefreshClearsTheNote() throws Exception {
+        try (MockedStatic<GrlcQuery> grlc = mockQueryLookup()) {
+            ApiResponse stale = paragraph("Old");
+            cacheAsCurrent(stale);
+            backOff();
+            startParagraphPanel(stale);
+
+            // The next attempt succeeded, with the same results.
+            clearCacheField("failures");
+            cacheAsCurrent(paragraph("Old"));
+            runTimer();
+
+            String update = tester.getLastResponseAsString();
+            assertFalse(update.contains("refresh-failed"), update);
+            assertFalse(update.contains(QueryResult.REFRESH_FAILED_NOTE), update);
+        }
+    }
+
+    @Test
+    @DisplayName("a refresh that times out also leaves the note")
+    @SuppressWarnings("unchecked")
+    void timedOutRefreshLeavesTheNote() throws Exception {
+        try (MockedStatic<GrlcQuery> grlc = mockQueryLookup()) {
+            // A fetch is still running elsewhere, and nothing current is cached.
+            Field refreshStart = ApiCache.class.getDeclaredField("refreshStart");
+            refreshStart.setAccessible(true);
+            ((ConcurrentMap<String, Long>) refreshStart.get(null)).put(queryRef.getAsUrlString(), System.currentTimeMillis());
+            RefreshingResultPanel panel = startParagraphPanel(paragraph("Old"));
+            Field deadline = RefreshingResultPanel.class.getDeclaredField("deadline");
+            deadline.setAccessible(true);
+            deadline.setLong(panel, System.currentTimeMillis() - 1);
+
+            runTimer();
+
+            String update = tester.getLastResponseAsString();
+            assertTrue(update.contains(QueryResult.REFRESH_FAILED_NOTE), update);
+        }
     }
 
     @Test

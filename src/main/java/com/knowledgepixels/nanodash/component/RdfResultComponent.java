@@ -39,8 +39,10 @@ public abstract class RdfResultComponent extends ResultComponent {
                     model = ApiCache.retrieveRdfModelAsync(queryRef);
                     if (model != null) break;
                 } catch (Exception ex) {
-                    return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
+                    return failedLabel(markupId);
                 }
+                // Failed a moment ago and not to be tried again for a while (issue #889).
+                if (ApiCache.isBackingOff(queryRef)) return failedLabel(markupId);
             }
             try {
                 Thread.sleep(100);
@@ -55,6 +57,10 @@ public abstract class RdfResultComponent extends ResultComponent {
             return new Label(markupId, "<span class=\"negative\">Loading timed out. Please reload the page.</span>").setEscapeModelStrings(false);
         }
         return getRdfResultComponent(markupId, model);
+    }
+
+    private static Component failedLabel(String markupId) {
+        return new Label(markupId, "<span class=\"negative\">API call failed.</span>").setEscapeModelStrings(false);
     }
 
     @Override

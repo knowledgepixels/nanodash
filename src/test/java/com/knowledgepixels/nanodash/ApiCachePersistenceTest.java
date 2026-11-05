@@ -42,7 +42,7 @@ class ApiCachePersistenceTest {
     void setUp() throws Exception {
         resetMap("cachedResponses");
         resetMap("cachedMaps");
-        resetMap("failed");
+        resetMap("failures");
         resetMap("lastRefresh");
         resetMap("refreshStart");
         resetMap("runAfter");

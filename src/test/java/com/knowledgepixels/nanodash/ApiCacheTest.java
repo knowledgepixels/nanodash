@@ -34,7 +34,7 @@ class ApiCacheTest {
     void setUp() throws Exception {
         resetMap("cachedResponses");
         resetMap("cachedMaps");
-        resetMap("failed");
+        resetMap("failures");
         resetMap("lastRefresh");
         resetMap("refreshStart");
         resetMap("runAfter");
@@ -99,9 +99,37 @@ class ApiCacheTest {
         return ctor.newInstance(npId, awaitMaterialization, retryUntil);
     }
 
-    private void putFailed(int count) throws Exception {
-        ConcurrentMap<String, Integer> failed = getMap("failed");
-        failed.put(MOCK_CACHE_ID, count);
+    /** Records the given number of consecutive failures, with the next attempt due at retryAt. */
+    private void putFailure(int count, long retryAt) throws Exception {
+        Class<?> c = Class.forName("com.knowledgepixels.nanodash.ApiCache$FailureState");
+        var ctor = c.getDeclaredConstructors()[0];
+        ctor.setAccessible(true);
+        getMap("failures").put(MOCK_CACHE_ID, ctor.newInstance(count, retryAt));
+    }
+
+    /** The recorded consecutive failures, or 0 if there are none. */
+    private int failureCount() throws Exception {
+        Object state = getMap("failures").get(MOCK_CACHE_ID);
+        if (state == null) return 0;
+        var accessor = state.getClass().getDeclaredMethod("count");
+        accessor.setAccessible(true);
+        return (int) accessor.invoke(state);
+    }
+
+    /** When the next attempt is due, read from the recorded failure state. */
+    private long retryAt() throws Exception {
+        Object state = getMap("failures").get(MOCK_CACHE_ID);
+        var accessor = state.getClass().getDeclaredMethod("retryAt");
+        accessor.setAccessible(true);
+        return (long) accessor.invoke(state);
+    }
+
+    /** Makes the shared pool run submitted refreshes on this thread, where the static mocks apply. */
+    private static void runSubmittedTasksInline(MockedStatic<NanodashThreadPool> threadPool) {
+        threadPool.when(() -> NanodashThreadPool.submit(any(Runnable.class))).thenAnswer(inv -> {
+            inv.getArgument(0, Runnable.class).run();
+            return null;
+        });
     }
 
     @Test
@@ -175,8 +203,8 @@ class ApiCacheTest {
 
             ApiResponse result = ApiCache.retrieveResponseSync(mockQueryRef, false);
             assertNull(result);
-            ConcurrentMap<String, Integer> failed = getMap("failed");
-            assertEquals(1, failed.get(MOCK_CACHE_ID));
+            assertEquals(1, failureCount());
+            assertTrue(ApiCache.isBackingOff(mockQueryRef));
         }
     }
 
@@ -209,24 +237,166 @@ class ApiCacheTest {
     }
 
     @Test
-    @DisplayName("retrieveResponseSync should throw RuntimeException after three consecutive failures and the failed counter should be cleared so subsequent calls can retry")
-    void retrieveResponseSync_throwsRuntimeExceptionAfterThreeFailures() throws Exception {
-        putFailed(3);
+    @DisplayName("backoffAfter should grow from 10s to 30s to 1min, then stay at 5min (issue #889)")
+    void backoffAfter_growsToFiveMinutes() {
+        assertEquals(10_000, ApiCache.backoffAfter(1));
+        assertEquals(30_000, ApiCache.backoffAfter(2));
+        assertEquals(60_000, ApiCache.backoffAfter(3));
+        assertEquals(300_000, ApiCache.backoffAfter(4));
+        assertEquals(300_000, ApiCache.backoffAfter(50));
+    }
+
+    @Test
+    @DisplayName("retrieveResponseSync should make no call while the query is backed off, forced or not, and keep the backoff (issue #889)")
+    void retrieveResponseSync_makesNoCallWhileBackingOff() throws Exception {
+        long retryAt = System.currentTimeMillis() + 60_000;
+        putFailure(3, retryAt);
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
-            assertThrows(RuntimeException.class, () -> ApiCache.retrieveResponseSync(mockQueryRef, false));
+            assertNull(ApiCache.retrieveResponseSync(mockQueryRef, false));
+            assertNull(ApiCache.retrieveResponseSync(mockQueryRef, true));
 
             queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
             queryApiAccess.verify(() -> QueryApiAccess.forcedGet(any()), never());
-            ConcurrentMap<String, Integer> failed = getMap("failed");
-            assertFalse(failed.containsKey(MOCK_CACHE_ID));
+            // Answering for the failure must not start the retries over.
+            assertEquals(3, failureCount());
+            assertEquals(retryAt, retryAt());
         }
     }
 
     @Test
-    @DisplayName("retrieveResponseIfAvailable should answer with null instead of throwing after three consecutive failures (issue #684)")
-    void retrieveResponseIfAvailable_answersWithNullAfterThreeFailures() throws Exception {
-        putFailed(3);
+    @DisplayName("retrieveResponseSync should serve the cached response while the query is backed off")
+    void retrieveResponseSync_servesCachedResponseWhileBackingOff() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 2 * 60 * 1000L);
+        putFailure(1, System.currentTimeMillis() + 60_000);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class);
+             MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            assertSame(cached, ApiCache.retrieveResponseSync(mockQueryRef, false));
+
+            threadPool.verify(() -> NanodashThreadPool.submit(any(Runnable.class)), never());
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
+        }
+    }
+
+    @Test
+    @DisplayName("Consecutive failures should push the next attempt further out")
+    void consecutiveFailuresGrowTheBackoff() throws Exception {
+        // The previous backoff is over, so this call tries again, and fails again.
+        putFailure(1, System.currentTimeMillis() - 1);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenThrow(new FailedApiCallException(new Exception("timed out")));
+            long before = System.currentTimeMillis();
+
+            assertNull(ApiCache.retrieveResponseSync(mockQueryRef, false));
+
+            queryApiAccess.verify(() -> QueryApiAccess.get(mockQueryRef), times(1));
+            assertEquals(2, failureCount());
+            assertTrue(retryAt() >= before + 30_000, "the second failure should put the next attempt 30s out");
+        }
+    }
+
+    @Test
+    @DisplayName("A successful attempt should clear the failures")
+    void successClearsTheFailures() throws Exception {
+        ApiResponse fresh = mock(ApiResponse.class);
+        putFailure(4, System.currentTimeMillis() - 1);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenReturn(fresh);
+
+            assertSame(fresh, ApiCache.retrieveResponseSync(mockQueryRef, false));
+
+            assertEquals(0, failureCount());
+            assertFalse(ApiCache.isBackingOff(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("A failed refresh of a cached query should count as a failure too, keeping the cached response")
+    void failedRefreshOfCachedQueryCounts() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 2 * 60 * 1000L);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class);
+             MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenThrow(new FailedApiCallException(new Exception("timed out")));
+            runSubmittedTasksInline(threadPool);
+
+            assertSame(cached, ApiCache.retrieveResponseAsync(mockQueryRef));
+
+            assertEquals(1, failureCount(), "a query that turns slow after having worked must be backed off as well");
+            assertSame(cached, ApiCache.retrieveStaleResponse(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseAsync should neither fetch nor throw while a query with nothing cached is backed off")
+    void retrieveResponseAsync_answersNullWhileBackingOff() throws Exception {
+        putFailure(3, System.currentTimeMillis() + 60_000);
+
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class);
+             MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            // Pages are built from this call, so a failing query must not throw out of it.
+            assertNull(ApiCache.retrieveResponseAsync(mockQueryRef));
+            assertNull(ApiCache.retrieveResponseAsync(mockQueryRef));
+
+            assertTrue(ApiCache.isBackingOff(mockQueryRef));
+            threadPool.verify(() -> NanodashThreadPool.submit(any(Runnable.class)), never());
+            queryApiAccess.verify(() -> QueryApiAccess.get(any()), never());
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseAsync should serve the cached response while backed off, even if a refresh was forced")
+    void retrieveResponseAsync_servesCachedResponseWhileBackingOffDespiteForcedRefresh() throws Exception {
+        ApiResponse cached = mock(ApiResponse.class);
+        putCachedResponse(cached, 5000L);
+        ApiCache.clearCache(mockQueryRef, 0L);
+        putFailure(2, System.currentTimeMillis() + 60_000);
+
+        try (MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            assertSame(cached, ApiCache.retrieveResponseAsync(mockQueryRef),
+                    "nothing newer can arrive before the next attempt, so what is cached is shown as it is");
+
+            threadPool.verify(() -> NanodashThreadPool.submit(any(Runnable.class)), never());
+            assertTrue(getSet("forcedRefresh").contains(MOCK_CACHE_ID), "the next attempt should still honour the forced refresh");
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseAsync should try again once the backoff is over")
+    void retrieveResponseAsync_triesAgainAfterBackoff() throws Exception {
+        putFailure(2, System.currentTimeMillis() - 1);
+
+        try (MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            assertNull(ApiCache.retrieveResponseAsync(mockQueryRef));
+
+            threadPool.verify(() -> NanodashThreadPool.submit(any(Runnable.class)), times(1));
+            assertFalse(ApiCache.isBackingOff(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseAsync should start only one refresh for concurrent callers")
+    void retrieveResponseAsync_startsOneRefreshAtATime() throws Exception {
+        // The submitted task is not run, so the first refresh stays in flight.
+        try (MockedStatic<NanodashThreadPool> threadPool = mockStatic(NanodashThreadPool.class)) {
+            assertNull(ApiCache.retrieveResponseAsync(mockQueryRef));
+            assertNull(ApiCache.retrieveResponseAsync(mockQueryRef));
+            assertNull(ApiCache.retrieveResponseAsync(mockQueryRef));
+
+            threadPool.verify(() -> NanodashThreadPool.submit(any(Runnable.class)), times(1));
+            assertTrue(ApiCache.isRunning(mockQueryRef));
+        }
+    }
+
+    @Test
+    @DisplayName("retrieveResponseIfAvailable should answer with null while a failing query is backed off (issue #684)")
+    void retrieveResponseIfAvailable_answersWithNullWhileBackingOff() throws Exception {
+        putFailure(3, System.currentTimeMillis() + 60_000);
 
         try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
             // The callers of this hold the state whole pages are built from: a query that
@@ -660,11 +830,22 @@ class ApiCacheTest {
     }
 
     @Test
-    @DisplayName("isRunning should return false when refresh started exactly 60 seconds ago")
+    @DisplayName("isRunning should still return true for a refresh that has been running for 90 seconds (issue #889)")
+    void isRunningForAnAttemptThatTimesOutOnEveryServer() throws Exception {
+        // One attempt at a query that times out everywhere: three rounds over three servers,
+        // 10s each. Counting it as over after 60s let a second attempt start beside it.
+        ConcurrentMap<String, Long> refreshStart = getMap("refreshStart");
+        refreshStart.put(MOCK_CACHE_ID, System.currentTimeMillis() - 90 * 1000);
+
+        assertTrue(ApiCache.isRunning(mockQueryRef));
+    }
+
+    @Test
+    @DisplayName("isRunning should return false when refresh started exactly 5 minutes ago")
     void isRunningExactlyAtThreshold() throws Exception {
         long currentTime = System.currentTimeMillis();
         ConcurrentMap<String, Long> refreshStart = getMap("refreshStart");
-        refreshStart.put(MOCK_CACHE_ID, currentTime - 60 * 1000);
+        refreshStart.put(MOCK_CACHE_ID, currentTime - 5 * 60 * 1000);
 
         Thread.sleep(10);
 
@@ -672,11 +853,11 @@ class ApiCacheTest {
     }
 
     @Test
-    @DisplayName("isRunning should return false when refresh started more than 60 seconds ago")
+    @DisplayName("isRunning should return false when refresh started more than 5 minutes ago")
     void isRunningWhenRefreshIsOld() throws Exception {
         long currentTime = System.currentTimeMillis();
         ConcurrentMap<String, Long> refreshStart = getMap("refreshStart");
-        refreshStart.put(MOCK_CACHE_ID, currentTime - 120000);
+        refreshStart.put(MOCK_CACHE_ID, currentTime - 10 * 60 * 1000);
 
         assertFalse(ApiCache.isRunning(mockQueryRef));
     }
