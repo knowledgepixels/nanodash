@@ -13,11 +13,16 @@ import java.util.function.Function;
 /**
  * Data provider that filters a list by a text string using a function to get searchable text from each item.
  * Uses {@link SerializableFunction} so the provider can be serialized with the Wicket page.
+ *
+ * @param <T> the type of the listed items
  */
 public class FilteredListDataProvider<T extends Serializable> implements IDataProvider<T> {
 
     /**
      * Serializable function interface for use in Wicket components that get serialized with the page.
+     *
+     * @param <T> the type of the function's input
+     * @param <R> the type of the function's result
      */
     @FunctionalInterface
     public interface SerializableFunction<T, R> extends Function<T, R>, Serializable {

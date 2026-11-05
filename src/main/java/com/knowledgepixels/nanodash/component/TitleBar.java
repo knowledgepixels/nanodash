@@ -184,6 +184,9 @@ public class TitleBar extends Panel {
     /**
      * One breadcrumb segment: the {@link NanodashPageRef} it links to and the
      * (possibly split) label text to show for it.
+     *
+     * @param ref   the page the segment links to
+     * @param label the text to show for the segment, or {@code null} when the ref has no label
      */
     public record CrumbPart(NanodashPageRef ref, String label) implements Serializable {
     }
