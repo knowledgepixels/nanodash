@@ -2,8 +2,10 @@ package com.knowledgepixels.nanodash.lookup;
 
 import com.knowledgepixels.nanodash.lookup.parser.CanonicalParser;
 import com.knowledgepixels.nanodash.lookup.parser.CatalogueOfLifeParser;
+import com.knowledgepixels.nanodash.lookup.parser.EuropePmcParser;
 import com.knowledgepixels.nanodash.lookup.parser.GbifParser;
 import com.knowledgepixels.nanodash.lookup.parser.NameResolutionParser;
+import com.knowledgepixels.nanodash.lookup.parser.NcbiGeneParser;
 import com.knowledgepixels.nanodash.lookup.parser.OlsParser;
 import com.knowledgepixels.nanodash.lookup.parser.OpenAireParser;
 import com.knowledgepixels.nanodash.lookup.parser.RorParser;
@@ -13,6 +15,7 @@ import com.knowledgepixels.nanodash.lookup.parser.VodexParser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * Picks the {@link LookupApi} for an API URL given by {@code nt:possibleValuesFromApi}. The
@@ -26,6 +29,8 @@ public final class LookupApiRegistry {
 
     private static final List<Registration> REGISTRATIONS = new ArrayList<>();
 
+    private static final Pattern GENE_DB_PARAM = Pattern.compile("[?&]db=gene(&|$)");
+
     static {
         register(startsWithAny(NanopubQueryLookup.QUERY_API_PREFIX, NanopubQueryLookup.LEGACY_FIND_THINGS_PREFIX), new NanopubQueryLookup());
         register(startsWithAny("https://w3id.org/np/l/nanopub-query", "https://grlc.").or(url -> url.contains("/sparql?")), new SparqlResultsParser());
@@ -36,6 +41,8 @@ public final class LookupApiRegistry {
         register(startsWithAny("https://vodex."), new VodexParser());
         register(startsWithAny("https://api.ror.org/organizations"), new RorParser());
         register(startsWithAny("https://name-resolution-sri.renci.org/"), new NameResolutionParser());
+        register(startsWithAny("https://www.ebi.ac.uk/europepmc/webservices/rest/search"), new EuropePmcParser());
+        register(startsWithAny("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi").and(LookupApiRegistry::isGeneDb), new NcbiGeneParser());
     }
 
     private LookupApiRegistry() {
@@ -56,6 +63,11 @@ public final class LookupApiRegistry {
 
     private static void register(Predicate<String> handles, LookupApi lookupApi) {
         REGISTRATIONS.add(new Registration(handles, lookupApi));
+    }
+
+    // The E-utilities serve all NCBI databases on the same paths; only the gene database is read.
+    private static boolean isGeneDb(String url) {
+        return GENE_DB_PARAM.matcher(url).find();
     }
 
     private static Predicate<String> startsWithAny(String... prefixes) {

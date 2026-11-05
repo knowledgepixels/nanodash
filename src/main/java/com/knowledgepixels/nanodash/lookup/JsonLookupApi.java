@@ -1,10 +1,12 @@
 package com.knowledgepixels.nanodash.lookup;
 
+import com.github.openjson.JSONObject;
 import com.knowledgepixels.nanodash.HttpStatusException;
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -34,9 +36,12 @@ public abstract class JsonLookupApi implements LookupApi {
 
     private static final int FIRST_ERROR_STATUS = 400;
 
+    // Cookies are ignored: every lookup opens a client of its own, so none would be sent back,
+    // and some APIs (e.g. the NCBI E-utilities) set them with dates that log a warning per call.
     private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom()
             .setConnectTimeout(CONNECT_TIMEOUT_MS)
             .setSocketTimeout(SOCKET_TIMEOUT_MS)
+            .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
             .build();
 
     /**
@@ -80,6 +85,19 @@ public abstract class JsonLookupApi implements LookupApi {
         if (values.contains(value)) return;
         values.add(value);
         labels.put(value, label);
+    }
+
+    /**
+     * Gives a field of a JSON object as trimmed text.
+     *
+     * @param object the JSON object
+     * @param key    the name of the field
+     * @return the text of the field, or null if it is missing, null or blank
+     */
+    protected static String textOf(JSONObject object, String key) {
+        if (!object.has(key) || object.isNull(key)) return null;
+        String text = object.get(key).toString().trim();
+        return text.isEmpty() ? null : text;
     }
 
     private static String fetch(String apiUrl, String searchTerm) throws IOException {

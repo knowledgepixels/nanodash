@@ -26,6 +26,12 @@ class LookupApiRegistryTest {
             "https://vodex.petapico.org/ncbitaxon/query?q=label:, VodexParser",
             "https://api.ror.org/organizations?query=, RorParser",
             "https://name-resolution-sri.renci.org/lookup?limit=10&string=, NameResolutionParser",
+            "https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&query=, EuropePmcParser",
+            "https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&query=PMCID:, EuropePmcParser",
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&retmode=json&id=, NcbiGeneParser",
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?retmode=json&db=gene&id=, NcbiGeneParser",
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&id=, CanonicalParser",
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=genome&retmode=json&id=, CanonicalParser",
             "https://www.wikidata.org/w/api.php?action=wbsearchentities&language=en&format=json&search=, CanonicalParser",
             "http://data.bioontology.org/search?ontologies=DOID&q=, CanonicalParser",
             "https://example.github.io/my-ontology/terms.json?q=, CanonicalParser"
