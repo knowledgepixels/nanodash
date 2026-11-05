@@ -97,6 +97,19 @@ public class ExplorePage extends NanodashPage {
     }
 
     /**
+     * Whether an id can be explored: an absolute IRI, or a nanopublication's artifact code,
+     * optionally followed by a suffix. w3id.org forwards a sub-IRI of a nanopublication such as
+     * {@code https://w3id.org/np/RA…/declaration} as {@code RA…/declaration}, so the suffix
+     * must be allowed (see issue #780); bare strings like {@code download-rdf} are not.
+     *
+     * @param id the id parameter of an explore URL
+     * @return true if it names something to explore
+     */
+    public static boolean isExplorableId(String id) {
+        return id != null && (id.contains("://") || id.matches("^RA[A-Za-z0-9-_]{43}.*"));
+    }
+
+    /**
      * Forwards to the page a resource has of its own — a space, a maintained resource, a user —
      * if the given id names one, so that a known resource is shown there (on its default Content
      * tab) rather than as a generic explored IRI.
@@ -222,7 +235,7 @@ public class ExplorePage extends NanodashPage {
         if (tempRef.isEmpty()) {
             throw new AbortWithHttpErrorCodeException(400, "Parameter 'id' is required");
         }
-        if (!tempRef.contains("://") && !tempRef.matches("^RA[A-Za-z0-9-_]{43}$")) {
+        if (!isExplorableId(tempRef)) {
             throw new AbortWithHttpErrorCodeException(400, "Not a valid IRI: " + tempRef);
         }
 

@@ -25,6 +25,23 @@ class ExplorePageTest {
                 "an explore URL without an 'id' parameter should be rejected, not fail as a server error");
     }
 
+    // w3id.org forwards https://w3id.org/np/RA…/declaration as id=RA…/declaration. Requiring
+    // the bare artifact code turned every visit to a nanopublication sub-IRI into a 400.
+    @Test
+    void aNanopublicationSubIriInTheFormW3idForwardsIsExplorable() {
+        String code = "RALH6uamETQaXYDGTeFNjIRu-l0TIF1GZD-hR8DNDuLHU";
+        assertTrue(ExplorePage.isExplorableId(code + "/declaration"));
+        assertTrue(ExplorePage.isExplorableId(code));
+        assertTrue(ExplorePage.isExplorableId("https://w3id.org/np/" + code + "/declaration"));
+    }
+
+    @Test
+    void bareStringsAreNotExplorable() {
+        assertFalse(ExplorePage.isExplorableId("download-rdf"));
+        assertFalse(ExplorePage.isExplorableId("RAtooShort/declaration"));
+        assertFalse(ExplorePage.isExplorableId(null));
+    }
+
     @Test
     void membershipIsDeclaredByPartVersionAndSchemeRelations() {
         assertTrue(ExplorePage.declaresMembership(DCTERMS.IS_PART_OF));
