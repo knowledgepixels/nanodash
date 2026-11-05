@@ -1,3 +1,63 @@
+## [5.22.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.21.2...nanodash-5.22.0) (2026-11-05)
+
+### Features
+
+* look up guided choices in Europe PMC and NCBI Gene ([158a7f0](https://github.com/knowledgepixels/nanodash/commit/158a7f0a2b6b9be15f6d2bc49ae70aee4701f431))
+
+### Dependency updates
+
+* **core-deps:** define the openjson and wicket-webjars versions as properties ([529016b](https://github.com/knowledgepixels/nanodash/commit/529016bfe4fffd9876dc7d89db9b1a89c18c559f))
+* **core-deps:** drop unused opencsv and org.json; declare openjson and wicket-webjars ([a45c994](https://github.com/knowledgepixels/nanodash/commit/a45c99468a8b66c592ef22773c965aec82feb57c))
+* **core-deps:** update dependency com.google.code.gson:gson to v2.15.0 ([cb3a52b](https://github.com/knowledgepixels/nanodash/commit/cb3a52b4871794fc4f1eaa8e1dbd7926d44de118))
+* **core-deps:** update dependency de.agilecoders.wicket.webjars:wicket-webjars to v4.0.15 ([951a5a6](https://github.com/knowledgepixels/nanodash/commit/951a5a68feb2f186a645eb11e4a27dd588dd2f9c))
+* **core-deps:** update dependency io.github.openhtmltopdf:openhtmltopdf-pdfbox to v1.1.105 ([b760f59](https://github.com/knowledgepixels/nanodash/commit/b760f59d6dceaac734f60ece8e36187718848b58))
+* **core-deps:** update dependency io.github.openhtmltopdf:openhtmltopdf-pdfbox to v1.1.108 ([932ec54](https://github.com/knowledgepixels/nanodash/commit/932ec5498badc31fc6a6d8545422617c389e80aa))
+* **core-deps:** update dependency org.json:json to v20260814 ([13ff09c](https://github.com/knowledgepixels/nanodash/commit/13ff09c3a27a7671d5f250a917a40b21467e6718))
+* **core-deps:** update dependency org.nanopub:nanopub to v1.95.1 ([79687de](https://github.com/knowledgepixels/nanodash/commit/79687dea079a2e472df7fe9c96da2d47c1634bcb))
+* **core-deps:** update dependency org.slf4j:slf4j-simple to v2.0.20 ([b5513d1](https://github.com/knowledgepixels/nanodash/commit/b5513d1b5bfbffb2fa694c8119a7e55d37cb821b))
+* **core-deps:** update dependency org.webjars.npm:trix to v2.1.19 ([81087e9](https://github.com/knowledgepixels/nanodash/commit/81087e9421bb1a760ea9e9d7fd27ac800a9ec054))
+* **deps:** update dependency maven to v3.10.0 ([c5b3c58](https://github.com/knowledgepixels/nanodash/commit/c5b3c5845eee97ad84f273d9c178957ccf6d2a4e))
+* **deps:** update tomcat docker tag to v11.0.27 ([ea6d973](https://github.com/knowledgepixels/nanodash/commit/ea6d973a2fd818f06e1df8981dc14d6c27fbb564))
+
+### Bug Fixes
+
+* check lookup API without quotation marks in read-only views ([daad0c7](https://github.com/knowledgepixels/nanodash/commit/daad0c74606d1ee48c06af865729c57de5c5b563))
+* parse EBI OLS lookups given with the /ols4/ path ([93ba12d](https://github.com/knowledgepixels/nanodash/commit/93ba12d073b2cd2e652d3d5449e7f5cd219c90a3))
+* reject non-IRI values in explore page and link builder ([fa64178](https://github.com/knowledgepixels/nanodash/commit/fa641787da3d85471a1db79e2aecd7182b4d3ec3))
+* tighten RA hash validation to reject path suffixes ([b7084cb](https://github.com/knowledgepixels/nanodash/commit/b7084cbf2e4c87d931e426f7fe22213421ca177b))
+* use absolute path for favicon in HTML templates ([01f519b](https://github.com/knowledgepixels/nanodash/commit/01f519b332bfb8766a45647d7754861481933577))
+* **views:** let a network view's nodes be dragged without navigating away ([ea75433](https://github.com/knowledgepixels/nanodash/commit/ea75433e8a80c312e8bf815c34406c65e356bb95)), closes [#823](https://github.com/knowledgepixels/nanodash/issues/823)
+
+### Tests
+
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v6.1.3 ([42e5555](https://github.com/knowledgepixels/nanodash/commit/42e5555c7bdfbd324902d6e8aa5436d4d5928cd2))
+* **deps:** update mockito monorepo to v5.24.0 ([1056cb1](https://github.com/knowledgepixels/nanodash/commit/1056cb1a1978f3f90bc0ee82f12c54d896ab606a))
+
+### Build and continuous integration
+
+* **deps:** update actions/checkout action to v6.1.0 ([cab9e09](https://github.com/knowledgepixels/nanodash/commit/cab9e09da323022bf561d4637041c7276a8f73fb))
+* **deps:** update actions/checkout action to v7 ([f22b4ee](https://github.com/knowledgepixels/nanodash/commit/f22b4ee36ad26f795b6d56b6f96bb25a0323161a))
+* **deps:** update actions/setup-java action to v6 ([46a5c34](https://github.com/knowledgepixels/nanodash/commit/46a5c3409a6f02174ec06540c51ec8c86a8dd1dc))
+* **deps:** update actions/setup-node action to v7 ([ddb4085](https://github.com/knowledgepixels/nanodash/commit/ddb408576a4e0c039f210c3c67d65a5f26068089))
+* **deps:** update coverallsapp/github-action action to v2.3.8 ([faf9391](https://github.com/knowledgepixels/nanodash/commit/faf939111d39e8b90e93dfbdf294606e4f5e6657))
+* **deps:** update dependency com.google.cloud.tools:jib-maven-plugin to v3.5.2 ([6f8b1e5](https://github.com/knowledgepixels/nanodash/commit/6f8b1e54116f072e908e5670b347905f30dd7cf6))
+* **deps:** update dependency org.apache.maven.plugins:maven-compiler-plugin to v3.16.0 ([fa41762](https://github.com/knowledgepixels/nanodash/commit/fa41762b35327f24c1334431a049b3e3d05bb650))
+* **deps:** update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.6.1 ([eef6227](https://github.com/knowledgepixels/nanodash/commit/eef622759e54359bcf2276d76834799a42b2b71d))
+* **deps:** update dependency org.jacoco:jacoco-maven-plugin to v0.8.16 ([e3c6294](https://github.com/knowledgepixels/nanodash/commit/e3c6294aba0743bdb6b7296c7b418e0d1bfc3e77))
+* **renovate:** group Wicket and Wicketstuff updates as core-deps ([6d06596](https://github.com/knowledgepixels/nanodash/commit/6d0659628875484a22218a0892f6bc572b7a3b4c))
+* **renovate:** keep wicket-tester as test(deps) with its own version property ([dd71030](https://github.com/knowledgepixels/nanodash/commit/dd710300505eee89e9527aad4220a8541f6cd49a))
+
+### General maintenance
+
+* add .DS_Store to .gitignore ([2be3994](https://github.com/knowledgepixels/nanodash/commit/2be39945ec38c35fcd69617705a34f2b320847bb))
+* Optimized Logging ([7937abe](https://github.com/knowledgepixels/nanodash/commit/7937abec2dc5486f608047c2a81006a8aa1f23bb))
+* **renovate:** add configuration ([f9e58fe](https://github.com/knowledgepixels/nanodash/commit/f9e58fe618651c465c91816ed6915cf700b561da))
+* setting next snapshot version [skip ci] ([ae0e1db](https://github.com/knowledgepixels/nanodash/commit/ae0e1db6c49ab7c9db10e78a7fe30984ff170726))
+
+### Refactoring
+
+* **template:** read the reserved local names from nanopub-java ([293efc1](https://github.com/knowledgepixels/nanodash/commit/293efc1aadf41e0cd25bfc4a049ed15f8044e4eb)), closes [#727](https://github.com/knowledgepixels/nanodash/issues/727)
+
 ## [5.21.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.21.1...nanodash-5.21.2) (2026-10-25)
 
 ### Bug Fixes
