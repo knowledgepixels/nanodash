@@ -4,6 +4,7 @@
     "local>ashleycaselli/renovate-config"
   ],
   "automerge": false,
+  "rebaseWhen": "conflicted",
   "lockFileMaintenance": {
     "enabled": true
   },
