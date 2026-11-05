@@ -1,3 +1,14 @@
+## [5.22.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.0...nanodash-5.22.1) (2026-11-05)
+
+### Bug Fixes
+
+* back off when a query keeps failing ([#889](https://github.com/knowledgepixels/nanodash/issues/889)) ([266804a](https://github.com/knowledgepixels/nanodash/commit/266804a9b09130aff3125eeae6c4861dd0aec19f))
+* **explore:** accept nanopub sub-IRIs in the short form w3id forwards ([938dc36](https://github.com/knowledgepixels/nanodash/commit/938dc368d747ce9367fc46c8c1e8d4d49fc8c8b9))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([fd59aa3](https://github.com/knowledgepixels/nanodash/commit/fd59aa3f11709f42e80a8e30b935f5cf8925452d))
+
 ## [5.22.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.21.2...nanodash-5.22.0) (2026-11-05)
 
 ### Features
