@@ -315,6 +315,8 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
             }
         });
 
+        getRequestCycleListeners().add(TimingStats.requestListener());
+
         registerListeners();
 
         ApiCachePersistence.init();
