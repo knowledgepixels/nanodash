@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 /**
  * Builds the component that shows a query's results. Passed to
- * {@link ApiResultComponent#create(String, org.nanopub.extra.services.QueryRef, ApiResponse, ApiResultRenderer)}
+ * {@link ApiResultComponent#create(String, org.nanopub.extra.services.QueryRef, ApiResponse, String, ApiResultRenderer)}
  * so the same rendering code serves all three states a view display can be in: results
  * that are current, outdated results shown while a refresh runs (see
  * {@link RefreshingResultPanel}), and nothing cached yet.

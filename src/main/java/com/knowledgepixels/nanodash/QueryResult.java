@@ -41,6 +41,10 @@ public abstract class QueryResult extends Panel {
 
     /**
      * A view-level action, shown as a top entry of the view's dropdown menu.
+     *
+     * @param label     the menu entry's text
+     * @param pageClass the page the entry links to
+     * @param params    the parameters passed to that page
      */
     public record MenuAction(String label, Class<? extends NanodashPage> pageClass, PageParameters params) implements Serializable {
     }
