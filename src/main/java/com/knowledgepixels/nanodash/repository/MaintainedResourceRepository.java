@@ -1,13 +1,18 @@
 package com.knowledgepixels.nanodash.repository;
 
 import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.NanodashPreferences;
+import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.domain.MaintainedResource;
 import com.knowledgepixels.nanodash.domain.MaintainedResourceFactory;
 import com.knowledgepixels.nanodash.domain.Space;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MaintainedResourceRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(MaintainedResourceRepository.class);
 
     private static final MaintainedResourceRepository INSTANCE = new MaintainedResourceRepository();
 
@@ -65,6 +73,9 @@ public class MaintainedResourceRepository {
     // not fail over a momentarily missing resource ask findLastKnownById() instead.
     private final Map<String, MaintainedResource> lastKnownById = new ConcurrentHashMap<>();
 
+    // Whether a background pass loading the resources' nanopubs is under way.
+    private final AtomicBoolean loadingNanopubs = new AtomicBoolean(false);
+
     private Snapshot current() {
         ApiResponse resp = ApiCache.retrieveResponseIfAvailable(new QueryRef(QueryApiAccess.GET_MAINTAINED_RESOURCES));
         if (resp == null) {
@@ -73,11 +84,12 @@ public class MaintainedResourceRepository {
         if (resp == cachedFor) {
             return snapshot;
         }
+        Snapshot built;
         synchronized (this) {
             if (resp == cachedFor) {
                 return snapshot;
             }
-            Snapshot built = build(resp);
+            built = build(resp);
             if (built == null) {
                 // Spaces weren't loaded yet, so every resource would have been
                 // dropped (each row's space resolved to null). Don't latch this
@@ -88,7 +100,50 @@ public class MaintainedResourceRepository {
             snapshot = built;
             cachedFor = resp;
             lastKnownById.putAll(built.resourcesById);
-            return built;
+        }
+        loadNanopubsInBackground();
+        return built;
+    }
+
+    /**
+     * Fetches the declaring nanopub of each resource in the current snapshot that doesn't
+     * have it yet, on a pool thread. Building a snapshot fetches nothing (issue #892), so
+     * this is what spares a resource's page the fetch on its first view. One pass at a
+     * time: a snapshot latched while a pass runs is covered by the pass of a later rebuild,
+     * and rebuilds come with every refresh of the underlying query.
+     */
+    private void loadNanopubsInBackground() {
+        // Where the background loading is switched off (issue #809), the nanopubs are
+        // fetched when a page first asks for them.
+        if (!NanodashPreferences.get().isDataRefreshEnabled()) return;
+        if (!loadingNanopubs.compareAndSet(false, true)) return;
+        try {
+            NanodashThreadPool.submit(() -> {
+                try {
+                    // A saturated pool runs the task in the thread that submitted it. A
+                    // request must not be the one fetching ~200 nanopubs one by one; a
+                    // later rebuild tries again.
+                    if (RequestCycle.get() != null) return;
+                    long start = System.currentTimeMillis();
+                    int loaded = 0, failed = 0;
+                    for (MaintainedResource resource : snapshot.resourcesById.values()) {
+                        if (resource.isNanopubLoaded()) continue;
+                        if (resource.getNanopub() != null) loaded++;
+                        else failed++;
+                    }
+                    if (loaded + failed > 0) {
+                        logger.info("Loaded the nanopubs of {} maintained resources in {} ms ({} could not be fetched)",
+                                loaded, System.currentTimeMillis() - start, failed);
+                    }
+                } catch (Exception ex) {
+                    logger.warn("Loading maintained-resource nanopubs failed", ex);
+                } finally {
+                    loadingNanopubs.set(false);
+                }
+            });
+        } catch (RuntimeException ex) {
+            loadingNanopubs.set(false);
+            logger.warn("Could not start loading maintained-resource nanopubs", ex);
         }
     }
 
