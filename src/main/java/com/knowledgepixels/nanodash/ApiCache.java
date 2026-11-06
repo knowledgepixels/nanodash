@@ -342,10 +342,13 @@ public class ApiCache {
         } catch (InterruptedException ex) {
             logger.error("Interrupted while waiting to refresh cache: {}", ex.getMessage());
         }
+        long fetchStart = System.nanoTime();
         try {
             fetch.run();
+            TimingStats.recordFetch(cacheId, TimingStats.millisSince(fetchStart), true);
             failures.invalidate(cacheId);
         } catch (Exception ex) {
+            TimingStats.recordFetch(cacheId, TimingStats.millisSince(fetchStart), false);
             logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
             recordFailure(cacheId);
             lastRefresh.put(cacheId, System.currentTimeMillis());
@@ -604,7 +607,31 @@ public class ApiCache {
         }
     }
 
+    /**
+     * The response for a query, fetched on the calling thread when nothing usable is cached.
+     * The time the caller is blocked is recorded with {@link TimingStats}.
+     *
+     * @param queryRef the query reference
+     * @param forced   whether current data is required, so that a cached response is not enough
+     * @return the response, or null if none could be had
+     */
     public static ApiResponse retrieveResponseSync(QueryRef queryRef, boolean forced) {
+        long start = System.nanoTime();
+        try {
+            return retrieveResponseSyncUntimed(queryRef, forced);
+        } finally {
+            TimingStats.recordSyncRetrieval(TimingStats.millisSince(start));
+        }
+    }
+
+    /**
+     * Does the work of {@link #retrieveResponseSync(QueryRef, boolean)}, without timing it.
+     *
+     * @param queryRef the query reference
+     * @param forced   whether current data is required, so that a cached response is not enough
+     * @return the response, or null if none could be had
+     */
+    private static ApiResponse retrieveResponseSyncUntimed(QueryRef queryRef, boolean forced) {
         long timeNow = System.currentTimeMillis();
         String cacheId = queryRef.getAsUrlString();
         logger.debug("Retrieving cached API response synchronously for {}", cacheId);

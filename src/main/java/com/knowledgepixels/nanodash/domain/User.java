@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.domain;
 
 import com.knowledgepixels.nanodash.NanodashPreferences;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
+import com.knowledgepixels.nanodash.TimingStats;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.setting.IntroNanopub;
@@ -28,6 +29,8 @@ public class User {
     // right as soon as it can answer; not immediate, so an outage is not hammered.
     private static final long INCOMPLETE_RETRY_INTERVAL = 30 * 1000; // 30 seconds
     private static transient long lastRefresh = 0L;
+
+    private static final String USER_DATA_STEP = "user-data";
     private static transient long lastIncompleteRetry = 0L;
 
     /**
@@ -39,7 +42,7 @@ public class User {
         synchronized (User.class) {
             if (userData == null || System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
                 lastRefresh = System.currentTimeMillis();
-                install(new UserData(true));
+                TimingStats.timeDataBuild(USER_DATA_STEP, "refresh", () -> install(new UserData(true)));
             }
         }
     }
@@ -59,9 +62,11 @@ public class User {
             synchronized (User.class) {
                 if (userData == null) {
                     lastRefresh = System.currentTimeMillis();
-                    install(NanodashPreferences.get().isDataRefreshEnabled()
-                            ? new UserData(false)
-                            : UserData.empty());
+                    if (NanodashPreferences.get().isDataRefreshEnabled()) {
+                        TimingStats.timeDataBuild(USER_DATA_STEP, "initial", () -> install(new UserData(false)));
+                    } else {
+                        install(UserData.empty());
+                    }
                 }
             }
         }
@@ -75,14 +80,18 @@ public class User {
      * a cold instance serve pages while its query service is unavailable — but never worth
      * overwriting a full load with, as a passing outage would then empty out user data that
      * was perfectly good.
+     *
+     * @param newData the freshly built user data
+     * @return whether the freshly built data is complete
      */
-    private static void install(UserData newData) {
+    private static boolean install(UserData newData) {
         if (!shouldReplace(userData, newData)) {
             logger.warn("Keeping the user data we have: the new load could not be completed");
-            return;
+            return newData.isComplete();
         }
         if (!newData.isComplete()) logger.warn("User data is incomplete; will retry");
         userData = newData;
+        return newData.isComplete();
     }
 
     /**
@@ -116,11 +125,13 @@ public class User {
         NanodashThreadPool.submit(() -> {
             logger.info("Retrying the incomplete user-data load...");
             try {
-                UserData reloaded = new UserData(false);
-                synchronized (User.class) {
-                    lastRefresh = System.currentTimeMillis();
-                    install(reloaded);
-                }
+                TimingStats.timeDataBuild(USER_DATA_STEP, "retry", () -> {
+                    UserData reloaded = new UserData(false);
+                    synchronized (User.class) {
+                        lastRefresh = System.currentTimeMillis();
+                        return install(reloaded);
+                    }
+                });
             } catch (Exception ex) {
                 logger.error("Retry of the incomplete user-data load failed", ex);
             }
