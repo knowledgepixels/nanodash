@@ -1,3 +1,32 @@
+## [5.22.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.1...nanodash-5.22.2) (2026-11-06)
+
+### Dependency updates
+
+* **core-deps:** update dependency com.google.guava:guava to v33.8.0 ([bbe26f1](https://github.com/knowledgepixels/nanodash/commit/bbe26f177cc88901d563de3a2ad10a31db8d3d34))
+* **core-deps:** update dependency de.agilecoders.wicket.webjars:wicket-webjars to v4.0.16 ([b205005](https://github.com/knowledgepixels/nanodash/commit/b2050055091d050823f6bd33896c5022005e9003))
+* **core-deps:** update dependency org.commonmark:commonmark to v0.32.0 ([405c221](https://github.com/knowledgepixels/nanodash/commit/405c221ab75581d1da1c63036099acc66189e6a4))
+* **core-deps:** update dependency tools.jackson.dataformat:jackson-dataformat-yaml to v3.2.4 ([c8b5b42](https://github.com/knowledgepixels/nanodash/commit/c8b5b427979bc4e017c1708acac259b38873dbb8))
+
+### Bug Fixes
+
+* fetch space root nanopubs together, several at a time ([d720a4c](https://github.com/knowledgepixels/nanodash/commit/d720a4cfdab09fb6c969c088fc41821b6cc3e50e)), closes [#892](https://github.com/knowledgepixels/nanodash/issues/892) [#892](https://github.com/knowledgepixels/nanodash/issues/892)
+* load maintained-resource nanopubs off the repository lock ([31775d2](https://github.com/knowledgepixels/nanodash/commit/31775d2039420dbde8a71630bfa6d567ee98f8ed)), closes [#892](https://github.com/knowledgepixels/nanodash/issues/892)
+* seed resources from the cache on the update task, off the monitor ([ca67f1e](https://github.com/knowledgepixels/nanodash/commit/ca67f1eec5a0a828f52b73025b75a300743c4eb3)), closes [#892](https://github.com/knowledgepixels/nanodash/issues/892) [#892](https://github.com/knowledgepixels/nanodash/issues/892)
+
+### Documentation
+
+* fix broken Javadoc link and add missing [@param](https://github.com/param) tags ([7048556](https://github.com/knowledgepixels/nanodash/commit/7048556613133b5f86db449c4ecfa4373a39a5e9)), closes [ApiResultComponent#create](https://github.com/knowledgepixels/ApiResultComponent/issues/create)
+
+### Build and continuous integration
+
+* **deps:** update actions/setup-java action to v6.2.0 ([039442d](https://github.com/knowledgepixels/nanodash/commit/039442d2597327b33bc4cd19f678b2ea448bdd40))
+* **deps:** update dependency semantic-release-preconfigured-conventional-commits to v1.1.158 ([e5113c4](https://github.com/knowledgepixels/nanodash/commit/e5113c4ddb13f7cdb2dec92af9fe5a1cbb0578b4))
+* **renovate:** rebase PRs only on conflict ([4b7d9dd](https://github.com/knowledgepixels/nanodash/commit/4b7d9ddec61533bb5f6810761c7d56aed0bf0d97))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([97e5f75](https://github.com/knowledgepixels/nanodash/commit/97e5f7596bebd5b2c908fb6a4fe12d0aaea806ca))
+
 ## [5.22.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.0...nanodash-5.22.1) (2026-11-05)
 
 ### Bug Fixes
