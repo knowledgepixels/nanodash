@@ -38,40 +38,117 @@ public class Preset implements Serializable {
         .build();
 
     /**
-     * Get a Preset by its ID, resolving to the latest version of its kind.
+     * Get a Preset by its ID, resolving to the latest version of its kind. A version that
+     * declares {@code gen:governedBy} resolves within its {@code (kind, space)} pair via
+     * {@link GovernedVersions}; one that doesn't follows its supersedes chain.
      *
      * @param id the ID of the Preset
      * @return the Preset object, or null if it could not be loaded
      */
     public static Preset get(String id) {
-        String npId = id.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
-        // Automatically select the latest version of the preset definition (same pattern as View.get()):
+        String npId = toNanopubId(id);
+        Preset pinned = getExactVersion(id, npId);
+        if (isSpaceGoverned(pinned)) {
+            return resolveGovernedVersion(pinned);
+        }
+        Preset latest = resolveSupersedingVersion(id, npId);
+        return latest != null ? latest : pinned;
+    }
+
+    /**
+     * Whether a preset declares space-based governance, i.e. both a version-independent
+     * IRI ({@code dct:isVersionOf}) and a governing space ({@code gen:governedBy}).
+     *
+     * @param preset the preset to check, may be null
+     * @return true if the preset declares both
+     */
+    public static boolean isSpaceGoverned(Preset preset) {
+        return preset != null && preset.getGoverningSpace() != null && preset.getPresetKindIri() != null;
+    }
+
+    /**
+     * The id of the nanopub a preset id belongs to: the preset id up to and including its
+     * artifact code. An id that is already a nanopub id is returned unchanged.
+     *
+     * @param presetId the preset id
+     * @return the nanopub id
+     */
+    private static String toNanopubId(String presetId) {
+        return presetId.replaceFirst("^(.*[^A-Za-z0-9-_]RA[A-Za-z0-9-_]{43})[^A-Za-z0-9-_].*$", "$1");
+    }
+
+    /**
+     * Resolves the latest space-governed version of the pinned preset's {@code (kind, space)}
+     * pair, or, if the kind isn't a maintained resource of the space, the head of the pin's
+     * own supersedes chain. The pin is the floor: on an empty result or any failure the
+     * pinned version stands.
+     *
+     * @param pinned the pinned preset, which must be space-governed
+     * @return the resolved preset, or the pinned one if resolution yields nothing
+     */
+    private static Preset resolveGovernedVersion(Preset pinned) {
         try {
-            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-            if (!latestNpId.equals(npId)) {
-                Nanopub np = Utils.getAsNanopub(latestNpId);
-                if (np != null) {
-                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                    if (embeddedIris.size() == 1) {
-                        String latestId = embeddedIris.iterator().next();
-                        Preset cached = presets.getIfPresent(latestId);
-                        if (cached == null) {
-                            cached = new Preset(latestId, np);
-                            presets.put(latestId, cached);
-                        }
-                        return cached;
-                    }
+            String latestId = GovernedVersions.getLatestVersionIriSync(
+                    pinned.getPresetKindIri().stringValue(), pinned.getGoverningSpace().stringValue(),
+                    pinned.getNanopubId().stringValue());
+            if (latestId != null && !latestId.equals(pinned.getId())) {
+                Preset resolved = getExactVersion(latestId, toNanopubId(latestId));
+                if (resolved != null) {
+                    return resolved;
                 }
             }
         } catch (Exception ex) {
-            logger.error("Error resolving latest version for preset: {}", id, ex);
+            logger.error("Error resolving governed version for preset: {}", pinned.getId(), ex);
         }
-        // Fall back to loading the nanopub as given:
-        Nanopub np = Utils.getAsNanopub(npId);
+        return pinned;
+    }
+
+    /**
+     * Resolves the latest version of an ungoverned preset along its supersedes chain.
+     *
+     * @param id   the preset id
+     * @param npId the nanopub id of the preset
+     * @return the latest superseding preset, or null if there is none or it couldn't be loaded
+     */
+    private static Preset resolveSupersedingVersion(String id, String npId) {
+        try {
+            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
+            if (latestNpId.equals(npId)) {
+                return null;
+            }
+            Nanopub np = Utils.getAsNanopub(latestNpId);
+            if (np == null) {
+                return null;
+            }
+            Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+            if (embeddedIris.size() != 1) {
+                return null;
+            }
+            String latestId = embeddedIris.iterator().next();
+            Preset cached = presets.getIfPresent(latestId);
+            if (cached == null) {
+                cached = new Preset(latestId, np);
+                presets.put(latestId, cached);
+            }
+            return cached;
+        } catch (Exception ex) {
+            logger.error("Error resolving latest version for preset: {}", id, ex);
+            return null;
+        }
+    }
+
+    /**
+     * Loads the preset exactly as given, without a latest-version lookup.
+     *
+     * @param id   the preset id
+     * @param npId the nanopub id of the preset
+     * @return the preset, or null if it could not be loaded
+     */
+    private static Preset getExactVersion(String id, String npId) {
         Preset cached = presets.getIfPresent(id);
         if (cached == null) {
             try {
-                cached = new Preset(id, np);
+                cached = new Preset(id, Utils.getAsNanopub(npId));
                 presets.put(id, cached);
             } catch (Exception ex) {
                 logger.error("Couldn't load nanopub for preset: {}", id, ex);
@@ -83,6 +160,7 @@ public class Preset implements Serializable {
     private String id;
     private Nanopub nanopub;
     private IRI presetKind;
+    private IRI governingSpace;
     private String label;
     private String description;
     private final List<IRI> topLevelViews = new ArrayList<>();
@@ -103,6 +181,8 @@ public class Preset implements Serializable {
                 }
             } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
                 presetKind = objIri;
+            } else if (st.getPredicate().equals(KPXL_TERMS.GOVERNED_BY) && st.getObject() instanceof IRI objIri) {
+                governingSpace = objIri;
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
                 label = st.getObject().stringValue();
             } else if (st.getPredicate().equals(DCTERMS.DESCRIPTION)) {
@@ -142,6 +222,15 @@ public class Preset implements Serializable {
      */
     public IRI getPresetKindIri() {
         return presetKind;
+    }
+
+    /**
+     * Gets the space governing this preset's versions ({@code gen:governedBy}).
+     *
+     * @return the governing space IRI, or null if the preset is not space-governed
+     */
+    public IRI getGoverningSpace() {
+        return governingSpace;
     }
 
     public String getLabel() {
