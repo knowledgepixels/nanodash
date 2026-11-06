@@ -3,8 +3,10 @@ package com.knowledgepixels.nanodash.repository;
 import com.github.jsonldjava.shaded.com.google.common.collect.Ordering;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.SpaceFactory;
+import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
@@ -151,6 +153,7 @@ public class SpaceRepository {
         Map<Space, Set<Space>> superspaceMap = new HashMap<>();
         List<Space> spaceList = new ArrayList<>();
         RefReduction reduction = reduceByRef(resp.getData());
+        Map<String, Nanopub> rootNanopubs = fetchRootNanopubs(reduction.representatives);
         for (ApiResponseEntry r : reduction.representatives) {
             String spaceIri = r.get("space_iri");
             ApiResponseEntry entry = new ApiResponseEntry();
@@ -160,7 +163,7 @@ public class SpaceRepository {
             entry.add("type", r.get("type"));
             String refRoot = r.get("root");
             if (refRoot != null && !refRoot.isEmpty()) entry.add("ref_root", refRoot);
-            Space space = SpaceFactory.getOrCreate(entry);
+            Space space = SpaceFactory.getOrCreate(entry, rootNanopubs.get(r.get("np")));
             space.setRefRoots(reduction.refRootsByIri.getOrDefault(spaceIri, Collections.emptySet()));
             spaceList.add(space);
             byId.put(space.getId(), space);
@@ -178,6 +181,27 @@ public class SpaceRepository {
             space.setDataNeedsUpdate();
         }
         return new Snapshot(byId, byAltId, subspaceMap, superspaceMap);
+    }
+
+    /**
+     * Fetches the root nanopubs a build needs, several at a time. After a restart that is
+     * one per space, a few hundred, and the build runs under the lock every lookup waits
+     * for: fetched one by one, as each space used to fetch its own, they kept every page
+     * waiting for minutes (issue #892). Later builds only need the nanopubs of new or
+     * changed spaces.
+     */
+    private static Map<String, Nanopub> fetchRootNanopubs(List<ApiResponseEntry> rows) {
+        List<String> needed = new ArrayList<>();
+        for (ApiResponseEntry r : rows) {
+            String np = r.get("np");
+            if (np != null && SpaceFactory.needsRootNanopub(r.get("space_iri"), np)) needed.add(np);
+        }
+        if (needed.isEmpty()) return Collections.emptyMap();
+        long start = System.currentTimeMillis();
+        Map<String, Nanopub> fetched = Utils.getNanopubs(needed);
+        logger.info("Fetched {} of {} space root nanopubs in {} ms",
+                fetched.size(), needed.size(), System.currentTimeMillis() - start);
+        return fetched;
     }
 
     /**

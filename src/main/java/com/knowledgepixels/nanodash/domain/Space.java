@@ -123,25 +123,49 @@ public class Space extends AbstractResourceWithProfile {
         return TYPE_EMOJIS.getOrDefault(typeName, "");
     }
 
-    Space(ApiResponseEntry resp) {
+    /**
+     * The root nanopub is handed in rather than fetched here: the repository builds every
+     * space under its lock, and fetches all the root nanopubs it needs together, several at
+     * a time, beforehand (issue #892).
+     *
+     * @param resp        the space's row of the spaces query
+     * @param rootNanopub the nanopub of {@code np} in that row, or null if it could not be
+     *                    fetched; the space then lacks what its definition says (aliases,
+     *                    admins, description, ...) until a later build brings the nanopub
+     */
+    Space(ApiResponseEntry resp, Nanopub rootNanopub) {
         super(resp.get("space"));
         initSpace(this);
         this.label = resp.get("label");
         this.type = resp.get("type");
         this.rootNanopubId = resp.get("np");
-        this.rootNanopub = Utils.getAsNanopub(rootNanopubId);
+        this.rootNanopub = rootNanopub;
         this.refRootId = resp.get("ref_root");
         readCoreData();
     }
 
-    void updateFromApi(ApiResponseEntry resp) {
+    /**
+     * Takes on what a newer answer of the spaces query says about this space.
+     *
+     * @param resp        the space's row of the spaces query
+     * @param rootNanopub the nanopub of {@code np} in that row, or null if it could not be
+     *                    fetched (or was not needed, the definition being the one already
+     *                    held). A new definition whose nanopub could not be fetched is not
+     *                    taken on yet: the space keeps its current one, and a later build
+     *                    tries again.
+     */
+    void updateFromApi(ApiResponseEntry resp, Nanopub rootNanopub) {
         this.refRootId = resp.get("ref_root");
         String newNpId = resp.get("np");
-        if (!newNpId.equals(this.rootNanopubId)) {
+        boolean newDefinition = !newNpId.equals(this.rootNanopubId);
+        // A space built while its root nanopub could not be fetched takes on its core data
+        // once the nanopub is there.
+        boolean rootMissing = this.rootNanopub == null;
+        if ((newDefinition || rootMissing) && rootNanopub != null) {
             this.label = resp.get("label");
             this.type = resp.get("type");
             this.rootNanopubId = newNpId;
-            this.rootNanopub = Utils.getAsNanopub(newNpId);
+            this.rootNanopub = rootNanopub;
             altIds.clear();
             rootAdmins.clear();
             declaredTypes.clear();
@@ -850,6 +874,7 @@ public class Space extends AbstractResourceWithProfile {
     }
 
     private void readCoreData() {
+        if (rootNanopub == null) return;
         for (Statement st : rootNanopub.getAssertion()) {
             if (st.getSubject().stringValue().equals(getId())) {
                 if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI typeIri) {

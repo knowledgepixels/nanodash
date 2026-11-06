@@ -22,8 +22,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Abstract class representing a resource with a profile in the Nanodash application.
@@ -38,6 +42,11 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     // Backoff after a failed data update, so a persistently failing resource
     // doesn't respawn an update task on every page poll (~1/s per open page).
     private static final long FAILED_UPDATE_BACKOFF_MS = 10 * 1000;
+
+    // How long after an update starts a page still waits for its seed from the cache (see
+    // awaitSeed): ample for a seed from a warm cache, short enough not to tie up request
+    // threads when the seed has to fetch.
+    static final long SEED_WAIT_MS = 2000;
 
     private final String id;
     private Space space;
@@ -64,6 +73,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     // taken by the structure update itself, where going back to the API costs nobody's
     // request thread. See buildViewDisplays.
     private volatile boolean viewDefinitionRefreshRequested = false;
+
+    // The seed step of the update last started, completed once that update has seeded the
+    // data from the cache or found nothing to seed from, and the time until which pages
+    // wait for it. See awaitSeed.
+    private transient volatile CompletableFuture<Void> seedStep = null;
+    private volatile long seedWaitUntil = 0;
 
     // Whether the view lists built during the current request are to refresh their views,
     // answered once per resource and remembered for the rest of the render so that several
@@ -157,8 +172,11 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     }
 
     @Override
-    public synchronized Future<?> triggerDataUpdate() {
-        if (dataNeedsUpdate) {
+    public Future<?> triggerDataUpdate() {
+        final boolean refreshViewDefinitions;
+        final CompletableFuture<Void> seeded = new CompletableFuture<>();
+        synchronized (this) {
+            if (!dataNeedsUpdate) return null;
             // Not due yet (delayed forceRefresh or backoff after a failure): don't
             // occupy a pool thread with sleeping; a later access re-triggers.
             Long after = runUpdateAfter;
@@ -171,37 +189,47 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
             // Taken here rather than in the task, so that a request arriving while the
             // fetch runs is left standing for the next round instead of being answered by
             // a build that started before it.
-            final boolean refreshViewDefinitions = viewDefinitionRefreshRequested;
+            refreshViewDefinitions = viewDefinitionRefreshRequested;
             viewDefinitionRefreshRequested = false;
-            return NanodashThreadPool.submit(() -> {
-                try {
-                    ResourceWithProfile newData = new ResourceWithProfile();
+            seedStep = seeded;
+            seedWaitUntil = System.currentTimeMillis() + SEED_WAIT_MS;
+        }
+        // Submitted outside the lock: a saturated pool runs the task on this very thread,
+        // and the update must not hold the resource's monitor while it goes to the network,
+        // or every request touching this resource waits for it (issue #892).
+        return NanodashThreadPool.submit(() -> {
+            try {
+                ResourceWithProfile newData = new ResourceWithProfile();
 
-                    // The query returns both standalone view displays (bound ?display) and
-                    // preset-supplied views (issue #302: unbound ?display, the assignment's
-                    // preset expanded into its views server-side), already ordered by date
-                    // (latest first) so the per-view-kind latest-wins / deactivation
-                    // aggregation in getViewDisplays() resolves overrides between presets and
-                    // standalone displays correctly, in either direction.
+                try {
                     seedFromCacheIfPossible();
-                    newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef(), refreshViewDefinitions));
-                    newData.profilePicture = fetchProfilePicture();
+                } finally {
+                    seeded.complete(null);
+                }
+                // The query returns both standalone view displays (bound ?display) and
+                // preset-supplied views (issue #302: unbound ?display, the assignment's
+                // preset expanded into its views server-side), already ordered by date
+                // (latest first) so the per-view-kind latest-wins / deactivation
+                // aggregation in getViewDisplays() resolves overrides between presets and
+                // standalone displays correctly, in either direction.
+                newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef(), refreshViewDefinitions));
+                newData.profilePicture = fetchProfilePicture();
+                synchronized (this) {
                     data = newData;
                     dataInitialized = true;
-                    // A forceRefresh that came in while this fetch was already running has
-                    // re-armed dataNeedsUpdate, so what just landed is not the refreshed
-                    // structure yet and the refresh stays pending for the next round.
-                    if (!dataNeedsUpdate) structureRefreshPending = false;
-                } catch (Exception ex) {
-                    logger.error("Error while trying to update data for resource {}", id, ex);
-                    runUpdateAfter = System.currentTimeMillis() + FAILED_UPDATE_BACKOFF_MS;
-                    dataNeedsUpdate = true;
-                    // Nothing was rebuilt, so the request the retry is to honour is put back.
-                    if (refreshViewDefinitions) viewDefinitionRefreshRequested = true;
                 }
-            });
-        }
-        return null;
+                // A forceRefresh that came in while this fetch was already running has
+                // re-armed dataNeedsUpdate, so what just landed is not the refreshed
+                // structure yet and the refresh stays pending for the next round.
+                if (!dataNeedsUpdate) structureRefreshPending = false;
+            } catch (Exception ex) {
+                logger.error("Error while trying to update data for resource {}", id, ex);
+                runUpdateAfter = System.currentTimeMillis() + FAILED_UPDATE_BACKOFF_MS;
+                dataNeedsUpdate = true;
+                // Nothing was rebuilt, so the request the retry is to honour is put back.
+                if (refreshViewDefinitions) viewDefinitionRefreshRequested = true;
+            }
+        });
     }
 
     /**
@@ -221,12 +249,16 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * Initializes the resource data from whatever view-displays response the cache still
      * holds — typically the persisted snapshot right after a restart (issue #570) — so
      * pages gated on {@link #isDataInitialized()} render their content on the first
-     * request instead of a loading spinner. Purely cache-fed, so it is quick exactly when
-     * it can succeed and does nothing on a genuinely cold cache, where the asynchronous
-     * update (whose fetch also brings seeded data current) remains the only path. The
-     * seeded data doubles as the outage fallback should that fetch fail.
+     * request instead of a loading spinner. The first step of the update task, which
+     * {@link #isDataInitialized()} waits for briefly. The response comes from the cache,
+     * but building the view displays out of it needs the display and view nanopubs, which
+     * are fetched if the cache doesn't hold them, so this runs on the update task and never
+     * under the resource's monitor: run by a request thread holding the monitor, it once
+     * kept every other request for the home page waiting for its fetches (issue #892). Does
+     * nothing on a genuinely cold cache, where the update's fetch remains the only path.
+     * The seeded data doubles as the outage fallback should that fetch fail.
      */
-    private synchronized void seedFromCacheIfPossible() {
+    private void seedFromCacheIfPossible() {
         if (dataInitialized) return;
         // A pending delayed refresh (forceRefresh, e.g. just after publishing) must not be
         // masked by re-seeding the old state as initialized: there the page is meant to
@@ -239,8 +271,34 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         ResourceWithProfile seeded = new ResourceWithProfile();
         seeded.viewDisplays.addAll(buildViewDisplays(cachedResponse, vdQuery));
         seeded.profilePicture = firstPicture(ApiCache.retrieveStaleResponse(profilePictureQueryRef()));
-        data = seeded;
-        dataInitialized = true;
+        synchronized (this) {
+            // An update that finished meanwhile has brought fresher data than this.
+            if (dataInitialized) return;
+            data = seeded;
+            dataInitialized = true;
+        }
+    }
+
+    /**
+     * Waits for the running update to have seeded this resource from the cache, but no
+     * longer than {@link #SEED_WAIT_MS} after the update started. A seed from a warm cache
+     * is quick, and waiting for it lets the first render after a restart show the content;
+     * a seed that has to fetch takes longer, and a page then shows its loading state and
+     * polls rather than holding a request thread. The time limit is counted from the start
+     * of the update rather than per call, so polls don't each wait again.
+     */
+    private void awaitSeed() {
+        CompletableFuture<Void> step = seedStep;
+        if (step == null || step.isDone()) return;
+        long wait = seedWaitUntil - System.currentTimeMillis();
+        if (wait <= 0) return;
+        try {
+            step.get(wait, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException | TimeoutException ex) {
+            // Not seeded in time: the page shows its loading state.
+        }
     }
 
     /**
@@ -415,14 +473,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     @Override
     public boolean isDataInitialized() {
-        // Seeding synchronously (cache-only, no network) is what lets the FIRST render of
-        // a page reach this resource's content: the update below runs asynchronously, so
-        // without the seed that render would fall back to a loading spinner even though
-        // everything it needs is in the (restored) cache.
-        if (!dataInitialized) {
-            seedFromCacheIfPossible();
-        }
         triggerDataUpdate();
+        // Waiting briefly for the update's seed is what lets the FIRST render of a page
+        // reach this resource's content: the update runs asynchronously, so without it that
+        // render would fall back to a loading spinner even though everything it needs is in
+        // the (restored) cache.
+        if (!dataInitialized) awaitSeed();
         return dataInitialized;
     }
 

@@ -65,8 +65,16 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -314,6 +322,75 @@ public class Utils {
             }
         }
         return null;
+    }
+
+    // How many nanopubs getNanopubs fetches at a time: enough to turn a startup's few hundred
+    // fetches into a matter of seconds, while leaving half of the registry client's
+    // connections per registry (setMaxConnPerRoute above) to everything else.
+    private static final int PARALLEL_FETCHES = 8;
+
+    private static final ExecutorService fetchExecutor = newFetchExecutor();
+
+    private static ExecutorService newFetchExecutor() {
+        AtomicInteger count = new AtomicInteger();
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(PARALLEL_FETCHES, PARALLEL_FETCHES,
+                30, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), task -> {
+            Thread thread = new Thread(task, "nanodash-fetch-" + count.incrementAndGet());
+            thread.setDaemon(true);
+            return thread;
+        });
+        // Idle between builds, which is most of the time.
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
+    }
+
+    /**
+     * Retrieves several nanopublications, fetching those not cached several at a time
+     * rather than one after the other, and returns once each has been tried. For building
+     * something out of many nanopubs at once: the spaces after a restart need a few hundred,
+     * and fetching them one by one kept every page waiting for minutes (issue #892).
+     *
+     * @param ids the URIs of the nanopublications
+     * @return the nanopublications found, keyed by the URI they were asked for; a URI that is
+     * not a nanopublication's, or whose nanopublication could not be fetched, is missing
+     */
+    public static Map<String, Nanopub> getNanopubs(Collection<String> ids) {
+        return getNanopubs(ids, Utils::getAsNanopub);
+    }
+
+    static Map<String, Nanopub> getNanopubs(Collection<String> ids, Function<String, Nanopub> fetch) {
+        Map<String, Nanopub> found = new HashMap<>();
+        List<String> toFetch = new ArrayList<>();
+        for (String id : new LinkedHashSet<>(ids)) {
+            if (id == null || !TrustyUriUtils.isPotentialTrustyUri(id)) continue;
+            Nanopub cached = nanopubs.getIfPresent(GetNanopub.getArtifactCode(id).toString());
+            if (cached != null) {
+                found.put(id, cached);
+            } else {
+                toFetch.add(id);
+            }
+        }
+        if (toFetch.size() == 1) {
+            Nanopub np = fetch.apply(toFetch.getFirst());
+            if (np != null) found.put(toFetch.getFirst(), np);
+        } else if (!toFetch.isEmpty()) {
+            List<Callable<Nanopub>> tasks = new ArrayList<>();
+            for (String id : toFetch) tasks.add(() -> fetch.apply(id));
+            try {
+                List<Future<Nanopub>> results = fetchExecutor.invokeAll(tasks);
+                for (int i = 0; i < results.size(); i++) {
+                    try {
+                        Nanopub np = results.get(i).get();
+                        if (np != null) found.put(toFetch.get(i), np);
+                    } catch (ExecutionException ex) {
+                        logger.error("Could not fetch nanopublication {}", toFetch.get(i), ex.getCause());
+                    }
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        return found;
     }
 
     /**
