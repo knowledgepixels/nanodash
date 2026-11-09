@@ -118,9 +118,9 @@ public class ExplorePage extends NanodashPage {
      * repositories hold full IRIs, while a nanopublication sub-IRI reaches us as the
      * artifact-code form {@code RA…/templateKind}: that is what w3id.org redirects
      * {@code https://w3id.org/np/RA…/templateKind} to, and it is the form every real visit to a
-     * maintained kind arrives in. The second call therefore comes once {@code initPage} has
+     * maintained version-independent IRI arrives in. The second call therefore comes once {@code initPage} has
      * expanded such an id to the nanopublication's own namespace, which is what finally makes a
-     * governed template or view kind registered as a maintained resource land on its page under
+     * governed template or view registered as a maintained resource land on its page under
      * the space (issue #780). The first call keeps the already-canonical ids on the fast path,
      * before any lookup over the network.
      * <p>
@@ -282,11 +282,11 @@ public class ExplorePage extends NanodashPage {
             }
         }
 
-        // A governed definition -- a template or view kind, say -- is governed by a space, and
-        // nothing else on this page leads there. Only reached while that space does not list the
-        // kind as a maintained resource yet: once it does, the forward above has already taken the
-        // reader to the kind's page under the space. Read straight off the nanopublication, so it
-        // costs no query, and offered for the kind, the governed instance and the nanopublication
+        // A governed definition -- a template or view, say -- is governed by a space, and
+        // nothing else on this page leads there. Only reached while that space does not list its
+        // version-independent IRI as a maintained resource yet: once it does, the forward above has already taken the
+        // reader to that IRI's page under the space. Read straight off the nanopublication, so it
+        // costs no query, and offered for the version-independent IRI, the governed instance and the nanopublication
         // alike, since all three are dead ends here for the same reason (issue #780).
         GovernedVersions.GovernedRef governedRef = GovernedVersions.findGovernedRef(np);
         Space governingSpace = governedRef == null ? null : SpaceRepository.get().findByIdOrAltId(governedRef.getSpace());
@@ -422,7 +422,7 @@ public class ExplorePage extends NanodashPage {
             raw.add(createAssertionLink("a-rdfxml-txt", npUri, "rdfxml", true));
             nanopubSection.add(raw);
             // The type check alone also matches nanopubs that merely introduce a resource typed as a
-            // template (e.g. the registration of a template kind), which have no form to fill in:
+            // template (e.g. the registration of a template's version-independent IRI), which have no form to fill in:
             if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE) && Template.hasFullTemplateDefinition(np)) {
                 nanopubSection.add(new WebMarkupContainer("use-template").add(new BookmarkablePageLink<Void>("template-link", PublishPage.class,
                         NavigationContext.withContext(new PageParameters().set("template", np.getUri()), getContextId()))));

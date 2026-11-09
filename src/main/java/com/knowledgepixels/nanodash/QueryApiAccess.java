@@ -54,7 +54,7 @@ public class QueryApiAccess {
     // templates with embedded identity list correctly); derived from, not superseding,
     // the RA6bgrU3/RA4bt3MQ/RAMcdiJp originals, which are update-locked to another key.
     // v3 dedups governed version pairs: a version declaring dct:isVersionOf +
-    // gen:governedBy is listed only if it is its (kind, space) pair's current governed
+    // gen:governedBy is listed only if it is its (version-independent IRI, space) pair's current governed
     // winner (in-SPARQL Option A of the listing-dedup problem; the nanopub-query#138
     // canonical-version edge would replace these arms).
     // v4 (RAi6EPio/RA4ynLpm/RAxzYV8P, superseding RAoEo6jL/RAl2C9PT/RAGxzVO9) keeps the same
@@ -101,7 +101,7 @@ public class QueryApiAccess {
     // cross-ref bleed. No-regression verified against RAd105Rj across resources.
     // RArKslem (supersedes RA4TGV_z) adds space-governed version resolution (gen:governedBy;
     // docs/views-and-presets-as-maintained-resources.md): a referenced version declaring a
-    // governing space resolves to the newest member+-signed version of its (kind, space)
+    // governing space resolves to the newest member+-signed version of its (version-independent IRI, space)
     // pair via a run-once governed sub-select, falling back to the pinned version.
     // RAWlJqJ5 (supersedes RArKslem): same semantics, endpoint rebased from the ViewDisplay
     // type repo onto repo/full, cutting the query from 5 SERVICE clauses to 2 (only the
@@ -117,9 +117,9 @@ public class QueryApiAccess {
     // admin/maintainer arm and the governed-version resolution keep requiring approved
     // accounts. Validated byte-identical to RAWlJqJ5 across approved resources.
     // RAwkiytr (supersedes RA3ekD-2) adds ?presetKind to the preset branch (issue #607): the
-    // assigned preset's stable kind (dct:isVersionOf, falling back to the version IRI), so the
-    // client keeps only the newest assignment per (preset kind, resource) -- the identity view
-    // displays already have via view kind. Purely additive; every other column is unchanged
+    // assigned preset's version-independent IRI (dct:isVersionOf, falling back to the version IRI), so the
+    // client keeps only the newest assignment per (preset, resource) -- the identity view
+    // displays already have via the view's version-independent IRI. Purely additive; every other column is unchanged
     // (validated identical across standalone, preset, governed, self-page and maintained-resource
     // cases).
     // RAvPNGog (supersedes RAwkiytr) is a performance rewrite with identical results (validated
@@ -167,20 +167,20 @@ public class QueryApiAccess {
     // (the original was signed by the placeholder orcid:0000-0000-0000-0000 and carried no
     // nt:wasCreatedFrom*Template links); the SPARQL is byte-identical.
     public static final String LIST_SPACE_CLAIMANTS = "RAYU2MLEEkLhSfkRYbE9olhuBq19e6g3QY-jfJTmqh0OI/list-space-claimants";
-    // Space-governed view-version resolution: given a definition kind (dct:isVersionOf
-    // target), its governing space and the pinned version's nanopub (pin), returns at most
-    // one row. With the kind validated as maintained by the space: the newest version
+    // Space-governed view-version resolution: given a version-independent IRI
+    // (dct:isVersionOf target), its governing space and the pinned version's nanopub (pin), returns at most
+    // one row. With that IRI validated as maintained by the space: the newest version
     // declaring gen:governedBy that space, signed by a current member+ of the space's
     // governing ref; empty result = the caller keeps its pinned version (the pin is the
-    // floor). With the kind not maintained by the space: the single current head of the pin's own
+    // floor). With that IRI not maintained by the space: the single current head of the pin's own
     // same-key supersedes chain, as GET_LATEST_VERSION_OF_NP resolves it, so that a
-    // gen:governedBy declared before the space maintains the kind no longer freezes the pin.
+    // gen:governedBy declared before the space maintains that IRI no longer freezes the pin.
     // RAyB49tP supersedes RA833rrc, which superseded RAPSWgzH: RAPSWgzH took no pin and
-    // returned nothing for a kind the space doesn't maintain, and both it and RA833rrc looked up the
+    // returned nothing for an IRI the space doesn't maintain, and both it and RA833rrc looked up the
     // versions once per member row, starting from every nanopub signed by a member key
     // (up to a minute for spaces whose members have signed many nanopubs). RAyB49tP
-    // gathers the member keys into one row and starts the full-repo lookup from the kind,
-    // so it runs once; results validated identical across all governed pairs, maintained-kind
+    // gathers the member keys into one row and starts the full-repo lookup from that IRI,
+    // so it runs once; results validated identical across all governed pairs, maintained-IRI
     // median 0.5s -> 0.2s, worst case 20-60s -> about 1s. Source at
     // docs/queries/get-latest-governed-version.trig; see
     // docs/views-and-presets-as-maintained-resources.md.
@@ -351,7 +351,7 @@ public class QueryApiAccess {
     // the existing Preset assignments view unchanged. Used by AboutSpacePanel with an IRI-keyed
     // fallback when the ref root is unknown. Source at docs/queries/list-preset-assignments-ref.trig.
     // RArC6iR- (supersedes RA3zdn0g, itself the head this constant had been left behind by)
-    // keys an assignment on the preset's stable kind rather than the pinned version, and adds the
+    // keys an assignment on the preset's version-independent IRI rather than the pinned version, and adds the
     // version columns behind the view's "update to latest version" action (issue #607).
     // RArXnUQf (supersedes RArC6iR-) replaces the earlier blank-header notice with a proper
     // "version" column: version_label is the displayed verdict ("latest" / "⬆️ update available")

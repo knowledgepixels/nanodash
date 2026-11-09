@@ -29,8 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests which previews carry a template form (issue #597). The type of an introduced
- * resource counts as a type of the nanopublication itself, so registering a template kind
- * as a maintained resource makes the nanopublication an {@code nt:AssertionTemplate}
+ * resource counts as a type of the nanopublication itself, so registering a template's
+ * version-independent IRI as a maintained resource makes the nanopublication an {@code nt:AssertionTemplate}
  * without giving it a template body — and the preview page used to try to build a form out
  * of it, failing with a null-pointer message in the page.
  */
@@ -71,20 +71,20 @@ class PreviewPageTemplateFormTest {
     }
 
     /**
-     * The shape that broke: the kind IRI is typed as an assertion template and declared a
+     * The shape that broke: the version-independent IRI is typed as an assertion template and declared a
      * maintained resource of a space, with no template body anywhere.
      */
     @Test
-    void aTemplateKindRegistrationGetsNoFormPreview() throws Exception {
+    void aVersionIndependentIriRegistrationGetsNoFormPreview() throws Exception {
         String npUri = "https://example.org/preview-kind-registration/";
         NanopubCreator creator = newCreator(npUri);
-        IRI kind = vf.createIRI(npUri + "intentionToSample");
-        creator.addAssertionStatement(kind, RDF.TYPE, KPXL_TERMS.MAINTAINED_RESOURCE);
-        creator.addAssertionStatement(kind, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
-        creator.addAssertionStatement(kind, RDFS.LABEL, vf.createLiteral("Declaring intention to sample"));
-        creator.addAssertionStatement(kind, DCTERMS.DESCRIPTION, vf.createLiteral("Allows to declare the intention to sample."));
-        creator.addAssertionStatement(kind, KPXL_TERMS.IS_MAINTAINED_BY, vf.createIRI("https://w3id.org/spaces/example"));
-        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, kind));
+        IRI versionIndependentIri = vf.createIRI(npUri + "intentionToSample");
+        creator.addAssertionStatement(versionIndependentIri, RDF.TYPE, KPXL_TERMS.MAINTAINED_RESOURCE);
+        creator.addAssertionStatement(versionIndependentIri, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
+        creator.addAssertionStatement(versionIndependentIri, RDFS.LABEL, vf.createLiteral("Declaring intention to sample"));
+        creator.addAssertionStatement(versionIndependentIri, DCTERMS.DESCRIPTION, vf.createLiteral("Allows to declare the intention to sample."));
+        creator.addAssertionStatement(versionIndependentIri, KPXL_TERMS.IS_MAINTAINED_BY, vf.createIRI("https://w3id.org/spaces/example"));
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, versionIndependentIri));
 
         String html = renderPreview(creator.finalizeNanopub());
 
@@ -95,20 +95,20 @@ class PreviewPageTemplateFormTest {
     }
 
     /**
-     * The same registration, with the kind IRI minted by an earlier nanopublication rather
+     * The same registration, with the version-independent IRI minted by an earlier nanopublication rather
      * than by this one — the shape seen in the wild. The template cannot be read at all here,
      * where the previous case produced a body-less one, so it takes a different route to the
      * same wrong end.
      */
     @Test
-    void aTemplateKindRegisteredFromAnotherNanopubGetsNoFormPreviewEither() throws Exception {
+    void aVersionIndependentIriRegisteredFromAnotherNanopubGetsNoFormPreviewEither() throws Exception {
         NanopubCreator creator = newCreator("https://example.org/preview-foreign-kind/");
-        IRI kind = vf.createIRI("https://w3id.org/np/RAZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210_-ZyXwV/intentionToSample");
-        creator.addAssertionStatement(kind, RDF.TYPE, KPXL_TERMS.MAINTAINED_RESOURCE);
-        creator.addAssertionStatement(kind, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
-        creator.addAssertionStatement(kind, RDFS.LABEL, vf.createLiteral("Declaring intention to sample"));
-        creator.addAssertionStatement(kind, KPXL_TERMS.IS_MAINTAINED_BY, vf.createIRI("https://w3id.org/spaces/example"));
-        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, kind));
+        IRI versionIndependentIri = vf.createIRI("https://w3id.org/np/RAZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210_-ZyXwV/intentionToSample");
+        creator.addAssertionStatement(versionIndependentIri, RDF.TYPE, KPXL_TERMS.MAINTAINED_RESOURCE);
+        creator.addAssertionStatement(versionIndependentIri, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
+        creator.addAssertionStatement(versionIndependentIri, RDFS.LABEL, vf.createLiteral("Declaring intention to sample"));
+        creator.addAssertionStatement(versionIndependentIri, KPXL_TERMS.IS_MAINTAINED_BY, vf.createIRI("https://w3id.org/spaces/example"));
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, versionIndependentIri));
 
         String html = renderPreview(creator.finalizeNanopub());
 

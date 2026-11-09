@@ -226,7 +226,7 @@ public class View implements Serializable {
      *                      governed-version resolution here even with false: the
      *                      caller's server-side resolution covers neither its
      *                      space-based float nor, while the space doesn't maintain
-     *                      its kind, the supersedes chain the query then
+     *                      its version-independent IRI, the supersedes chain the query then
      *                      follows instead.
      * @return the View object
      */
@@ -234,12 +234,12 @@ public class View implements Serializable {
         String npId = toNanopubId(id);
         if (!resolveLatest) {
             View exact = getExactVersion(id, npId);
-            if (exact == null || exact.getGoverningSpace() == null || exact.getViewKindIri() == null) {
+            if (exact == null || exact.getGoverningSpace() == null || exact.getVersionIndependentIri() == null) {
                 return exact;
             }
             // fall through to the memoized latest path, which resolves a governed
             // pin through the governed-version query (space-based, or along the pin's
-            // own supersedes chain while the space doesn't maintain its kind)
+            // own supersedes chain while the space doesn't maintain its version-independent IRI)
         }
         // Inside a fresh-resolution scope (a page-level "refresh now", see
         // withFreshResolution) the memo is not to be trusted at all: go back to the API
@@ -355,7 +355,7 @@ public class View implements Serializable {
     private static void forgetLatestVersionLookup(String viewId) {
         String npId = toNanopubId(viewId);
         View pinned = getExactVersion(viewId, npId);
-        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
+        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getVersionIndependentIri() != null) {
             ApiCache.clearCache(governedQueryRef(pinned), 0);
         } else {
             QueryApiAccess.forgetLatestVersion(npId);
@@ -378,14 +378,14 @@ public class View implements Serializable {
      * single embedded view IRI. This is the network-touching part of
      * {@link #get(String)}. A version that declares {@code gen:governedBy}
      * resolves space-based (authority-scoped latest-wins within its
-     * {@code (kind, space)} pair) once its kind is a maintained resource of the
-     * space; one that doesn't follows the supersedes chain as before, and so does
-     * a governed version whose kind the space doesn't maintain yet (resolved by the same
+     * {@code (version-independent IRI, space)} pair) once that IRI is a maintained
+     * resource of the space; one that doesn't follows the supersedes chain as before, and so does
+     * a governed version whose version-independent IRI the space doesn't maintain yet (resolved by the same
      * governed-version query). See docs/views-and-presets-as-maintained-resources.md.
      */
     private static View resolveLatestVersion(String id, String npId) {
         View pinned = getExactVersion(id, npId);
-        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
+        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getVersionIndependentIri() != null) {
             return resolveGovernedVersion(pinned);
         }
         // Automatically selecting latest version of view definition:
@@ -415,10 +415,11 @@ public class View implements Serializable {
 
     /**
      * Resolves the latest space-governed version of the pinned view's
-     * {@code (kind, space)} pair: the newest version declaring the same kind and
-     * governing space, signed by a current member+ of that space, with the kind
+     * {@code (version-independent IRI, space)} pair: the newest version declaring the same
+     * version-independent IRI and governing space, signed by a current member+ of that
+     * space, with that IRI
      * validated as maintained by the space — all checked server-side by the
-     * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query. If the kind isn't
+     * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query. If that IRI isn't
      * a maintained resource of the space, the query answers with the head of the
      * pin's own supersedes chain instead. The pin is the floor: on an empty result
      * (or any failure) the pinned version stands, un-revalidated.
@@ -446,7 +447,7 @@ public class View implements Serializable {
      * cached response.
      */
     private static QueryRef governedQueryRef(View pinned) {
-        return GovernedVersions.getQueryRef(pinned.getViewKindIri().stringValue(),
+        return GovernedVersions.getQueryRef(pinned.getVersionIndependentIri().stringValue(),
                 pinned.getGoverningSpace().stringValue(), pinned.getNanopub().getUri().stringValue());
     }
 
@@ -495,7 +496,7 @@ public class View implements Serializable {
 
     private String id;
     private Nanopub nanopub;
-    private IRI viewKind;
+    private IRI versionIndependentIri;
     private IRI governingSpace;
     private String label;
     private String title = "View";
@@ -545,7 +546,7 @@ public class View implements Serializable {
                         queryForm = true;
                     }
                 } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
-                    viewKind = objIri;
+                    versionIndependentIri = objIri;
                 } else if (st.getPredicate().equals(KPXL_TERMS.GOVERNED_BY) && st.getObject() instanceof IRI objIri) {
                     governingSpace = objIri;
                 } else if (st.getPredicate().equals(RDFS.LABEL)) {
@@ -672,12 +673,18 @@ public class View implements Serializable {
         return nanopub;
     }
 
-    public IRI getViewKindIri() {
-        return viewKind;
+    /**
+     * Gets the version-independent IRI (the {@code dct:isVersionOf} target) this view
+     * version declares itself a version of.
+     *
+     * @return the version-independent IRI, or null if not set
+     */
+    public IRI getVersionIndependentIri() {
+        return versionIndependentIri;
     }
 
     /**
-     * Gets the space governing this view version's {@code (kind, space)} pair
+     * Gets the space governing this view version's {@code (version-independent IRI, space)} pair
      * via {@code gen:governedBy}, or null if the version doesn't opt into space
      * governance (in which case latest-version resolution stays
      * supersedes-based).

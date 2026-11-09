@@ -187,7 +187,7 @@ public class PreviewPage extends NanodashPage {
         form.add(discardButton);
 
         // Only a nanopublication that carries a template body can be shown as a form. One
-        // that merely types a resource as a template — a template-kind registration, say —
+        // that merely types a resource as a template — the registration of a template's version-independent IRI, say —
         // has the type but nothing to render (issue #597).
         if (Utils.isNanopubOfClass(signedNp, NTEMPLATE.ASSERTION_TEMPLATE) && Template.hasFullTemplateDefinition(signedNp)) {
             WebMarkupContainer section = new WebMarkupContainer("template-form-preview-section");
