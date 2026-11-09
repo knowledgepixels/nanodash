@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Tests for {@link Template#hasFullTemplateDefinition(Nanopub)}, which decides
  * whether a nanopublication can be offered as a form to fill in ("use this
  * template..."). Nanopublications that only refer to a template - in particular
- * the registration of a template kind as a maintained resource - must not
+ * the registration of a template's version-independent IRI as a maintained resource - must not
  * qualify, even though their type set contains {@code nt:AssertionTemplate}
  * (see issue #597).
  */
@@ -34,7 +34,7 @@ public class FullTemplateDefinitionTest {
     private static final String NP_URI = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE";
     private static final String OTHER_NP_URI = "https://w3id.org/np/RAZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210_-ZyXwV";
     private static final IRI TEMPLATE_NODE = vf.createIRI(NP_URI + "/template");
-    private static final IRI KIND_IRI = vf.createIRI(OTHER_NP_URI + "/templateKind");
+    private static final IRI VERSION_INDEPENDENT_IRI = vf.createIRI(OTHER_NP_URI + "/templateKind");
     private static final IRI SPACE = vf.createIRI("https://w3id.org/spaces/knowledgepixels/nanodash");
 
     private static NanopubCreator newCreator() throws Exception {
@@ -58,18 +58,19 @@ public class FullTemplateDefinitionTest {
     }
 
     /**
-     * The shape of a template-kind registration: the kind IRI, which lives in the
+     * The shape of the registration of a template's version-independent IRI: that IRI,
+     * which lives in the
      * namespace of the nanopub that minted it, is typed as an assertion template and
      * declared a maintained resource of a space. There is no template body here.
      */
-    private static Nanopub kindRegistrationNanopub() throws Exception {
+    private static Nanopub versionIndependentIriRegistrationNanopub() throws Exception {
         NanopubCreator creator = newCreator();
-        creator.addAssertionStatement(KIND_IRI, RDF.TYPE, KPXL_TERMS.MAINTAINED_RESOURCE);
-        creator.addAssertionStatement(KIND_IRI, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
-        creator.addAssertionStatement(KIND_IRI, RDFS.LABEL, vf.createLiteral("Commenting on Something Template"));
-        creator.addAssertionStatement(KIND_IRI, DCTERMS.DESCRIPTION, vf.createLiteral("Template for commenting on something."));
-        creator.addAssertionStatement(KIND_IRI, KPXL_TERMS.IS_MAINTAINED_BY, SPACE);
-        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, KIND_IRI));
+        creator.addAssertionStatement(VERSION_INDEPENDENT_IRI, RDF.TYPE, KPXL_TERMS.MAINTAINED_RESOURCE);
+        creator.addAssertionStatement(VERSION_INDEPENDENT_IRI, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
+        creator.addAssertionStatement(VERSION_INDEPENDENT_IRI, RDFS.LABEL, vf.createLiteral("Commenting on Something Template"));
+        creator.addAssertionStatement(VERSION_INDEPENDENT_IRI, DCTERMS.DESCRIPTION, vf.createLiteral("Template for commenting on something."));
+        creator.addAssertionStatement(VERSION_INDEPENDENT_IRI, KPXL_TERMS.IS_MAINTAINED_BY, SPACE);
+        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, VERSION_INDEPENDENT_IRI));
         return creator.finalizeNanopub();
     }
 
@@ -84,24 +85,24 @@ public class FullTemplateDefinitionTest {
     void embeddedIdentityTemplateIsFullDefinition() throws Exception {
         NanopubCreator creator = newCreator();
         addTemplateBody(creator, TEMPLATE_NODE);
-        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, VERSION_INDEPENDENT_IRI);
         creator.addAssertionStatement(TEMPLATE_NODE, KPXL_TERMS.GOVERNED_BY, SPACE);
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.EMBEDS, TEMPLATE_NODE));
         assertTrue(Template.hasFullTemplateDefinition(creator.finalizeNanopub()));
     }
 
     @Test
-    void kindRegistrationIsNotFullDefinition() throws Exception {
-        assertFalse(Template.hasFullTemplateDefinition(kindRegistrationNanopub()));
+    void versionIndependentIriRegistrationIsNotFullDefinition() throws Exception {
+        assertFalse(Template.hasFullTemplateDefinition(versionIndependentIriRegistrationNanopub()));
     }
 
     /**
-     * The type-based check alone is what made the button appear on kind registrations:
+     * The type-based check alone is what made the button appear on such registrations:
      * the type of the introduced resource counts as a type of the nanopub itself.
      */
     @Test
-    void kindRegistrationStillCountsAsAssertionTemplateByType() throws Exception {
-        assertTrue(Utils.isNanopubOfClass(kindRegistrationNanopub(), NTEMPLATE.ASSERTION_TEMPLATE));
+    void versionIndependentIriRegistrationStillCountsAsAssertionTemplateByType() throws Exception {
+        assertTrue(Utils.isNanopubOfClass(versionIndependentIriRegistrationNanopub(), NTEMPLATE.ASSERTION_TEMPLATE));
     }
 
     @Test

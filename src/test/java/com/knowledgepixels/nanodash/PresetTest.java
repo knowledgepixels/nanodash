@@ -24,7 +24,7 @@ import static org.mockito.Mockito.never;
 
 /**
  * Tests for {@link Preset}'s version resolution: space-governed presets float within their
- * {@code (kind, space)} pair, ungoverned ones follow their supersedes chain.
+ * {@code (version-independent IRI, space)} pair, ungoverned ones follow their supersedes chain.
  */
 class PresetTest {
 

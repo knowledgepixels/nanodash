@@ -82,7 +82,7 @@ public class ViewPage extends NanodashPage {
         page.add(new NanopubItem("nanopub", NanopubElement.get(np), templateId).setProvenanceHidden(!showProv).setPubinfoHidden(!showPubinfo).setHeaderHidden(!showHeader).setFooterHidden(!showFooter));
 
         // Only a nanopublication that carries a template body can be shown as a form. One
-        // that merely types a resource as a template — a template-kind registration, say —
+        // that merely types a resource as a template — the registration of a template's version-independent IRI, say —
         // has the type but nothing to render (issue #597).
         if (Utils.isNanopubOfClass(np, NTEMPLATE.ASSERTION_TEMPLATE) && Template.hasFullTemplateDefinition(np)) {
             WebMarkupContainer section = new WebMarkupContainer("template-form-preview-section");

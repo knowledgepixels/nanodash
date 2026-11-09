@@ -32,7 +32,7 @@ public class TemplateIdentityTest {
     // A syntactically valid trusty URI shape (RA + 43 chars), so sub-IRIs strip correctly:
     private static final String NP_URI = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_AbCdE";
     private static final IRI TEMPLATE_NODE = vf.createIRI(NP_URI + "/template");
-    private static final IRI KIND_IRI = vf.createIRI(NP_URI + "/test-template-kind");
+    private static final IRI VERSION_INDEPENDENT_IRI = vf.createIRI(NP_URI + "/test-template-kind");
 
     private static NanopubCreator newCreator() throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
@@ -68,7 +68,7 @@ public class TemplateIdentityTest {
     private static Nanopub embeddedTemplateNanopub() throws Exception {
         NanopubCreator creator = newCreator();
         addTemplateBody(creator, TEMPLATE_NODE);
-        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, VERSION_INDEPENDENT_IRI);
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.EMBEDS, TEMPLATE_NODE));
         return creator.finalizeNanopub();
     }
@@ -82,7 +82,7 @@ public class TemplateIdentityTest {
         assertEquals("Test template", t.getLabel());
         assertEquals(1, t.getStatementIris().size());
         assertFalse(t.isUnlisted());
-        assertNull(t.getTemplateKindIri());
+        assertNull(t.getVersionIndependentIri());
     }
 
     @Test
@@ -95,7 +95,7 @@ public class TemplateIdentityTest {
         assertEquals("A template for testing.", t.getDescription());
         assertEquals(1, t.getStatementIris().size());
         assertFalse(t.isUnlisted());
-        assertEquals(KIND_IRI, t.getTemplateKindIri());
+        assertEquals(VERSION_INDEPENDENT_IRI, t.getVersionIndependentIri());
     }
 
     @Test
@@ -108,13 +108,13 @@ public class TemplateIdentityTest {
     }
 
     @Test
-    void legacyTemplateKindParses() throws Exception {
+    void legacyVersionIndependentIriParses() throws Exception {
         NanopubCreator creator = newCreator();
         addTemplateBody(creator, creator.getAssertionUri());
-        creator.addAssertionStatement(creator.getAssertionUri(), DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(creator.getAssertionUri(), DCTERMS.IS_VERSION_OF, VERSION_INDEPENDENT_IRI);
         Template t = new Template(creator.finalizeNanopub());
         assertEquals(NP_URI, t.getId());
-        assertEquals(KIND_IRI, t.getTemplateKindIri());
+        assertEquals(VERSION_INDEPENDENT_IRI, t.getVersionIndependentIri());
     }
 
     @Test
@@ -159,11 +159,11 @@ public class TemplateIdentityTest {
         IRI space = vf.createIRI("https://w3id.org/spaces/test-space");
         NanopubCreator creator = newCreator();
         addTemplateBody(creator, TEMPLATE_NODE);
-        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, VERSION_INDEPENDENT_IRI);
         creator.addAssertionStatement(TEMPLATE_NODE, KPXL_TERMS.GOVERNED_BY, space);
         Template t = new Template(creator.finalizeNanopub());
         assertEquals(space, t.getGoverningSpace());
-        assertEquals(KIND_IRI, t.getTemplateKindIri());
+        assertEquals(VERSION_INDEPENDENT_IRI, t.getVersionIndependentIri());
     }
 
     @Test
@@ -184,7 +184,7 @@ public class TemplateIdentityTest {
         IRI space = vf.createIRI("https://w3id.org/spaces/test-space");
         NanopubCreator creator = newCreator();
         addTemplateBody(creator, TEMPLATE_NODE);
-        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, KIND_IRI);
+        creator.addAssertionStatement(TEMPLATE_NODE, DCTERMS.IS_VERSION_OF, VERSION_INDEPENDENT_IRI);
         creator.addAssertionStatement(TEMPLATE_NODE, KPXL_TERMS.GOVERNED_BY, space);
         assertTrue(TemplateData.isSpaceGoverned(new Template(creator.finalizeNanopub())));
 

@@ -209,7 +209,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                 // The query returns both standalone view displays (bound ?display) and
                 // preset-supplied views (issue #302: unbound ?display, the assignment's
                 // preset expanded into its views server-side), already ordered by date
-                // (latest first) so the per-view-kind latest-wins / deactivation
+                // (latest first) so the per-view latest-wins / deactivation
                 // aggregation in getViewDisplays() resolves overrides between presets and
                 // standalone displays correctly, in either direction.
                 newData.viewDisplays.addAll(buildViewDisplays(viewDisplaysQueryRef(), refreshViewDefinitions));
@@ -532,16 +532,16 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
 
     private List<ViewDisplay> filterViewDisplays(List<ViewDisplay> source, boolean toplevel, String resourceId, Set<IRI> classes) {
         List<ViewDisplay> viewDisplays = new ArrayList<>();
-        Set<IRI> viewKinds = new HashSet<>();
+        Set<IRI> seenViews = new HashSet<>();
 
-        // Results are sorted by date (most recent first); only the most recent per view-kind is considered
+        // Results are sorted by date (most recent first); only the most recent per view is considered
         for (ViewDisplay vd : source) {
-            IRI kind = vd.getViewKindIri();
-            if (kind != null) {
-                if (viewKinds.contains(kind)) {
+            IRI view = vd.getVersionIndependentIri();
+            if (view != null) {
+                if (seenViews.contains(view)) {
                     continue;
                 }
-                viewKinds.add(kind);
+                seenViews.add(view);
             }
 
             if (vd.hasType(KPXL_TERMS.DEACTIVATED_VIEW_DISPLAY)) {
@@ -567,7 +567,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * Fetches the applicable view displays synchronously from the API, bypassing the async
      * singleton data. Used by the download pages, which need the displays within the current
      * request; the resolution mirrors the page rendering (ref-scoped query for spaces,
-     * preset-supplied views, per-view-kind latest-wins).
+     * preset-supplied views, per-view latest-wins).
      *
      * @param partId      the part IRI, or null for the resource's top-level displays
      * @param partClasses the part's classes (ignored for top-level, where the resource's
@@ -623,10 +623,10 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         // it also covers space-governed pins); the older resolved heads return ?view
         // already latest-resolved server-side, so it is passed through as-is.
         boolean viewsPreResolved = !QueryApiAccess.GET_VIEW_DISPLAYS_UNRESOLVED.equals(ref.getQueryId());
-        // A preset assignment is identified by the preset's stable kind and the resource
-        // (issue #607), just as a view display is by view kind and resource. The rows come
-        // newest first, so the first assignment nanopub seen for a preset kind is the one
-        // that counts; rows from any older assignment of the same kind are dropped, and a
+        // A preset assignment is identified by the preset's version-independent IRI and the
+        // resource (issue #607), just as a view display is by the view's one and the resource. The rows
+        // come newest first, so the first assignment nanopub seen for a preset is the one that
+        // counts; rows from any older assignment of the same preset are dropped, and a
         // view that a newer preset version no longer carries goes away with them. Queries
         // that don't return the column (an older head) leave every row in place.
         Map<String, String> winningPresetNp = new HashMap<>();
@@ -638,10 +638,10 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                     list.add(ViewDisplay.get(display, viewsPreResolved ? view : null));
                 } else {
                     if (view == null || view.isEmpty()) continue;
-                    String presetKind = r.get("presetKind");
-                    if (presetKind != null && !presetKind.isEmpty()) {
+                    String preset = r.get("presetKind");
+                    if (preset != null && !preset.isEmpty()) {
                         String np = r.get("np");
-                        String winner = winningPresetNp.computeIfAbsent(presetKind, k -> np);
+                        String winner = winningPresetNp.computeIfAbsent(preset, k -> np);
                         if (winner != null && !winner.equals(np)) continue;
                     }
                     boolean topLevel = KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY.stringValue().equals(r.get("displayType"));
@@ -779,7 +779,7 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * that space a page of their own (issue #822).
      * <p>
      * Asked of the displays the part page would actually render, so a deactivated display, or
-     * one superseded by a newer of the same kind, does not keep a page alive.
+     * one superseded by a newer display of the same view, does not keep a page alive.
      *
      * @param partId  the id of the element the page would be about
      * @param classes the classes it is known to have

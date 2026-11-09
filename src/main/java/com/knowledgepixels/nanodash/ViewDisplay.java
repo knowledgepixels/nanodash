@@ -252,9 +252,15 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
         return presetDerived;
     }
 
-    public IRI getViewKindIri() {
-        IRI kind = view.getViewKindIri();
-        if (kind != null) return kind;
+    /**
+     * Gets the version-independent IRI of the displayed view, falling back to the view IRI
+     * for a view that declares none.
+     *
+     * @return the version-independent IRI of the view, or the view IRI
+     */
+    public IRI getVersionIndependentIri() {
+        IRI versionIndependentIri = view.getVersionIndependentIri();
+        if (versionIndependentIri != null) return versionIndependentIri;
         return viewIri;
     }
 
