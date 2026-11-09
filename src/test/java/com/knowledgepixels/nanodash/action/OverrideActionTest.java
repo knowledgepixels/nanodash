@@ -78,7 +78,8 @@ class OverrideActionTest {
 
     @Test
     void applicableToANanopubThatEmbedsOneThingAndIntroducesAnother() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        // E.g. a template: it embeds the template and introduces its kind, which an override keeps.
+        // E.g. a template: it embeds the template and introduces its version-independent IRI,
+        // which an override keeps.
         assertTrue(new OverrideAction().isApplicableTo(nanopub(NPX.EMBEDS, "template", NPX.INTRODUCES, "templateKind")));
     }
 

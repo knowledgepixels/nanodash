@@ -19,20 +19,20 @@ import java.util.Set;
 
 /**
  * Helpers around space-governed versioning: definitions that float within a
- * {@code (kind, space)} pair via {@code dct:isVersionOf} + {@code gen:governedBy}
+ * {@code (version-independent IRI, space)} pair via {@code dct:isVersionOf} + {@code gen:governedBy}
  * instead of via an {@code npx:supersedes} chain.
  * <p>
  * See docs/views-and-presets-as-maintained-resources.md and
  * docs/template-identity-and-governance.md. The authority checks (signer is a
- * current member+ of the space, kind is a maintained resource of that space,
+ * current member+ of the space, the version-independent IRI is a maintained resource of that space,
  * retracted versions skipped) all happen server-side in the
  * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query; this class only
  * assembles its inputs and reads its single row.
  * <p>
- * The declaration only takes effect once the kind is a maintained resource of the
- * space. Until then the same query resolves the pinned version like an ungoverned
+ * The declaration only takes effect once the version-independent IRI is a maintained
+ * resource of the space. Until then the same query resolves the pinned version like an ungoverned
  * one, along its own same-key supersedes chain, so declaring {@code gen:governedBy}
- * before the space maintains the kind no longer freezes the pin.
+ * before the space maintains that IRI no longer freezes the pin.
  */
 public class GovernedVersions {
 
@@ -40,27 +40,27 @@ public class GovernedVersions {
     } // no instances allowed
 
     /**
-     * The {@code (kind, space)} pair a governed definition version declares, along with
+     * The {@code (version-independent IRI, space)} pair a governed definition version declares, along with
      * the nanopublication declaring it, as plain strings so it can be held by Wicket
      * components across serialization.
      */
     public static class GovernedRef implements Serializable {
 
-        private final String kind;
+        private final String versionIndependentIri;
         private final String space;
         private final String nanopubId;
 
-        private GovernedRef(String kind, String space, String nanopubId) {
-            this.kind = kind;
+        private GovernedRef(String versionIndependentIri, String space, String nanopubId) {
+            this.versionIndependentIri = versionIndependentIri;
             this.space = space;
             this.nanopubId = nanopubId;
         }
 
         /**
-         * @return the definition kind, i.e. the {@code dct:isVersionOf} target
+         * @return the version-independent IRI, i.e. the {@code dct:isVersionOf} target
          */
-        public String getKind() {
-            return kind;
+        public String getVersionIndependentIri() {
+            return versionIndependentIri;
         }
 
         /**
@@ -79,13 +79,13 @@ public class GovernedVersions {
         }
 
         /**
-         * Whether this declares the same {@code (kind, space)} pair as the given one.
+         * Whether this declares the same {@code (version-independent IRI, space)} pair as the given one.
          *
          * @param other another pair, may be null
-         * @return true if both kind and space are the same
+         * @return true if both the version-independent IRI and the space are the same
          */
         public boolean isSamePairAs(GovernedRef other) {
-            return other != null && kind.equals(other.kind) && space.equals(other.space);
+            return other != null && versionIndependentIri.equals(other.versionIndependentIri) && space.equals(other.space);
         }
 
     }
@@ -99,47 +99,47 @@ public class GovernedVersions {
      * alike.
      *
      * @param np the nanopublication to inspect
-     * @return the declared kind/space pair, or null if this nanopublication does
+     * @return the declared version-independent IRI and space, or null if this nanopublication does
      * not embed a governed definition
      */
     public static GovernedRef findGovernedRef(Nanopub np) {
         if (np == null) return null;
         Set<String> embedded = NanopubUtils.getEmbeddedIriIds(np);
         if (embedded.isEmpty()) return null;
-        Map<String, String> kinds = new HashMap<>();
+        Map<String, String> versionIndependentIris = new HashMap<>();
         Map<String, String> spaces = new HashMap<>();
         for (Statement st : np.getAssertion()) {
             String subj = st.getSubject().stringValue();
             if (!embedded.contains(subj)) continue;
             if (!(st.getObject() instanceof IRI obj)) continue;
             if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF)) {
-                kinds.put(subj, obj.stringValue());
+                versionIndependentIris.put(subj, obj.stringValue());
             } else if (st.getPredicate().equals(KPXL_TERMS.GOVERNED_BY)) {
                 spaces.put(subj, obj.stringValue());
             }
         }
         // Nanopublications embedding more than one governed definition aren't a
         // thing we produce; taking the first match is enough.
-        for (Map.Entry<String, String> kind : kinds.entrySet()) {
-            String space = spaces.get(kind.getKey());
-            if (space != null) return new GovernedRef(kind.getValue(), space, np.getUri().stringValue());
+        for (Map.Entry<String, String> versionIndependentIri : versionIndependentIris.entrySet()) {
+            String space = spaces.get(versionIndependentIri.getKey());
+            if (space != null) return new GovernedRef(versionIndependentIri.getValue(), space, np.getUri().stringValue());
         }
         return null;
     }
 
     /**
      * Builds the query reference resolving the current version of a governed pin: the
-     * newest version of its {@code (kind, space)} pair if the kind is a maintained
-     * resource of the space, otherwise the head of the pin's own supersedes chain.
+     * newest version of its {@code (version-independent IRI, space)} pair if that IRI is a
+     * maintained resource of the space, otherwise the head of the pin's own supersedes chain.
      *
-     * @param kindIri  the definition kind (the {@code dct:isVersionOf} target)
-     * @param spaceIri the governing space
-     * @param pinId    the nanopublication of the pinned version
+     * @param versionIndependentIri the version-independent IRI (the {@code dct:isVersionOf} target)
+     * @param spaceIri              the governing space
+     * @param pinId                 the nanopublication of the pinned version
      * @return the query reference
      */
-    public static QueryRef getQueryRef(String kindIri, String spaceIri, String pinId) {
+    public static QueryRef getQueryRef(String versionIndependentIri, String spaceIri, String pinId) {
         Multimap<String, String> params = ArrayListMultimap.create();
-        params.put("kind", kindIri);
+        params.put("kind", versionIndependentIri);
         params.put("space", spaceIri);
         params.put("pin", pinId);
         return new QueryRef(QueryApiAccess.GET_LATEST_GOVERNED_VERSION, params);
@@ -149,11 +149,11 @@ public class GovernedVersions {
      * Builds the query reference resolving the current version for the given pair,
      * pinned at the nanopublication it was read off.
      *
-     * @param ref the kind/space pair
+     * @param ref the version-independent IRI and space
      * @return the query reference
      */
     public static QueryRef getQueryRef(GovernedRef ref) {
-        return getQueryRef(ref.getKind(), ref.getSpace(), ref.getNanopubId());
+        return getQueryRef(ref.getVersionIndependentIri(), ref.getSpace(), ref.getNanopubId());
     }
 
     /**
@@ -189,7 +189,7 @@ public class GovernedVersions {
 
     /**
      * The {@code mode} the {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query reports
-     * when the space doesn't maintain the kind and it followed the pin's supersedes chain
+     * when the space doesn't maintain the version-independent IRI and it followed the pin's supersedes chain
      * instead.
      */
     static final String MODE_SUPERSEDES = "supersedes";
@@ -231,13 +231,13 @@ public class GovernedVersions {
      * A pin that declares {@code gen:governedBy} resolves through the governed-version query;
      * one that doesn't follows its own supersedes chain. Whenever that lands on a version by
      * way of a supersedes chain — an ungoverned pin's head, or the head the query falls back to
-     * while the space doesn't maintain the kind — and that version declares a governance pair
+     * while the space doesn't maintain the version-independent IRI — and that version declares a governance pair
      * other than the one just resolved, the key that published it has handed the definition
      * over: from no governance to a space, or from a space that let go of it (no longer
-     * maintains the kind) to another one. Resolution then carries on from that version within
-     * its own pair, which takes effect only once the receiving space maintains the kind (the
+     * maintains that IRI) to another one. Resolution then carries on from that version within
+     * its own pair, which takes effect only once the receiving space maintains that IRI (the
      * query checks this, and otherwise just returns that version). A space that maintains the
-     * kind keeps it: a governed result is final, whatever later versions by its members
+     * version-independent IRI keeps it: a governed result is final, whatever later versions by its members
      * declare, so a member cannot move a definition out of its space. See
      * docs/views-and-presets-as-maintained-resources.md.
      * <p>
@@ -337,7 +337,7 @@ public class GovernedVersions {
             if (next == null || next.isSamePairAs(ref)) break;
             ApiResponse response = lookups.governedVersion(getQueryRef(next));
             String npId = getVersionNanopubIri(response);
-            // The receiving space maintains the kind but has no version of it: the version
+            // The receiving space maintains the version-independent IRI but has no version of it: the version
             // handing it over is the floor.
             if (npId == null) break;
             current = new Resolution(npId, getVersionIri(response));

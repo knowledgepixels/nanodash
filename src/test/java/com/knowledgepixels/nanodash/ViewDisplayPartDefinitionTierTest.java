@@ -159,11 +159,11 @@ class ViewDisplayPartDefinitionTierTest {
      * A display as the part page sees it: applying to the part by the class its definition
      * declares, or, when {@code targetsThePart}, whatever the definition says.
      */
-    private static ViewDisplay display(String kind, boolean openToAnyone, boolean targetsThePart) {
+    private static ViewDisplay display(String versionIndependentIri, boolean openToAnyone, boolean targetsThePart) {
         ViewDisplay display = mock(ViewDisplay.class);
-        when(display.getViewKindIri()).thenReturn(Values.iri(kind));
+        when(display.getVersionIndependentIri()).thenReturn(Values.iri(versionIndependentIri));
         when(display.hasType(any())).thenReturn(false);
-        when(display.getStructuralPosition()).thenReturn("5.5." + kind.replaceAll("^.*/", ""));
+        when(display.getStructuralPosition()).thenReturn("5.5." + versionIndependentIri.replaceAll("^.*/", ""));
         when(display.compareTo(any())).thenCallRealMethod();
         when(display.appliesTo(anyString(), any())).thenAnswer(inv -> {
             Set<IRI> classes = inv.getArgument(1);

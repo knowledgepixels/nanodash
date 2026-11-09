@@ -25,7 +25,7 @@ import static org.mockito.Mockito.times;
  * Tests for {@link GovernedVersions#resolve(Nanopub)} and
  * {@link GovernedVersions#forgetResolution(Nanopub)}: a definition reference follows the
  * governance a version declares, including a hand-over along a supersedes chain — from no
- * governance to a space, or from a space that doesn't maintain the kind (any more) to another.
+ * governance to a space, or from a space that doesn't maintain the version-independent IRI (any more) to another.
  */
 class GovernedVersionsResolveTest {
 
@@ -154,7 +154,7 @@ class GovernedVersionsResolveTest {
              MockedStatic<ApiCache> cache = mockStatic(ApiCache.class)) {
             utils.when(() -> Utils.getAsNanopub(NP_2)).thenReturn(version(NP_2, SPACE_A));
             api.when(() -> QueryApiAccess.getLatestVersionId(NP_1)).thenReturn(NP_2);
-            // Space A doesn't maintain the kind: the query follows V2's own supersedes chain,
+            // Space A doesn't maintain the version-independent IRI: the query follows V2's own supersedes chain,
             // of which V2 is the head.
             cache.when(() -> ApiCache.retrieveResponseSync(argThat(governedQueryFor(SPACE_A, NP_2)), eq(false)))
                     .thenReturn(response(NP_2, "supersedes"));
@@ -194,7 +194,7 @@ class GovernedVersionsResolveTest {
     }
 
     /**
-     * A space that maintains the kind keeps it: a member's version declaring another space is
+     * A space that maintains the version-independent IRI keeps it: a member's version declaring another space is
      * not a hand-over, however new it is.
      */
     @Test
@@ -218,8 +218,8 @@ class GovernedVersionsResolveTest {
         try (MockedStatic<Utils> utils = mockStatic(Utils.class);
              MockedStatic<QueryApiAccess> api = mockStatic(QueryApiAccess.class);
              MockedStatic<ApiCache> cache = mockStatic(ApiCache.class)) {
-            // Space A no longer maintains the kind, so the query follows V1's supersedes chain
-            // to V2, which declares space B; B maintains the kind, its newest version is V3.
+            // Space A no longer maintains the version-independent IRI, so the query follows V1's
+            // supersedes chain to V2, which declares space B; B maintains it, its newest version is V3.
             utils.when(() -> Utils.getAsNanopub(NP_2)).thenReturn(version(NP_2, SPACE_B));
             cache.when(() -> ApiCache.retrieveResponseSync(argThat(governedQueryFor(SPACE_A, NP_1)), eq(false)))
                     .thenReturn(response(NP_2, "supersedes"));

@@ -142,10 +142,10 @@ public class KPXL_TERMS {
     public static final IRI IS_DISPLAY_FOR = VocabUtils.createIRI(NAMESPACE, "isDisplayFor");
 
     /**
-     * Links a view/preset version to the space that governs its {@code (kind, space)}
-     * pair for authority-scoped latest-version resolution. A label, not a grant:
-     * authority comes from the kind being maintained by that space plus the version
-     * being signed by a current member+ of it. See
+     * Links a view/preset version to the space that governs its
+     * {@code (version-independent IRI, space)} pair for authority-scoped latest-version
+     * resolution. A label, not a grant: authority comes from that IRI being maintained by
+     * that space plus the version being signed by a current member+ of it. See
      * docs/views-and-presets-as-maintained-resources.md.
      */
     public static final IRI GOVERNED_BY = VocabUtils.createIRI(NAMESPACE, "governedBy");

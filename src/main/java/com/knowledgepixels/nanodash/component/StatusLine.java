@@ -40,7 +40,7 @@ import java.util.Set;
  * Newer versions are found in two ways: via the {@code npx:supersedes} chain
  * (and retractions) with the {@link QueryApiAccess#GET_NEWER_VERSIONS_OF_NP}
  * query, and — for nanopublications embedding a space-governed definition — via
- * the {@code (kind, space)} pair the definition floats within (issue #584). A
+ * the {@code (version-independent IRI, space)} pair the definition floats within (issue #584). A
  * governed new version carries no {@code npx:supersedes}, so the first query
  * alone reports such a nanopublication as the latest version.
  */
@@ -90,7 +90,7 @@ public class StatusLine extends Panel {
      * @param markupId    the Wicket markup ID for this component
      * @param npId        the nanopublication ID to check for newer versions
      * @param response    the API response containing data about newer versions or retractions
-     * @param governedRef the kind/space pair of the space-governed definition this
+     * @param governedRef the version-independent IRI and space of the space-governed definition this
      *                    nanopublication embeds, or null if it embeds none
      */
     StatusLine(String markupId, String npId, ApiResponse response, GovernedVersions.GovernedRef governedRef) {
