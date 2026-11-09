@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.extra.services.*;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -91,6 +93,25 @@ class QueryApiAccessTest {
             mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(new ApiResponse());
 
             assertFalse(QueryApiAccess.isUriIntroduced("https://w3id.org/spaces/example/unused"));
+        }
+    }
+
+    @Test
+    void checkUriIntroducedTellsAFailedCheckApartFromAFreeIdentifier() {
+        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class)))
+                    .thenThrow(new APINotReachableException("no instance reachable"));
+
+            assertTrue(QueryApiAccess.checkUriIntroduced("https://w3id.org/spaces/example/bar").isEmpty());
+        }
+    }
+
+    @Test
+    void checkUriIntroducedAnswersForAFreeIdentifier() {
+        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenReturn(new ApiResponse());
+
+            assertEquals(Optional.of(false), QueryApiAccess.checkUriIntroduced("https://w3id.org/spaces/example/unused"));
         }
     }
 

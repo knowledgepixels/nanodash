@@ -6,6 +6,7 @@ import org.nanopub.extra.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -505,12 +506,26 @@ public class QueryApiAccess {
      * @return True if a nanopublication introducing the IRI was found.
      */
     public static boolean isUriIntroduced(String uri) {
+        return checkUriIntroduced(uri).orElse(false);
+    }
+
+    /**
+     * Checks whether a nanopublication introducing the given IRI exists, telling a failed check
+     * apart from a negative answer. Where {@link #isUriIntroduced(String)} has to decide, and
+     * treats a check it could not make as "not introduced", a caller that only informs, such as
+     * a hint shown while a form is filled in, can show nothing instead of a false all-clear.
+     *
+     * @param uri The IRI to check.
+     * @return true if a nanopublication introducing the IRI was found, false if none was, and
+     * empty if the query service could not be asked
+     */
+    public static Optional<Boolean> checkUriIntroduced(String uri) {
         try {
             ApiResponse r = get(new QueryRef(GET_INTRODUCING_NANOPUB, "thing", uri));
-            return r != null && !r.getData().isEmpty();
+            return Optional.of(r != null && !r.getData().isEmpty());
         } catch (Exception ex) {
             logger.error("Could not check whether IRI '{}' is already introduced", uri, ex);
-            return false;
+            return Optional.empty();
         }
     }
 

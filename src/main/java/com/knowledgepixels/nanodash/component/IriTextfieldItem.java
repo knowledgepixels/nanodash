@@ -10,6 +10,9 @@ import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,6 +36,7 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 
@@ -48,6 +52,7 @@ public class IriTextfieldItem extends AbstractContextComponent {
     // be picked by the user (see DynamicPrefix):
     private String dynamicPrefixToken;
     private Select2Choice<String> prefixChoice;
+    private String takenIdentifier;
     private static final Logger logger = LoggerFactory.getLogger(IriTextfieldItem.class);
 
     /**
@@ -152,11 +157,99 @@ public class IriTextfieldItem extends AbstractContextComponent {
             textfield.add(AttributeAppender.append("class", "introduced"));
         }
         add(textfield);
+        add(newUriTakenNote());
+        if (template.isNewUriPlaceholder(iri)) {
+            textfield.add(new NewUriCheckBehavior());
+        }
         add(lockedTooltip());
         if (showPrefixChoice) {
             initPrefixChoice(prefixTooltip);
         } else {
             add(new WebMarkupContainer("prefixchoice").setVisible(false));
+        }
+    }
+
+    /**
+     * The note shown next to a field naming a new resource while the identifier it forms is
+     * already in use (#713). It only informs: the publish form checks the identifier again on
+     * submit and is what refuses to publish a taken one, which also covers an identifier taken
+     * between typing and publishing.
+     *
+     * @return the note, hidden until a check finds the identifier taken
+     */
+    private Label newUriTakenNote() {
+        Label note = new Label("newuritaken", () -> "The identifier " + takenIdentifier
+                + " is already in use. Pick a different one, or use a template for describing"
+                + " an existing resource if that is what you mean to do.") {
+
+            @Override
+            protected void onConfigure() {
+                super.onConfigure();
+                setVisible(takenIdentifier != null);
+            }
+
+        };
+        note.setOutputMarkupPlaceholderTag(true);
+        return note;
+    }
+
+    /**
+     * Checks the identifier the field's current value forms, and updates the note next to the
+     * field. Only a taken identifier is shown: a free one needs no note, and a check that could
+     * not be made says nothing either way, so it must not read as an all-clear.
+     *
+     * @param target the Ajax request to add the note to
+     */
+    void recheckNewUri(AjaxRequestTarget target) {
+        if (!context.getTemplate().isNewUriPlaceholder(iri)) return;
+        String value = textfield.getModelObject();
+        NewUriCheck.Result result = NewUriCheck.check(context, iri, value);
+        takenIdentifier = result == NewUriCheck.Result.TAKEN ? context.getNewUriIri(iri, value).stringValue() : null;
+        target.add(get("newuritaken"));
+    }
+
+    /**
+     * Checks the identifier a field naming a new resource forms once typing pauses, rather than
+     * on every keystroke: each check is a call to the query service. Wicket sends a page's Ajax
+     * requests one after the other and the check reads the value the request carries, so the
+     * note always ends up showing the answer for the latest value, whatever order the answers
+     * would otherwise come back in.
+     */
+    private class NewUriCheckBehavior extends AjaxFormComponentUpdatingBehavior {
+
+        private static final Duration TYPING_PAUSE = Duration.ofMillis(600);
+
+        /**
+         * Creates the behavior, listening to the field's input.
+         */
+        NewUriCheckBehavior() {
+            super("input");
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+            super.updateAjaxAttributes(attributes);
+            attributes.setThrottlingSettings(new ThrottlingSettings(TYPING_PAUSE, true));
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected void onUpdate(AjaxRequestTarget target) {
+            recheckNewUri(target);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected void onError(AjaxRequestTarget target, RuntimeException e) {
+            takenIdentifier = null;
+            target.add(get("newuritaken"));
         }
     }
 
@@ -274,10 +367,14 @@ public class IriTextfieldItem extends AbstractContextComponent {
                         c.modelChanged();
                         target.add(c);
                         IriTextfieldItem sibling = c.findParent(IriTextfieldItem.class);
-                        if (sibling != null) target.add(sibling.get("prefixtooltiptext"));
+                        if (sibling != null) {
+                            target.add(sibling.get("prefixtooltiptext"));
+                            sibling.recheckNewUri(target);
+                        }
                     }
                 }
                 target.add(prefixTooltip);
+                recheckNewUri(target);
             }
 
         });

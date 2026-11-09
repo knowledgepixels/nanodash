@@ -46,7 +46,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubUtils;
 import org.nanopub.NanopubAlreadyFinalizedException;
 import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
@@ -1783,7 +1782,7 @@ public class PublishForm extends Panel {
         Nanopub source = (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
                 ? assertionContext.getReferenceNanopub() : null;
         for (IRI reserved : assertionContext.getReservedIris()) {
-            if (source != null && isUsedIn(source, sameNameIn(source, reserved))) continue;
+            if (source != null && NewUriCheck.isUsedIn(source, sameNameIn(source, reserved))) continue;
             return reserved;
         }
         return null;
@@ -1840,34 +1839,11 @@ public class PublishForm extends Panel {
      * @return the first identifier for a new resource that is already in use, or null if none is
      */
     public static IRI findTakenNewUri(TemplateContext assertionContext) {
-        FillMode fillMode = assertionContext.getFillMode();
-        Nanopub source = null;
-        if (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE) {
-            source = assertionContext.getReferenceNanopub();
-            if (source == null) return null;
-        }
         for (IRI newUri : assertionContext.getNewUriIris()) {
-            if (source != null && isUsedIn(source, newUri)) continue;
+            if (NewUriCheck.isExempt(assertionContext, newUri)) continue;
             if (QueryApiAccess.isUriIntroduced(newUri.stringValue())) return newUri;
         }
         return null;
-    }
-
-    /**
-     * Tells whether the given nanopublication already mentions the given IRI, which is how a
-     * superseding version says it is carrying the source's resource over rather than naming a
-     * new one. Every graph counts: the resource appears as a subject in the assertion and again
-     * under {@code npx:introduces} in the publication info.
-     *
-     * @param nanopub the nanopublication to look in
-     * @param iri     the identifier to look for
-     * @return true if the nanopublication uses the identifier
-     */
-    private static boolean isUsedIn(Nanopub nanopub, IRI iri) {
-        for (Statement st : NanopubUtils.getStatements(nanopub)) {
-            if (iri.equals(st.getSubject()) || iri.equals(st.getObject())) return true;
-        }
-        return false;
     }
 
     /**
