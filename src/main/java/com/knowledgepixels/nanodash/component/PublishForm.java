@@ -81,6 +81,8 @@ public class PublishForm extends Panel {
     public static final String CREATOR_PUB_INFO_TEMPLATE = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
     public static final String LICENSE_PUB_INFO_TEMPLATE = "https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8";
     public static final String DEFAULT_PROV_TEMPLATE = "https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU";
+    // "Custom triples": takes any provenance triples, for a fill source without a usable link
+    private static final String CUSTOM_PROV_TEMPLATE = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
     private static final String supersedesPubInfoTemplateId = "https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw";
     private static final String derivesFromPubInfoTemplateId = "https://w3id.org/np/RARW4MsFkHuwjycNElvEVtuMjpf4yWDL10-0C5l2MqqRQ";
     private static final String changeNotePubInfoTemplateId = "https://w3id.org/np/RAVXmu2rj-pkWoDjHH4n1oAHbseAf3RcUYpYiwI1WXDmY";
@@ -273,25 +275,7 @@ public class PublishForm extends Panel {
 
         assertionContext = newContext(ContextType.ASSERTION, templateId, "statement");
         assertionContext.setFillMode(fillMode);
-        final String prTemplateId;
-        if (pageParams.get("prtemplate").toString() != null) {
-            prTemplateId = td.getGovernedTemplateId(pageParams.get("prtemplate").toString());
-        } else {
-            if (fillNp != null && !fillOnlyAssertion) {
-                if (td.getProvenanceTemplateId(fillNp) != null) {
-                    // Deliberately not resolved: this form reproduces an existing
-                    // nanopublication, so it needs the template version that nanopublication
-                    // was made with, not the one its space vouches for today.
-                    prTemplateId = td.getProvenanceTemplateId(fillNp).stringValue();
-                } else {
-                    prTemplateId = "http://purl.org/np/RAcm8OurwUk15WOgBM9wySo-T3a5h6as4K8YR5MBrrxUc";
-                }
-            } else if (assertionContext.getTemplate().getDefaultProvenance() != null) {
-                prTemplateId = td.getGovernedTemplateId(assertionContext.getTemplate().getDefaultProvenance().stringValue());
-            } else {
-                prTemplateId = td.getGovernedTemplateId(DEFAULT_PROV_TEMPLATE);
-            }
-        }
+        final String prTemplateId = chooseProvenanceTemplateId(td, pageParams.get("prtemplate").toString(), fillOnlyAssertion ? null : fillNp);
         provenanceContext = newContext(ContextType.PROVENANCE, prTemplateId, "pr-statement");
         for (String t : fixedPubInfoTemplates) {
             // Space-governed templates float to the version their space vouches for; every
@@ -336,7 +320,12 @@ public class PublishForm extends Panel {
             if (pubInfoContextMap.containsKey(r.stringValue()) || pubInfoContextMap.containsKey(latestId)) {
                 continue;
             }
-            TemplateContext c = newContext(ContextType.PUBINFO, td.getGovernedTemplateId(r.stringValue()), "pi-statement");
+            String requiredId = td.getGovernedTemplateId(r.stringValue());
+            if (!td.isPubinfoTemplate(requiredId)) {
+                logger.warn("Ignoring required pubinfo element of template {} that is not a pubinfo template: {}", templateId, requiredId);
+                continue;
+            }
+            TemplateContext c = newContext(ContextType.PUBINFO, requiredId, "pi-statement");
             pubInfoContexts.add(c);
             pubInfoContextMap.put(c.getTemplateId(), c);
             requiredPubInfoContexts.add(c);
@@ -350,7 +339,12 @@ public class PublishForm extends Panel {
             String tid = pageParams.get(k).toString();
             // A space-governed reference floats; any other is used as given. Following
             // npx:supersedes here too would silently change which form a link opens.
-            TemplateContext c = createPubInfoContext(td.getGovernedTemplateId(tid));
+            String piTemplateId = td.getGovernedTemplateId(tid);
+            if (!td.isPubinfoTemplate(piTemplateId)) {
+                logger.warn("Ignoring {} parameter that is not a pubinfo template: {}", k, piTemplateId);
+                continue;
+            }
+            TemplateContext c = createPubInfoContext(piTemplateId);
             if (piParamIdMap.containsKey(i)) {
                 // TODO: handle this error better
                 logger.error("Publication Info template param identifier defined multiple times: {}", i);
@@ -362,6 +356,8 @@ public class PublishForm extends Panel {
         // statements are consumed and discarded below instead of carried over.
         final List<String> transientPiTemplateIds = new ArrayList<>();
         if (fillNp != null && !fillOnlyAssertion) {
+            // Links to anything but pubinfo templates are left out here (issue #908); what
+            // they would have covered ends up in the hand-coded catch-all below.
             for (IRI piTemplateId : td.getPubinfoTemplateIds(fillNp)) {
                 // The flag is checked on the latest template version, so flagging a
                 // template also stops carry-over from nanopubs created with older,
@@ -1456,6 +1452,42 @@ public class PublishForm extends Panel {
     private static boolean isTransientTemplate(String templateId) {
         Template t = TemplateData.get().getTemplate(templateId);
         return t != null && t.isTransient();
+    }
+
+    /**
+     * Picks the provenance template of the form: the one the page parameters ask for, else the
+     * one the fill source was made with, else the assertion template's default, else the general
+     * default. A reference that does not lead to a provenance template, such as an assertion
+     * template a nanopublication wrongly names as its provenance template (issue #908), is passed
+     * over as if it were not there.
+     *
+     * @param td          the template data
+     * @param requestedId the provenance template the page parameters ask for, or null
+     * @param fillNp      the nanopublication whose provenance is filled in, or null
+     * @return the ID of the provenance template to use
+     */
+    private String chooseProvenanceTemplateId(TemplateData td, String requestedId, Nanopub fillNp) {
+        if (requestedId != null) {
+            String id = td.getGovernedTemplateId(requestedId);
+            if (td.isProvenanceTemplate(id)) return id;
+            logger.warn("Ignoring prtemplate parameter that is not a provenance template: {}", id);
+        }
+        if (fillNp != null) {
+            // Deliberately not resolved: this form reproduces an existing nanopublication, so it
+            // needs the template version that nanopublication was made with, not the one its
+            // space vouches for today.
+            IRI id = td.getProvenanceTemplateId(fillNp);
+            if (id != null) return id.stringValue();
+            // Without a usable link, the generic one takes whatever provenance triples it has:
+            return CUSTOM_PROV_TEMPLATE;
+        }
+        IRI defaultProvenance = assertionContext.getTemplate().getDefaultProvenance();
+        if (defaultProvenance != null) {
+            String id = td.getGovernedTemplateId(defaultProvenance.stringValue());
+            if (td.isProvenanceTemplate(id)) return id;
+            logger.warn("Ignoring default provenance of template {} that is not a provenance template: {}", assertionContext.getTemplateId(), id);
+        }
+        return td.getGovernedTemplateId(DEFAULT_PROV_TEMPLATE);
     }
 
     /**

@@ -164,6 +164,26 @@ public class Template implements Serializable {
     }
 
     /**
+     * Checks if the template is a provenance template, i.e. one for the provenance graph.
+     *
+     * @return true if the template is typed as a provenance template, false otherwise.
+     */
+    public boolean isProvenanceTemplate() {
+        List<IRI> types = typeMap.get(templateIri);
+        return types != null && types.contains(NTEMPLATE.PROVENANCE_TEMPLATE);
+    }
+
+    /**
+     * Checks if the template is a publication info template, i.e. one for the pubinfo graph.
+     *
+     * @return true if the template is typed as a publication info template, false otherwise.
+     */
+    public boolean isPubinfoTemplate() {
+        List<IRI> types = typeMap.get(templateIri);
+        return types != null && types.contains(NTEMPLATE.PUBINFO_TEMPLATE);
+    }
+
+    /**
      * Returns the Nanopub object representing the template.
      *
      * @return the Nanopub object of the template.
