@@ -319,7 +319,7 @@ public class NanodashLink extends Panel {
      * falling back to the Explore page otherwise.
      */
     public static String getPageUrl(String uri) {
-        if (!ExplorePage.isExplorableId(uri)) {
+        if (uri == null || (!uri.contains("://") && !uri.matches("^RA[A-Za-z0-9-_]{43}$"))) {
             return "";
         }
         // An ipfs:/did:/at: resource has no Nanodash page to show and nothing to explore, so it
