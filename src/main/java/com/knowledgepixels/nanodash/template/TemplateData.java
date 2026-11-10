@@ -328,7 +328,11 @@ public class TemplateData implements Serializable {
     }
 
     /**
-     * Returns the provenance template ID of the given Nanopub.
+     * Returns the provenance template ID of the given Nanopub: the first provenance template
+     * its pubinfo says it was created with. A link that does not lead to a provenance template
+     * this instance can load is passed over, so that callers fall back as if it were not there.
+     * Nanopublications made outside Nanodash have been seen to name, for instance, the
+     * assertion template for making provenance templates instead (issue #908).
      *
      * @param nanopub the Nanopub from which to extract the provenance template ID
      * @return the IRI of the provenance template ID, or null if not found
@@ -337,14 +341,18 @@ public class TemplateData implements Serializable {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
             if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE)) continue;
-            if (!(st.getObject() instanceof IRI)) continue;
-            return (IRI) st.getObject();
+            if (!(st.getObject() instanceof IRI iri)) continue;
+            if (!isProvenanceTemplate(iri.stringValue())) continue;
+            return iri;
         }
         return null;
     }
 
     /**
-     * Returns the set of publication information template IDs for the given Nanopub.
+     * Returns the set of publication information template IDs for the given Nanopub, i.e. the
+     * pubinfo templates its pubinfo says it was created with. As for
+     * {@link #getProvenanceTemplateId(Nanopub)}, links that do not lead to a pubinfo template
+     * this instance can load are left out.
      *
      * @param nanopub the Nanopub from which to extract the publication information template IDs
      * @return a set of IRI objects representing the publication information template IDs
@@ -354,10 +362,37 @@ public class TemplateData implements Serializable {
         for (Statement st : nanopub.getPubinfo()) {
             if (!st.getSubject().equals(nanopub.getUri())) continue;
             if (!st.getPredicate().equals(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE)) continue;
-            if (!(st.getObject() instanceof IRI)) continue;
-            iriSet.add((IRI) st.getObject());
+            if (!(st.getObject() instanceof IRI iri)) continue;
+            if (!isPubinfoTemplate(iri.stringValue())) continue;
+            iriSet.add(iri);
         }
         return iriSet;
+    }
+
+    /**
+     * Checks whether the given ID leads to a provenance template this instance can load.
+     *
+     * @param templateId the template ID
+     * @return true if it is a loadable provenance template
+     */
+    public boolean isProvenanceTemplate(String templateId) {
+        Template t = getTemplate(templateId);
+        if (t != null && t.isProvenanceTemplate()) return true;
+        if (t != null) logger.debug("Not a provenance template: {}", templateId);
+        return false;
+    }
+
+    /**
+     * Checks whether the given ID leads to a publication info template this instance can load.
+     *
+     * @param templateId the template ID
+     * @return true if it is a loadable publication info template
+     */
+    public boolean isPubinfoTemplate(String templateId) {
+        Template t = getTemplate(templateId);
+        if (t != null && t.isPubinfoTemplate()) return true;
+        if (t != null) logger.debug("Not a publication info template: {}", templateId);
+        return false;
     }
 
     /**
