@@ -16,14 +16,17 @@ function wrapLeadingEmoji() {
   });
 }
 /* Strip the U+FE0F variation selector from EVERY emoji inside result-table body
-   cells, so the ✅/⚠️ key-approval annotations (and any other in-cell emoji)
-   render in the monochrome Noto Emoji font that leads our font stacks instead of
-   the system color font. No wrapper element or class is added, so they keep the
-   cell's own text color and size. Idempotent: once stripped the replace is a
-   no-op, so re-running after Wicket AJAX is safe. */
+   cells and the entries of list and item-list views, so the ✅/⚠️ key-approval
+   annotations (and any other emoji in a query result) render in the monochrome
+   Noto Emoji font that leads our font stacks instead of the system color font.
+   Without this, an emoji whose default presentation is text (e.g. ℹ U+2139) shows
+   in color wherever the data carries the selector, next to monochrome ones that
+   don't. No wrapper element or class is added, so they keep the entry's own text
+   color and size. Idempotent: once stripped the replace is a no-op, so re-running
+   after Wicket AJAX is safe. */
 var EMOJI_PATTERN = "(?:\\p{Extended_Pictographic}|[\\u{13000}-\\u{1342F}])\\uFE0F?";
 function wrapCellEmoji() {
-  document.querySelectorAll(".result-table td").forEach(function (cell) {
+  document.querySelectorAll(".result-table td, .inline-list > li, .item-list > li").forEach(function (cell) {
     var re = new RegExp(EMOJI_PATTERN, "u");
     var walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
     var nodes = [];
