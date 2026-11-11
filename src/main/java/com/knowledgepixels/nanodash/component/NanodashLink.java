@@ -319,14 +319,16 @@ public class NanodashLink extends Panel {
      * falling back to the Explore page otherwise.
      */
     public static String getPageUrl(String uri) {
-        if (uri == null || (!uri.contains("://") && !uri.matches("^RA[A-Za-z0-9-_]{43}$"))) {
-            return "";
-        }
+        if (uri == null) return "";
         // An ipfs:/did:/at: resource has no Nanodash page to show and nothing to explore, so it
         // goes to an external resolver instead of the Explore page (issue #655). Checked first
-        // because the lookups below all assume an http(s) identifier.
+        // because the lookups below all assume an http(s) identifier, and because a DID has no
+        // "://" and so would not pass the explorable-id check.
         String resolverUrl = Utils.getExternalResolverUrl(uri);
         if (resolverUrl != null) return resolverUrl;
+        // No link for what the Explore page would refuse, such as a bare "download-rdf". The
+        // same check as the page's own, so that the two cannot disagree (see issue #780).
+        if (!ExplorePage.isExplorableId(uri)) return "";
         // What lies outside a site is linked as itself (issue #692).
         if (SiteMode.rendersExternally(uri)) return uri;
         if (IndividualAgent.isUser(uri) || IndividualAgent.isOrcidIri(uri)) {
