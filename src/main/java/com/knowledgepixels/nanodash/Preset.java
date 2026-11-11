@@ -40,7 +40,8 @@ public class Preset implements Serializable {
     /**
      * Get a Preset by its ID, resolving to the latest version of its kind. A version that
      * declares {@code gen:governedBy} resolves within its {@code (kind, space)} pair via
-     * {@link GovernedVersions}; one that doesn't follows its supersedes chain.
+     * {@link GovernedVersions}; one that doesn't follows its supersedes chain, and on into a
+     * space's versions if the chain ends at a version handing the preset over to that space.
      *
      * @param id the ID of the Preset
      * @return the Preset object, or null if it could not be loaded
@@ -48,10 +49,7 @@ public class Preset implements Serializable {
     public static Preset get(String id) {
         String npId = toNanopubId(id);
         Preset pinned = getExactVersion(id, npId);
-        if (isSpaceGoverned(pinned)) {
-            return resolveGovernedVersion(pinned);
-        }
-        Preset latest = resolveSupersedingVersion(id, npId);
+        Preset latest = resolveLatestVersion(id, npId, pinned);
         return latest != null ? latest : pinned;
     }
 
@@ -78,45 +76,30 @@ public class Preset implements Serializable {
     }
 
     /**
-     * Resolves the latest space-governed version of the pinned preset's {@code (kind, space)}
-     * pair, or, if the kind isn't a maintained resource of the space, the head of the pin's
-     * own supersedes chain. The pin is the floor: on an empty result or any failure the
-     * pinned version stands.
+     * Resolves a preset to its current version: within its {@code (kind, space)} pair if it
+     * declares {@code gen:governedBy} and the space maintains the kind, along its own
+     * supersedes chain otherwise, and on into a space's versions where that chain ends at a
+     * version handing the preset over to it (see {@link GovernedVersions#resolve(Nanopub)}).
+     * The pin is the floor.
      *
-     * @param pinned the pinned preset, which must be space-governed
-     * @return the resolved preset, or the pinned one if resolution yields nothing
+     * @param id     the preset id
+     * @param npId   the nanopub id of the preset
+     * @param pinned the pinned preset, may be null if it could not be loaded
+     * @return the resolved preset, or null if resolution stays at the pin, yields nothing that
+     * can be loaded, or fails
      */
-    private static Preset resolveGovernedVersion(Preset pinned) {
+    private static Preset resolveLatestVersion(String id, String npId, Preset pinned) {
         try {
-            String latestId = GovernedVersions.getLatestVersionIriSync(
-                    pinned.getPresetKindIri().stringValue(), pinned.getGoverningSpace().stringValue(),
-                    pinned.getNanopubId().stringValue());
-            if (latestId != null && !latestId.equals(pinned.getId())) {
-                Preset resolved = getExactVersion(latestId, toNanopubId(latestId));
-                if (resolved != null) {
-                    return resolved;
-                }
-            }
-        } catch (Exception ex) {
-            logger.error("Error resolving governed version for preset: {}", pinned.getId(), ex);
-        }
-        return pinned;
-    }
-
-    /**
-     * Resolves the latest version of an ungoverned preset along its supersedes chain.
-     *
-     * @param id   the preset id
-     * @param npId the nanopub id of the preset
-     * @return the latest superseding preset, or null if there is none or it couldn't be loaded
-     */
-    private static Preset resolveSupersedingVersion(String id, String npId) {
-        try {
-            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-            if (latestNpId.equals(npId)) {
+            GovernedVersions.Resolution resolution = (pinned != null && pinned.getNanopub() != null)
+                    ? GovernedVersions.resolve(pinned.getNanopub())
+                    : new GovernedVersions.Resolution(QueryApiAccess.getLatestVersionId(npId), null);
+            if (resolution.staysAt(npId)) {
                 return null;
             }
-            Nanopub np = Utils.getAsNanopub(latestNpId);
+            if (resolution.versionIri() != null) {
+                return getExactVersion(resolution.versionIri(), toNanopubId(resolution.versionIri()));
+            }
+            Nanopub np = Utils.getAsNanopub(resolution.nanopubId());
             if (np == null) {
                 return null;
             }

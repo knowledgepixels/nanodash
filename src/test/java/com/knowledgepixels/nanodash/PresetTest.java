@@ -99,6 +99,30 @@ class PresetTest {
         }
     }
 
+    /**
+     * An ungoverned preset whose supersedes chain ends at a version declaring a governing
+     * space has been handed over to that space: resolution carries on within the space,
+     * rather than stopping at the head of the chain.
+     */
+    @Test
+    void ungovernedPresetFollowsHandOverIntoGovernedVersions() throws Exception {
+        try (MockedStatic<Utils> utils = mockStatic(Utils.class);
+             MockedStatic<QueryApiAccess> api = mockStatic(QueryApiAccess.class);
+             MockedStatic<ApiCache> cache = mockStatic(ApiCache.class)) {
+            utils.when(() -> Utils.getAsNanopub(NP_UNGOVERNED_V1)).thenReturn(load("np-preset-ungoverned-v1.trig"));
+            utils.when(() -> Utils.getAsNanopub(NP_GOVERNED_V1)).thenReturn(load("np-preset-governed-v1.trig"));
+            utils.when(() -> Utils.getAsNanopub(NP_GOVERNED_V2)).thenReturn(load("np-preset-governed-v2.trig"));
+            api.when(() -> QueryApiAccess.getLatestVersionId(NP_UNGOVERNED_V1)).thenReturn(NP_GOVERNED_V1);
+            cache.when(() -> ApiCache.retrieveResponseSync(any(), eq(false)))
+                    .thenReturn(governedResponse(PRESET_GOVERNED_V2, NP_GOVERNED_V2));
+
+            Preset resolved = Preset.get(PRESET_UNGOVERNED_V1);
+
+            assertEquals(PRESET_GOVERNED_V2, resolved.getId());
+            assertEquals("Second version", resolved.getLabel());
+        }
+    }
+
     @Test
     void parsesGoverningSpace() throws Exception {
         try (MockedStatic<Utils> utils = mockStatic(Utils.class);

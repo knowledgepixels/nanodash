@@ -99,6 +99,29 @@ space didn't maintain, so the pin stood even against same-key supersedes, and de
 `get-latest-governed-version` now takes the pinned nanopub as a third parameter and answers
 both cases.)
 
+**A hand-over along a supersedes chain is followed.** A definition can change hands on its
+own chain: its key supersedes an ungoverned version with one declaring `gen:governedBy
+<space>`, or, after a space stopped maintaining the kind, with one naming another space.
+Wherever a supersedes step lands on such a version — the head of an ungoverned pin's chain,
+or the head the governed-version query falls back to — and that version declares a pair other
+than the one just resolved, resolution carries on within that version's pair, which takes
+effect only once the receiving space maintains the kind (`GovernedVersions.resolve`). Each
+hand-over is signed off by whoever controlled the definition at that point, i.e. the key
+that published the version, and accepted by the receiving space's admin through the
+maintained-resource declaration. This is not inferring governance from the kind: an unrelated
+claim on the kind still changes nothing, because it takes the key's own governed version. And
+it widens nothing a pin delegated: pinning an undeclared version delegates to the publisher's
+key, including that key's decision to pass the definition on to a space. A space that
+maintains the kind keeps it, though. A governed result is final, so a member's version naming
+another space moves no pin: several spaces may maintain a kind side by side, and otherwise
+any member could take a definition away from its space for good. To pass a definition on, the
+space's admins first stop maintaining the kind. Before this, references to a view handed over
+to a space disagreed: `get-view-displays` resolves a pin's supersedes chain server-side and
+Nanodash then resolved the governed head within its space, so maintained-resource and user
+pages followed that hand-over, while space pages (which resolve their displays client-side),
+presets and template references stopped at the head of the chain. A hand-over from one space
+to another stopped at the head everywhere.
+
 **Not yet listed as maintained resources.** A space's About tab lists, first in its "📦
 Maintained resources" list (view `RAid3m--zOJ1OL4eNfDz3JpoSfhodtYsG2_1gz_cSrx48`, query
 `RAWZab2iKc3cB6TwqHdUEn1ZgMh817nfiwFKAVMrypVlI/list-maintained-and-not-yet-listed-resources`,
