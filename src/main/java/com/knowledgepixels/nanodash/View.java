@@ -346,17 +346,19 @@ public class View implements Serializable {
     }
 
     /**
-     * Marks the version lookup behind a view id as outdated, so that the next
-     * resolution asks the API instead of answering from what it holds: the
-     * governed-version query for a view that floats within its space, the
-     * supersedes-chain lookup (its memo and its cached response both) for one
-     * that does not.
+     * Marks the version lookups behind a view id as outdated, so that the next
+     * resolution asks the API instead of answering from what it holds: every
+     * lookup the resolution goes through, i.e. the governed-version query for a
+     * view that floats within its space, the supersedes-chain lookup (its memo
+     * and its cached response both) for one that does not, and the governed-version
+     * query of each version it was handed over to on the way (see
+     * {@link GovernedVersions#resolve(Nanopub)}).
      */
     private static void forgetLatestVersionLookup(String viewId) {
         String npId = toNanopubId(viewId);
         View pinned = getExactVersion(viewId, npId);
-        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
-            ApiCache.clearCache(governedQueryRef(pinned), 0);
+        if (pinned != null && pinned.getNanopub() != null) {
+            GovernedVersions.forgetResolution(pinned.getNanopub());
         } else {
             QueryApiAccess.forgetLatestVersion(npId);
             ApiCache.clearCache(new QueryRef(QueryApiAccess.GET_LATEST_VERSION_OF_NP, "np", npId), 0);
@@ -381,31 +383,26 @@ public class View implements Serializable {
      * {@code (kind, space)} pair) once its kind is a maintained resource of the
      * space; one that doesn't follows the supersedes chain as before, and so does
      * a governed version whose kind the space doesn't maintain yet (resolved by the same
-     * governed-version query). See docs/views-and-presets-as-maintained-resources.md.
+     * governed-version query). A supersedes chain that ends at a version handing the
+     * view over to a space is followed on into that space's versions, see
+     * {@link GovernedVersions#resolve(Nanopub)} and
+     * docs/views-and-presets-as-maintained-resources.md. The pin is the floor: on an
+     * empty result (or any failure) the pinned version stands, un-revalidated.
      */
     private static View resolveLatestVersion(String id, String npId) {
         View pinned = getExactVersion(id, npId);
-        if (pinned != null && pinned.getGoverningSpace() != null && pinned.getViewKindIri() != null) {
-            return resolveGovernedVersion(pinned);
-        }
-        // Automatically selecting latest version of view definition:
-        // TODO This should be made configurable at some point, so one can make it a fixed version.
+        // TODO Automatically selecting the latest version of a view definition should be made
+        // configurable at some point, so one can make it a fixed version.
         try {
-            String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-            if (!latestNpId.equals(npId)) {
-                Nanopub np = Utils.getAsNanopub(latestNpId);
-                if (np != null) {
-                    Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
-                    if (embeddedIris.size() == 1) {
-                        String latestId = embeddedIris.iterator().next();
-                        View cached = views.getIfPresent(latestId);
-                        if (cached == null) {
-                            cached = new View(latestId, np);
-                            views.put(latestId, cached);
-                        }
-                        return cached;
-                    }
-                }
+            GovernedVersions.Resolution resolution = (pinned != null && pinned.getNanopub() != null)
+                    ? GovernedVersions.resolve(pinned.getNanopub())
+                    : new GovernedVersions.Resolution(QueryApiAccess.getLatestVersionId(npId), null);
+            if (resolution.staysAt(npId)) {
+                return pinned;
+            }
+            View resolved = getVersionAt(resolution);
+            if (resolved != null) {
+                return resolved;
             }
         } catch (Exception ex) {
             logger.error("Error resolving latest version for view: {}", id, ex);
@@ -414,40 +411,31 @@ public class View implements Serializable {
     }
 
     /**
-     * Resolves the latest space-governed version of the pinned view's
-     * {@code (kind, space)} pair: the newest version declaring the same kind and
-     * governing space, signed by a current member+ of that space, with the kind
-     * validated as maintained by the space — all checked server-side by the
-     * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query. If the kind isn't
-     * a maintained resource of the space, the query answers with the head of the
-     * pin's own supersedes chain instead. The pin is the floor: on an empty result
-     * (or any failure) the pinned version stands, un-revalidated.
+     * Loads the view a resolution lands on: the version the governed-version query named,
+     * or else the single view the nanopub embeds.
+     *
+     * @return the view, or null if it cannot be loaded or the nanopub doesn't embed exactly
+     * one view
      */
-    private static View resolveGovernedVersion(View pinned) {
-        try {
-            String latestId = GovernedVersions.getVersionIri(
-                    ApiCache.retrieveResponseSync(governedQueryRef(pinned), false));
-            if (latestId != null && !latestId.equals(pinned.getId())) {
-                String latestNpId = toNanopubId(latestId);
-                View resolved = getExactVersion(latestId, latestNpId);
-                if (resolved != null) {
-                    return resolved;
-                }
-            }
-        } catch (Exception ex) {
-            logger.error("Error resolving governed version for view: {}", pinned.getId(), ex);
+    private static View getVersionAt(GovernedVersions.Resolution resolution) {
+        if (resolution.versionIri() != null) {
+            return getExactVersion(resolution.versionIri(), toNanopubId(resolution.versionIri()));
         }
-        return pinned;
-    }
-
-    /**
-     * The governed-version lookup for a pinned view that declares {@code gen:governedBy}.
-     * Resolution and cache invalidation both build it here, so that they address the same
-     * cached response.
-     */
-    private static QueryRef governedQueryRef(View pinned) {
-        return GovernedVersions.getQueryRef(pinned.getViewKindIri().stringValue(),
-                pinned.getGoverningSpace().stringValue(), pinned.getNanopub().getUri().stringValue());
+        Nanopub np = Utils.getAsNanopub(resolution.nanopubId());
+        if (np == null) {
+            return null;
+        }
+        Set<String> embeddedIris = NanopubUtils.getEmbeddedIriIds(np);
+        if (embeddedIris.size() != 1) {
+            return null;
+        }
+        String latestId = embeddedIris.iterator().next();
+        View cached = views.getIfPresent(latestId);
+        if (cached == null) {
+            cached = new View(latestId, np);
+            views.put(latestId, cached);
+        }
+        return cached;
     }
 
     /**

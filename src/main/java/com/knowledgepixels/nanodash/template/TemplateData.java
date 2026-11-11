@@ -188,7 +188,9 @@ public class TemplateData implements Serializable {
      * version as the floor on an empty result or failure. A version without it
      * follows the supersedes chain of the containing nanopublication, and so does
      * a governed version whose kind isn't a maintained resource of the space yet
-     * (answered by the same governed-version query). Accepts
+     * (answered by the same governed-version query). A supersedes chain that ends
+     * at a version handing the template over to a space is followed on into that
+     * space's versions ({@link GovernedVersions#resolve(org.nanopub.Nanopub)}). Accepts
      * either ID form (nanopublication URI or embedded template-node IRI) and
      * returns the latest version's canonical ID ({@link Template#getId()}) — so
      * even when there is no newer version, the given ID is normalized to canonical
@@ -199,16 +201,13 @@ public class TemplateData implements Serializable {
      */
     public String getLatestTemplateId(String templateId) {
         Template pinned = getTemplate(templateId);
-        if (isSpaceGoverned(pinned)) {
-            String governedId = resolveGovernedTemplateId(pinned);
-            if (governedId != null) return governedId;
-            return pinned.getId();
+        if (pinned == null || pinned.getNanopub() == null) {
+            String latestNpId = QueryApiAccess.getLatestVersionId(Utils.stripToNanopubId(templateId));
+            Template latest = getTemplate(latestNpId);
+            return latest != null ? latest.getId() : templateId;
         }
-        String npId = Utils.stripToNanopubId(templateId);
-        String latestNpId = QueryApiAccess.getLatestVersionId(npId);
-        Template latest = getTemplate(latestNpId);
-        if (latest != null) return latest.getId();
-        return templateId;
+        String resolvedId = resolveTemplateId(pinned);
+        return resolvedId != null ? resolvedId : pinned.getId();
     }
 
 
@@ -236,8 +235,8 @@ public class TemplateData implements Serializable {
     public String getGovernedTemplateId(String templateId) {
         if (templateId == null) return null;
         Template pinned = getTemplate(templateId);
-        if (!isSpaceGoverned(pinned)) return templateId;
-        String governedId = resolveGovernedTemplateId(pinned);
+        if (!isSpaceGoverned(pinned) || pinned.getNanopub() == null) return templateId;
+        String governedId = resolveTemplateId(pinned);
         return governedId != null ? governedId : templateId;
     }
 
@@ -253,22 +252,24 @@ public class TemplateData implements Serializable {
         return template != null && template.getGoverningSpace() != null && template.getTemplateKindIri() != null;
     }
     /**
-     * Resolves the latest space-governed version of the pinned template's
-     * (kind, space) pair, or, if the kind isn't a maintained resource of the space,
-     * the head of the pin's own supersedes chain; null if there is no valid candidate
-     * (the caller then keeps the pin).
+     * Resolves the pinned template with {@link GovernedVersions#resolve(org.nanopub.Nanopub)}:
+     * the latest space-governed version of its (kind, space) pair, or, if it declares no
+     * governance or the space doesn't maintain the kind, the head of the pin's own supersedes
+     * chain, followed on into a space's versions where that head hands the template over.
+     *
+     * @return the canonical ID of the version reached, or null if resolution stays at the pin,
+     * yields nothing that can be loaded, or fails (the caller then keeps the pin)
      */
-    private String resolveGovernedTemplateId(Template pinned) {
+    private String resolveTemplateId(Template pinned) {
         try {
-            String latestId = GovernedVersions.getLatestVersionIriSync(
-                    pinned.getTemplateKindIri().stringValue(), pinned.getGoverningSpace().stringValue(),
-                    pinned.getNanopub().getUri().stringValue());
-            if (latestId != null) {
-                Template resolved = getTemplate(latestId);
-                if (resolved != null) return resolved.getId();
-            }
+            String npId = pinned.getNanopub().getUri().stringValue();
+            GovernedVersions.Resolution resolution = GovernedVersions.resolve(pinned.getNanopub());
+            if (resolution.staysAt(npId)) return null;
+            Template resolved = getTemplate(resolution.versionIri() != null
+                    ? resolution.versionIri() : resolution.nanopubId());
+            if (resolved != null) return resolved.getId();
         } catch (Exception ex) {
-            logger.error("Error resolving governed version for template: {}", pinned.getId(), ex);
+            logger.error("Error resolving latest version for template: {}", pinned.getId(), ex);
         }
         return null;
     }

@@ -190,11 +190,16 @@ Direct port of the views model — same vocabulary, same trust anchors, same
   becomes more attractive — one edge join would replace all per-query governed arms
   for views *and* templates. Reconsider before hand-writing governed arms into
   half a dozen template listing queries.
-- **One-time re-pointing of pins:** a pre-governance pin has no `gen:governedBy` and
-  resolves supersedes-based, never seeing the governed line (by design — governance
-  is never inferred from the kind). Bringing an existing template under governance
-  means publishing a first governed version and superseding the references that pin
-  the old chain once (as the three view displays were repointed on 2026-07-03).
+- **No re-pointing of pins:** a pre-governance pin has no `gen:governedBy` and
+  resolves supersedes-based. Where that chain ends at a governed version, the key has
+  handed the template over to the space, and resolution carries on within the space
+  (see "A hand-over along a supersedes chain is followed" in
+  views-and-presets-as-maintained-resources.md). Governance is still never inferred from
+  the kind: it takes the key's own governed version. Bringing an existing template under
+  governance therefore means superseding it once with a governed version (same key, same
+  kind) and having the space maintain the kind. Pins used to stop at that version, which
+  is why references were re-pointed before (as the three view displays were on
+  2026-07-03).
 
 ## Backwards compatibility
 
