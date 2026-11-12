@@ -35,14 +35,27 @@ public class TemplateData implements Serializable {
      */
     public static synchronized void refreshTemplates() {
         logger.info("Refreshing templates...");
-        instance = new TemplateData();
+        instance = new TemplateData(instance);
     }
 
     /**
-     * Ensures that the TemplateData instance is loaded.
+     * Ensures that the TemplateData instance is loaded, and asks again for any template
+     * listing the query service didn't answer last time.
      */
     public static synchronized void ensureLoaded() {
-        if (instance == null) refreshTemplates();
+        if (instance == null) {
+            refreshTemplates();
+        } else {
+            instance.loadMissingListings();
+        }
+    }
+
+    /**
+     * Forgets the loaded instance, so that the next {@link #get()} loads the listings from
+     * scratch. For tests, which must not see listings another test has loaded.
+     */
+    static synchronized void forget() {
+        instance = null;
     }
 
     /**
@@ -55,24 +68,68 @@ public class TemplateData implements Serializable {
         return instance;
     }
 
-    private List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
-    private ConcurrentMap<String, Template> templateMap;
+    private volatile List<ApiResponseEntry> assertionTemplates, provenanceTemplates, pubInfoTemplates;
+    private final ConcurrentMap<String, Template> templateMap = new ConcurrentHashMap<>();
+    private final Set<String> missingListings = ConcurrentHashMap.newKeySet();
 
     /**
      * Constructor to initialize the TemplateData instance.
      */
     public TemplateData() {
-        assertionTemplates = new ArrayList<>();
-        provenanceTemplates = new ArrayList<>();
-        pubInfoTemplates = new ArrayList<>();
-        templateMap = new ConcurrentHashMap<>();
-        refreshTemplates(assertionTemplates, QueryApiAccess.GET_ASSERTION_TEMPLATES);
-        refreshTemplates(provenanceTemplates, QueryApiAccess.GET_PROVENANCE_TEMPLATES);
-        refreshTemplates(pubInfoTemplates, QueryApiAccess.GET_PUBINFO_TEMPLATES);
+        this(null);
     }
 
-    private void refreshTemplates(List<ApiResponseEntry> templates, String queryId) {
-        ApiResponse templateEntries = ApiCache.retrieveResponseSync(new QueryRef(queryId), true);
+    /**
+     * Loads the template listings, keeping those of the given earlier instance for any listing
+     * the query service doesn't answer (issue #916).
+     *
+     * @param previous the instance this one replaces, or null if there is none
+     */
+    private TemplateData(TemplateData previous) {
+        assertionTemplates = loadListing(QueryApiAccess.GET_ASSERTION_TEMPLATES,
+                previous == null ? null : previous.assertionTemplates);
+        provenanceTemplates = loadListing(QueryApiAccess.GET_PROVENANCE_TEMPLATES,
+                previous == null ? null : previous.provenanceTemplates);
+        pubInfoTemplates = loadListing(QueryApiAccess.GET_PUBINFO_TEMPLATES,
+                previous == null ? null : previous.pubInfoTemplates);
+    }
+
+    private synchronized void loadMissingListings() {
+        if (missingListings.isEmpty()) return;
+        assertionTemplates = reloadIfMissing(QueryApiAccess.GET_ASSERTION_TEMPLATES, assertionTemplates);
+        provenanceTemplates = reloadIfMissing(QueryApiAccess.GET_PROVENANCE_TEMPLATES, provenanceTemplates);
+        pubInfoTemplates = reloadIfMissing(QueryApiAccess.GET_PUBINFO_TEMPLATES, pubInfoTemplates);
+    }
+
+    private List<ApiResponseEntry> reloadIfMissing(String queryId, List<ApiResponseEntry> current) {
+        if (!missingListings.contains(queryId)) return current;
+        return loadListing(queryId, current);
+    }
+
+    /**
+     * Loads one template listing, or, if the query service doesn't answer, keeps the given
+     * fallback and remembers to ask again.
+     *
+     * @param queryId  the query listing the templates
+     * @param fallback the listing to keep if there is no answer, or null for an empty one
+     * @return the loaded listing, or the fallback
+     */
+    private List<ApiResponseEntry> loadListing(String queryId, List<ApiResponseEntry> fallback) {
+        ApiResponse response = ApiCache.retrieveResponseSync(new QueryRef(queryId), true);
+        if (response == null) {
+            boolean newlyMissing = missingListings.add(queryId);
+            if (newlyMissing) {
+                logger.warn("No answer from the query service for template listing {}; {}", queryId,
+                        fallback == null || fallback.isEmpty() ? "listing no templates for now" : "keeping the previous listing");
+            }
+            return fallback == null ? new ArrayList<>() : fallback;
+        }
+        missingListings.remove(queryId);
+        return toListing(response);
+    }
+
+    private static List<ApiResponseEntry> toListing(ApiResponse templateEntries) {
+        List<ApiResponseEntry> templates = new ArrayList<>();
         String previousId = null;
         logger.info("Loading templates...");
         for (ApiResponseEntry entry : templateEntries.getData()) {
@@ -86,6 +143,7 @@ public class TemplateData implements Serializable {
             previousId = entry.get("np");
         }
         templates.sort(templateComparator);
+        return templates;
     }
 
     /**
