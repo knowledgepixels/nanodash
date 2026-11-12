@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -493,6 +494,18 @@ public abstract class QueryResult extends Panel {
      */
     protected String withNavParamsInHtmlLinks(String sanitizedHtml) {
         if (renderContextId() == null || sanitizedHtml == null) return sanitizedHtml;
+        return withNavParamsInHtmlLinks(sanitizedHtml, this::linkNavParams);
+    }
+
+    /**
+     * The rewriting behind {@link #withNavParamsInHtmlLinks(String)}, apart from the page
+     * it takes the parameters from.
+     *
+     * @param sanitizedHtml the sanitized cell HTML
+     * @param navParams     gives the parameter suffix for a link: empty, or starting with "&amp;"
+     * @return the HTML with the suffix appended to its internal links
+     */
+    static String withNavParamsInHtmlLinks(String sanitizedHtml, UnaryOperator<String> navParams) {
         Matcher m = INTERNAL_HREF_PATTERN.matcher(sanitizedHtml);
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
@@ -500,9 +513,14 @@ public abstract class QueryResult extends Panel {
             String replacement = m.group();
             // The sanitizer escapes "=" as "&#61;", so check both spellings.
             if (!url.contains("context=") && !url.contains("context&#61;")) {
-                String separator = url.contains("?") ? "&amp;" : "?";
-                // The suffix starts with "&", which the separator replaces.
-                replacement = "href=\"" + url + separator + linkNavParams(url).substring(1).replace("&", "&amp;") + "\"";
+                String suffix = navParams.apply(url);
+                // Nothing to append for a crawler, whose links carry no navigation
+                // parameters at all (issue #804): the link stays as the data has it.
+                if (!suffix.isEmpty()) {
+                    String separator = url.contains("?") ? "&amp;" : "?";
+                    // The suffix starts with "&", which the separator replaces.
+                    replacement = "href=\"" + url + separator + suffix.substring(1).replace("&", "&amp;") + "\"";
+                }
             }
             m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }

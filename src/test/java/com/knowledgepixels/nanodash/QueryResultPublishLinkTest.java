@@ -80,4 +80,20 @@ class QueryResultPublishLinkTest {
         assertFalse(QueryResult.namesResource(null, part));
     }
 
+    @Test
+    void internalLinksGetTheNavigationParameters() {
+        String html = "<a href=\"/query?id&#61;x\">one</a> and <a href=\"/publish\">two</a>";
+        assertEquals("<a href=\"/query?id&#61;x&amp;context=c&amp;part=p\">one</a> and <a href=\"/publish?context=c&amp;part=p\">two</a>",
+                QueryResult.withNavParamsInHtmlLinks(html, url -> "&context=c&part=p"));
+    }
+
+    @Test
+    void internalLinksAreLeftAloneWhereThereIsNothingToAppend() {
+        // A crawler's links carry no navigation parameters (issue #804). Cutting the
+        // leading "&" off that empty suffix answered every crawled page whose view data
+        // holds a ready-made internal link with a 500.
+        String html = "<a href=\"/query?id&#61;x\">one</a> and <a href=\"/publish\">two</a>";
+        assertEquals(html, QueryResult.withNavParamsInHtmlLinks(html, url -> ""));
+    }
+
 }
