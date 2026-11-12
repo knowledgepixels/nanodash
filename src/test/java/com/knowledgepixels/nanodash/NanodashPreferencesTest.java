@@ -11,6 +11,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -99,7 +100,36 @@ class NanodashPreferencesTest {
     }
 
     @Test
-    void getWithCorruptedPreferencesFile() throws IOException {
+    void getWithInvalidYamlFails() throws IOException {
+        Files.writeString(prefFile, "readOnlyMode: true\nwebsiteUrl: [unclosed\n");
+
+        UnreadablePreferencesException ex = assertThrows(UnreadablePreferencesException.class, NanodashPreferences::get);
+        assertTrue(ex.getMessage().contains(prefFile.toString()));
+        assertNotNull(ex.getCause());
+    }
+
+    @Test
+    void getWithInvalidUtf8Fails() throws IOException {
+        byte[] latin1 = "readOnlyMode: true\nsiteName: Café\n".getBytes(StandardCharsets.ISO_8859_1);
+        Files.write(prefFile, latin1);
+
+        assertThrows(UnreadablePreferencesException.class, NanodashPreferences::get);
+    }
+
+    @Test
+    void ensureReadableFailsForAnUnreadableFile() throws IOException {
+        Files.writeString(prefFile, "readOnlyMode: [\n");
+
+        assertThrows(UnreadablePreferencesException.class, NanodashPreferences::ensureReadable);
+    }
+
+    @Test
+    void ensureReadableSucceedsWithoutAPreferencesFile() {
+        assertDoesNotThrow(NanodashPreferences::ensureReadable);
+    }
+
+    @Test
+    void getWithEmptyPreferencesFileGivesDefaults() throws IOException {
         Files.createFile(prefFile);
         assertTrue(Files.exists(prefFile));
 

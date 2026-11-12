@@ -193,6 +193,7 @@ public class WicketApplication extends WebApplication implements NanopubPublishe
     @Override
     protected void init() {
         super.init();
+        NanodashPreferences.ensureReadable();
         WicketWebjars.install(this);
 
         Utils.initMainUrls();

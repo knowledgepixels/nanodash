@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.File;
@@ -26,8 +25,13 @@ public class NanodashPreferences implements Serializable {
 
     /**
      * Get the singleton instance of NanodashPreferences.
+     * <p>
+     * A missing or empty preferences file gives the defaults. A file that exists but can't be
+     * read is an error rather than a reason to fall back to the defaults, since that would
+     * silently drop settings such as read-only mode (issue #905).
      *
      * @return the NanodashPreferences instance
+     * @throws UnreadablePreferencesException if the preferences file exists but can't be read
      */
     public static NanodashPreferences get() {
         if (obj == null) {
@@ -35,15 +39,31 @@ public class NanodashPreferences implements Serializable {
             if (!prefFile.exists()) {
                 return new NanodashPreferences();
             }
-            ObjectMapper mapper = new YAMLMapper();
-            try {
-                obj = mapper.readValue(prefFile, NanodashPreferences.class);
-            } catch (JacksonException ex) {
-                obj = new NanodashPreferences();
-                logger.error("Could not read preferences file at '{}' using defaults", prefFile, ex);
-            }
+            obj = readPreferencesFile(prefFile);
         }
         return obj;
+    }
+
+    /**
+     * Read the preferences file, so that startup fails if it exists but can't be read.
+     *
+     * @throws UnreadablePreferencesException if the preferences file exists but can't be read
+     */
+    public static void ensureReadable() {
+        get();
+    }
+
+    private static NanodashPreferences readPreferencesFile(File prefFile) {
+        if (prefFile.length() == 0) {
+            return new NanodashPreferences();
+        }
+        try {
+            NanodashPreferences preferences = new YAMLMapper().readValue(prefFile, NanodashPreferences.class);
+            return preferences == null ? new NanodashPreferences() : preferences;
+        } catch (JacksonException ex) {
+            logger.error("Could not read preferences file at '{}'", prefFile, ex);
+            throw new UnreadablePreferencesException(prefFile, ex);
+        }
     }
 
     /**
