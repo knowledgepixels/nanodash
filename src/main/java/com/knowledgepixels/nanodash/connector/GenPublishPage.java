@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.connector;
 
+import com.knowledgepixels.nanodash.template.TemplateUnavailableException;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.component.OutdatedSourceErrorItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
@@ -55,7 +56,11 @@ public class GenPublishPage extends ConnectorPage {
                 // Don't even show the form: superseding/overriding is only possible on the latest version.
                 add(new OutdatedSourceErrorItem("form", parameters, getClass()));
             } else {
-                add(new PublishForm("form", parameters, getClass(), GenConnectPage.class));
+                try {
+                    add(new PublishForm("form", parameters, getClass(), GenConnectPage.class));
+                } catch (TemplateUnavailableException ex) {
+                    add(PublishForm.templateUnavailableNotice("form", ex));
+                }
             }
         } else {
             throw new RuntimeException("no template parameter");
