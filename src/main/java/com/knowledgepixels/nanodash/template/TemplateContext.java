@@ -748,33 +748,11 @@ public class TemplateContext implements Serializable {
         } else if (template.isUriPlaceholder(iri)) {
             String tfObject = (String) tfObjectGeneric;
             if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                String prefix = getPrefix(iri);
-                boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
-                if (prefix == null) prefix = "";
-                // A dynamic prefix is how a template asks for its new resource to be minted
-                // under the space / maintained resource rather than under the nanopublication,
-                // so it wins over the local-resource default (issue #571).
-                if (template.isLocalResource(iri) && !hasDynamicPrefix(iri)) {
-                    prefix = targetNamespace;
-                    unresolvedPrefix = false;
-                }
-                String v;
-                if (template.isAutoEscapePlaceholder(iri)) {
-                    v = prefix + autoEscape(iri, tfObject);
-                } else {
-                    if (Utils.isUriValue(tfObject)) {
-                        prefix = "";
-                        unresolvedPrefix = false;
-                    }
-                    v = prefix + tf.getObject();
-                }
-                // See the restricted-choice branch above: an unresolved dynamic prefix
-                // leaves the value unset rather than minting a wrongly-namespaced IRI.
-                if (!unresolvedPrefix) {
-                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                    processedValue = vf.createIRI(v);
-                    recordIfNewUri(iri, (IRI) processedValue);
-                    recordIfReserved((IRI) processedValue);
+                IRI formed = formUriPlaceholderIri(iri, tfObject);
+                if (formed != null) {
+                    processedValue = formed;
+                    recordIfNewUri(iri, formed);
+                    recordIfReserved(formed);
                 }
             }
         } else if (template.isIntroducedResource(iri)
@@ -917,9 +895,82 @@ public class TemplateContext implements Serializable {
      * @param iri         the IRI that was just formed
      */
     private void recordIfNewUri(IRI placeholder, IRI iri) {
-        if (!template.isNewUriPlaceholder(placeholder)) return;
-        if (iri.stringValue().startsWith(targetNamespace)) return;
-        newUriIris.add(iri);
+        if (isCheckedNewUri(placeholder, iri)) newUriIris.add(iri);
+    }
+
+    /**
+     * Whether an IRI formed for a placeholder is one to check against the identifiers already in
+     * use: the placeholder is tagged with {@link Template#NEW_URI_PLACEHOLDER}, and the IRI is not
+     * under the nanopublication's own namespace, whose artifact code makes it unique.
+     *
+     * @param placeholder the placeholder the value was entered into
+     * @param iri         the IRI formed for it
+     * @return true if the IRI is to be checked
+     */
+    private boolean isCheckedNewUri(IRI placeholder, IRI iri) {
+        return template.isNewUriPlaceholder(placeholder) && !iri.stringValue().startsWith(targetNamespace);
+    }
+
+    /**
+     * The IRI a URI placeholder forms from the value entered into it: the value itself when it is
+     * a full IRI, and the placeholder's prefix in front of it otherwise. A local resource without
+     * a space-/namespace-dependent prefix goes under the nanopublication's own namespace, and so
+     * does a bare name with no prefix at all. A dynamic prefix wins over the local-resource
+     * default, as it is how a template asks for its new resource to be minted under the space or
+     * maintained resource rather than under the nanopublication (issue #571).
+     *
+     * @param placeholder the URI placeholder
+     * @param value       the value entered into it, not empty
+     * @return the IRI, or null while the placeholder's space-/namespace-dependent prefix is not
+     * resolved yet, which would mint the resource under the wrong namespace
+     */
+    private IRI formUriPlaceholderIri(IRI placeholder, String value) {
+        String prefix = getPrefix(placeholder);
+        boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(placeholder);
+        if (prefix == null) prefix = "";
+        if (template.isLocalResource(placeholder) && !hasDynamicPrefix(placeholder)) {
+            prefix = targetNamespace;
+            unresolvedPrefix = false;
+        }
+        String v;
+        if (template.isAutoEscapePlaceholder(placeholder)) {
+            v = prefix + autoEscape(placeholder, value);
+        } else {
+            if (Utils.isUriValue(value)) {
+                prefix = "";
+                unresolvedPrefix = false;
+            }
+            v = prefix + value;
+        }
+        if (unresolvedPrefix) return null;
+        if (v.matches("[^:# ]+")) v = targetNamespace + v;
+        return vf.createIRI(v);
+    }
+
+    /**
+     * The identifier a value entered into a URI placeholder would give a new resource, if that
+     * identifier is one the publish form checks against the identifiers already in use (see
+     * {@link #getNewUriIris()}). It is formed the same way as when the form is processed, so that
+     * a check made while the field is filled in looks up exactly what publishing would.
+     *
+     * @param placeholder the URI placeholder
+     * @param value       the value entered into it
+     * @return the identifier, or null if there is nothing to check: an untagged placeholder, an
+     * empty value, a space-/namespace-dependent prefix that is not resolved yet, a value that
+     * forms no valid IRI, or an IRI under the nanopublication's own namespace
+     */
+    public IRI getNewUriIri(IRI placeholder, String value) {
+        if (value == null || value.isEmpty()) return null;
+        if (!template.isUriPlaceholder(placeholder) || template.isRestrictedChoicePlaceholder(placeholder)) return null;
+        if (!template.isNewUriPlaceholder(placeholder)) return null;
+        IRI formed;
+        try {
+            formed = formUriPlaceholderIri(placeholder, value);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+        if (formed == null || !Utils.isUriValue(formed.stringValue())) return null;
+        return isCheckedNewUri(placeholder, formed) ? formed : null;
     }
 
     /**

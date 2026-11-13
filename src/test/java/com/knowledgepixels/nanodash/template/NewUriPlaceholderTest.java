@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.template;
 
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.component.NewUriCheck;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import org.apache.wicket.model.Model;
@@ -19,6 +20,8 @@ import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -259,6 +262,97 @@ class NewUriPlaceholderTest {
         context.processValue(SPACE_FIELD);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
             assertNull(PublishForm.findTakenNewUri(context));
+            q.verifyNoInteractions();
+        }
+    }
+
+    // The live check while typing (#713) must look up exactly what publishing would: the same
+    // identifier, formed the same way, for the same placeholders.
+    @Test
+    void theLiveCheckFormsTheSameIdentifierAsPublishing() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        context.getComponentModels().put(SPACE_FIELD, Model.of("my-space"));
+        Value processed = context.processValue(SPACE_FIELD);
+        assertEquals(processed, context.getNewUriIri(SPACE_FIELD, "my-space"));
+    }
+
+    @Test
+    void theLiveCheckTakesAFullIriAsTyped() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        assertEquals(vf.createIRI("https://example.org/records/42"),
+                context.getNewUriIri(FULL_IRI_FIELD, "https://example.org/records/42"));
+    }
+
+    @Test
+    void theLiveCheckHasNothingToLookUpForAnUntaggedField() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        assertNull(context.getNewUriIri(TOPIC_FIELD, "my-topic"));
+    }
+
+    @Test
+    void theLiveCheckHasNothingToLookUpForAResourceMintedUnderTheNanopub() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        assertNull(context.getNewUriIri(LOCAL_FIELD, "record"));
+    }
+
+    @Test
+    void theLiveCheckHasNothingToLookUpForAnEmptyField() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        assertNull(context.getNewUriIri(SPACE_FIELD, ""));
+        assertNull(context.getNewUriIri(SPACE_FIELD, null));
+    }
+
+    @Test
+    void theLiveCheckHasNothingToLookUpForAValueThatFormsNoIri() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        assertNull(context.getNewUriIri(SPACE_FIELD, "not an identifier"));
+    }
+
+    @Test
+    void theLiveCheckReportsATakenIdentifier() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            q.when(() -> QueryApiAccess.checkUriIntroduced(SPACE_PREFIX + "my-space")).thenReturn(Optional.of(true));
+            assertEquals(NewUriCheck.Result.TAKEN, NewUriCheck.check(context, SPACE_FIELD, "my-space"));
+        }
+    }
+
+    @Test
+    void theLiveCheckReportsAFreeIdentifier() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            q.when(() -> QueryApiAccess.checkUriIntroduced(anyString())).thenReturn(Optional.of(false));
+            assertEquals(NewUriCheck.Result.FREE, NewUriCheck.check(context, SPACE_FIELD, "my-space"));
+        }
+    }
+
+    // An unreachable query service answers neither "taken" nor "free": the field must show
+    // nothing rather than a false all-clear.
+    @Test
+    void theLiveCheckKnowsNothingWhenTheQueryServiceCannotBeAsked() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            q.when(() -> QueryApiAccess.checkUriIntroduced(anyString())).thenReturn(Optional.empty());
+            assertEquals(NewUriCheck.Result.UNKNOWN, NewUriCheck.check(context, SPACE_FIELD, "my-space"));
+        }
+    }
+
+    @Test
+    void theLiveCheckDoesNotAskForAnUntaggedField() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            assertEquals(NewUriCheck.Result.NOT_CHECKED, NewUriCheck.check(context, TOPIC_FIELD, "my-topic"));
+            q.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    void theLiveCheckKeepsTheSourcesIdentifierWhenSuperseding() throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        context.setFillMode(FillMode.SUPERSEDE);
+        context.setFillSource(sourceUsing(SPACE_PREFIX + "example/bar"));
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            assertEquals(NewUriCheck.Result.NOT_CHECKED, NewUriCheck.check(context, SPACE_FIELD, "example/bar"));
             q.verifyNoInteractions();
         }
     }

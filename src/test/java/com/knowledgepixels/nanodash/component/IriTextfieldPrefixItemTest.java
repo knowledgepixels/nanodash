@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.NavigationContext;
+import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.template.ContextType;
@@ -10,6 +11,9 @@ import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.TemplateTestUtil;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -26,6 +30,7 @@ import org.wicketstuff.select2.Select2Choice;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -75,6 +81,14 @@ public class IriTextfieldPrefixItemTest {
      * initStatements.
      */
     private TemplateContext contextFor(String prefix) throws Exception {
+        return contextFor(prefix, false);
+    }
+
+    /**
+     * Builds the same template as {@link #contextFor(String)}, with the placeholder tagged as
+     * naming a new resource when asked to.
+     */
+    private TemplateContext contextFor(String prefix, boolean newUri) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -90,6 +104,7 @@ public class IriTextfieldPrefixItemTest {
         creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
         creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX_LABEL, vf.createLiteral("Class"));
         creator.addAssertionStatement(RESOURCE, RDFS.LABEL, vf.createLiteral("resource"));
+        if (newUri) creator.addAssertionStatement(RESOURCE, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
         TemplateData templateDataMock = mock(TemplateData.class);
@@ -97,6 +112,87 @@ public class IriTextfieldPrefixItemTest {
         when(templateDataMock.getTemplate(NP_URI)).thenReturn(template);
 
         return new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+    }
+
+    // The identifier is the prefix plus what was typed, and the prefix is only known once a
+    // base is picked: until then the live check has nothing to look up (#713).
+    @Test
+    void theLiveCheckWaitsForTheBaseOfADynamicPrefix() throws Exception {
+        TemplateContext context = contextFor("~~SPACE~~/r/", true);
+        context.initStatements();
+        assertNull(context.getNewUriIri(RESOURCE, "thing"));
+    }
+
+    @Test
+    void theLiveCheckLooksUpTheNameBelowThePickedBase() throws Exception {
+        TemplateContext context = contextFor("~~SPACE~~/r/", true);
+        context.initStatements();
+        @SuppressWarnings("unchecked")
+        IModel<String> base = (IModel<String>) context.getComponentModels().get(TemplateContext.getPrefixModelKey(DynamicPrefix.SPACE_TOKEN));
+        base.setObject(SPACE_IRI);
+        assertEquals(vf.createIRI(SPACE_IRI + "/r/thing"), context.getNewUriIri(RESOURCE, "thing"));
+    }
+
+    @Test
+    void aTakenIdentifierIsShownNextToTheFieldOnceTypingPauses() throws Exception {
+        TemplateContext context = contextFor("https://example.org/things/", true);
+        context.initStatements();
+        IriTextfieldItem item = new IriTextfieldItem("item", "obj", RESOURCE, false, context);
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            q.when(() -> QueryApiAccess.checkUriIntroduced("https://example.org/things/taken")).thenReturn(Optional.of(true));
+            q.when(() -> QueryApiAccess.checkUriIntroduced("https://example.org/things/free")).thenReturn(Optional.of(false));
+            tester.startComponentInPage(item);
+            tester.assertInvisible("item:newuritaken");
+
+            typeInto("item:textfield", "taken");
+            tester.assertVisible("item:newuritaken");
+            tester.assertContains("https://example.org/things/taken is already in use");
+
+            typeInto("item:textfield", "free");
+            tester.assertInvisible("item:newuritaken");
+        }
+    }
+
+    @Test
+    void aCheckThatCannotBeMadeShowsNothing() throws Exception {
+        TemplateContext context = contextFor("https://example.org/things/", true);
+        context.initStatements();
+        IriTextfieldItem item = new IriTextfieldItem("item", "obj", RESOURCE, false, context);
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            q.when(() -> QueryApiAccess.checkUriIntroduced(anyString())).thenReturn(Optional.empty());
+            tester.startComponentInPage(item);
+            typeInto("item:textfield", "taken");
+            tester.assertInvisible("item:newuritaken");
+        }
+    }
+
+    @Test
+    void anUntaggedFieldIsNeverChecked() throws Exception {
+        TemplateContext context = contextFor("https://example.org/things/", false);
+        context.initStatements();
+        IriTextfieldItem item = new IriTextfieldItem("item", "obj", RESOURCE, false, context);
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            tester.startComponentInPage(item);
+            Component textfield = tester.getComponentFromLastRenderedPage("item:textfield");
+            assertTrue(textfield.getBehaviors(AjaxFormComponentUpdatingBehavior.class).stream()
+                    .noneMatch(b -> b.getClass().getSimpleName().equals("NewUriCheckBehavior")));
+            q.verifyNoInteractions();
+        }
+    }
+
+    /**
+     * Enters a value into a text field and runs the live check on it, the way the browser does
+     * once typing pauses. The check's behavior is run on its own: the field's other input
+     * behavior sends its own request in a browser, but in the tester only the first request of
+     * an event carries the value.
+     */
+    private void typeInto(String path, String value) {
+        Component textfield = tester.getComponentFromLastRenderedPage(path);
+        AjaxFormComponentUpdatingBehavior check = textfield.getBehaviors(AjaxFormComponentUpdatingBehavior.class).stream()
+                .filter(b -> b.getClass().getSimpleName().equals("NewUriCheckBehavior"))
+                .findFirst().orElseThrow();
+        tester.getRequest().getPostParameters().setParameterValue(((FormComponent<?>) textfield).getInputName(), value);
+        tester.executeBehavior(check);
     }
 
     private void withSpaceContext(String contextId) {
