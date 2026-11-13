@@ -30,7 +30,7 @@ class QueryApiAccessTest {
     }
 
     @Test
-    void forcedGetRetriesUntilApiResponseIsNotNull() {
+    void forcedGetRetriesUntilApiResponseIsNotNull() throws Exception {
         ApiResponse expectedResponse = new ApiResponse();
 
         try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
@@ -42,6 +42,21 @@ class QueryApiAccessTest {
             ApiResponse response = QueryApiAccess.forcedGet(new QueryRef(queryId));
 
             assertEquals(expectedResponse, response);
+        }
+    }
+
+    @Test
+    void forcedGetDoesNotAskAgainWhenTheQueryIsRefused() {
+        QueryRefusedException refusal = new QueryRefusedException("refused", java.time.Instant.now().plusSeconds(60));
+
+        try (MockedStatic<QueryAccess> mockQueryAccess = mockStatic(QueryAccess.class)) {
+            mockQueryAccess.when(() -> QueryAccess.get(any(QueryRef.class))).thenThrow(refusal);
+
+            QueryRefusedException thrown = assertThrows(QueryRefusedException.class,
+                    () -> QueryApiAccess.forcedGet(new QueryRef(queryId)));
+
+            assertSame(refusal, thrown);
+            mockQueryAccess.verify(() -> QueryAccess.get(any(QueryRef.class)), org.mockito.Mockito.times(1));
         }
     }
 

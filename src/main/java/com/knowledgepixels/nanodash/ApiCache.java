@@ -271,12 +271,36 @@ public class ApiCache {
         return FAILURE_BACKOFF_MS[i];
     }
 
-    private static void recordFailure(String cacheId) {
+    /**
+     * How long a query is left alone after a failed attempt: the step of the ladder for the
+     * number of consecutive failures (see {@link #backoffAfter(int)}), or longer if the query
+     * servers refused the query and said when they would take it again. That time is theirs to
+     * name — a server refuses a query it is still evaluating, or has too many of — but never
+     * for longer than the ladder's last step, so that a wrong or far-off Retry-After cannot
+     * park a query for good.
+     *
+     * @param consecutiveFailures the number of failed attempts in a row, at least 1
+     * @param failure             what the attempt failed with
+     * @param now                 the current time in milliseconds
+     * @return the delay in milliseconds before the next attempt
+     */
+    static long backoffAfter(int consecutiveFailures, Throwable failure, long now) {
+        long backoff = backoffAfter(consecutiveFailures);
+        if (failure instanceof QueryRefusedException refused && refused.getRetryAfter() != null) {
+            long asked = refused.getRetryAfter().toEpochMilli() - now;
+            long longest = FAILURE_BACKOFF_MS[FAILURE_BACKOFF_MS.length - 1];
+            backoff = Math.min(Math.max(backoff, asked), longest);
+        }
+        return backoff;
+    }
+
+    private static void recordFailure(String cacheId, Throwable failure) {
         long now = System.currentTimeMillis();
-        FailureState state = failures.asMap().merge(cacheId, new FailureState(1, now + backoffAfter(1)),
-                (previous, first) -> new FailureState(previous.count() + 1, now + backoffAfter(previous.count() + 1)));
+        FailureState state = failures.asMap().merge(cacheId, new FailureState(1, now + backoffAfter(1, failure, now)),
+                (previous, first) -> new FailureState(previous.count() + 1,
+                        now + backoffAfter(previous.count() + 1, failure, now)));
         logger.warn("Query failed {} time(s) in a row; not trying it again for {}s: {}",
-                state.count(), backoffAfter(state.count()) / 1000, cacheId);
+                state.count(), (state.retryAt() - now) / 1000, cacheId);
     }
 
     private static boolean isBackingOff(String cacheId) {
@@ -347,7 +371,7 @@ public class ApiCache {
             failures.invalidate(cacheId);
         } catch (Exception ex) {
             logger.error("Failed to update cache for {}: {}", cacheId, ex.getMessage());
-            recordFailure(cacheId);
+            recordFailure(cacheId, ex);
             lastRefresh.put(cacheId, System.currentTimeMillis());
         } finally {
             refreshStart.remove(cacheId, claim);

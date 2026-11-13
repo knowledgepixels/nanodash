@@ -12,10 +12,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.FailedApiCallException;
 import org.nanopub.extra.services.QueryRef;
+import org.nanopub.extra.services.QueryRefusedException;
 
 import com.google.common.cache.Cache;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -100,6 +102,10 @@ class ApiCacheTest {
     }
 
     /** Records the given number of consecutive failures, with the next attempt due at retryAt. */
+    private static QueryRefusedException refusedUntil(long epochMilli) {
+        return new QueryRefusedException("refused", Instant.ofEpochMilli(epochMilli));
+    }
+
     private void putFailure(int count, long retryAt) throws Exception {
         Class<?> c = Class.forName("com.knowledgepixels.nanodash.ApiCache$FailureState");
         var ctor = c.getDeclaredConstructors()[0];
@@ -244,6 +250,37 @@ class ApiCacheTest {
         assertEquals(60_000, ApiCache.backoffAfter(3));
         assertEquals(300_000, ApiCache.backoffAfter(4));
         assertEquals(300_000, ApiCache.backoffAfter(50));
+    }
+
+    @Test
+    @DisplayName("backoffAfter should wait as long as a refusing query server asks, but at least the ladder step and at most 5min (issue #889)")
+    void backoffAfter_honoursRetryAfter() {
+        long now = 1_000_000;
+        // Longer than the ladder step: the server's time wins.
+        assertEquals(45_000, ApiCache.backoffAfter(1, refusedUntil(now + 45_000), now));
+        // Shorter than the ladder step: the ladder still holds.
+        assertEquals(30_000, ApiCache.backoffAfter(2, refusedUntil(now + 5_000), now));
+        // Already past, or far off: bounded on both sides.
+        assertEquals(10_000, ApiCache.backoffAfter(1, refusedUntil(now - 60_000), now));
+        assertEquals(300_000, ApiCache.backoffAfter(1, refusedUntil(now + 3_600_000), now));
+        // A refusal that names no time, and any other failure, follow the ladder.
+        assertEquals(10_000, ApiCache.backoffAfter(1, new QueryRefusedException("refused", null), now));
+        assertEquals(60_000, ApiCache.backoffAfter(3, new FailedApiCallException(new Exception("timed out")), now));
+    }
+
+    @Test
+    @DisplayName("A refused query should not be tried again before the time the query server named (issue #889)")
+    void refusedQueryWaitsForRetryAfter() throws Exception {
+        try (MockedStatic<QueryApiAccess> queryApiAccess = mockStatic(QueryApiAccess.class)) {
+            long before = System.currentTimeMillis();
+            queryApiAccess.when(() -> QueryApiAccess.get(mockQueryRef)).thenThrow(refusedUntil(before + 45_000));
+
+            assertNull(ApiCache.retrieveResponseSync(mockQueryRef, false));
+
+            assertEquals(1, failureCount());
+            assertTrue(retryAt() >= before + 44_000, "the first failure alone would only wait 10s");
+            assertTrue(retryAt() <= System.currentTimeMillis() + 45_000);
+        }
     }
 
     @Test
