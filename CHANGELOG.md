@@ -1,3 +1,28 @@
+## [5.22.3](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.2...nanodash-5.22.3) (2026-11-13)
+
+### Dependency updates
+
+* **core-deps:** update dependency io.github.openhtmltopdf:openhtmltopdf-pdfbox to v1.1.110 ([b2d89a3](https://github.com/knowledgepixels/nanodash/commit/b2d89a34421f436405734784f4fa1b0d29bdc779))
+* **core-deps:** update dependency io.github.openhtmltopdf:openhtmltopdf-pdfbox to v1.1.112 ([2eb0e18](https://github.com/knowledgepixels/nanodash/commit/2eb0e18efe922973033cf0e233471d21d4937607))
+* **core-deps:** update dependency tools.jackson.dataformat:jackson-dataformat-yaml to v3.3.0 ([8ea308e](https://github.com/knowledgepixels/nanodash/commit/8ea308ed00e245d3076aa209a6f3ead7e4670527))
+
+### Bug Fixes
+
+* **about:** list introductions that have no timestamp ([b855074](https://github.com/knowledgepixels/nanodash/commit/b85507482c5f3447cf11dbe283803bb04017b112))
+* **connector:** give the connector pages the page footer ([0da5a37](https://github.com/knowledgepixels/nanodash/commit/0da5a373d0203b41af7ed586ed14e7526f6f844f))
+* **crawler:** don't fail on internal links in view data when crawled ([64e3511](https://github.com/knowledgepixels/nanodash/commit/64e3511f5f3e21c0525e6057f4a0901a6193e1ca)), closes [#804](https://github.com/knowledgepixels/nanodash/issues/804)
+* **governance:** follow a hand-over along a supersedes chain into the space's versions ([016f7d4](https://github.com/knowledgepixels/nanodash/commit/016f7d4f0f2c077ea7c0648d555dbfb2feac06ce))
+* **links:** use the shared explorable-id check in getPageUrl, and resolve DIDs ([73a474a](https://github.com/knowledgepixels/nanodash/commit/73a474a77c5c642a773055e06df151a2c9108652)), closes [#780](https://github.com/knowledgepixels/nanodash/issues/780) [#655](https://github.com/knowledgepixels/nanodash/issues/655)
+* **publish:** only use provenance and pubinfo template links of the right kind ([86dd75a](https://github.com/knowledgepixels/nanodash/commit/86dd75a5d3d470e8463cbe7c93da5aeaa8db29af)), closes [#908](https://github.com/knowledgepixels/nanodash/issues/908)
+* refuse to start when the preferences file can't be read ([#905](https://github.com/knowledgepixels/nanodash/issues/905)) ([a405a77](https://github.com/knowledgepixels/nanodash/commit/a405a774e60cfae3df9f34ed0a55111ef246f2b9))
+* reject grlc path suffixes in getPageUrl without breaking sub-IRI explore ([38e660b](https://github.com/knowledgepixels/nanodash/commit/38e660b6ac8794f998118bc330a2d1071c6b1ad1)), closes [#780](https://github.com/knowledgepixels/nanodash/issues/780)
+* resolve space-governed presets via GovernedVersions ([18b4a71](https://github.com/knowledgepixels/nanodash/commit/18b4a711d373118ea4d9bf734a553e14a0b159d6)), closes [#828](https://github.com/knowledgepixels/nanodash/issues/828)
+* **ui:** render emoji in list views monochrome, as in tables ([a301e3a](https://github.com/knowledgepixels/nanodash/commit/a301e3a3c28138f3f7d9e86e229dfae2c358c1c8))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([d73f069](https://github.com/knowledgepixels/nanodash/commit/d73f06975f018bba52b2ac4ffc7c2ab78e51868a))
+
 ## [5.22.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.1...nanodash-5.22.2) (2026-11-06)
 
 ### Dependency updates
