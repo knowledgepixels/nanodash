@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.component.OutdatedSourceErrorItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.TemplateUnavailableException;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
@@ -57,7 +58,11 @@ public class PublishPage extends NanodashPage {
         } else {
             // No confirm page: after publishing, the form forwards to the context
             // resource (or home), showing the new nanopub in the title bar message.
-            add(new PublishForm("form", parameters, getClass(), null));
+            try {
+                add(new PublishForm("form", parameters, getClass(), null));
+            } catch (TemplateUnavailableException ex) {
+                add(PublishForm.templateUnavailableNotice("form", ex));
+            }
         }
     }
 
