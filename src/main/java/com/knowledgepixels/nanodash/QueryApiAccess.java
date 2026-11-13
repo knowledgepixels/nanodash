@@ -368,12 +368,16 @@ public class QueryApiAccess {
 
     /**
      * Forces the retrieval of an API response for a given query name and parameters.
-     * Retries until a valid response is received.
+     * Retries for up to 30 seconds, until a valid response is received — unless the query
+     * servers refuse the query. A refusal is a server asking not to be sent this query for
+     * now, so asking again within the same attempt is exactly what it must not get; it goes
+     * to the caller instead, which knows from it when to try again (issue #889).
      *
      * @param queryRef The query reference
      * @return The API response.
+     * @throws org.nanopub.extra.services.QueryRefusedException If the query servers refused the query.
      */
-    public static ApiResponse forcedGet(QueryRef queryRef) {
+    public static ApiResponse forcedGet(QueryRef queryRef) throws QueryRefusedException {
         long deadline = System.currentTimeMillis() + 30_000;
         long sleepMs = 1000;
         while (System.currentTimeMillis() < deadline) {
@@ -382,6 +386,8 @@ public class QueryApiAccess {
                 if (resp != null) {
                     return resp;
                 }
+            } catch (QueryRefusedException ex) {
+                throw ex;
             } catch (Exception ex) {
                 logger.error("Error while forcing API get for query {}", queryRef, ex);
             }
