@@ -19,6 +19,7 @@ import org.apache.wicket.request.resource.ContextRelativeResourceReference;
 import org.apache.wicket.util.string.Strings;
 import org.eclipse.rdf4j.model.IRI;
 
+import com.knowledgepixels.nanodash.template.TemplateUnavailableException;
 import com.knowledgepixels.nanodash.DiscussionThread;
 import com.knowledgepixels.nanodash.SpaceMemberRole;
 import com.knowledgepixels.nanodash.Utils;
@@ -175,7 +176,11 @@ public class ThreadNodePanel extends Panel {
             openAction = null;
             return new Label("responseForm").setVisible(false);
         }
-        return new PublishForm("responseForm", params, PublishPage.class, null);
+        try {
+            return new PublishForm("responseForm", params, PublishPage.class, null);
+        } catch (TemplateUnavailableException ex) {
+            return PublishForm.templateUnavailableNotice("responseForm", ex);
+        }
     }
 
     private WebMarkupContainer buildChildrenArea() {

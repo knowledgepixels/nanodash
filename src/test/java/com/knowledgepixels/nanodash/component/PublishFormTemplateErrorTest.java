@@ -2,7 +2,9 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.page.PublishPage;
+import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.TemplateUnavailableException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
@@ -16,8 +18,15 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.lang.reflect.Field;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 /**
  * Tests that the publish form itself reports templates that cannot produce valid RDF, such as a
@@ -87,6 +96,42 @@ class PublishFormTemplateErrorTest {
         assertFalse(html.contains(">Preview</button>"), html);
         assertFalse(html.contains("I understand that published data"), html);
         assertTrue(html.contains("Publishing is disabled"), html);
+    }
+
+    @Test
+    void templateThatCannotBeLoadedIsReportedByKindAndId() throws Exception {
+        String id = registerTemplate("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Pub04", false);
+        PageParameters params = new PageParameters().add("template", id);
+        // The form's own template loads; every other one — the default provenance template
+        // comes first — is as if it could not be fetched.
+        TemplateData real = TemplateData.get();
+        TemplateData failing = spy(real);
+        doAnswer(inv -> inv.getArgument(0, String.class).equals(id) ? inv.callRealMethod() : null)
+                .when(failing).getTemplate(anyString());
+        Field instance = TemplateData.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(null, failing);
+        try {
+            TemplateUnavailableException ex = assertThrows(TemplateUnavailableException.class,
+                    () -> new PublishForm("panel", params, PublishPage.class, null));
+
+            assertEquals(ContextType.PROVENANCE, ex.getContextType());
+            assertTrue(ex.getMessage().contains(String.valueOf(ex.getTemplateId())), ex.getMessage());
+        } finally {
+            instance.set(null, real);
+        }
+    }
+
+    @Test
+    void noticeForAnUnavailableTemplateNamesItWithoutTrustingItsId() {
+        TemplateUnavailableException ex = new TemplateUnavailableException(ContextType.PROVENANCE, "https://example.org/<script>x</script>");
+
+        tester.startComponentInPage(PublishForm.templateUnavailableNotice("panel", ex));
+        String html = tester.getLastResponseAsString();
+
+        assertTrue(html.contains("The provenance template of this form could not be loaded"), html);
+        assertTrue(html.contains("&lt;script&gt;"), html);
+        assertFalse(html.contains("<script>x"), html);
     }
 
     @Test

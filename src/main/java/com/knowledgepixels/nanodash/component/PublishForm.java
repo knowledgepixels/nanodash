@@ -1283,8 +1283,27 @@ public class PublishForm extends Panel {
         return label + Utils.getOriginNoteSuffix(ThingOrigins.getOriginNote(id)) + Utils.getUriSuffix(id);
     }
 
+    /**
+     * What a page shows in place of the form when one of the form's templates could not be
+     * loaded (see {@link TemplateUnavailableException}).
+     *
+     * @param id the Wicket ID of the form's place on the page
+     * @param ex what building the form failed with
+     * @return the notice
+     */
+    public static Component templateUnavailableNotice(String id, TemplateUnavailableException ex) {
+        logger.warn("Not showing a publish form: {}", ex.getMessage());
+        return new Label(id, "<p class=\"negative\">Error: The " + ex.getKind() + " template of this form could not be loaded: "
+                + org.apache.wicket.util.string.Strings.escapeMarkup(String.valueOf(ex.getTemplateId()))
+                + ". It might be invalid or temporarily unavailable.</p>").setEscapeModelStrings(false);
+    }
+
     private TemplateContext newContext(ContextType contextType, String templateId, String componentId) {
         TemplateContext context = new TemplateContext(contextType, templateId, componentId, targetNamespace);
+        // A template that is not one, or that cannot be fetched right now. Without this, the
+        // form went on with a context that has no template, and failed on it further down
+        // with a NullPointerException.
+        if (context.getTemplate() == null) throw new TemplateUnavailableException(contextType, templateId);
         context.setNavigationContextId(navigationContextId);
         return context;
     }
