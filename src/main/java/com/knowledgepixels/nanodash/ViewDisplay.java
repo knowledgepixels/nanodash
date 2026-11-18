@@ -34,8 +34,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
     private Set<String> appliesTo = new HashSet<>();
     private Set<IRI> appliesToClasses = new HashSet<>();
     private Set<IRI> appliesToNamespaces = new HashSet<>();
-    // Whose nanopublications must define a part for this display to apply to it
-    // (gen:hasPartDefinitionTier); null = the owning space's rule.
+    // Whose nanopublications may define a part for this display to apply to it, where that
+    // is more than the owning space allows (gen:hasPartDefinitionTier); null = the space's rule.
     private IRI partDefinitionTier;
     private IRI resource;
     private boolean presetDerived = false;
@@ -283,8 +283,8 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
 
     /**
      * The tier this display requires of the nanopublication defining a part
-     * ({@code gen:hasPartDefinitionTier}), overriding the owning space's rule for this
-     * display alone; null when the display declares none.
+     * ({@code gen:hasPartDefinitionTier}), lowering the owning space's rule for this
+     * display alone (see {@link #acceptsPartDefinition}); null when the display declares none.
      *
      * @return the declared tier IRI, or null
      */
@@ -298,13 +298,22 @@ public class ViewDisplay implements Serializable, Comparable<ViewDisplay> {
      * owning resource requires of every definition. So a display declaring
      * {@code gen:EveryoneRole} accepts a part defined by anyone, including the nanopublication
      * that minted its IRI, while the other displays of the same space keep its rule.
+     * <p>
+     * A display can only lower the bar. A tier at or above the owning resource's counts as
+     * none: the definition a part page shows is the newest one the owning resource accepts,
+     * whoever among those it accepts signed it, so requiring more of it here would not pick
+     * a better-signed definition but let the lowest-ranking of them take the display off
+     * the page by publishing a newer one.
      *
      * @param signerRank the rank of the definition's signer (see {@code PartDefinition})
      * @param baseRank   the rank the owning resource requires when the display declares no tier
      * @return true if the definition is good enough for this display
      */
     public boolean acceptsPartDefinition(int signerRank, int baseRank) {
-        int required = partDefinitionTier != null ? TierRanks.partDefinitionRank(partDefinitionTier) : baseRank;
+        int required = baseRank;
+        if (partDefinitionTier != null) {
+            required = Math.min(baseRank, TierRanks.partDefinitionRank(partDefinitionTier));
+        }
         return signerRank >= required;
     }
 

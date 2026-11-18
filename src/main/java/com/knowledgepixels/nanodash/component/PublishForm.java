@@ -735,9 +735,8 @@ public class PublishForm extends Panel {
                     // On a part page, the nanopub the page shows is resolved before any view
                     // runs, so a publication that introduces the part is invisible until that
                     // lookup is re-run — the view queries are all keyed on the old one (#622).
-                    String partRefresh = PostPublishRefresh.partDefinitionRefreshTarget(
-                            signedNp, pageParams.get("part").toString(""), contextId);
-                    if (partRefresh != null) {
+                    for (String partRefresh : PostPublishRefresh.partDefinitionRefreshTargets(
+                            signedNp, pageParams.get("part").toString(""), contextId)) {
                         WicketApplication.get().notifyNanopubPublished(signedNp, partRefresh, 5 * 1000);
                     }
                     if (pageParams.get("postpub-redirect-url").isEmpty() && confirmPageClass == null) {

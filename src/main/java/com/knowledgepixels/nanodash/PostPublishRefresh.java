@@ -8,8 +8,11 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
+import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,7 +27,7 @@ import java.util.Set;
  * resource shows, and who may see them.
  * <p>
  * A part page has one more thing to invalidate: the lookup that decides which nanopub the
- * page shows in the first place — see {@link #partDefinitionRefreshTarget}.
+ * page shows in the first place — see {@link #partDefinitionRefreshTargets}.
  */
 public class PostPublishRefresh {
 
@@ -170,29 +173,36 @@ public class PostPublishRefresh {
     }
 
     /**
-     * The part-definition lookup a publication invalidates, or null when it invalidates none.
+     * The part-definition lookups a publication invalidates; none when it invalidates none.
      * <p>
      * A part page does not read the nanopub it shows from any of the view queries: it
-     * resolves it first, through {@link ViewDataFetcher#partDefinitionQueryRef} (the newest
-     * definition of the term among the members' keys), and then hands that nanopub to every
-     * view as their {@code …Np} parameter. A publication that introduces the part being
-     * viewed — an override of its definition, say (docs/fill-modes.md) — is a new, newer
-     * definition, so it changes the answer to that lookup. Re-running the view queries
-     * cannot show it: they are all keyed on the nanopub the lookup returned before. The
-     * lookup itself is what has to be cleared.
+     * resolves it first, through {@link PartDefinition} (the newest definition of the term
+     * among the members' keys, or, where a view display opens itself to a lower tier, among
+     * that tier's keys or the latest version of the nanopublication that minted the part),
+     * and then hands that nanopub to every view as their {@code …Np} parameter. A
+     * publication that introduces the part being viewed — an override of its definition,
+     * say (docs/fill-modes.md), or a contributor's new version of their own contribution —
+     * is a new, newer definition, so it changes the answer to one of those lookups.
+     * Re-running the view queries cannot show it: they are all keyed on the nanopub the
+     * resolution returned before. The lookups themselves are what has to be cleared, and all
+     * of them, since which one answers depends on who signed.
      *
      * @param np        the just-published nanopub
      * @param partId    the {@code part} page parameter, i.e. the part being viewed, or empty
      * @param contextId the id of the context resource whose page is being returned to
-     * @return the query ref to invalidate, as a refresh target, or null
+     * @return the query refs to invalidate, as refresh targets; possibly none
      */
-    public static String partDefinitionRefreshTarget(Nanopub np, String partId, String contextId) {
-        if (np == null || partId == null || partId.isEmpty()) return null;
-        if (contextId == null || contextId.isEmpty() || partId.equals(contextId)) return null;
-        if (!NanopubUtils.getIntroducedIriIds(np).contains(partId)) return null;
+    public static List<String> partDefinitionRefreshTargets(Nanopub np, String partId, String contextId) {
+        if (np == null || partId == null || partId.isEmpty()) return List.of();
+        if (contextId == null || contextId.isEmpty() || partId.equals(contextId)) return List.of();
+        if (!NanopubUtils.getIntroducedIriIds(np).contains(partId)) return List.of();
         AbstractResourceWithProfile resource = AbstractResourceWithProfile.get(contextId);
-        if (resource == null) return null;
-        return ViewDataFetcher.partDefinitionQueryRef(partId, contextId, resource).getAsUrlString();
+        if (resource == null) return List.of();
+        List<String> targets = new ArrayList<>();
+        for (QueryRef lookup : PartDefinition.lookupRefs(partId, contextId, resource)) {
+            targets.add(lookup.getAsUrlString());
+        }
+        return targets;
     }
 
     /**

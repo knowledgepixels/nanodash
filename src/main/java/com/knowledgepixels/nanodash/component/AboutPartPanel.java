@@ -84,7 +84,8 @@ public class AboutPartPanel extends Panel {
         infoParams.put("context", context.getId());
         // The same keys the part page resolves the part's definition with, so the Info view
         // cannot describe a different nanopublication than the page shows.
-        for (String pubkey : definitionPubkeys) {
+        // Never none of them, which the query would take as no restriction at all.
+        for (String pubkey : ViewDataFetcher.restrictingPubkeys(definitionPubkeys)) {
             infoParams.put("pubkey", pubkey);
         }
         add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());

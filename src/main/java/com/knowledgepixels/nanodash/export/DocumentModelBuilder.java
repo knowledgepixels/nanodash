@@ -87,9 +87,11 @@ public final class DocumentModelBuilder {
                 partId = id;
                 // One resolution for the classes, the nanopub and the rank its signer has, so
                 // the document lists the views the part page renders (see PartDefinition).
-                PartDefinition definition = PartDefinition.resolve(id, contextId, resource);
-                partClasses = PartDefinition.declaredClassesOf(definition.nanopub(), id);
-                nanopubRef = definition.exists() ? definition.nanopubId() : "x:";
+                // Among displays fetched here, like those the sections are built from below:
+                // the ones the resource has loaded may not be there yet for this request.
+                PartDefinition definition = PartDefinition.resolve(id, contextId, resource, resource.fetchViewDisplaysSync());
+                partClasses = PartDefinition.classesOf(definition.nanopub(), id);
+                nanopubRef = definition.nanopubRef();
                 definitionRank = definition.signerRank();
             }
             default -> throw new IllegalArgumentException("Unknown type: " + type);

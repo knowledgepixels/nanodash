@@ -528,6 +528,20 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         return filterViewDisplays(getViewDisplays(), false, resourceId, classes, definitionRank);
     }
 
+    /**
+     * The part-level view displays for a part among the given displays of this resource,
+     * rather than among those it has loaded: for a caller that fetched them itself, or that
+     * has to answer for one consistent set of them (see {@link PartDefinition#resolve}).
+     *
+     * @param source     this resource's view displays, as fetched (newest first)
+     * @param resourceId the part IRI
+     * @param classes    the classes its definition gives it
+     * @return the applicable view displays, sorted by structural position
+     */
+    public List<ViewDisplay> getPartLevelViewDisplays(List<ViewDisplay> source, String resourceId, Set<IRI> classes) {
+        return filterViewDisplays(source, false, resourceId, classes);
+    }
+
     private List<ViewDisplay> getViewDisplays(boolean toplevel, String resourceId, Set<IRI> classes) {
         triggerDataUpdate();
         return filterViewDisplays(getViewDisplays(), toplevel, resourceId, classes);
@@ -554,6 +568,8 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     private List<ViewDisplay> filterViewDisplays(List<ViewDisplay> source, boolean toplevel, String resourceId, Set<IRI> classes, int definitionRank) {
         // Only asked when a definition's rank is to be checked: it reads the space's tier.
         Integer baseRank = definitionRank == Integer.MAX_VALUE ? null : PartDefinition.baseRank(this);
+        // What the part is whoever defines it: no class but an agent's being one.
+        Set<IRI> undefinedClasses = baseRank == null ? null : PartDefinition.classesOf(null, resourceId);
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
 
@@ -575,7 +591,13 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                 // Deprecated
                 // do nothing
             } else if (vd.appliesTo(resourceId, classes)) {
-                if (baseRank == null || vd.acceptsPartDefinition(definitionRank, baseRank)) {
+                // A definition signed below what the display requires gives the part nothing
+                // as far as this display is concerned. So the display renders only if it
+                // applies to the part without that definition too -- by explicit target, by
+                // namespace, or to an agent -- as it does for a part with no definition at
+                // all: opening another display to a lower tier takes none of these away.
+                if (baseRank == null || vd.acceptsPartDefinition(definitionRank, baseRank)
+                        || vd.appliesTo(resourceId, undefinedClasses)) {
                     viewDisplays.add(vd);
                 }
             } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
@@ -613,14 +635,26 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * @return the applicable view displays, sorted by structural position
      */
     public List<ViewDisplay> fetchViewDisplaysSync(String partId, Set<IRI> partClasses, int definitionRank) {
+        boolean toplevel = (partId == null);
+        return filterViewDisplays(fetchViewDisplaysSync(), toplevel,
+                toplevel ? getId() : partId, toplevel ? getOwnClasses() : partClasses,
+                toplevel ? Integer.MAX_VALUE : definitionRank);
+    }
+
+    /**
+     * Fetches all of this resource's view displays synchronously from the API, bypassing the
+     * async singleton data: whatever they apply to, deactivated and outdated ones included,
+     * newest first. What a part's definition is resolved among where the answer is needed
+     * within the current request (see {@link PartDefinition#resolve}).
+     *
+     * @return the view displays, as fetched
+     */
+    public List<ViewDisplay> fetchViewDisplaysSync() {
         String vdRefRoot = getViewDisplayRefRoot();
         QueryRef vdQuery = (vdRefRoot != null && !vdRefRoot.isEmpty())
                 ? viewDisplaysRefQueryRef(vdRefRoot)
                 : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
-        boolean toplevel = (partId == null);
-        return filterViewDisplays(buildViewDisplays(vdQuery), toplevel,
-                toplevel ? getId() : partId, toplevel ? getOwnClasses() : partClasses,
-                toplevel ? Integer.MAX_VALUE : definitionRank);
+        return buildViewDisplays(vdQuery);
     }
 
     /**
@@ -827,16 +861,6 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     public boolean hasPartSpecificDisplay(String partId, Set<IRI> classes) {
         for (ViewDisplay v : getPartLevelViewDisplays(partId, classes)) {
             if (!v.appliesTo(getId(), getOwnClasses())) return true;
-        }
-        return false;
-    }
-
-    public boolean appliesTo(String elementId, Set<IRI> classes) {
-        triggerDataUpdate();
-        for (ViewDisplay v : getViewDisplays()) {
-            if (v.appliesTo(elementId, classes)) {
-                return true;
-            }
         }
         return false;
     }
