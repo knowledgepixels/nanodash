@@ -10,6 +10,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.IRI;
 import org.nanopub.extra.services.QueryRef;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,6 +58,21 @@ public class AboutPartPanel extends Panel {
      *                    resource's views are shown on this part)
      */
     public AboutPartPanel(String id, AbstractResourceWithProfile context, String partId, Set<IRI> partClasses) {
+        this(id, context, partId, partClasses, ViewDataFetcher.partDefinitionPubkeys(context.getId(), context));
+    }
+
+    /**
+     * As {@link #AboutPartPanel(String, AbstractResourceWithProfile, String, Set)}, with the keys
+     * the part page resolved the part's definition among (see {@code PartDefinition}), so the
+     * Info view describes the same nanopublication even where a display let a lower tier define it.
+     *
+     * @param id                the component id
+     * @param context           the owning resource
+     * @param partId            the part IRI
+     * @param partClasses       the part's own RDF types
+     * @param definitionPubkeys the public key hashes the part's definition was looked up among
+     */
+    public AboutPartPanel(String id, AbstractResourceWithProfile context, String partId, Set<IRI> partClasses, List<String> definitionPubkeys) {
         super(id);
 
         // Info: the part's type / owning resource / defining nanopub, read from the
@@ -68,7 +84,8 @@ public class AboutPartPanel extends Panel {
         infoParams.put("context", context.getId());
         // The same keys the part page resolves the part's definition with, so the Info view
         // cannot describe a different nanopublication than the page shows.
-        for (String pubkey : ViewDataFetcher.partDefinitionPubkeys(context.getId(), context)) {
+        // Never none of them, which the query would take as no restriction at all.
+        for (String pubkey : ViewDataFetcher.restrictingPubkeys(definitionPubkeys)) {
             infoParams.put("pubkey", pubkey);
         }
         add(QueryResultTableBuilder.create("info", new QueryRef(infoView.getQuery().getQueryId(), infoParams), new ViewDisplay(infoView)).resourceWithProfile(context).id(context.getId()).contextId(context.getId()).build());

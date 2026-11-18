@@ -9,9 +9,6 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.nanopub.Nanopub;
 import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
@@ -19,9 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Synchronous access to a resource's view displays and their query results,
@@ -123,58 +118,41 @@ public final class ViewDataFetcher {
     }
 
     /**
-     * Resolves the classes of a part (mirrors ResourcePartPage logic).
-     *
-     * @param partId    the part IRI
-     * @param contextId the context resource IRI
-     * @param resource  the resolved context resource
-     * @return the part's classes (possibly empty)
+     * A key hash no nanopublication is signed with. The definitions lookup takes an empty
+     * key list as no restriction at all, so where there are no keys to restrict it to, this
+     * one stands in for them and the lookup finds nothing, rather than anybody's
+     * nanopublication.
      */
-    public static Set<IRI> resolvePartClasses(String partId, String contextId, AbstractResourceWithProfile resource) {
-        Set<IRI> classes = new HashSet<>();
-        String nanopubId = resolvePartNanopubId(partId, contextId, resource);
-        if (nanopubId != null) {
-            Nanopub nanopub = Utils.getAsNanopub(nanopubId);
-            if (nanopub != null) {
-                for (Statement st : nanopub.getAssertion()) {
-                    if (st.getSubject().stringValue().equals(partId) && st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
-                        classes.add(objIri);
-                    }
-                }
-            }
+    public static final String NO_PUBKEY = "none";
+
+    /**
+     * The given keys as a restriction that also holds when there are none of them (see
+     * {@link #NO_PUBKEY}).
+     *
+     * @param pubkeys the public key hashes whose nanopublications count, possibly none
+     * @return the same keys, or the one matching nothing
+     */
+    public static List<String> restrictingPubkeys(List<String> pubkeys) {
+        if (pubkeys == null || pubkeys.isEmpty()) {
+            List<String> none = new ArrayList<>();
+            none.add(NO_PUBKEY);
+            return none;
         }
-        return classes;
+        return pubkeys;
     }
 
     /**
-     * Resolves the nanopub ref for a part (used as query param), returning "x:" if not found.
+     * The definitions lookup for a part among the given keys, newest first: the query the
+     * part page resolves the nanopub it shows through ({@link PartDefinition}), restricted to
+     * those keys even where there are none.
      *
-     * @param partId    the part IRI
-     * @param contextId the context resource IRI
-     * @param resource  the resolved context resource
-     * @return the nanopub ID, or "x:"
-     */
-    public static String resolvePartNanopubRef(String partId, String contextId, AbstractResourceWithProfile resource) {
-        String npId = resolvePartNanopubId(partId, contextId, resource);
-        return npId != null ? npId : "x:";
-    }
-
-    /**
-     * The lookup a part page resolves the nanopub it shows through: the definitions of the
-     * part's term, restricted to the approved keys of the owning resource's members (or of
-     * the owning user), newest first. The one query behind both {@link #resolvePartNanopubId}
-     * and {@link com.knowledgepixels.nanodash.page.ResourcePartPage}, so the two cannot drift
-     * apart — and the entry to invalidate when a new definition is published
-     * ({@link PostPublishRefresh#partDefinitionRefreshTarget}).
-     *
-     * @param partId    the part IRI
-     * @param contextId the context resource IRI
-     * @param resource  the resolved context resource
+     * @param partId  the part IRI
+     * @param pubkeys the public key hashes whose definitions count
      * @return the query reference
      */
-    public static QueryRef partDefinitionQueryRef(String partId, String contextId, AbstractResourceWithProfile resource) {
+    public static QueryRef partDefinitionQueryRef(String partId, List<String> pubkeys) {
         QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", partId);
-        for (String pubkey : partDefinitionPubkeys(contextId, resource)) {
+        for (String pubkey : restrictingPubkeys(pubkeys)) {
             getDefQuery.getParams().put("pubkey", pubkey);
         }
         return getDefQuery;
@@ -199,34 +177,30 @@ public final class ViewDataFetcher {
      * @return the public key hashes (possibly empty)
      */
     public static List<String> partDefinitionPubkeys(String contextId, AbstractResourceWithProfile resource) {
-        List<String> pubkeys = new ArrayList<>();
         Space space = resource.getSpace();
         if (space != null) {
-            int minTier = space.getPartDefinitionTierRank();
-            for (IRI userIri : space.getUsers()) {
-                if (space.userTier(userIri) < minTier) continue;
-                pubkeys.addAll(User.getUserData().getPubkeyHashes(userIri, true));
-            }
-        } else {
-            pubkeys.addAll(User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true));
+            return partDefinitionPubkeys(space, space.getPartDefinitionTierRank());
         }
-        return pubkeys;
+        return new ArrayList<>(User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true));
     }
 
     /**
-     * Looks up the nanopub ID for a part's term definition (mirrors ResourcePartPage logic).
+     * The approved public keys of a space's role-holders at the given rank or above. A rank
+     * below {@link SpaceMemberRole#EVERYONE_RANK} gives the same keys as that one: everyone
+     * beyond the role-holders has no key list, and is reached through the nanopublication
+     * minting a part instead (see {@link PartDefinition}).
      *
-     * @param partId    the part IRI
-     * @param contextId the context resource IRI
-     * @param resource  the resolved context resource
-     * @return the nanopub ID, or null
+     * @param space   the space
+     * @param minRank the lowest rank whose keys count
+     * @return the public key hashes (possibly empty)
      */
-    public static String resolvePartNanopubId(String partId, String contextId, AbstractResourceWithProfile resource) {
-        ApiResponse resp = ApiCache.retrieveResponseSync(partDefinitionQueryRef(partId, contextId, resource), false);
-        if (resp != null && !resp.getData().isEmpty()) {
-            return resp.getData().iterator().next().get("np");
+    public static List<String> partDefinitionPubkeys(Space space, int minRank) {
+        List<String> pubkeys = new ArrayList<>();
+        for (IRI userIri : space.getUsers()) {
+            if (space.userTier(userIri) < minRank) continue;
+            pubkeys.addAll(User.getUserData().getPubkeyHashes(userIri, true));
         }
-        return null;
+        return pubkeys;
     }
 
 }

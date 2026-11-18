@@ -314,18 +314,16 @@ public class ExplorePage extends NanodashPage {
             if (contextResource instanceof IndividualAgent && !IndividualAgent.isUser(contextId)) {
                 contextResource = null;
             }
-            // A plain (non-trusty) term IRI doesn't resolve to a nanopub by itself; look
-            // up its defining nanopub among those signed by the context's space members,
-            // the same way ResourcePartPage does.
+            // A plain (non-trusty) term IRI doesn't resolve to a nanopub by itself; take
+            // the nanopub the context accepts as its definition, the same way
+            // ResourcePartPage does. Resolved once here, for this and for the forwarding
+            // decision below, and only when one of the two needs it.
+            PartDefinition definition = null;
             Nanopub termNp = np;
             if (termNp == null && contextResource != null) {
-                QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(tempRef, contextId, contextResource);
-                ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
-                if (getDefResp != null && !getDefResp.getData().isEmpty()) {
-                    termNp = Utils.getAsNanopub(getDefResp.getData().iterator().next().get("np"));
-                }
+                definition = PartDefinition.resolve(tempRef, contextId, contextResource);
+                termNp = definition.nanopub();
             }
-            Set<IRI> classes = new HashSet<>();
             if (termNp != null) {
                 Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(termNp);
                 if (introducedIds.size() == 1 && introducedIds.iterator().next().equals(tempRef)) {
@@ -335,14 +333,23 @@ public class ExplorePage extends NanodashPage {
                             String resourceId = st.getObject().stringValue();
                             if (MaintainedResourceRepository.get().findById(resourceId) == null) continue;
                             throw new RestartResponseException(ResourcePartPage.class, parameters);
-                        } else if (st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
-                            classes.add(objIri);
                         }
                     }
                 }
             }
-            if (contextResource != null && contextResource.appliesTo(tempRef, classes)) {
-                throw new RestartResponseException(ResourcePartPage.class, parameters);
+            // Forward only where the part page would render a view: with the definition the
+            // context accepts for the part and the displays accepting its signer, as the part
+            // page resolves them (PartDefinition). Reading the classes off the nanopub that
+            // minted the IRI instead forwarded contributions by people without a role in the
+            // context to a part page that then found no definition and showed nothing.
+            if (contextResource != null) {
+                if (definition == null) {
+                    definition = PartDefinition.resolve(tempRef, contextId, contextResource);
+                }
+                Set<IRI> partClasses = PartDefinition.declaredClassesOf(definition.nanopub(), tempRef);
+                if (contextResource.appliesTo(tempRef, partClasses, definition.signerRank())) {
+                    throw new RestartResponseException(ResourcePartPage.class, parameters);
+                }
             }
         }
 

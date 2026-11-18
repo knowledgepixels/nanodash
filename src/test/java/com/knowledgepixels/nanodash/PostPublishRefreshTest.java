@@ -31,6 +31,8 @@ class PostPublishRefreshTest {
     private static final String PART_ID = "https://w3id.org/np/RAppppppppppppppppppppppppppppppppppppppppppp/a-talk";
     private static final QueryRef PART_LOOKUP =
             new QueryRef("RAddddddddddddddddddddddddddddddddddddddddddd/get-term-definitions", "term", PART_ID);
+    private static final QueryRef PART_LATEST_VERSION =
+            new QueryRef("RAlllllllllllllllllllllllllllllllllllllllllll/get-latest-thing-nanopub", "thing", PART_ID);
 
     private static Nanopub withType(IRI type) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         NanopubCreator creator = TestUtils.getNanopubCreator();
@@ -174,42 +176,43 @@ class PostPublishRefreshTest {
     }
 
     @Test
-    @DisplayName("a publication introducing the part being viewed invalidates the part's definition lookup")
-    void introducingThePartRefreshesItsLookup() throws Exception {
+    @DisplayName("a publication introducing the part being viewed invalidates every lookup its definition is resolved through")
+    void introducingThePartRefreshesItsLookups() throws Exception {
         try (MockedStatic<AbstractResourceWithProfile> resources = mockStatic(AbstractResourceWithProfile.class);
-             MockedStatic<ViewDataFetcher> fetcher = mockStatic(ViewDataFetcher.class)) {
+             MockedStatic<PartDefinition> definitions = mockStatic(PartDefinition.class)) {
             resources.when(() -> AbstractResourceWithProfile.get(SPACE_ID)).thenReturn(mock(AbstractResourceWithProfile.class));
-            fetcher.when(() -> ViewDataFetcher.partDefinitionQueryRef(anyString(), anyString(), any())).thenReturn(PART_LOOKUP);
+            definitions.when(() -> PartDefinition.lookupRefs(anyString(), anyString(), any()))
+                    .thenReturn(List.of(PART_LOOKUP, PART_LATEST_VERSION));
 
-            assertEquals(PART_LOOKUP.getAsUrlString(),
-                    PostPublishRefresh.partDefinitionRefreshTarget(introducing(PART_ID), PART_ID, SPACE_ID));
+            assertEquals(List.of(PART_LOOKUP.getAsUrlString(), PART_LATEST_VERSION.getAsUrlString()),
+                    PostPublishRefresh.partDefinitionRefreshTargets(introducing(PART_ID), PART_ID, SPACE_ID));
         }
     }
 
     @Test
-    @DisplayName("a publication introducing something else leaves the part's definition lookup alone")
+    @DisplayName("a publication introducing something else leaves the part's definition lookups alone")
     void introducingSomethingElseRefreshesNothing() throws Exception {
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(
                 introducing("https://w3id.org/np/RAppppppppppppppppppppppppppppppppppppppppppp/another-talk"),
-                PART_ID, SPACE_ID));
+                PART_ID, SPACE_ID).isEmpty());
     }
 
     @Test
     @DisplayName("no part in view, no part-definition lookup to invalidate")
     void noPartMeansNoRefresh() throws Exception {
         Nanopub np = introducing(PART_ID);
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(np, "", SPACE_ID));
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(np, null, SPACE_ID));
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(np, PART_ID, ""));
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(np, "", SPACE_ID).isEmpty());
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(np, null, SPACE_ID).isEmpty());
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(np, PART_ID, "").isEmpty());
         // The resource's own page is not a part page.
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(np, SPACE_ID, SPACE_ID));
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(null, PART_ID, SPACE_ID));
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(np, SPACE_ID, SPACE_ID).isEmpty());
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(null, PART_ID, SPACE_ID).isEmpty());
     }
 
     @Test
     @DisplayName("an unknown context resolves to no lookup rather than failing")
     void unknownContextRefreshesNothing() throws Exception {
-        assertNull(PostPublishRefresh.partDefinitionRefreshTarget(introducing(PART_ID), PART_ID, "https://example.org/not-a-resource"));
+        assertTrue(PostPublishRefresh.partDefinitionRefreshTargets(introducing(PART_ID), PART_ID, "https://example.org/not-a-resource").isEmpty());
     }
 
 }

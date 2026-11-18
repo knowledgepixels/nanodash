@@ -655,7 +655,9 @@ public class Space extends AbstractResourceWithProfile {
      * space's root definition with {@code gen:hasPartDefinitionTier} — which an admin signs,
      * so the space itself says who may describe what it contains. Undeclared spaces keep
      * Nanodash's original rule, every role-holder counting, which is
-     * {@link SpaceMemberRole#EVERYONE_RANK}: no filtering.
+     * {@link SpaceMemberRole#EVERYONE_RANK}: no filtering. {@code gen:EveryoneRole} goes
+     * further, to {@link TierRanks#ANYONE}: where no role-holder defines a part,
+     * the nanopublication that minted its IRI does (see {@code PartDefinition}).
      * <p>
      * Read from the representative ref's root definition, like the rest of
      * {@code readCoreData}; a {@code ?root=}-pinned page does not scope this.
@@ -663,7 +665,7 @@ public class Space extends AbstractResourceWithProfile {
      * @return the minimum tier rank, or the "everyone" floor when none is declared
      */
     public int getPartDefinitionTierRank() {
-        return SpaceMemberRole.tierRank(partDefinitionTier);
+        return TierRanks.partDefinitionRank(partDefinitionTier);
     }
 
     @Override

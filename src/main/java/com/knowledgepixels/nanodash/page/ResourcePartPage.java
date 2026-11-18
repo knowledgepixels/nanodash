@@ -1,10 +1,9 @@
 package com.knowledgepixels.nanodash.page;
 
-import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.ViewDataFetcher;
+import com.knowledgepixels.nanodash.PartDefinition;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
@@ -27,11 +26,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.nanopub.Nanopub;
-import org.nanopub.extra.services.ApiResponse;
-import org.nanopub.extra.services.QueryRef;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -310,11 +306,10 @@ public class ResourcePartPage extends NanodashPage {
      * @return the defining nanopublication, or null if the resource is not a part of the context
      */
     private static Nanopub getPartDefinition(String resourceId, String contextId, AbstractResourceWithProfile resource) {
-        ApiResponse response = ApiCache.retrieveResponseSync(ViewDataFetcher.partDefinitionQueryRef(resourceId, contextId, resource), false);
-        if (response == null || response.getData().isEmpty()) {
-            return null;
-        }
-        return Utils.getAsNanopub(response.getData().iterator().next().get("np"));
+        // Through the same resolution as the page's own part, so that a parent the context
+        // takes as its part only because a display opens itself to a lower tier -- a
+        // contribution by someone without a role there, say -- is an ancestor all the same.
+        return PartDefinition.resolve(resourceId, contextId, resource).nanopub();
     }
 
     /**
@@ -348,17 +343,9 @@ public class ResourcePartPage extends NanodashPage {
      * @return the part's classes, possibly empty
      */
     static Set<IRI> getPartClasses(Nanopub definition, String partId, Predicate<String> isIndividualAgent) {
-        Set<IRI> classes = new HashSet<>();
+        Set<IRI> classes = PartDefinition.declaredClassesOf(definition, partId);
         if (isIndividualAgent.test(partId)) {
             classes.add(KPXL_TERMS.INDIVIDUAL_AGENT);
-        }
-        if (definition != null) {
-            for (Statement st : definition.getAssertion()) {
-                if (st.getSubject().stringValue().equals(partId) && st.getPredicate().equals(RDF.TYPE)
-                        && st.getObject() instanceof IRI objIri) {
-                    classes.add(objIri);
-                }
-            }
         }
         return classes;
     }
@@ -416,20 +403,26 @@ public class ResourcePartPage extends NanodashPage {
         };
         redirectIfRdfRequested(new RdfSource("part", id, contextId, List.of()));
 
-        QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(id, contextId, resourceWithProfile);
-        ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
-        if (getDefResp != null && !getDefResp.getData().isEmpty()) {
-            nanopubId = getDefResp.getData().iterator().next().get("np");
-
-            Nanopub nanopub = Utils.getAsNanopub(nanopubId);
-            definition = nanopub;
-            String declaredLabel = getDeclaredLabel(nanopub, id);
+        // Which definition the owning resource accepts depends on its view displays, which it
+        // loads asynchronously. Asking starts that load and waits briefly for the displays to
+        // be seeded from the cache; where they are still not there, what is resolved now can
+        // only follow the resource's own rule, and the panels below resolve again once they
+        // are built, by which time the displays have arrived. The heading stays as resolved
+        // here until the page is next requested.
+        final boolean displaysLoaded = resourceWithProfile.isDataInitialized();
+        // The definition the owning resource accepts for this part, and how highly its signer
+        // ranks there: what decides which part-level views render (see PartDefinition).
+        PartDefinition partDefinition = PartDefinition.resolve(id, contextId, resourceWithProfile);
+        nanopubId = partDefinition.nanopubId();
+        definition = partDefinition.nanopub();
+        if (definition != null) {
+            String declaredLabel = getDeclaredLabel(definition, id);
             if (declaredLabel != null) {
                 label = declaredLabel;
             }
-        } else {
-            nanopubId = null;
         }
+        final int definitionRank = partDefinition.signerRank();
+        final List<String> definitionPubkeys = partDefinition.pubkeys();
         classes = getPartClasses(definition, id, ResourcePartPage::isIndividualAgent);
         // An agent's key introduction declares a foaf:name and no rdfs:label, so the name we
         // already know is what names the page; a caller's label (an ORCID number, say) is kept
@@ -480,7 +473,7 @@ public class ResourcePartPage extends NanodashPage {
         add(new ExternalLinkWithActionsPanel("id", Model.of(id), Model.of(label), nanopubId == null ? Values.iri(id) : Values.iri(nanopubId)));
         add(OwnPageLink.of("ownpagelink", id, label, resourceWithProfile));
 
-        final String nanopubRef = nanopubId == null ? "x:" : nanopubId;
+        final String nanopubRef = partDefinition.nanopubRef();
         WebMarkupContainer contentContainer = new WebMarkupContainer("contentContainer");
         add(contentContainer);
         if (activeTab == ResourceTabs.Tab.ABOUT) {
@@ -488,7 +481,14 @@ public class ResourcePartPage extends NanodashPage {
             // The panel constructor resolves view nanopubs over the network when they
             // aren't freshly cached, which would block the initial page render; the
             // view-id list must mirror the panel's View.get calls.
-            add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes),
+            add(LazyContentPanel.of("otherTab", markupId -> {
+                        if (displaysLoaded) {
+                            return new AboutPartPanel(markupId, resourceWithProfile, id, classes, definitionPubkeys);
+                        }
+                        PartDefinition late = PartDefinition.resolve(id, contextId, resourceWithProfile);
+                        return new AboutPartPanel(markupId, resourceWithProfile, id,
+                                getPartClasses(late.nanopub(), id, ResourcePartPage::isIndividualAgent), late.pubkeys());
+                    },
                     AboutPartPanel.REQUIRED_VIEWS));
         } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
             contentContainer.setVisible(false);
@@ -501,11 +501,20 @@ public class ResourcePartPage extends NanodashPage {
             add(new DownloadLinks("otherTab", "part", id, resourceWithProfile.getId()));
         } else {
             add(new EmptyPanel("otherTab").setVisible(false));
+            // Built with the definition resolved above, or, where the displays were not
+            // loaded then, with one resolved when the list is built.
+            final LazyContentPanel.ContentFactory viewList = markupId -> {
+                if (displaysLoaded) {
+                    return new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes, definitionRank);
+                }
+                PartDefinition late = PartDefinition.resolve(id, contextId, resourceWithProfileModel.getObject());
+                return new ViewList(markupId, resourceWithProfileModel, id, late.nanopubRef(),
+                        getPartClasses(late.nanopub(), id, ResourcePartPage::isIndividualAgent), late.signerRank());
+            };
             if (resourceWithProfile.isDataInitialized()) {
-                contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile,
-                        markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes)));
+                contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile, viewList));
             } else {
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes)) {
+                contentContainer.add(new LazyContentPanel("views", viewList) {
 
                     @Override
                     protected boolean isContentReady() {

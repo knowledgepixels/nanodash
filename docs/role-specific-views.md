@@ -136,7 +136,7 @@ vocabulary to decide something else: **whose nanopublications count as definitio
 of its parts**.
 
 A part page does not read the nanopub it shows from a view. It resolves it first —
-`ResourcePartPage` → `ViewDataFetcher.partDefinitionQueryRef` → the published
+`ResourcePartPage` → `PartDefinition` → `ViewDataFetcher.partDefinitionQueryRef` → the published
 `get-term-definitions` query, with the approved public keys of the owning space's
 members — and then hands it to every view as their `…Np` parameter, besides taking
 the page's own title and `rdf:type`s from it. Historically that key list was *every*
@@ -162,6 +162,86 @@ the space). Where both exist they should agree — a space declaring the member 
 and a view resolving to the member tier — but they are two declarations, because a
 query can only read what nanopub-query materializes into the spaces state, and this
 one lives in the space's root definition.
+
+### Per display, and down to anyone: `gen:EveryoneRole`
+
+The same property can be put on a **view display**, lowering the space's rule for that
+display alone, the way a display overrides a view's page size or position:
+
+```turtle
+sub:display a gen:ViewDisplay, gen:ActivatedViewDisplay;
+  gen:isDisplayOfView <https://w3id.org/np/RA…/viewVersion>;
+  gen:isDisplayFor <https://w3id.org/spaces/example>;
+  gen:hasPartDefinitionTier gen:EveryoneRole .
+```
+
+The display then also renders for a part whose definition was signed at that tier or
+above; a display declaring none requires the space's own tier, so existing displays behave
+exactly as before. The tiers rank as for `gen:isVisibleTo`, and
+**`gen:EveryoneRole` means what it means there: anyone, role or not.** For a part whose
+IRI was minted inside a nanopublication (it carries that nanopublication's artifact code
+— a discourse contribution, a record made with a template), "anyone" is the nanopublication
+that minted it, in its latest **same-key** version: never a third party's nanopublication,
+so nobody can redefine someone else's part, and nothing changes for external IRIs such as
+DOIs, which have no minting nanopublication. The motivating case is a space showing a
+thread view on the page of every contribution in it, including those by people who hold
+no role there.
+
+Three limits of that:
+
+- **A display can only lower the bar.** A tier at or above the space's own counts as
+  none. The definition a part page shows is the newest one the space accepts, whoever
+  among those it accepts signed it; a display asking for more than the space does would
+  not get a better-signed definition, it would only disappear whenever the lowest-ranking
+  of them published a newer one. Who may define a space's parts at all is the space's
+  decision (`gen:hasPartDefinitionTier` in its root definition).
+- **The minting nanopublication has to introduce or describe the part**
+  (`npx:introduces`, `npx:describes`, as `get-latest-thing-nanopub` reads them). An IRI it
+  merely `npx:embeds` is not opened up this way, although among role-holders an embedding
+  nanopublication counts as a definition too (`get-term-definitions`). Where its versions
+  have forked into several latest ones, the most recently created counts.
+- **Nothing ties such a part to the space but the page's `context`.** A role-holder's
+  definition is the space's own word that something is its part; a display open to anyone
+  takes any minted IRI of a class it applies to. Scoping — to contributions about the
+  space, say — is the job of the view's query.
+
+Resolution (`PartDefinition`) keeps the space's rule first: the newest definition among
+its role-holders at its tier, as before. Only when that finds none are the lower tiers its
+displays declare tried, most restrictive first, and a definition found that way is taken
+only if a display accepting its signer's rank actually applies to the part — so opening
+one view to everybody's parts does not present everybody's nanopublications as the space's
+parts elsewhere (their page heading, the About tab). A space can also declare
+`gen:EveryoneRole` itself, which opens all of its part views in this way.
+
+On the page of a part defined that way, the displays that did not open themselves to its
+definition's tier still render where they apply to the part whatever its definition says
+— by explicit target (`gen:appliesTo`), by namespace, or to an agent — exactly as they do
+for a part with no definition at all. What they do not get is what the definition
+declares: a display reaching the part only through a class it is typed with there needs
+the tier.
+
+The definitions lookup is never asked with an empty key list, which it would take as no
+restriction at all: where a space's role-holders or their approved keys cannot be read
+(or a user has none), nobody's nanopublication defines its parts rather than everybody's.
+
+`gen:EveryoneRole` in a space's root definition used to rank as "every role-holder", the
+same as declaring nothing; no space declared it. With an `ANYONE` rank below the
+role-holders (`TierRanks`), the two are now told apart.
+
+`PartDefinition` is the one resolution behind the part page, its breadcrumb's ancestors and
+its About tab (the Info view is handed the keys the definition was found among, or the
+minting nanopublication's signing key), the document export and RDF download, and the
+Explore page's forwarding to the part page — which now forwards only where a display would
+render, rather than whenever a class read off the minting nanopublication matched, which
+led contributions by people without a role in the context to a part page that showed
+nothing. A publication that redefines the part being viewed invalidates every lookup that
+resolution may go through (`PartDefinition.lookupRefs`), not only the space's own.
+
+Which displays a resource has is part of the answer, and a resource loads them
+asynchronously. The export and the download resolve among displays they fetch themselves,
+as they do for everything else; the part page and Explore ask for the loaded ones, waiting
+briefly for them to be seeded from the cache, and a part page built before they arrived
+resolves again when its panels are built (its heading catches up on the next request).
 
 ## Relationship to today's `ButtonList` routing
 
