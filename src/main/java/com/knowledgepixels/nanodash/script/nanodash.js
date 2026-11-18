@@ -465,7 +465,7 @@ function buildHomeSectionNav() {
 
 function topLevelSections() {
   var sections = [];
-  document.querySelectorAll(".view-group").forEach(function (group) {
+  groupsBelowTheFirst().forEach(function (group) {
     var groupSections = Array.prototype.filter.call(group.querySelectorAll(":scope > .listview[id]"), function (section) {
       return section.id && sectionHeading(section);
     });
@@ -475,6 +475,10 @@ function topLevelSections() {
     sections.push.apply(sections, headedSections.length ? headedSections : groupSections.slice(0, 1));
   });
   return sections;
+}
+
+function groupsBelowTheFirst() {
+  return Array.prototype.slice.call(document.querySelectorAll(".view-group"), 1);
 }
 
 function sectionHeading(section) {
