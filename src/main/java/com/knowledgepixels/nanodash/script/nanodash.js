@@ -455,6 +455,47 @@ function openOutboundLinksInNewTab() {
   });
 }
 
+function buildHomeSectionNav() {
+  var nav = document.querySelector("nav.home-section-nav");
+  if (!nav) return;
+  var links = topLevelSections().map(sectionNavLink);
+  nav.replaceChildren.apply(nav, links);
+  nav.hidden = links.length < 2;
+}
+
+function topLevelSections() {
+  var sections = [];
+  document.querySelectorAll(".view-group").forEach(function (group) {
+    var groupSections = Array.prototype.filter.call(group.querySelectorAll(":scope > .listview[id]"), function (section) {
+      return section.id && sectionHeading(section);
+    });
+    var headedSections = groupSections.filter(function (section) {
+      return sectionHeading(section).tagName === "H3";
+    });
+    sections.push.apply(sections, headedSections.length ? headedSections : groupSections.slice(0, 1));
+  });
+  return sections;
+}
+
+function sectionHeading(section) {
+  return section.querySelector(".view-header-titlerow > h3, .paneltitlerow > h3, .paneltitlerow > h4, h3, h4");
+}
+
+function sectionNavLink(section) {
+  var link = document.createElement("a");
+  link.href = "#" + section.id;
+  link.textContent = sectionTitle(sectionHeading(section));
+  return link;
+}
+
+function sectionTitle(heading) {
+  return Array.prototype.filter.call(heading.childNodes, function (node) {
+    return !(node.classList && node.classList.contains("section-anchor"));
+  }).map(function (node) {
+    return node.textContent;
+  }).join("").trim();
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   openOutboundLinksInNewTab();
   startTransientMessages();
@@ -462,6 +503,7 @@ document.addEventListener("DOMContentLoaded", function() {
   wrapCellEmoji();
   renderFriendlyDates();
   addSectionAnchors();
+  buildHomeSectionNav();
   addSvgZoomControls();
   adjustLongLiterals();
   startAnchorTracking();
@@ -473,6 +515,7 @@ document.addEventListener("DOMContentLoaded", function() {
       wrapCellEmoji();
       renderFriendlyDates();
       addSectionAnchors();
+      buildHomeSectionNav();
       addSvgZoomControls();
       adjustLongLiterals();
       scrollToAnchor();
