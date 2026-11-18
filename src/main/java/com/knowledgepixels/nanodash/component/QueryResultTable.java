@@ -415,8 +415,8 @@ public class QueryResultTable extends QueryResult {
                         }
                         cellItem.add(new ComponentSequence(componentId, ", ", components));
                     } else if (key.endsWith("template_iri")) {
-                        String label = rowModel.getObject().get(key + "_label");
-                        if (label == null || label.isBlank()) {
+                        String label = templateLinkLabel(value, rowModel.getObject().get(key + "_label"));
+                        if (label == null) {
                             label = truncateLabel(value);
                         }
                         String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(value) + "&template-version=latest";

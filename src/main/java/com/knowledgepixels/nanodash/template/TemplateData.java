@@ -116,6 +116,32 @@ public class TemplateData implements Serializable {
     }
 
     /**
+     * Returns the label of a template that is known here already, without fetching anything:
+     * from the template itself if it has been loaded, or else from the template listings. For
+     * showing a link to a template whose label a query did not provide, which would otherwise
+     * show the bare IRI.
+     *
+     * @param id the ID of the template, in either form accepted by {@link #getTemplate(String)}
+     * @return the template's label, or null if the template is not known here
+     */
+    public String getKnownTemplateLabel(String id) {
+        if (id == null || id.isBlank()) return null;
+        String npId = Utils.stripToNanopubId(id);
+        Template template = templateMap.get(id);
+        if (template == null) template = templateMap.get(npId);
+        if (template != null) return template.getLabel();
+        for (List<ApiResponseEntry> listing : List.of(assertionTemplates, provenanceTemplates, pubInfoTemplates)) {
+            for (ApiResponseEntry entry : listing) {
+                if (npId.equals(entry.get("np"))) {
+                    String label = entry.get("label");
+                    return label == null || label.isBlank() ? null : label;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns a Template object for the given template ID. The ID may be either
      * form: the nanopublication URI, or (for templates with embedded identity) the
      * embedded template-node IRI.

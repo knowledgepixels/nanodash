@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.UserPage;
+import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -600,6 +601,21 @@ public abstract class QueryResult extends Panel {
         String text = (label == null || label.isBlank() || label.equals(url)) ? "publish…" : label;
         String inner = Utils.looksLikeHtml(text) ? text : Strings.escapeMarkup(text).toString();
         return cellHtml("<a href=\"" + Strings.escapeMarkup(url) + "\">" + inner + "</a>");
+    }
+
+    /**
+     * The text of a link to a template from a {@code template_iri} column: the label from
+     * the sibling label column where there is one, else the template's own label if it is
+     * known here already (nothing is fetched for it), else null, for the caller to fall back
+     * on the IRI.
+     *
+     * @param templateId the template IRI from the cell
+     * @param label      the label from the sibling label column, or null
+     * @return the label to show, or null if none is known
+     */
+    protected static String templateLinkLabel(String templateId, String label) {
+        if (label != null && !label.isBlank() && !label.equals(templateId)) return label;
+        return TemplateData.get().getKnownTemplateLabel(templateId);
     }
 
     /**

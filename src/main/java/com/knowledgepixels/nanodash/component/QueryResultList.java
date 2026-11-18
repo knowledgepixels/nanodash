@@ -124,8 +124,8 @@ public class QueryResultList extends QueryResult {
                                     new Label("component", "<img class=\"user-icon\" src=\"" + imgSrc + "\" />").setEscapeModelStrings(false),
                                     new Label("component", linkHtml).setEscapeModelStrings(false))));
                         } else if (key.endsWith("template_iri")) {
-                            String templateLabel = entry.get(key + "_label");
-                            String displayLabel = templateLabel != null && !templateLabel.isBlank() ? templateLabel : entryValue;
+                            String templateLabel = templateLinkLabel(entryValue, entry.get(key + "_label"));
+                            String displayLabel = templateLabel != null ? templateLabel : entryValue;
                             String templateUrl = PublishPage.MOUNT_PATH + "?template=" + Utils.urlEncode(entryValue) + "&template-version=latest";
                             templateUrl += linkNavParams(templateUrl);
                             String linkHtml = "<a href=\"" + Strings.escapeMarkup(templateUrl) + "\">" + Strings.escapeMarkup(displayLabel) + "</a>";
