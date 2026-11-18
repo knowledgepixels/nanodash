@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.LazyContentPanel;
 import com.knowledgepixels.nanodash.component.ResultComponent;
-import com.knowledgepixels.nanodash.component.PageTitleMenu;
 import com.knowledgepixels.nanodash.component.RefreshingStructurePanel;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.component.ViewList;
@@ -19,6 +18,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.Strings;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * The home page of Nanodash, showing the views defined for the configured home resource.
@@ -61,39 +61,8 @@ public class HomePage extends NanodashPage {
 
         add(new TitleBar("titlebar", this));
         add(new Label("pagetitle", PAGE_TITLE));
-        final NanodashSession session = NanodashSession.get();
-        String v = WicketApplication.getThisVersion();
-        String lv = WicketApplication.getLatestVersion();
-        if (NanodashPreferences.get().isOrcidLoginMode()) {
-            add(new Label("warning", ""));
-        } else if (v.endsWith("-SNAPSHOT")) {
-            // The latest public version is not always known — GitHub may not have answered yet,
-            // or at all (issue #686) — and "the latest public version is null" says nothing.
-            String warning = "You are running a temporary snapshot version of Nanodash (" + v + ").";
-            if (lv != null) warning += " The latest public version is " + lv + ".";
-            add(new Label("warning", warning));
-        } else if (lv != null && !v.equals(lv)) {
-            add(new Label("warning", "There is a new version available: " + lv + ". You are currently using " + v + ". " +
-                                     "Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +
-                                     "<a href=\"" + WicketApplication.LATEST_RELEASE_URL + "\">here</a>.").setEscapeModelStrings(false));
-        } else {
-            add(new Label("warning", ""));
-        }
-        if (NanodashPreferences.get().isReadOnlyMode()) {
-            add(new Label("text", "This is a read-only instance, so you cannot publish new nanopublications here."));
-        } else if (NanodashSession.get().isProfileComplete()) {
-            add(new Label("text", ""));
-        } else if (NanodashPreferences.get().isOrcidLoginMode() && session.getUserIri() == null) {
-            String loginUrl = OrcidLoginPage.getOrcidLoginUrl(".");
-            add(new Label("text", "In order to see your own nanopublications and publish new ones, <a href=\"" + loginUrl + "\">login to ORCID</a> first.").setEscapeModelStrings(false));
-        } else {
-            // A logged-in user completes their profile on their own About page; only fall
-            // back to the profile page when there is no resolved user IRI yet.
-            String profileUrl = session.getUserIri() != null
-                    ? UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(session.getUserIri()) + "&tab=about"
-                    : ProfilePage.MOUNT_PATH;
-            add(new Label("text", "Before you can start, you first need to <a href=\"" + profileUrl + "\">complete your profile</a>.").setEscapeModelStrings(false));
-        }
+        add(hiddenWhenEmpty(new Label("warning", versionWarningHtml()).setEscapeModelStrings(false)));
+        add(hiddenWhenEmpty(new Label("notice", gettingStartedNoticeHtml()).setEscapeModelStrings(false)));
 
         setOutputMarkupId(true);
 
@@ -102,9 +71,6 @@ public class HomePage extends NanodashPage {
         // answer carries: the home page is the one page that must survive a query answer
         // coming back short of it (issue #623).
         final MaintainedResource homeResource = MaintainedResourceRepository.get().findLastKnownById(homeResourceId);
-
-        // Added before the branching below, which returns early on several paths.
-        add(PageTitleMenu.forResource("titlemenu", homeResource));
 
         // Rendered only for a genuine misconfiguration (see below): the resource
         // repository knows maintained resources, and the configured id is none of them.
@@ -179,6 +145,82 @@ public class HomePage extends NanodashPage {
             }
 
         });
+    }
+
+    /**
+     * Hides a label that has nothing to say, so an empty notice leaves no blank space behind.
+     *
+     * @param label the label to hide when its model is empty
+     * @return the same label
+     */
+    private static Component hiddenWhenEmpty(Component label) {
+        return label.setVisible(!label.getDefaultModelObjectAsString().isEmpty());
+    }
+
+    /**
+     * The warning about the running version: a snapshot build, or a newer public release.
+     *
+     * @return the warning as HTML, or an empty string when there is nothing to warn about
+     */
+    private static String versionWarningHtml() {
+        if (NanodashPreferences.get().isOrcidLoginMode()) return "";
+        String currentVersion = WicketApplication.getThisVersion();
+        String latestVersion = WicketApplication.getLatestVersion();
+        if (currentVersion.endsWith("-SNAPSHOT")) {
+            String warning = "You are running a temporary snapshot version of Nanodash (" + Strings.escapeMarkup(currentVersion) + ").";
+            if (latestVersion != null) warning += " The latest public version is " + Strings.escapeMarkup(latestVersion) + ".";
+            return warning;
+        }
+        if (latestVersion != null && !currentVersion.equals(latestVersion)) {
+            return "There is a new version available: " + Strings.escapeMarkup(latestVersion) + ". You are currently using " + Strings.escapeMarkup(currentVersion) + ". " +
+                   "Run 'update' (Unix/Mac) or 'update-under-windows.bat' (Windows) to update to the latest version, or manually download it " +
+                   "<a href=\"" + WicketApplication.LATEST_RELEASE_URL + "\">here</a>.";
+        }
+        return "";
+    }
+
+    /**
+     * The next step a visitor has to take before they can publish: log in, or complete their profile.
+     *
+     * @return the notice as HTML, or an empty string when the visitor is ready to publish
+     */
+    private static String gettingStartedNoticeHtml() {
+        NanodashSession session = NanodashSession.get();
+        if (NanodashPreferences.get().isReadOnlyMode()) {
+            return "This is a read-only instance, so you cannot publish new nanopublications here.";
+        }
+        if (session.isProfileComplete()) return "";
+        if (NanodashPreferences.get().isOrcidLoginMode() && session.getUserIri() == null) {
+            return callToActionHtml(OrcidLoginPage.getOrcidLoginUrl("."), "Log in with ORCID",
+                    "to see your own nanopublications and publish new ones.");
+        }
+        return callToActionHtml(profileUrl(session.getUserIri()), "Complete your profile",
+                "before you publish your first nanopublication.");
+    }
+
+    /**
+     * The page where a visitor completes their profile: their own About tab once they have a
+     * user IRI, the profile page otherwise.
+     *
+     * @param userIri the visitor's user IRI, or {@code null} when it is not resolved yet
+     * @return the URL of the page to complete the profile on
+     */
+    private static String profileUrl(IRI userIri) {
+        if (userIri == null) return ProfilePage.MOUNT_PATH;
+        return UserPage.MOUNT_PATH + "?id=" + Utils.urlEncode(userIri) + "&tab=about";
+    }
+
+    /**
+     * A button for the visitor's next step, followed by why they should take it.
+     *
+     * @param url         where the button leads
+     * @param buttonLabel the text on the button
+     * @param reason      what the step lets the visitor do
+     * @return the call to action as HTML
+     */
+    private static String callToActionHtml(String url, String buttonLabel, String reason) {
+        return "<a class=\"button\" href=\"" + Strings.escapeMarkup(url) + "\">" + buttonLabel + "</a> " +
+               "<span class=\"home-hero-notice-reason\">" + reason + "</span>";
     }
 
     /**

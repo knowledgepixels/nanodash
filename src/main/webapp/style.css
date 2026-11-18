@@ -4558,3 +4558,55 @@ a.source:hover {
     padding-left: 8px;
   }
 }
+.home-hero {
+  padding-top: 8px;
+}
+
+h1.home-hero-title {
+  font-size: 1.5em;
+  margin-top: 6mm;
+  margin-bottom: 2mm;
+}
+
+.home-hero-logo {
+  height: 2.4em;
+  vertical-align: middle;
+}
+
+.home-hero-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 16px 0;
+}
+
+.home-hero-notice .button {
+  margin: 0;
+}
+
+.home-section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 4px;
+  font-family: "Noto Emoji", Martian, monaco, monospace;
+  font-size: 10pt;
+}
+
+.home-section-nav a {
+  padding: 4px 12px;
+  border: 1px solid #c9d9ea;
+  border-radius: 999px;
+  background-color: #f3f7fb;
+  color: #0B73DA;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home-section-nav a:hover,
+.home-section-nav a:focus-visible {
+  background-color: #0B73DA;
+  border-color: #0B73DA;
+  color: #fff;
+}
