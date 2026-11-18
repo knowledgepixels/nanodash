@@ -274,7 +274,7 @@ public class ExplorePage extends NanodashPage {
                 params.put("thing", tempRef);
                 params.put("np", npId);
                 ApiResponse resp = ApiCache.retrieveResponseSync(new QueryRef(QueryApiAccess.GET_LATEST_THING_NANOPUB, params), false);
-                if (!resp.getData().isEmpty()) {
+                if (resp != null && !resp.getData().isEmpty()) {
                     // TODO We take the most recent in case more than one latest version exists. Make other latest versions visible too.
                     npId = resp.getData().getFirst().get("latestVersion");
                 }

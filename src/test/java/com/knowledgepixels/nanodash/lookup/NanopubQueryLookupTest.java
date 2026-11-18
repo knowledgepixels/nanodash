@@ -1,10 +1,28 @@
 package com.knowledgepixels.nanodash.lookup;
 
+import com.knowledgepixels.nanodash.ApiCache;
+import com.knowledgepixels.nanodash.GrlcQuery;
 import com.knowledgepixels.nanodash.QueryApiAccess;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.nanopub.extra.services.ApiResponseEntry;
+import org.nanopub.extra.services.QueryRef;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for how {@link NanopubQueryLookup} reads the description of a query result, and which
@@ -87,6 +105,27 @@ class NanopubQueryLookupTest {
     void aLegacyUrlRunsTheCurrentFindThings() {
         assertEquals(QueryApiAccess.FIND_THINGS, NanopubQueryLookup.queryId(
                 NanopubQueryLookup.LEGACY_FIND_THINGS_PREFIX + "type=x&searchterm="));
+    }
+
+    /**
+     * A lookup the query service doesn't answer fails as an I/O problem, so that it is logged
+     * without a stack trace, not cached, and counted against the API's reachability (issue #916).
+     */
+    @Test
+    void aLookupWithoutAnAnswerFailsWithAnIoException() {
+        GrlcQuery query = mock(GrlcQuery.class);
+        when(query.getEndpoint()).thenReturn(SimpleValueFactory.getInstance().createIRI("https://example.org/api/repo/full"));
+        when(query.getPlaceholdersList()).thenReturn(List.of());
+        List<String> values = new ArrayList<>();
+        try (MockedStatic<GrlcQuery> grlc = mockStatic(GrlcQuery.class);
+             MockedStatic<ApiCache> apiCache = mockStatic(ApiCache.class)) {
+            grlc.when(() -> GrlcQuery.get(anyString())).thenReturn(query);
+            apiCache.when(() -> ApiCache.retrieveResponseSync(any(QueryRef.class), anyBoolean())).thenReturn(null);
+
+            assertThrows(IOException.class, () -> new NanopubQueryLookup().lookUp(
+                    NanopubQueryLookup.QUERY_API_PREFIX + QueryApiAccess.FIND_THINGS, "term", new HashMap<>(), values));
+        }
+        assertTrue(values.isEmpty());
     }
 
 }

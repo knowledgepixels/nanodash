@@ -13,6 +13,7 @@ import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.extra.services.QueryTemplate;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -76,9 +77,11 @@ public class NanopubQueryLookup implements LookupApi {
 
     /**
      * {@inheritDoc}
+     *
+     * @throws IOException if the query service doesn't answer
      */
     @Override
-    public void lookUp(String apiUrl, String searchTerm, Map<String, String> labels, List<String> values) {
+    public void lookUp(String apiUrl, String searchTerm, Map<String, String> labels, List<String> values) throws IOException {
         String queryId = queryId(apiUrl);
         GrlcQuery query = GrlcQuery.get(queryId);
         if (query.getEndpoint().stringValue().endsWith("/text")) {
@@ -87,6 +90,9 @@ public class NanopubQueryLookup implements LookupApi {
         Multimap<String, String> params = urlParams(apiUrl);
         params.replaceValues(searchParamName(query), List.of(searchTerm));
         ApiResponse response = ApiCache.retrieveResponseSync(new QueryRef(queryId, params), false);
+        if (response == null) {
+            throw new IOException("No answer from the query service for " + queryId);
+        }
         List<String> found = new ArrayList<>();
         for (ApiResponseEntry entry : newestFirst(response.getData())) {
             if (values.size() >= MAX_RESULTS) break;
