@@ -123,7 +123,7 @@ public final class ViewDataFetcher {
     }
 
     /**
-     * Resolves the classes of a part (mirrors ResourcePartPage logic).
+     * Resolves the classes a part's definition gives it ({@link PartDefinition}).
      *
      * @param partId    the part IRI
      * @param contextId the context resource IRI
@@ -131,19 +131,7 @@ public final class ViewDataFetcher {
      * @return the part's classes (possibly empty)
      */
     public static Set<IRI> resolvePartClasses(String partId, String contextId, AbstractResourceWithProfile resource) {
-        Set<IRI> classes = new HashSet<>();
-        String nanopubId = resolvePartNanopubId(partId, contextId, resource);
-        if (nanopubId != null) {
-            Nanopub nanopub = Utils.getAsNanopub(nanopubId);
-            if (nanopub != null) {
-                for (Statement st : nanopub.getAssertion()) {
-                    if (st.getSubject().stringValue().equals(partId) && st.getPredicate().equals(RDF.TYPE) && st.getObject() instanceof IRI objIri) {
-                        classes.add(objIri);
-                    }
-                }
-            }
-        }
-        return classes;
+        return PartDefinition.declaredClassesOf(PartDefinition.resolve(partId, contextId, resource).nanopub(), partId);
     }
 
     /**
@@ -173,8 +161,19 @@ public final class ViewDataFetcher {
      * @return the query reference
      */
     public static QueryRef partDefinitionQueryRef(String partId, String contextId, AbstractResourceWithProfile resource) {
+        return partDefinitionQueryRef(partId, partDefinitionPubkeys(contextId, resource));
+    }
+
+    /**
+     * The definitions lookup for a part among the given keys, newest first.
+     *
+     * @param partId  the part IRI
+     * @param pubkeys the public key hashes whose definitions count
+     * @return the query reference
+     */
+    public static QueryRef partDefinitionQueryRef(String partId, List<String> pubkeys) {
         QueryRef getDefQuery = new QueryRef(QueryApiAccess.GET_TERM_DEFINITIONS, "term", partId);
-        for (String pubkey : partDefinitionPubkeys(contextId, resource)) {
+        for (String pubkey : pubkeys) {
             getDefQuery.getParams().put("pubkey", pubkey);
         }
         return getDefQuery;
@@ -199,22 +198,35 @@ public final class ViewDataFetcher {
      * @return the public key hashes (possibly empty)
      */
     public static List<String> partDefinitionPubkeys(String contextId, AbstractResourceWithProfile resource) {
-        List<String> pubkeys = new ArrayList<>();
         Space space = resource.getSpace();
         if (space != null) {
-            int minTier = space.getPartDefinitionTierRank();
-            for (IRI userIri : space.getUsers()) {
-                if (space.userTier(userIri) < minTier) continue;
-                pubkeys.addAll(User.getUserData().getPubkeyHashes(userIri, true));
-            }
-        } else {
-            pubkeys.addAll(User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true));
+            return partDefinitionPubkeys(space, space.getPartDefinitionTierRank());
+        }
+        return new ArrayList<>(User.getUserData().getPubkeyHashes(Utils.vf.createIRI(contextId), true));
+    }
+
+    /**
+     * The approved public keys of a space's role-holders at the given rank or above. A rank
+     * below {@link SpaceMemberRole#EVERYONE_RANK} gives the same keys as that one: everyone
+     * beyond the role-holders has no key list, and is reached through the nanopublication
+     * minting a part instead (see {@link PartDefinition}).
+     *
+     * @param space   the space
+     * @param minRank the lowest rank whose keys count
+     * @return the public key hashes (possibly empty)
+     */
+    public static List<String> partDefinitionPubkeys(Space space, int minRank) {
+        List<String> pubkeys = new ArrayList<>();
+        for (IRI userIri : space.getUsers()) {
+            if (space.userTier(userIri) < minRank) continue;
+            pubkeys.addAll(User.getUserData().getPubkeyHashes(userIri, true));
         }
         return pubkeys;
     }
 
     /**
-     * Looks up the nanopub ID for a part's term definition (mirrors ResourcePartPage logic).
+     * Looks up the nanopub ID for a part's term definition, as the part page resolves it
+     * ({@link PartDefinition}).
      *
      * @param partId    the part IRI
      * @param contextId the context resource IRI
@@ -222,11 +234,7 @@ public final class ViewDataFetcher {
      * @return the nanopub ID, or null
      */
     public static String resolvePartNanopubId(String partId, String contextId, AbstractResourceWithProfile resource) {
-        ApiResponse resp = ApiCache.retrieveResponseSync(partDefinitionQueryRef(partId, contextId, resource), false);
-        if (resp != null && !resp.getData().isEmpty()) {
-            return resp.getData().iterator().next().get("np");
-        }
-        return null;
+        return PartDefinition.resolve(partId, contextId, resource).nanopubId();
     }
 
 }

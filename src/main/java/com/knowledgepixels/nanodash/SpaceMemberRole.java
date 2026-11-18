@@ -28,11 +28,11 @@ public class SpaceMemberRole implements Serializable {
     /**
      * Rank of the "everyone" floor (no role held). Below {@link #OBSERVER_RANK}.
      */
-    public static final int EVERYONE_RANK = 0;
-    private static final int OBSERVER_RANK = 1;
-    private static final int MEMBER_RANK = 2;
-    private static final int MAINTAINER_RANK = 3;
-    private static final int ADMIN_RANK = 4;
+    public static final int EVERYONE_RANK = TierRanks.EVERYONE;
+    private static final int OBSERVER_RANK = TierRanks.OBSERVER;
+    private static final int MEMBER_RANK = TierRanks.MEMBER;
+    private static final int MAINTAINER_RANK = TierRanks.MAINTAINER;
+    private static final int ADMIN_RANK = TierRanks.ADMIN;
 
     /**
      * Construct a SpaceMemberRole from an API response entry.
@@ -178,11 +178,7 @@ public class SpaceMemberRole implements Serializable {
      * @return the rank: admin=4, maintainer=3, member=2, observer=1, else 0
      */
     public static int tierRank(IRI tier) {
-        if (KPXL_TERMS.ADMIN_ROLE_TYPE.equals(tier)) return ADMIN_RANK;
-        if (KPXL_TERMS.MAINTAINER_ROLE.equals(tier)) return MAINTAINER_RANK;
-        if (KPXL_TERMS.MEMBER_ROLE.equals(tier)) return MEMBER_RANK;
-        if (KPXL_TERMS.OBSERVER_ROLE.equals(tier)) return OBSERVER_RANK;
-        return EVERYONE_RANK;
+        return TierRanks.tierRank(tier);
     }
 
     /**

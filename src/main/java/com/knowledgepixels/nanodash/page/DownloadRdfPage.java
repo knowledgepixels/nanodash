@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.knowledgepixels.nanodash.SpaceMemberRoleRef;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.PartDefinition;
 import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -183,6 +184,7 @@ public class DownloadRdfPage extends WebPage {
         String partId = null;
         Set<IRI> partClasses = null;
         String nanopubRef = null;
+        int definitionRank = Integer.MAX_VALUE;
 
         switch (type) {
             case "user" -> {
@@ -215,12 +217,15 @@ public class DownloadRdfPage extends WebPage {
                 }
                 resource = ViewDataFetcher.resolveContextResource(contextId);
                 partId = id;
-                partClasses = ViewDataFetcher.resolvePartClasses(id, contextId, resource);
-                nanopubRef = ViewDataFetcher.resolvePartNanopubRef(id, contextId, resource);
+                // One resolution for the classes, the nanopub and its signer's rank, so the
+                // download holds what the part page shows (see PartDefinition).
+                PartDefinition definition = PartDefinition.resolve(id, contextId, resource);
+                partClasses = PartDefinition.declaredClassesOf(definition.nanopub(), id);
+                nanopubRef = definition.exists() ? definition.nanopubId() : "x:";
+                definitionRank = definition.signerRank();
                 // Include the part definition nanopub
-                String partNpId = ViewDataFetcher.resolvePartNanopubId(partId, contextId, resource);
-                if (partNpId != null) {
-                    fetchAndAdd(collected, partNpId);
+                if (definition.exists()) {
+                    fetchAndAdd(collected, definition.nanopubId());
                 }
             }
             case "list" -> {
@@ -235,7 +240,7 @@ public class DownloadRdfPage extends WebPage {
         }
 
         // Collect nanopubs from view query results (but not the view display definitions themselves)
-        collectViewQueryResults(collected, resource, partId, partClasses, nanopubRef);
+        collectViewQueryResults(collected, resource, partId, partClasses, nanopubRef, definitionRank);
 
         return new ArrayList<>(collected.values());
     }
@@ -357,8 +362,8 @@ public class DownloadRdfPage extends WebPage {
      * Fetches view displays directly from the API to avoid depending on async state.
      */
     private void collectViewQueryResults(Map<String, Nanopub> collected, AbstractResourceWithProfile resource,
-            String partId, Set<IRI> partClasses, String nanopubRef) {
-        List<ViewDisplay> viewDisplays = resource.fetchViewDisplaysSync(partId, partClasses);
+            String partId, Set<IRI> partClasses, String nanopubRef, int definitionRank) {
+        List<ViewDisplay> viewDisplays = resource.fetchViewDisplaysSync(partId, partClasses, definitionRank);
 
         String targetId = partId != null ? partId : resource.getId();
         String targetNpId = nanopubRef != null ? nanopubRef : resource.getNanopubId();

@@ -6,6 +6,7 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashThreadPool;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.PartDefinition;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
@@ -511,6 +512,22 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
         return getViewDisplays(false, resourceId, classes);
     }
 
+    /**
+     * The part-level view displays for a part whose definition was signed at the given rank:
+     * those that apply to it and accept a definition of that rank
+     * ({@link ViewDisplay#acceptsPartDefinition}). See {@link com.knowledgepixels.nanodash.PartDefinition}.
+     *
+     * @param resourceId     the part IRI
+     * @param classes        the classes its definition gives it
+     * @param definitionRank the rank of the definition's signer, or {@link Integer#MAX_VALUE}
+     *                       to filter none
+     * @return the applicable view displays, sorted by structural position
+     */
+    public List<ViewDisplay> getPartLevelViewDisplays(String resourceId, Set<IRI> classes, int definitionRank) {
+        triggerDataUpdate();
+        return filterViewDisplays(getViewDisplays(), false, resourceId, classes, definitionRank);
+    }
+
     private List<ViewDisplay> getViewDisplays(boolean toplevel, String resourceId, Set<IRI> classes) {
         triggerDataUpdate();
         return filterViewDisplays(getViewDisplays(), toplevel, resourceId, classes);
@@ -531,6 +548,12 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
     }
 
     private List<ViewDisplay> filterViewDisplays(List<ViewDisplay> source, boolean toplevel, String resourceId, Set<IRI> classes) {
+        return filterViewDisplays(source, toplevel, resourceId, classes, Integer.MAX_VALUE);
+    }
+
+    private List<ViewDisplay> filterViewDisplays(List<ViewDisplay> source, boolean toplevel, String resourceId, Set<IRI> classes, int definitionRank) {
+        // Only asked when a definition's rank is to be checked: it reads the space's tier.
+        Integer baseRank = definitionRank == Integer.MAX_VALUE ? null : PartDefinition.baseRank(this);
         List<ViewDisplay> viewDisplays = new ArrayList<>();
         Set<IRI> viewKinds = new HashSet<>();
 
@@ -552,7 +575,9 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
                 // Deprecated
                 // do nothing
             } else if (vd.appliesTo(resourceId, classes)) {
-                viewDisplays.add(vd);
+                if (baseRank == null || vd.acceptsPartDefinition(definitionRank, baseRank)) {
+                    viewDisplays.add(vd);
+                }
             } else if (toplevel && vd.hasType(KPXL_TERMS.TOP_LEVEL_VIEW_DISPLAY)) {
                 // Deprecated
                 viewDisplays.add(vd);
@@ -575,13 +600,27 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
      * @return the applicable view displays, sorted by structural position
      */
     public List<ViewDisplay> fetchViewDisplaysSync(String partId, Set<IRI> partClasses) {
+        return fetchViewDisplaysSync(partId, partClasses, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Like {@link #fetchViewDisplaysSync(String, Set)}, for a part whose definition was signed
+     * at the given rank (see {@link #getPartLevelViewDisplays(String, Set, int)}).
+     *
+     * @param partId         the part IRI, or null for the resource's own displays
+     * @param partClasses    the classes the part's definition gives it
+     * @param definitionRank the rank of the definition's signer, or {@link Integer#MAX_VALUE}
+     * @return the applicable view displays, sorted by structural position
+     */
+    public List<ViewDisplay> fetchViewDisplaysSync(String partId, Set<IRI> partClasses, int definitionRank) {
         String vdRefRoot = getViewDisplayRefRoot();
         QueryRef vdQuery = (vdRefRoot != null && !vdRefRoot.isEmpty())
                 ? viewDisplaysRefQueryRef(vdRefRoot)
                 : new QueryRef(QueryApiAccess.GET_VIEW_DISPLAYS, "resource", id);
         boolean toplevel = (partId == null);
         return filterViewDisplays(buildViewDisplays(vdQuery), toplevel,
-                toplevel ? getId() : partId, toplevel ? getOwnClasses() : partClasses);
+                toplevel ? getId() : partId, toplevel ? getOwnClasses() : partClasses,
+                toplevel ? Integer.MAX_VALUE : definitionRank);
     }
 
     /**
@@ -800,6 +839,20 @@ public abstract class AbstractResourceWithProfile implements Serializable, Resou
             }
         }
         return false;
+    }
+
+    /**
+     * Whether some part-level view display of this resource would render for the given part,
+     * whose definition was signed at the given rank: the question the Explore page asks
+     * before forwarding to the part page, answered as the part page itself answers it.
+     *
+     * @param elementId      the part IRI
+     * @param classes        the classes its definition gives it
+     * @param definitionRank the rank of the definition's signer
+     * @return true if a display applies to the part and accepts its definition
+     */
+    public boolean appliesTo(String elementId, Set<IRI> classes, int definitionRank) {
+        return !getPartLevelViewDisplays(elementId, classes, definitionRank).isEmpty();
     }
 
 }

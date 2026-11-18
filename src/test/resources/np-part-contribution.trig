@@ -1,0 +1,33 @@
+@prefix this: <https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPART1> .
+@prefix sub: <https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPART1/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+# A discourse contribution minted in its own nanopublication: the part whose definition
+# PartDefinition falls back to where a display opens itself to anyone.
+sub:assertion {
+  sub:statement a <https://schema.org/Statement>;
+    rdf:value "A contribution by someone without a role in the space." .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1825-0097 .
+}
+
+sub:pubinfo {
+  this: dct:created "2026-11-18T09:00:00.000Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1825-0097;
+    npx:introduces sub:statement .
+}

@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.export;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
+import com.knowledgepixels.nanodash.PartDefinition;
 import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -56,6 +57,7 @@ public final class DocumentModelBuilder {
         String partId = null;
         Set<IRI> partClasses = null;
         String nanopubRef = null;
+        int definitionRank = Integer.MAX_VALUE;
 
         switch (type) {
             case "user" -> {
@@ -83,16 +85,24 @@ public final class DocumentModelBuilder {
                 }
                 resource = ViewDataFetcher.resolveContextResource(contextId);
                 partId = id;
-                partClasses = ViewDataFetcher.resolvePartClasses(id, contextId, resource);
-                nanopubRef = ViewDataFetcher.resolvePartNanopubRef(id, contextId, resource);
+                // One resolution for the classes, the nanopub and the rank its signer has, so
+                // the document lists the views the part page renders (see PartDefinition).
+                PartDefinition definition = PartDefinition.resolve(id, contextId, resource);
+                partClasses = PartDefinition.declaredClassesOf(definition.nanopub(), id);
+                nanopubRef = definition.exists() ? definition.nanopubId() : "x:";
+                definitionRank = definition.signerRank();
             }
             default -> throw new IllegalArgumentException("Unknown type: " + type);
         }
 
-        return build(resource, partId, partClasses, nanopubRef);
+        return build(resource, partId, partClasses, nanopubRef, definitionRank);
     }
 
     static DocumentModel build(AbstractResourceWithProfile resource, String partId, Set<IRI> partClasses, String nanopubRef) {
+        return build(resource, partId, partClasses, nanopubRef, Integer.MAX_VALUE);
+    }
+
+    static DocumentModel build(AbstractResourceWithProfile resource, String partId, Set<IRI> partClasses, String nanopubRef, int definitionRank) {
         String title = partId != null ? Utils.getShortNameFromURI(partId) : resource.getLabel();
         String iri = partId != null ? partId : resource.getId();
 
@@ -100,7 +110,7 @@ public final class DocumentModelBuilder {
         String targetNpId = nanopubRef != null ? nanopubRef : resource.getNanopubId();
 
         List<Section> sections = new ArrayList<>();
-        for (ViewDisplay vd : resource.fetchViewDisplaysSync(partId, partClasses)) {
+        for (ViewDisplay vd : resource.fetchViewDisplaysSync(partId, partClasses, definitionRank)) {
             Section section = buildSection(vd, resource, targetId, targetNpId);
             if (section != null) {
                 sections.add(section);

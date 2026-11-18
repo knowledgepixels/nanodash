@@ -52,6 +52,9 @@ public class ViewList extends Panel {
     private final String partId;
     private final String nanopubId;
     private final Set<IRI> partClasses;
+    // The rank of the part's definition signer, which each display must accept to render (see
+    // PartDefinition); MAX_VALUE = no definition, filter none. Read at render time, like refRoot.
+    private int partDefinitionRank = Integer.MAX_VALUE;
     private final List<ViewDisplay> explicitViewDisplays;
     private final boolean showEmptyNotice;
 
@@ -107,6 +110,23 @@ public class ViewList extends Panel {
      */
     public ViewList(String markupId, IModel<? extends AbstractResourceWithProfile> resource, String partId, String nanopubId, Set<IRI> partClasses) {
         this(markupId, resource, partId, nanopubId, partClasses, null, null, true, null);
+    }
+
+    /**
+     * The view displays of one part of a resource whose definition was signed at the given
+     * rank: only displays accepting a definition of that rank render
+     * ({@link ViewDisplay#acceptsPartDefinition}).
+     *
+     * @param markupId           the component id
+     * @param resource           the resource the part belongs to
+     * @param partId             the id of the part
+     * @param nanopubId          the id of the nanopublication the part comes from
+     * @param partClasses        the classes the part is an instance of
+     * @param partDefinitionRank the rank of the definition's signer (see {@code PartDefinition})
+     */
+    public ViewList(String markupId, IModel<? extends AbstractResourceWithProfile> resource, String partId, String nanopubId, Set<IRI> partClasses, int partDefinitionRank) {
+        this(markupId, resource, partId, nanopubId, partClasses, null, null, true, null);
+        this.partDefinitionRank = partDefinitionRank;
     }
 
     /**
@@ -260,7 +280,7 @@ public class ViewList extends Panel {
         } else if (partId == null) {
             viewDisplays = resource.getTopLevelViewDisplays();
         } else {
-            viewDisplays = resource.getPartLevelViewDisplays(partId, partClasses);
+            viewDisplays = resource.getPartLevelViewDisplays(partId, partClasses, partDefinitionRank);
         }
 
         // The fragment identifier of each view display's section, so a single section can

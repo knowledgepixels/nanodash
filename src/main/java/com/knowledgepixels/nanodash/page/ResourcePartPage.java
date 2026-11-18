@@ -4,6 +4,7 @@ import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.NanodashPageRef;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
+import com.knowledgepixels.nanodash.PartDefinition;
 import com.knowledgepixels.nanodash.ViewDataFetcher;
 import com.knowledgepixels.nanodash.component.*;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
@@ -416,20 +417,19 @@ public class ResourcePartPage extends NanodashPage {
         };
         redirectIfRdfRequested(new RdfSource("part", id, contextId, List.of()));
 
-        QueryRef getDefQuery = ViewDataFetcher.partDefinitionQueryRef(id, contextId, resourceWithProfile);
-        ApiResponse getDefResp = ApiCache.retrieveResponseSync(getDefQuery, false);
-        if (getDefResp != null && !getDefResp.getData().isEmpty()) {
-            nanopubId = getDefResp.getData().iterator().next().get("np");
-
-            Nanopub nanopub = Utils.getAsNanopub(nanopubId);
-            definition = nanopub;
-            String declaredLabel = getDeclaredLabel(nanopub, id);
+        // The definition the owning resource accepts for this part, and how highly its signer
+        // ranks there: what decides which part-level views render (see PartDefinition).
+        PartDefinition partDefinition = PartDefinition.resolve(id, contextId, resourceWithProfile);
+        nanopubId = partDefinition.nanopubId();
+        definition = partDefinition.nanopub();
+        if (definition != null) {
+            String declaredLabel = getDeclaredLabel(definition, id);
             if (declaredLabel != null) {
                 label = declaredLabel;
             }
-        } else {
-            nanopubId = null;
         }
+        final int definitionRank = partDefinition.signerRank();
+        final List<String> definitionPubkeys = partDefinition.pubkeys();
         classes = getPartClasses(definition, id, ResourcePartPage::isIndividualAgent);
         // An agent's key introduction declares a foaf:name and no rdfs:label, so the name we
         // already know is what names the page; a caller's label (an ORCID number, say) is kept
@@ -488,7 +488,7 @@ public class ResourcePartPage extends NanodashPage {
             // The panel constructor resolves view nanopubs over the network when they
             // aren't freshly cached, which would block the initial page render; the
             // view-id list must mirror the panel's View.get calls.
-            add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes),
+            add(LazyContentPanel.of("otherTab", markupId -> new AboutPartPanel(markupId, resourceWithProfile, id, classes, definitionPubkeys),
                     AboutPartPanel.REQUIRED_VIEWS));
         } else if (activeTab == ResourceTabs.Tab.EXPLORE) {
             contentContainer.setVisible(false);
@@ -503,9 +503,9 @@ public class ResourcePartPage extends NanodashPage {
             add(new EmptyPanel("otherTab").setVisible(false));
             if (resourceWithProfile.isDataInitialized()) {
                 contentContainer.add(RefreshingStructurePanel.of("views", resourceWithProfile,
-                        markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes)));
+                        markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes, definitionRank)));
             } else {
-                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes)) {
+                contentContainer.add(new LazyContentPanel("views", markupId -> new ViewList(markupId, resourceWithProfileModel, id, nanopubRef, classes, definitionRank)) {
 
                     @Override
                     protected boolean isContentReady() {

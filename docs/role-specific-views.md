@@ -136,7 +136,7 @@ vocabulary to decide something else: **whose nanopublications count as definitio
 of its parts**.
 
 A part page does not read the nanopub it shows from a view. It resolves it first —
-`ResourcePartPage` → `ViewDataFetcher.partDefinitionQueryRef` → the published
+`ResourcePartPage` → `PartDefinition` → `ViewDataFetcher.partDefinitionQueryRef` → the published
 `get-term-definitions` query, with the approved public keys of the owning space's
 members — and then hands it to every view as their `…Np` parameter, besides taking
 the page's own title and `rdf:type`s from it. Historically that key list was *every*
@@ -162,6 +162,49 @@ the space). Where both exist they should agree — a space declaring the member 
 and a view resolving to the member tier — but they are two declarations, because a
 query can only read what nanopub-query materializes into the spaces state, and this
 one lives in the space's root definition.
+
+### Per display, and down to anyone: `gen:EveryoneRole`
+
+The same property can be put on a **view display**, overriding the space's rule for that
+display alone, the way a display overrides a view's page size or position:
+
+```turtle
+sub:display a gen:ViewDisplay, gen:ActivatedViewDisplay;
+  gen:isDisplayOfView <https://w3id.org/np/RA…/viewVersion>;
+  gen:isDisplayFor <https://w3id.org/spaces/example>;
+  gen:hasPartDefinitionTier gen:EveryoneRole .
+```
+
+The display then renders for a part only when the part's definition was signed at that
+tier or above; a display declaring none requires the space's own tier, so existing
+displays behave exactly as before. The tiers rank as for `gen:isVisibleTo`, and
+**`gen:EveryoneRole` means what it means there: anyone, role or not.** For a part whose
+IRI was minted inside a nanopublication (it carries that nanopublication's artifact code
+— a discourse contribution, a record made with a template), "anyone" is the nanopublication
+that minted it, in its latest **same-key** version: never a third party's nanopublication,
+so nobody can redefine someone else's part, and nothing changes for external IRIs such as
+DOIs, which have no minting nanopublication. The motivating case is a space showing a
+thread view on the page of every contribution in it, including those by people who hold
+no role there.
+
+Resolution (`PartDefinition`) keeps the space's rule first: the newest definition among
+its role-holders at its tier, as before. Only when that finds none are the lower tiers its
+displays declare tried, most restrictive first, and a definition found that way is taken
+only if a display accepting its signer's rank actually applies to the part — so opening
+one view to everybody's parts does not present everybody's nanopublications as the space's
+parts elsewhere (their page heading, the About tab). A space can also declare
+`gen:EveryoneRole` itself, which opens all of its part views in this way.
+
+`gen:EveryoneRole` in a space's root definition used to rank as "every role-holder", the
+same as declaring nothing; no space declared it. With an `ANYONE` rank below the
+role-holders (`TierRanks`), the two are now told apart.
+
+`PartDefinition` is the one resolution behind the part page, its About tab (the Info view
+is handed the keys the definition was found among, or the minting nanopublication's
+signing key), the document export and RDF download, and the Explore page's forwarding to
+the part page — which now forwards only where a display would render, rather than
+whenever a class read off the minting nanopublication matched, which led contributions by
+people without a role in the context to a part page that showed nothing.
 
 ## Relationship to today's `ButtonList` routing
 
