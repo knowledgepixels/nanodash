@@ -1,3 +1,37 @@
+## [5.23.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.3...nanodash-5.23.0) (2026-11-18)
+
+### Features
+
+* **home:** add a jump-to bar and a login button to the home page ([7bd0990](https://github.com/knowledgepixels/nanodash/commit/7bd0990e484419a6c17108d1aa5b5cbc42198556))
+* **home:** leave the first group of views out of the jump-to bar ([3ad6614](https://github.com/knowledgepixels/nanodash/commit/3ad66143ac82ff2993925c2956d20a08f3a4e789))
+* **views:** label template links with the template's own label ([719df70](https://github.com/knowledgepixels/nanodash/commit/719df7030f187d0ca3c0ce6a3abb6a4791abb568))
+* **views:** let a view display open its part pages to parts defined by anyone ([e501afd](https://github.com/knowledgepixels/nanodash/commit/e501afdf946598e2c6a0cbbcb9ceaf992567b1a3))
+
+### Dependency updates
+
+* **core-deps:** update dependency io.github.openhtmltopdf:openhtmltopdf-pdfbox to v1.1.114 ([0d7b4c5](https://github.com/knowledgepixels/nanodash/commit/0d7b4c5622e798635f341073b5f64bae99b236cb))
+* **core-deps:** update nanopub to 1.96.0, wicket to 10.12.0 and two more ([0e34a43](https://github.com/knowledgepixels/nanodash/commit/0e34a43f5ee4b5ae089d2a6e840e2d123cfaa350))
+* **deps:** update dependency maven to v3.10.1 ([9f2ec99](https://github.com/knowledgepixels/nanodash/commit/9f2ec996602596cbfe2b2f9dbe0ad7cada3ec6b7))
+
+### Bug Fixes
+
+* **api-cache:** wait as long as a refusing query server asks ([#889](https://github.com/knowledgepixels/nanodash/issues/889)) ([16e8bca](https://github.com/knowledgepixels/nanodash/commit/16e8bca66fa95002c78f100650f1c0e9303f0739))
+* handle query responses the service didn't answer ([#916](https://github.com/knowledgepixels/nanodash/issues/916)) ([1b07819](https://github.com/knowledgepixels/nanodash/commit/1b0781946f0a5e023b0ca7d156994e30cd79f278))
+* **publish:** say which template could not be loaded instead of failing ([7ff6cd9](https://github.com/knowledgepixels/nanodash/commit/7ff6cd9ac0e63f5e874f5af89c12fd323c66e0ce))
+* **views:** close the gaps in part-definition resolution found in review ([4a0972b](https://github.com/knowledgepixels/nanodash/commit/4a0972bf2006e5eb6d90baf9bf984fd1f146a457)), closes [#934](https://github.com/knowledgepixels/nanodash/issues/934)
+
+### Documentation
+
+* **views:** state the limits of a display's part-definition tier ([e2e5012](https://github.com/knowledgepixels/nanodash/commit/e2e50125ed2cad6167f61446b140f637b74a1a79))
+
+### Build and continuous integration
+
+* **deps:** update dependency semantic-release-preconfigured-conventional-commits to v1.1.159 ([bce66d7](https://github.com/knowledgepixels/nanodash/commit/bce66d7810c1980874ee082893729751399d2bdb))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([8c0863c](https://github.com/knowledgepixels/nanodash/commit/8c0863ca1b19387165b2930b96393a0949a01ded))
+
 ## [5.22.3](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.2...nanodash-5.22.3) (2026-11-13)
 
 ### Dependency updates
