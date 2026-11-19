@@ -1,5 +1,9 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+import org.nanopub.templates.MalformedTemplateException;
+
+import com.knowledgepixels.nanodash.LookupApis;
 import com.knowledgepixels.nanodash.Utils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -42,7 +46,7 @@ class TemplateTest {
                 <p>Such a nanopublication defines a new class. Classes represent sets of concrete or abstract things, and are by convention named with singular nouns (or noun phrases) like 'human', 'cardiovascular disease', or 'approach'.</p>
                 
                 <p>If the term you want to define does not refer to a set of things but a single instance, such as the planet Mars or Marie Curie, define them with the template for individuals instead.</p>""";
-        assertEquals(Utils.sanitizeHtml(templateDescription), template.getDescription().replace("\r\n", "\n"));
+        assertEquals(Utils.sanitizeHtml(templateDescription), TemplateDescriptions.getDescription(template).replace("\r\n", "\n"));
     }
 
     @Test
@@ -72,7 +76,7 @@ class TemplateTest {
         Template template = new Template(templateUri);
         IRI relatedIdentity = SimpleValueFactory.getInstance().createIRI("https://w3id.org/np/RAJetZMP40rNpwVYsUpYA5_psx-paQ6pf5Gu9iz9Vmwak/relatedentity");
         Map<String, String> resultMap = new HashMap<>();
-        List<String> values = template.getPossibleValuesFromApi(relatedIdentity, "dog", resultMap);
+        List<String> values = LookupApis.lookUpAll(template.getPossibleValuesApis(relatedIdentity), "dog", resultMap);
         assumeTrue(!values.isEmpty(), "lookup API call to the query service returned nothing; skipping");
         assertFalse(resultMap.isEmpty());
         for (String value : values) {

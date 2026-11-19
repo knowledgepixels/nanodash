@@ -3,7 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import net.trustyuri.TrustyUriUtils;

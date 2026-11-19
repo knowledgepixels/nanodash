@@ -8,6 +8,7 @@ import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ListPage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.template.*;
+import org.nanopub.templates.Template;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;

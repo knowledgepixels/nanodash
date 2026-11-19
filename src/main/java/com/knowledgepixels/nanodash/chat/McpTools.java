@@ -6,8 +6,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.TemplateDescriptions;
 import net.trustyuri.TrustyUriUtils;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.nanopub.Nanopub;
@@ -185,7 +186,7 @@ public class McpTools {
         JsonObject result = new JsonObject();
         result.addProperty("id", template.getId());
         result.addProperty("label", template.getLabel());
-        result.addProperty("description", template.getDescription());
+        result.addProperty("description", TemplateDescriptions.getDescription(template));
         result.addProperty("trig", toTrig(template.getNanopub()));
         return result.toString();
     }

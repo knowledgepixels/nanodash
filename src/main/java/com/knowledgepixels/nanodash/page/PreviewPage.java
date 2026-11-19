@@ -33,7 +33,7 @@ import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.component.TemplateFormPreview;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 

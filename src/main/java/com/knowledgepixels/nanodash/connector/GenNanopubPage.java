@@ -9,8 +9,9 @@ import com.knowledgepixels.nanodash.component.NanopubItem;
 import com.knowledgepixels.nanodash.component.ReactionList;
 import com.knowledgepixels.nanodash.component.TitleBar;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.TemplateDescriptions;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -144,7 +145,7 @@ public class GenNanopubPage extends ConnectorPage {
                 add(new Label("template-description", ""));
             } else {
                 String description = "<p><em>(This template doesn't have a description)</em></p>";
-                if (template.getDescription() != null) description = template.getDescription();
+                if (template.getDescription() != null) description = TemplateDescriptions.getDescription(template);
                 add(new Label("template-description", description).setEscapeModelStrings(false));
             }
 

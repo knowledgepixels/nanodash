@@ -3,7 +3,8 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateDescriptions;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -113,7 +114,7 @@ public class TemplateFormPreview extends Panel {
         // Assertion section
         form.add(PublishForm.newSourceMenu("templatelink", templateId));
         form.add(new Label("templatename", template.getLabel()));
-        form.add(new Label("templatedesc", template.getDescription()).setEscapeModelStrings(false));
+        form.add(new Label("templatedesc", TemplateDescriptions.getDescription(template)).setEscapeModelStrings(false));
 
         form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
             protected void populateItem(ListItem<StatementItem> item) {

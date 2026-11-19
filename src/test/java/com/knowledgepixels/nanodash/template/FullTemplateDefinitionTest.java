@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.eclipse.rdf4j.model.IRI;

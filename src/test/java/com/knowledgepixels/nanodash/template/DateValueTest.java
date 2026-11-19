@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.DatePrecision;
+import org.nanopub.templates.DateValue;
+
 import com.knowledgepixels.nanodash.Utils;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.junit.jupiter.api.Test;

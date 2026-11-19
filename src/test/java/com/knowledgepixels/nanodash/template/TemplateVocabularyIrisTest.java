@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import org.junit.jupiter.api.Test;
 import org.nanopub.vocabulary.NTEMPLATE;
 
@@ -28,7 +30,7 @@ class TemplateVocabularyIrisTest {
     @Test
     void theTransientTemplateTypeKeepsItsPublishedIri() {
         assertEquals("https://w3id.org/np/o/ntemplate/TransientTemplate",
-                Template.TRANSIENT_TEMPLATE.stringValue());
+                NTEMPLATE.TRANSIENT_TEMPLATE.stringValue());
     }
 
 }

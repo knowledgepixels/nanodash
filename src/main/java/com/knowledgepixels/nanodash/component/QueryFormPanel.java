@@ -13,7 +13,7 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.ViewResultsPage;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;

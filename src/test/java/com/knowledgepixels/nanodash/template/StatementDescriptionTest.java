@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import com.knowledgepixels.nanodash.WicketApplication;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
@@ -146,7 +148,9 @@ class StatementDescriptionTest {
                 vf.createLiteral("Fill in the title.<script>alert('x')</script>"));
         creator.addAssertionStatement(TITLE, RDF.TYPE, NTEMPLATE.LITERAL_PLACEHOLDER);
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
-        String description = template.getStatementDescription(DESCRIBED_STATEMENT);
+        // The template gives the description as published; what is shown is sanitized.
+        assertTrue(template.getStatementDescription(DESCRIBED_STATEMENT).contains("<script"));
+        String description = TemplateDescriptions.getStatementDescription(template, DESCRIBED_STATEMENT);
         assertTrue(description.contains("Fill in the title."), description);
         assertFalse(description.contains("<script"), description);
     }

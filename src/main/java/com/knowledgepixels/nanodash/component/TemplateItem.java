@@ -5,7 +5,7 @@ import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import net.trustyuri.TrustyUriUtils;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;

@@ -1,5 +1,8 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+import org.nanopub.templates.DateValue;
+
 import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;

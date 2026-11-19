@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.NavigationContext;
 import com.knowledgepixels.nanodash.WicketApplication;

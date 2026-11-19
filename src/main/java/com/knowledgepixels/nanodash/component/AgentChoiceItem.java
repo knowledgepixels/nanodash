@@ -7,7 +7,7 @@ import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ProfilePage;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import com.knowledgepixels.nanodash.domain.ProfilePicture;

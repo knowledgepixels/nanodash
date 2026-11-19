@@ -5,7 +5,8 @@ import com.knowledgepixels.nanodash.domain.AbstractResourceWithProfile;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
 import com.knowledgepixels.nanodash.lookup.ThingOrigins;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
+import com.knowledgepixels.nanodash.LookupApis;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
@@ -213,7 +214,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
                         alreadyAddedMap.put(s, true);
                     }
                 }
-                for (String v : context.getTemplate().getPossibleValuesFromApi(iri, term, labelMap)) {
+                for (String v : lookUp(term)) {
                     if (!alreadyAddedMap.containsKey(v)) addOnce(suggestions, v, shownThings);
                 }
                 // A value the template names itself is found by no lookup, so what is known
@@ -366,6 +367,19 @@ public class GuidedChoiceItem extends AbstractContextComponent {
     }
 
     /**
+     * Asks the sources this placeholder names for the values that match a text, and keeps
+     * their labels. A template only says which sources these are; asking them is done here.
+     *
+     * @param term the text to search for
+     * @return the values found, empty if the placeholder names no source
+     */
+    private List<String> lookUp(String term) {
+        List<String> apis = context.getTemplate().getPossibleValuesApis(iri);
+        if (apis.isEmpty()) return new ArrayList<>();
+        return LookupApis.lookUpAll(apis, term, labelMap);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -407,7 +421,7 @@ public class GuidedChoiceItem extends AbstractContextComponent {
         textfield.setModelObject(vs);
         // TODO: This should be done differently, at a different place (can slow down unification):
         if (!labelMap.containsKey(vs)) {
-            context.getTemplate().getPossibleValuesFromApi(iri, vs, labelMap);
+            lookUp(vs);
         }
     }
 

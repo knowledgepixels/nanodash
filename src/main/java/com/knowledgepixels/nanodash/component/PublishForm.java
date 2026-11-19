@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PreviewPage;
 import com.knowledgepixels.nanodash.template.*;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
@@ -704,6 +705,8 @@ public class PublishForm extends Panel {
                     String npUrl = Utils.publishNanopub(signedNp);
                     logger.info("Nanopublication published: {}", npUrl);
                     Utils.cacheNanopub(signedNp);
+                    // Only logs what it finds; see TemplateComplianceGuard.
+                    TemplateComplianceGuard.check(signedNp);
                 } catch (Exception ex) {
                     signedNp = null;
                     logger.error("Nanopublication publishing failed: {}", ex.getMessage());
@@ -784,7 +787,7 @@ public class PublishForm extends Panel {
         form.add(newSourceMenu("templatelink", assertionContext.getTemplate().getId()));
         form.add(new Label("templatename", assertionContext.getTemplate().getLabel()));
         String description = assertionContext.getTemplate().getLabel();
-        form.add(new Label("templatedesc", assertionContext.getTemplate().getDescription()).setEscapeModelStrings(false));
+        form.add(new Label("templatedesc", TemplateDescriptions.getDescription(assertionContext.getTemplate())).setEscapeModelStrings(false));
 
         form.add(new ListView<StatementItem>("statements", assertionContext.getStatementItems()) {
 
@@ -1165,6 +1168,9 @@ public class PublishForm extends Panel {
                     }
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
+                    // Only logs what it finds; see TemplateComplianceGuard. Here and not on
+                    // the preview page, which publishes whatever nanopublication it is given.
+                    TemplateComplianceGuard.check(signedNp);
                     String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
                             new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, isConsentGiven(), getPage().getPageReference()));
@@ -1873,7 +1879,7 @@ public class PublishForm extends Panel {
      * nanopublication cannot be edited afterwards, so the collision is worth catching before
      * publishing rather than after (#646).
      * <p>
-     * Only a placeholder the template tags with {@link com.knowledgepixels.nanodash.template.Template#NEW_URI_PLACEHOLDER} is
+     * Only a placeholder the template tags with {@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER} is
      * checked; everything else publishes as before, whether or not its IRI already exists.
      * <p>
      * Superseding and overriding exempt the identifiers the source already carries, since a new

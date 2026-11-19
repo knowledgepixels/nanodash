@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -44,7 +46,7 @@ public class TransientTemplateTest {
     @Test
     void flaggedTemplateIsTransient() throws Exception {
         NanopubCreator creator = templateCreator();
-        creator.addAssertionStatement(creator.getAssertionUri(), RDF.TYPE, Template.TRANSIENT_TEMPLATE);
+        creator.addAssertionStatement(creator.getAssertionUri(), RDF.TYPE, NTEMPLATE.TRANSIENT_TEMPLATE);
         Template t = new Template(creator.finalizeNanopub());
         assertTrue(t.isTransient());
     }
