@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.model.IModel;

@@ -1,6 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import org.nanopub.Nanopub;
 import org.nanopub.extra.server.NanopubServerUtils;
 

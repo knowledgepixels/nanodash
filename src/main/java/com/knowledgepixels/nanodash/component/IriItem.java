@@ -9,7 +9,7 @@ import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;

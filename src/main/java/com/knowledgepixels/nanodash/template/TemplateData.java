@@ -1,5 +1,9 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+import org.nanopub.templates.MalformedTemplateException;
+import org.nanopub.templates.NanopubResolver;
+
 import com.knowledgepixels.nanodash.lookup.ThingOrigins;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.GovernedVersions;
@@ -27,6 +31,13 @@ import java.util.concurrent.ConcurrentMap;
 public class TemplateData implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateData.class);
+
+    /**
+     * How a template retrieves nanopublications: its own, and those that hold the values a
+     * placeholder can take ({@code nt:possibleValuesFrom}). They come from where Nanodash
+     * gets all its nanopublications, so that they are cached like the others.
+     */
+    public static final NanopubResolver RESOLVER = Utils::getNanopub;
 
     private static TemplateData instance;
 
@@ -218,7 +229,7 @@ public class TemplateData implements Serializable {
         }
         if (TrustyUriUtils.isPotentialTrustyUri(npId)) {
             try {
-                Template t = new Template(npId);
+                Template t = new Template(npId, RESOLVER);
                 templateMap.put(id, t);
                 templateMap.put(npId, t);
                 templateMap.put(t.getId(), t);
@@ -253,7 +264,7 @@ public class TemplateData implements Serializable {
         Template template = templateMap.get(id);
         if (template != null) return template;
         try {
-            Template t = new Template(np);
+            Template t = new Template(np, RESOLVER);
             templateMap.put(id, t);
             templateMap.put(t.getId(), t);
             return t;

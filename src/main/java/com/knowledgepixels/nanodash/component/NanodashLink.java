@@ -23,7 +23,7 @@ import com.knowledgepixels.nanodash.page.SpacePage;
 import com.knowledgepixels.nanodash.page.UserPage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import net.trustyuri.TrustyUriUtils;

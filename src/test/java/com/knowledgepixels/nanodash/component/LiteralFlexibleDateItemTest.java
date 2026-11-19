@@ -2,8 +2,8 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.page.PublishPage;
-import com.knowledgepixels.nanodash.template.DatePrecision;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.DatePrecision;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
@@ -98,7 +98,7 @@ class LiteralFlexibleDateItemTest {
         creator.addAssertionStatement(thing, RDFS.LABEL, vf.createLiteral("the thing"));
         creator.addAssertionStatement(name, RDF.TYPE, NTEMPLATE.LITERAL_PLACEHOLDER);
         creator.addAssertionStatement(name, RDFS.LABEL, vf.createLiteral("the name"));
-        creator.addAssertionStatement(moment, RDF.TYPE, Template.DATE_PLACEHOLDER);
+        creator.addAssertionStatement(moment, RDF.TYPE, NTEMPLATE.DATE_PLACEHOLDER);
         creator.addAssertionStatement(moment, RDFS.LABEL, vf.createLiteral("the moment"));
         for (IRI datatype : datatypes) creator.addAssertionStatement(moment, NTEMPLATE.HAS_DATATYPE, datatype);
         if (defaultValue != null) creator.addAssertionStatement(moment, NTEMPLATE.HAS_DEFAULT_VALUE, defaultValue);

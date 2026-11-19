@@ -2,7 +2,8 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.ContextType;
-import com.knowledgepixels.nanodash.template.Template;
+import com.knowledgepixels.nanodash.template.TemplateDescriptions;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
@@ -89,7 +90,7 @@ public class StatementItem extends Panel {
      * @return the description label
      */
     private Label newDescriptionLabel() {
-        String description = getTemplate().getStatementDescription(statementId);
+        String description = TemplateDescriptions.getStatementDescription(getTemplate(), statementId);
         Label label = new Label("description", description);
         label.setEscapeModelStrings(false);
         label.setVisible(description != null && !context.isReadOnly());

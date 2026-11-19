@@ -8,7 +8,7 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.View;
 import com.knowledgepixels.nanodash.ViewDisplay;
 import com.knowledgepixels.nanodash.WicketApplication;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;

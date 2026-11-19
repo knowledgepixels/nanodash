@@ -1,5 +1,7 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+
 import com.knowledgepixels.nanodash.QueryApiAccess;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.PublishForm;
@@ -102,12 +104,12 @@ class NewUriPlaceholderTest {
 
         creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
         creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, NTEMPLATE.INTRODUCED_RESOURCE);
-        creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
+        creator.addAssertionStatement(SPACE_FIELD, RDF.TYPE, NTEMPLATE.NEW_URI_PLACEHOLDER);
         creator.addAssertionStatement(SPACE_FIELD, NTEMPLATE.HAS_PREFIX, vf.createLiteral(SPACE_PREFIX));
         creator.addAssertionStatement(SPACE_FIELD, RDFS.LABEL, vf.createLiteral("Space identifier"));
 
         creator.addAssertionStatement(FULL_IRI_FIELD, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
-        creator.addAssertionStatement(FULL_IRI_FIELD, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
+        creator.addAssertionStatement(FULL_IRI_FIELD, RDF.TYPE, NTEMPLATE.NEW_URI_PLACEHOLDER);
         creator.addAssertionStatement(FULL_IRI_FIELD, RDFS.LABEL, vf.createLiteral("identifier of the new record"));
 
         creator.addAssertionStatement(TOPIC_FIELD, RDF.TYPE, NTEMPLATE.EXTERNAL_URI_PLACEHOLDER);
@@ -117,7 +119,7 @@ class NewUriPlaceholderTest {
 
         creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, NTEMPLATE.URI_PLACEHOLDER);
         creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, NTEMPLATE.LOCAL_RESOURCE);
-        creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
+        creator.addAssertionStatement(LOCAL_FIELD, RDF.TYPE, NTEMPLATE.NEW_URI_PLACEHOLDER);
         creator.addAssertionStatement(LOCAL_FIELD, RDFS.LABEL, vf.createLiteral("short id of the record"));
 
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());

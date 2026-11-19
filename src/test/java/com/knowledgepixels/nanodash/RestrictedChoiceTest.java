@@ -1,6 +1,6 @@
 package com.knowledgepixels.nanodash;
 
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;

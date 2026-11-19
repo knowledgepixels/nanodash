@@ -1,9 +1,12 @@
 package com.knowledgepixels.nanodash.template;
 
+import org.nanopub.templates.Template;
+import org.nanopub.templates.MalformedTemplateException;
+
 import org.nanopub.Nanopub;
 
 /**
- * Gives tests outside this package access to the package-private Template constructor.
+ * Parses templates for tests.
  */
 public class TemplateTestUtil {
 

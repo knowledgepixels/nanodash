@@ -10,7 +10,7 @@ import com.knowledgepixels.nanodash.domain.Space;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import jakarta.servlet.http.HttpServletRequest;
 import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.RestartResponseException;

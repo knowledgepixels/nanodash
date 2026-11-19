@@ -16,7 +16,7 @@ import com.knowledgepixels.nanodash.page.CalendarFeedPage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.page.SpacePage;
-import com.knowledgepixels.nanodash.template.Template;
+import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
