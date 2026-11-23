@@ -175,6 +175,40 @@ class LiteralDatatypeValidationTest {
         assertEquals("42", item.getTextComponent().getModelObject());
     }
 
+    @Test
+    void emptiedRequiredFieldIsNotHighlightedWhileTyping() throws Exception {
+        LiteralTextfieldItem item = new LiteralTextfieldItem("value", VALUE_FIELD, false, contextWithDatatype(null));
+        tester.startComponentInPage(item);
+        type(item, "abc");
+        type(item, "");
+        assertTrue(tester.getLastResponseAsString().contains("classList.toggle('invalid', false)"),
+                tester.getLastResponseAsString());
+        // Nothing left over to mark it when it is rendered again before the form is submitted.
+        assertTrue(item.getTextComponent().isValid());
+        assertTrue(item.getTextComponent().isRequired());
+    }
+
+    @Test
+    void emptyingAnIllTypedRequiredFieldRemovesItsHighlight() throws Exception {
+        LiteralTextfieldItem item = new LiteralTextfieldItem("value", VALUE_FIELD, false, contextWithDatatype(XSD.INT));
+        tester.startComponentInPage(item);
+        type(item, "abc");
+        assertTrue(tester.getLastResponseAsString().contains("classList.toggle('invalid', true)"),
+                tester.getLastResponseAsString());
+        type(item, "");
+        assertTrue(tester.getLastResponseAsString().contains("classList.toggle('invalid', false)"),
+                tester.getLastResponseAsString());
+    }
+
+    @Test
+    void whitespaceOnlyCountsAsEmptied() throws Exception {
+        LiteralTextfieldItem item = new LiteralTextfieldItem("value", VALUE_FIELD, false, contextWithDatatype(null));
+        tester.startComponentInPage(item);
+        type(item, "   ");
+        assertTrue(tester.getLastResponseAsString().contains("classList.toggle('invalid', false)"),
+                tester.getLastResponseAsString());
+    }
+
     /**
      * Sends a value the way the browser does on each keystroke, to the behavior that validates it.
      *
