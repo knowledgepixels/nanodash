@@ -18,6 +18,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -106,6 +107,14 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         tc.add(new OnChangeAjaxBehavior() {
             @Override
             protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                // What is marked while typing is a value that is there but not valid. A required
+                // field that has been emptied is told so on submit, like one never filled in:
+                // its only error is the missing value (the other validators don't run on an
+                // empty input), and it is dropped here so that it neither marks the field nor
+                // turns up when the field is rendered again before then.
+                if (Strings.isEmpty(tc.getInput())) {
+                    tc.getFeedbackMessages().clear();
+                }
                 InvalidityHighlighting.refresh(target, tc);
             }
 
