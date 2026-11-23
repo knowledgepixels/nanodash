@@ -92,7 +92,11 @@ Like derive in that it records `prov:wasDerivedFrom`, but — like supersede —
 The intent is "publish a variant that claims the same identity/root, but as a
 distinct, independently-authored nanopub" (e.g. a competing definition of the
 same resource by a different author). Menu action: `OverrideAction` ("edit as
-overriding nanopublication").
+overriding nanopublication"), offered only for a nanopub that introduces or describes
+a resource other than one it embeds
+([#920](https://github.com/knowledgepixels/nanodash/issues/920)): for any other,
+there is nothing for an override to keep, and it would make the same nanopub as
+deriving.
 
 > Note: an override nanopub is currently **indistinguishable from a derived one
 > at the RDF level** — it reuses the same `prov:wasDerivedFrom` pubinfo template
