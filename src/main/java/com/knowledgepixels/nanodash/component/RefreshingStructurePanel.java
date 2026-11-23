@@ -85,6 +85,11 @@ public class RefreshingStructurePanel extends Panel {
             // to be brought up to date, which is what the rebuild below carries them.
             return;
         }
+        if (ThreadNodePanel.hasOpenResponseForm(this)) {
+            // Rebuilding would also throw away a response form open in one of the views,
+            // with what was typed into it; publishing it brings the page up to date anyway.
+            return;
+        }
         addOrReplace(factory.create(CONTENT_ID));
         target.add(this);
     }

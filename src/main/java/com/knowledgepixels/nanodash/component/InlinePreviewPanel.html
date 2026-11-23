@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<head>
+  <link rel="stylesheet" href="../../../../../webapp/style.css?for-local-testing-only" type="text/css" media="screen"
+        title="Stylesheet"/>
+</head>
+<body>
+
+<wicket:panel>
+  <div class="inline-preview">
+    <p class="inline-preview-note">Preview &mdash; not published yet</p>
+    <div wicket:id="nanopub"></div>
+
+    <form wicket:id="form">
+      <p wicket:id="protected-section" class="protected-option">
+        <input type="checkbox" wicket:id="protectedcheck"/>
+        <label wicket:for="protectedcheck"><strong>&#128274; Protected nanopublication</strong></label>
+        <span wicket:id="protected-note" class="protected-note">This nanopublication will stay on the local instance this Nanodash is connected to.</span>
+      </p>
+
+      <p wicket:id="consent-section">
+        <input type="checkbox" wicket:id="consentcheck"/>
+        <label wicket:for="consentcheck"><span wicket:id="consenttext">I understand that published data cannot be fully removed (only retracted or superseded by new versions), and is publicly connected to my personal identifier.</span></label>
+      </p>
+
+      <p class="center">
+        <button wicket:id="publish-button" type="submit" class="button">Publish</button>
+        <button wicket:id="back-button" type="submit" class="button light">Back</button>
+      </p>
+    </form>
+
+    <div wicket:id="feedback" class="negative">feedback messages will be put here</div>
+  </div>
+</wicket:panel>
+
+</body>
+
+</html>

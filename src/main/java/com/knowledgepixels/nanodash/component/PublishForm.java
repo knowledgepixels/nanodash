@@ -16,7 +16,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -178,6 +182,30 @@ public class PublishForm extends Panel {
     // space-/namespace-dependent template prefixes resolve against (see DynamicPrefix):
     private final String navigationContextId;
     private final Class<? extends WebPage> confirmPageClass;
+    // Set for a form shown inside another page rather than on a page of its own, such as the
+    // response form of a thread view (#937); null otherwise. See InlinePreview.
+    private final InlinePreview inlinePreview;
+    private Button previewButton;
+
+    /**
+     * Where a form shown inside another page shows its preview. Such a form is submitted over
+     * AJAX: the page around it would otherwise be built anew on the round trip, and the form
+     * gone with what was typed into it and any message saying why it was not published. So its
+     * preview stays inside that page too, with the form kept as it is, to go back to.
+     */
+    @FunctionalInterface
+    public interface InlinePreview extends Serializable {
+
+        /**
+         * Shows the preview of the signed nanopublication in place of the form.
+         *
+         * @param target       the AJAX target of the preview request
+         * @param signedNp     the nanopublication as it would be published
+         * @param consentGiven whether the consent checkbox of the form was ticked
+         */
+        void show(AjaxRequestTarget target, Nanopub signedNp, boolean consentGiven);
+
+    }
 
     /**
      * Constructor for the PublishForm.
@@ -191,8 +219,30 @@ public class PublishForm extends Panel {
      * publication
      */
     public PublishForm(String id, final PageParameters pageParams, Class<? extends WebPage> publishPageClass, Class<? extends WebPage> confirmPageClass) {
+        this(id, pageParams, publishPageClass, confirmPageClass, null);
+    }
+
+    /**
+     * Constructor for a PublishForm that is shown inside another page, and submitted over AJAX.
+     *
+     * @param id the Wicket component ID
+     * @param pageParams the parameters for the page, which may include
+     * information on how to fill the form
+     * @param publishPageClass the class of the page to redirect to after
+     * successful publication
+     * @param confirmPageClass the class of the confirmation page to show after
+     * publication
+     * @param inlinePreview where to show a preview, or null for a form on a page of its
+     * own, which goes to the preview page instead
+     */
+    public PublishForm(String id, final PageParameters pageParams, Class<? extends WebPage> publishPageClass, Class<? extends WebPage> confirmPageClass, InlinePreview inlinePreview) {
         super(id);
         setOutputMarkupId(true);
+        this.inlinePreview = inlinePreview;
+        if (inlinePreview != null) {
+            // Hidden while its preview is shown, and shown again from there.
+            setOutputMarkupPlaceholderTag(true);
+        }
         this.confirmPageClass = confirmPageClass;
         this.navigationContextId = NavigationContext.getContextId(pageParams);
 
@@ -676,6 +726,12 @@ public class PublishForm extends Panel {
             }
 
             protected void onSubmit() {
+                // Wicket calls this after the onSubmit of whichever button submitted the
+                // form, the preview button included. A preview that could not be made gets
+                // here too, and must not be published instead.
+                if (previewButton != null && findSubmitter() == previewButton) {
+                    return;
+                }
                 // The publish button is hidden in this case, but the form can still be
                 // submitted by pressing Enter in one of its fields:
                 if (!templateErrors.isEmpty()) {
@@ -1147,46 +1203,75 @@ public class PublishForm extends Panel {
         form.add(new Label("publishing-disabled", "Publishing is disabled because of the template errors listed above.")
                 .setVisible(publishingDisabled));
 
-        buttonSection.add(new Button("preview-button") {
-            @Override
-            public void onSubmit() {
-                if (!templateErrors.isEmpty()) {
-                    feedbackPanel.error(INVALID_TEMPLATE_MESSAGE);
-                    return;
-                }
-                try {
-                    // Re-check here too: a newer version might have appeared while the form was open.
-                    if (!canPublishFromSource(pageParams)) {
+        if (inlinePreview == null) {
+            // The publish button submits the form as such (see startPublishing in
+            // nanodash.js); the form's own onSubmit does the publishing.
+            buttonSection.add(new WebMarkupContainer("publish-button"));
+            previewButton = new Button("preview-button") {
+                @Override
+                public void onSubmit() {
+                    Nanopub signedNp = signForPreview(pageParams);
+                    if (signedNp == null) {
                         return;
                     }
-
-                    Nanopub np = createNanopub();
-                    // Checked here too: the preview page publishes the nanopublication it
-                    // was given, without coming back through this form.
-                    if (!areNewUrisUnused() || !noReservedIdentifiers()) {
-                        return;
-                    }
-                    TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
-                    Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
-                    // Only logs what it finds; see TemplateComplianceGuard. Here and not on
-                    // the preview page, which publishes whatever nanopublication it is given.
-                    TemplateComplianceGuard.check(signedNp);
                     String previewId = signedNp.getUri().stringValue();
                     NanodashSession.get().setPreviewNanopub(previewId,
                             new NanodashSession.PreviewNanopub(signedNp, pageParams, confirmPageClass, isConsentGiven(), getPage().getPageReference()));
                     throw new RestartResponseException(PreviewPage.class, new PageParameters().set("id", previewId));
-                } catch (RestartResponseException ex) {
-                    throw ex;
-                } catch (Exception ex) {
-                    logger.error("Preview failed: {}", ex.getMessage());
-                    String message = ex.getClass().getName();
-                    if (ex.getMessage() != null) {
-                        message = ex.getMessage();
-                    }
-                    feedbackPanel.error(message);
                 }
-            }
-        });
+            };
+        } else {
+            // Both buttons submit over AJAX. Publishing that goes through leaves for the page
+            // it forwards to as ever; anything else shows this form again, as it was, with the
+            // reason it did not go through. Pressing Enter in a field clicks the publish
+            // button, so it takes the same way.
+            buttonSection.add(new AjaxButton("publish-button") {
+
+                @Override
+                protected void onComponentTag(ComponentTag tag) {
+                    super.onComponentTag(tag);
+                    // Wicket submits the form here, so startPublishing must not.
+                    tag.remove("onclick");
+                }
+
+                @Override
+                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                    super.updateAjaxAttributes(attributes);
+                    attributes.getAjaxCallListeners().add(new AjaxCallListener().onBefore("showPublishing(this);"));
+                }
+
+                @Override
+                protected void onAfterSubmit(AjaxRequestTarget target) {
+                    // Only reached if it was not published: that forwards to another page.
+                    showAgainAfterSubmit(target);
+                }
+
+                @Override
+                protected void onError(AjaxRequestTarget target) {
+                    showAgainAfterSubmit(target);
+                }
+
+            });
+            previewButton = new AjaxButton("preview-button") {
+
+                @Override
+                protected void onSubmit(AjaxRequestTarget target) {
+                    Nanopub signedNp = signForPreview(pageParams);
+                    if (signedNp == null) {
+                        showAgainAfterSubmit(target);
+                        return;
+                    }
+                    inlinePreview.show(target, signedNp, isConsentGiven());
+                }
+
+                @Override
+                protected void onError(AjaxRequestTarget target) {
+                    showAgainAfterSubmit(target);
+                }
+
+            };
+        }
+        buttonSection.add(previewButton);
 
         add(form);
 
@@ -1578,6 +1663,59 @@ public class PublishForm extends Panel {
      */
     private boolean isConsentGiven() {
         return protectedContext != null || Boolean.TRUE.equals(consentCheck.getModelObject());
+    }
+
+    /**
+     * Creates and signs the nanopublication as the form stands, for a preview.
+     *
+     * @param pageParams the parameters the form was built from
+     * @return the signed nanopublication, or null if there is none to show, having said why
+     */
+    private Nanopub signForPreview(PageParameters pageParams) {
+        if (publishingDisabled) {
+            feedbackPanel.error(INVALID_TEMPLATE_MESSAGE);
+            return null;
+        }
+        try {
+            // Re-check here too: a newer version might have appeared while the form was open.
+            if (!canPublishFromSource(pageParams)) {
+                return null;
+            }
+            Nanopub np = createNanopub();
+            // Checked here too: a preview publishes the nanopublication it was given,
+            // without coming back through this form.
+            if (!areNewUrisUnused() || !noReservedIdentifiers()) {
+                return null;
+            }
+            TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
+            Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
+            // Only logs what it finds; see TemplateComplianceGuard. Here and not on the
+            // preview, which publishes whatever nanopublication it is given.
+            TemplateComplianceGuard.check(signedNp);
+            return signedNp;
+        } catch (Exception ex) {
+            logger.error("Preview failed: {}", ex.getMessage());
+            String message = ex.getClass().getName();
+            if (ex.getMessage() != null) {
+                message = ex.getMessage();
+            }
+            feedbackPanel.error(message);
+            return null;
+        }
+    }
+
+    /**
+     * Shows an inline form again after an AJAX submit that did not leave the page, as it was
+     * and with the messages saying why: what a whole-page round trip does for a form on a page
+     * of its own.
+     *
+     * @param target the AJAX target of the submit
+     */
+    private void showAgainAfterSubmit(AjaxRequestTarget target) {
+        target.add(this);
+        target.appendJavaScript("updateInsertedForm('" + getMarkupId() + "'); publishingStopped();"
+                + " var fb = document.getElementById('" + feedbackPanel.getMarkupId() + "');"
+                + " if (fb) fb.scrollIntoView({block: 'nearest'});");
     }
 
     /**

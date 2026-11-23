@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.ApiCache;
 import com.knowledgepixels.nanodash.QueryResult;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -198,6 +199,14 @@ public class RefreshingResultPanel extends Panel {
             // Nothing changed, so nothing is worth interrupting the user for. Unless the
             // refresh failed: the cache then hands back the results it already had.
             settle(target, ApiCache.lastAttemptFailed(queryRef));
+            return false;
+        }
+        if (get(CONTENT_ID) instanceof MarkupContainer content
+                && ThreadNodePanel.hasOpenResponseForm(content)) {
+            // The new results would replace a thread view with a response form open in it,
+            // and the form with what was typed into it: keep what is shown, as for a
+            // refresh that brought nothing new.
+            settle(target, false);
             return false;
         }
         refreshing = false;
