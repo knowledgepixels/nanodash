@@ -1,3 +1,28 @@
+## [5.23.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.23.0...nanodash-5.23.1) (2026-11-23)
+
+### Dependency updates
+
+* **core-deps:** update dependency org.nanopub:nanopub to v1.97.1 ([b01a2df](https://github.com/knowledgepixels/nanodash/commit/b01a2df32eabe383ad9d3901d9db67966dbaeb7e))
+* **deps:** update dependency maven to v3.10.2 ([df81dce](https://github.com/knowledgepixels/nanodash/commit/df81dce70f3b975f28b5fb4954a0e05864d4271e))
+
+### Bug Fixes
+
+* **actions:** offer override only for nanopubs with an identity to keep ([4790213](https://github.com/knowledgepixels/nanodash/commit/4790213480ca3131e0a598dd8e7ddec468e32bab)), closes [#920](https://github.com/knowledgepixels/nanodash/issues/920) [#944](https://github.com/knowledgepixels/nanodash/issues/944)
+* **forms:** don't mark an emptied required field while typing ([220f07a](https://github.com/knowledgepixels/nanodash/commit/220f07a0cd97fec10f318a730599d41f2dc3b51f))
+* **threads:** keep inline response forms in the thread view ([dd3d87d](https://github.com/knowledgepixels/nanodash/commit/dd3d87daa8b74984549c02270ba3451b816e42dd)), closes [#937](https://github.com/knowledgepixels/nanodash/issues/937) [#938](https://github.com/knowledgepixels/nanodash/issues/938)
+
+### Build and continuous integration
+
+* **deps:** update actions/setup-java action to v6.3.0 ([61aab21](https://github.com/knowledgepixels/nanodash/commit/61aab2108db45f2a7d21bc5d1436e7693f43218e))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([b21e10f](https://github.com/knowledgepixels/nanodash/commit/b21e10f02ba5c6266168d60615cf4f695cf734ba))
+
+### Refactoring
+
+* **template:** use the template model of nanopub-java ([0160780](https://github.com/knowledgepixels/nanodash/commit/01607806300fc93ce24f90a2d908e366fe2791f4)), closes [#936](https://github.com/knowledgepixels/nanodash/issues/936)
+
 ## [5.23.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.22.3...nanodash-5.23.0) (2026-11-18)
 
 ### Features
