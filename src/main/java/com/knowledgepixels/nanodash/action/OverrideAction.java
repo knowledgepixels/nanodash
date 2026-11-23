@@ -2,6 +2,9 @@ package com.knowledgepixels.nanodash.action;
 
 import com.knowledgepixels.nanodash.template.TemplateData;
 import org.nanopub.Nanopub;
+import org.nanopub.NanopubUtils;
+
+import java.util.Set;
 
 /**
  * Represents an action that creates a new nanopublication overriding an existing one:
@@ -55,11 +58,21 @@ public class OverrideAction extends NanopubAction {
     }
 
     /**
-     * {@inheritDoc}
+     * Applicable only to a nanopublication that introduces or describes a resource, other than
+     * one it embeds: that is what an override keeps and deriving would not (see
+     * docs/fill-modes.md). A nanopublication with a root definition introduces the resource it
+     * defines, so that is covered too. Overriding anything else would make the same
+     * nanopublication as deriving does (issue #920).
+     *
+     * @param np the nanopublication to check
+     * @return true if the nanopublication has an identity an override would keep
      */
     @Override
     public boolean isApplicableTo(Nanopub np) {
-        return true;
+        // Embedded resources are minted afresh by an override too, as by deriving.
+        Set<String> keptIriIds = NanopubUtils.getIntroducedIriIds(np);
+        keptIriIds.removeAll(NanopubUtils.getEmbeddedIriIds(np));
+        return !keptIriIds.isEmpty();
     }
 
 }
