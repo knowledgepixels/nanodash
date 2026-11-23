@@ -4540,10 +4540,60 @@ a.source:hover {
   padding: 2px 10px;
 }
 
+/* The inline publish form opened by a response action on a card: a box of its own,
+   indented like the responses it would join, with a header and a close button (#938).
+   The left padding matches the 20px by which the form's assertion/provenance/pubinfo
+   sections hang their coloured bars out to the left, so the bars line the box's edge. */
 .thread-node>.thread-form {
-  margin: 6px 0 6px 22px;
-  padding-left: 14px;
-  border-left: 2px solid #26A00840;
+  margin: 6px 0 10px 36px;
+  padding: 6px 14px 4px 20px;
+  border: 1px solid #0B73DA40;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 1px 6px #0000001A;
+}
+
+.thread-formhead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 -14px 6px -20px;
+  padding: 0 14px 6px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.thread-formtitle {
+  flex: 1;
+  min-width: 0;
+}
+
+.thread-formtarget {
+  color: #888;
+  font-size: 9pt;
+  margin-left: 4px;
+}
+
+a.thread-formclose {
+  color: #888;
+  font-size: 18pt;
+  line-height: 1;
+  text-decoration: none;
+}
+
+a.thread-formclose:hover {
+  color: #333;
+}
+
+/* The box's header says what is being published; the form's own heading would repeat it. */
+.thread-form .publishform-heading {
+  display: none;
+}
+
+/* The preview of an inline form, shown in its place (InlinePreviewPanel, #937). */
+.inline-preview-note {
+  margin: 0 0 6px 0;
+  color: #888;
+  font-size: 9pt;
 }
 
 .thread-stats {
@@ -4556,6 +4606,16 @@ a.source:hover {
   .thread-children {
     margin-left: 8px;
     padding-left: 8px;
+  }
+
+  .thread-node>.thread-form {
+    margin-left: 16px;
+    padding-right: 8px;
+  }
+
+  .thread-formhead {
+    margin-right: -8px;
+    padding-right: 8px;
   }
 }
 .home-hero {

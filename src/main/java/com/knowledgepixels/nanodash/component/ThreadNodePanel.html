@@ -33,7 +33,15 @@
       </div>
     </div>
 
-    <div wicket:id="responseForm" class="thread-form"></div>
+    <div wicket:id="responseBox" class="thread-form">
+      <div class="thread-formhead">
+        <span class="thread-formtitle"><strong wicket:id="responseAction">reply</strong>
+          <span wicket:id="responseTarget" class="thread-formtarget">in response to "..."</span></span>
+        <a wicket:id="closeForm" class="thread-formclose" title="Close" aria-label="Close">&times;</a>
+      </div>
+      <div wicket:id="responseForm"></div>
+      <div wicket:id="previewSlot"><div wicket:id="preview"></div></div>
+    </div>
 
     <div wicket:id="childrenArea" class="thread-children">
       <div wicket:id="children"></div>

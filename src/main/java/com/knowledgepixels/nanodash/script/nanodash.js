@@ -263,15 +263,66 @@ window.addEventListener("hashchange", startAnchorTracking);
    submit on top of the submit below. */
 function startPublishing(button) {
   if (button.disabled) return false;
-  var form = button.form;
+  showPublishing(button);
+  button.form.submit();
+  return false;
+}
+
+/* The look of startPublishing(), for a publish button whose form Wicket submits over AJAX
+   (an inline response form, issue #937). If the server answers with the form again instead of
+   leaving for the published nanopublication, the buttons come back with it, and
+   publishingStopped() is called. */
+function showPublishing(button) {
   button.textContent = "Publishing";
   button.insertBefore(makeSpinner(), button.firstChild);
   button.classList.add("publishing");
   // Every button of the form, so the preview button cannot be used to leave mid-publish.
-  form.querySelectorAll("button, input[type=submit]").forEach(function (b) { b.disabled = true; });
-  form.submit();
-  return false;
+  button.form.querySelectorAll("button, input[type=submit]").forEach(function (b) { b.disabled = true; });
+  // Publishing leaves the page if it goes through; nothing is being thrown away then.
+  publishingUnderway = true;
 }
+
+var publishingUnderway = false;
+
+function publishingStopped() {
+  publishingUnderway = false;
+}
+
+/* Inline response forms of thread views (issues #937/#938). Opening one closes any other, and
+   folding a branch or loading more responses rebuilds the forms below; that should not throw
+   away a response someone has started writing without asking. A form counts as started once
+   something in it was changed (or it was previewed: markThreadFormDirty); what it came filled
+   in with does not count. */
+$(document).on("input change", ".thread-form :input", function () {
+  $(this).closest(".thread-form").attr("data-dirty", "1");
+});
+
+function markThreadFormDirty(boxId) {
+  var box = document.getElementById(boxId);
+  if (box) box.setAttribute("data-dirty", "1");
+}
+
+/* Precondition of the thread links that would close or rebuild response forms (see
+   ThreadNodePanel.askBeforeDiscarding): which ones, seen from the link, is the scope. */
+function threadFormsMayClose(link, scope) {
+  var root;
+  if (scope === "page") root = document;
+  else if (scope === "box") root = link.closest(".thread-form");
+  else if (scope === "children") root = link.closest(".thread-children");
+  else root = link.closest(".thread-node");
+  if (!root) return true;
+  var started = root.matches && root.matches(".thread-form[data-dirty]")
+      ? root : root.querySelector(".thread-form[data-dirty]");
+  if (!started) return true;
+  return window.confirm("Discard the response you started writing?");
+}
+
+/* Leaving the page throws such a response away too, so the browser asks first. */
+window.addEventListener("beforeunload", function (e) {
+  if (publishingUnderway || !document.querySelector(".thread-form[data-dirty]")) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
 
 function makeSpinner() {
   var spinner = document.createElement("span");
@@ -663,16 +714,27 @@ $(document).on('mouseenter', '.actionmenu-subitem', function () {
   }
 });
 
-function adjustValueWidths() {
+function adjustValueWidths(root) {
   if (window.innerWidth <= 768) return;
   limit = 251;
-  $(".nanopub-graph").each(function () {
+  $(root || document).find(".nanopub-graph").each(function () {
     updateNanopubGraph(this);
   });
 }
 
-function setCollapseOverflow() {
-  $(".collapse-overflow").each(function () {
+/* What updateElements() does for a form that comes with the page, for one that arrives
+   later with an AJAX response, such as the inline response form of a thread view (#938).
+   Only within that element: running it again over content already laid out would undo
+   that, e.g. lose the expand button of a description that is already collapsed. */
+function updateInsertedForm(rootId) {
+  var root = document.getElementById(rootId);
+  if (!root) return;
+  adjustValueWidths(root);
+  setCollapseOverflow(root);
+}
+
+function setCollapseOverflow(root) {
+  $(root || document).find(".collapse-overflow").each(function () {
     p = $(this).find('.collapse-content')[0];
     if ($(p).height() > 45) {
       $(p).css('max-height', '36px');

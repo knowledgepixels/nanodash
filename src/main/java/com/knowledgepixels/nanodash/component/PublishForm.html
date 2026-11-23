@@ -10,7 +10,7 @@
 
 <wicket:panel>
 
-<h4>Create Nanopublication</h4>
+<h4 class="publishform-heading">Create Nanopublication</h4>
 
 <p><span wicket:id="newversion" class="negative">information about new versions of templates will be put here:</span> <a wicket:id="newversionlink">switch to latest version</a></p>
 
@@ -144,7 +144,7 @@
 </p>
 
 <p wicket:id="button-section" class="center">
-<button type="submit" class="button" onclick="return startPublishing(this);">Publish</button>
+<button wicket:id="publish-button" type="submit" class="button" onclick="return startPublishing(this);">Publish</button>
 <button wicket:id="preview-button" type="submit" class="button light">Preview</button>
 </p>
 

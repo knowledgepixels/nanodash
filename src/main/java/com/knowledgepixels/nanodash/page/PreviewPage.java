@@ -2,10 +2,12 @@ package com.knowledgepixels.nanodash.page;
 
 import java.util.Set;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -77,66 +79,8 @@ public class PreviewPage extends NanodashPage {
         Form<Void> form = new Form<Void>("form") {
             @Override
             protected void onSubmit() {
-                try {
-                    if (!canStillPublish(signedNp)) {
-                        feedbackPanel.error("This nanopublication is no longer the latest version, so it cannot be published from preview.");
-                        return;
-                    }
-
-                    String npUrl = Utils.publishNanopub(signedNp);
-                    logger.info("Nanopublication published from preview: {}", npUrl);
-                    Utils.cacheNanopub(signedNp);
-                    NanodashSession.get().removePreviewNanopub(previewId);
-
-                    String toRefresh = pageParams.get("refresh-upon-publish").toString("");
-                    if (!toRefresh.isEmpty()) {
-                        WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
-                    }
-
-                    if (!pageParams.get("postpub-redirect-url").isNull()) {
-                        String forwardUrl = pageParams.get("postpub-redirect-url").toString();
-                        if (forwardUrl.contains("?")) {
-                            throw new RedirectToUrlException(forwardUrl);
-                        }
-                        Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(signedNp);
-                        String redirectId = introducedIds.size() == 1
-                                ? introducedIds.iterator().next()
-                                : signedNp.getUri().stringValue();
-                        String paramString = Utils.getPageParametersAsString(new PageParameters().set("id", redirectId));
-                        throw new RedirectToUrlException(forwardUrl + "?" + paramString);
-                    }
-
-                    String contextId = NavigationContext.getContextId(pageParams);
-                    if (contextId == null) contextId = "";
-                    // Broaden the refresh: also force-refresh the context resource's own
-                    // data so the page we redirect to reflects the just-published change,
-                    // not only the specific view query that was acted on. Only for
-                    // publications that can change the page structure; see #622 and
-                    // PostPublishRefresh.
-                    if (!contextId.isEmpty() && !contextId.equals(toRefresh)
-                            && AbstractResourceWithProfile.isResourceWithProfile(contextId)
-                            && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
-                        WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
-                    }
-                    if (confirmPageClass != null) {
-                        // Connector flow: show the connector's own confirmation page.
-                        throw new RestartResponseException(
-                                confirmPageClass,
-                                new PageParameters(pageParams).set("id", signedNp.getUri().stringValue())
-                        );
-                    }
-                    // Forward to the context resource's page, or home if no context; always throws.
-                    NavigationContext.redirectAfterPublish(signedNp, pageParams);
-                } catch (RestartResponseException | RedirectToUrlException ex) {
-                    throw ex;
-                } catch (Exception ex) {
-                    logger.error("Nanopublication publishing from preview failed: {}", ex.getMessage());
-                    String message = ex.getClass().getName();
-                    if (ex.getMessage() != null) {
-                        message = ex.getMessage();
-                    }
-                    feedbackPanel.error(message);
-                }
+                publishPreviewed(signedNp, pageParams, confirmPageClass, feedbackPanel,
+                        () -> NanodashSession.get().removePreviewNanopub(previewId));
             }
         };
         add(form);
@@ -204,14 +148,83 @@ public class PreviewPage extends NanodashPage {
         }
     }
 
-    private boolean canStillPublish(Nanopub signedNp) {
-        // The source nanopub being superseded or overridden is stored in the page params
-        // (retrieved from the preview session, which was saved in PublishForm)
-        NanodashSession.PreviewNanopub preview = NanodashSession.get().getPreviewNanopub(signedNp.getUri().stringValue());
-        if (preview == null) {
-            return true; // session expired – can't verify, allow optimistically
+    /**
+     * Publishes a nanopublication that has been shown as a preview, and forwards to where it is
+     * to be seen, as the publish form would have. Shared by this page and the preview inside an
+     * inline publish form ({@link com.knowledgepixels.nanodash.component.InlinePreviewPanel}).
+     * Returns only if it was not published, having said why on the given component.
+     *
+     * @param signedNp         the previewed nanopublication
+     * @param pageParams       the parameters of the form it was made with
+     * @param confirmPageClass the connector's confirmation page, or null
+     * @param feedback         where to report a failure
+     * @param onPublished      run once it is published, before forwarding; may be null
+     */
+    public static void publishPreviewed(Nanopub signedNp, PageParameters pageParams,
+            Class<? extends WebPage> confirmPageClass, Component feedback, Runnable onPublished) {
+        try {
+            // The source nanopub being superseded or overridden is named in the page params.
+            if (PublishForm.isSourceOutdated(pageParams)) {
+                feedback.error("This nanopublication is no longer the latest version, so it cannot be published from preview.");
+                return;
+            }
+
+            String npUrl = Utils.publishNanopub(signedNp);
+            logger.info("Nanopublication published from preview: {}", npUrl);
+            Utils.cacheNanopub(signedNp);
+            if (onPublished != null) {
+                onPublished.run();
+            }
+
+            String toRefresh = pageParams.get("refresh-upon-publish").toString("");
+            if (!toRefresh.isEmpty()) {
+                WicketApplication.get().notifyNanopubPublished(signedNp, toRefresh, 5 * 1000);
+            }
+
+            if (!pageParams.get("postpub-redirect-url").isNull()) {
+                String forwardUrl = pageParams.get("postpub-redirect-url").toString();
+                if (forwardUrl.contains("?")) {
+                    throw new RedirectToUrlException(forwardUrl);
+                }
+                Set<String> introducedIds = NanopubUtils.getIntroducedIriIds(signedNp);
+                String redirectId = introducedIds.size() == 1
+                        ? introducedIds.iterator().next()
+                        : signedNp.getUri().stringValue();
+                String paramString = Utils.getPageParametersAsString(new PageParameters().set("id", redirectId));
+                throw new RedirectToUrlException(forwardUrl + "?" + paramString);
+            }
+
+            String contextId = NavigationContext.getContextId(pageParams);
+            if (contextId == null) contextId = "";
+            // Broaden the refresh: also force-refresh the context resource's own
+            // data so the page we redirect to reflects the just-published change,
+            // not only the specific view query that was acted on. Only for
+            // publications that can change the page structure; see #622 and
+            // PostPublishRefresh.
+            if (!contextId.isEmpty() && !contextId.equals(toRefresh)
+                    && AbstractResourceWithProfile.isResourceWithProfile(contextId)
+                    && PostPublishRefresh.changesPageStructure(signedNp, contextId)) {
+                WicketApplication.get().notifyNanopubPublished(signedNp, contextId, 5 * 1000);
+            }
+            if (confirmPageClass != null) {
+                // Connector flow: show the connector's own confirmation page.
+                throw new RestartResponseException(
+                        confirmPageClass,
+                        new PageParameters(pageParams).set("id", signedNp.getUri().stringValue())
+                );
+            }
+            // Forward to the context resource's page, or home if no context; always throws.
+            NavigationContext.redirectAfterPublish(signedNp, pageParams);
+        } catch (RestartResponseException | RedirectToUrlException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Nanopublication publishing from preview failed: {}", ex.getMessage());
+            String message = ex.getClass().getName();
+            if (ex.getMessage() != null) {
+                message = ex.getMessage();
+            }
+            feedback.error(message);
         }
-        return !PublishForm.isSourceOutdated(preview.getPageParams());
     }
 
     /**
