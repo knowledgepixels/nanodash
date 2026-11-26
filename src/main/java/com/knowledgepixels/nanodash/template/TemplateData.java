@@ -36,8 +36,13 @@ public class TemplateData implements Serializable {
      * How a template retrieves nanopublications: its own, and those that hold the values a
      * placeholder can take ({@code nt:possibleValuesFrom}). They come from where Nanodash
      * gets all its nanopublications, so that they are cached like the others.
+     * <p>
+     * An IRI within a nanopublication retrieves that nanopublication. A nanopublication made
+     * from a template with an identity of its own names the template by its node
+     * ({@code <np>/templateVersion}), and that is what the compliance check passes on, while
+     * {@link Utils#getNanopub(String)} only takes a nanopublication URI or an artifact code.
      */
-    public static final NanopubResolver RESOLVER = Utils::getNanopub;
+    public static final NanopubResolver RESOLVER = id -> Utils.getNanopub(Utils.stripToNanopubId(id));
 
     private static TemplateData instance;
 

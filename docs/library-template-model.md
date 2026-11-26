@@ -34,7 +34,10 @@ package are unchanged.
   ([nanopub-java#218](https://github.com/Nanopublication/nanopub-java/issues/218)).
 - **Retrieval goes through Nanodash.** A template gets its own nanopublication, and those that
   hold the values of a placeholder (`nt:possibleValuesFrom`), from `TemplateData.RESOLVER`,
-  which is `Utils.getNanopub` with its cache. The value lists are now loaded when first asked
+  which is `Utils.getNanopub` with its cache. It first strips an IRI within a nanopublication
+  down to the nanopublication (`Utils.stripToNanopubId`), as the compliance check asks for a
+  template by the IRI a nanopublication names it with, which can be its node
+  (`<np>/templateVersion`). The value lists are now loaded when first asked
   for, not when the template is read.
 
 One difference in behaviour: a label the template itself gives to an IRI now wins over a label

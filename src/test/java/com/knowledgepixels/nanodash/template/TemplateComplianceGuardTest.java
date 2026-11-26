@@ -7,7 +7,9 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.PROV;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import com.knowledgepixels.nanodash.Utils;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.templates.ComplianceIssue;
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Tests for {@link TemplateComplianceGuard}: it reports what nanopub-java finds, and never
@@ -73,11 +77,16 @@ class TemplateComplianceGuardTest {
 
     // A nanopublication as the form makes it from these templates, with the given assertion.
     private static Nanopub nanopub(IRI predicate) throws Exception {
+        return nanopub(predicate, ASSERTION_TEMPLATE);
+    }
+
+    // The same, naming its assertion template with the given IRI.
+    private static Nanopub nanopub(IRI predicate, String assertionTemplateLink) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP);
         creator.addAssertionStatement(THING, predicate, vf.createLiteral("A thing"));
         creator.addProvenanceStatement(PROV.WAS_ATTRIBUTED_TO, ME);
         creator.addPubinfoStatement(DCTERMS.CREATOR, ME);
-        creator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, vf.createIRI(ASSERTION_TEMPLATE));
+        creator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, vf.createIRI(assertionTemplateLink));
         creator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE, vf.createIRI(PROVENANCE_TEMPLATE));
         creator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE, vf.createIRI(PUBINFO_TEMPLATE));
         return creator.finalizeNanopub();
@@ -99,6 +108,27 @@ class TemplateComplianceGuardTest {
         assertFalse(report.isCompliant());
         assertEquals(List.of(ComplianceIssue.Kind.MISSING_STATEMENT, ComplianceIssue.Kind.UNMATCHED_TRIPLE),
                 report.getErrors().stream().map(ComplianceIssue::kind).toList());
+    }
+
+    @Test
+    void templateNamedByItsNodeIsRetrievedThroughNanodash() throws Exception {
+        registerTemplates();
+        // The check runs with Nanodash's resolver, as on the publish form. Utils.getNanopub is
+        // stood in for by one that, like the real one, takes only a nanopublication URI or an
+        // artifact code.
+        try (MockedStatic<Utils> utils = mockStatic(Utils.class)) {
+            utils.when(() -> Utils.stripToNanopubId(anyString())).thenCallRealMethod();
+            utils.when(() -> Utils.getNanopub(anyString())).thenAnswer(call -> {
+                String id = call.getArgument(0);
+                if (!id.matches("(.*[^A-Za-z0-9_-])?RA[A-Za-z0-9_-]{43}")) throw new IllegalArgumentException("Not a well-formed trusty URI");
+                return templates.get(id);
+            });
+            // A nanopublication made from a template with an identity of its own names the
+            // template by its node:
+            ComplianceReport report = TemplateComplianceGuard.check(nanopub(RDFS.LABEL, ASSERTION_TEMPLATE + "/templateVersion"));
+            assertNotNull(report);
+            assertEquals(List.of(), report.getIssues());
+        }
     }
 
     @Test
