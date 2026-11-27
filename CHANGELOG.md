@@ -1,3 +1,22 @@
+## [5.23.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.23.1...nanodash-5.23.2) (2026-11-27)
+
+### Dependency updates
+
+* **core-deps:** update dependency org.nanopub:nanopub to v1.98.1 ([1673ca5](https://github.com/knowledgepixels/nanodash/commit/1673ca51382e5547ea866aff48730ada5c013cc7))
+* **core-deps:** update dependency org.nanopub:nanopub to v1.98.2 ([444780c](https://github.com/knowledgepixels/nanodash/commit/444780c6310f4df9df722506ddb9746735288b69))
+
+### Bug Fixes
+
+* **publish:** let the compliance check retrieve templates named by their node ([594de21](https://github.com/knowledgepixels/nanodash/commit/594de216ea739d54ebbd55d91a01ab47cb1742f5))
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([673dbcd](https://github.com/knowledgepixels/nanodash/commit/673dbcdb055b54a01f16a8a66e22b4e5ef4e4c72))
+
+### Refactoring
+
+* **publish:** make each nanopublication with nanopub-java too, and log where they differ ([#936](https://github.com/knowledgepixels/nanodash/issues/936)) ([f540971](https://github.com/knowledgepixels/nanodash/commit/f540971c181184f5d195ad8db735f5f1c11dac40))
+
 ## [5.23.1](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.23.0...nanodash-5.23.1) (2026-11-23)
 
 ### Dependency updates
