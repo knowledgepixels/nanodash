@@ -9,6 +9,7 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PreviewPage;
 import com.knowledgepixels.nanodash.template.*;
+import org.nanopub.templates.FillRequest;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
 import org.apache.commons.lang3.Strings;
@@ -755,6 +756,8 @@ public class PublishForm extends Panel {
                     if (!areNewUrisUnused() || !noReservedIdentifiers()) {
                         return;
                     }
+                    // Only logs what it finds; see TemplateFillGuard.
+                    TemplateFillGuard.check(np, PublishForm.this::toFillRequest);
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
@@ -1687,6 +1690,8 @@ public class PublishForm extends Panel {
             if (!areNewUrisUnused() || !noReservedIdentifiers()) {
                 return null;
             }
+            // Only logs what it finds; see TemplateFillGuard.
+            TemplateFillGuard.check(np, this::toFillRequest);
             TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
             Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
             // Only logs what it finds; see TemplateComplianceGuard. Here and not on the
@@ -1762,6 +1767,18 @@ public class PublishForm extends Panel {
         for (String error : context.getTemplate().getStatementErrors()) {
             errors.add(new TemplateError(part, error));
         }
+    }
+
+    /**
+     * Returns what is filled in on this form as a request for the filler of nanopub-java, which
+     * {@link TemplateFillGuard} makes the nanopublication a second time from (#936).
+     *
+     * @return the request
+     */
+    FillRequest toFillRequest() {
+        IRI userIri = NanodashSession.get().getUserIri();
+        return FormRequest.of(assertionContext, provenanceContext, pubInfoContexts, targetNamespace, userIri,
+                User.getName(userIri), NanodashPreferences.get().getWebsiteUrl());
     }
 
     private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {

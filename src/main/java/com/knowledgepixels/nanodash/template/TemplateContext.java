@@ -585,6 +585,17 @@ public class TemplateContext implements Serializable {
         return prefix == null || prefix.isEmpty();
     }
 
+    /**
+     * Returns the base that a space-/namespace-dependent prefix token stands for here: the one
+     * the navigation context determines, or else the one the user picked.
+     *
+     * @param token the token, {@link DynamicPrefix#SPACE_TOKEN} or {@link DynamicPrefix#NAMESPACE_TOKEN}
+     * @return the base, or null if it is not determined
+     */
+    public String getPrefixBase(String token) {
+        return resolvePrefixBase(token);
+    }
+
     private String resolvePrefixBase(String token) {
         String base = DynamicPrefix.resolveFromContext(token, navigationContextId);
         if (base != null && !base.isEmpty()) return base;

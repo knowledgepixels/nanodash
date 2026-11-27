@@ -1,9 +1,10 @@
 # Template model from nanopub-java
 
-**Status:** 🚧 In progress — first part of
+**Status:** 🚧 In progress — part of
 [#936](https://github.com/knowledgepixels/nanodash/issues/936): Nanodash reads templates with
-the `Template` class of nanopub-java. Filling, matching and lookups still run on Nanodash's
-own code.
+the `Template` class of nanopub-java, and the library's filler makes each nanopublication a
+second time, for comparison (see *The fill guard*). Filling, matching and lookups still run on
+Nanodash's own code.
 
 What a template means was implemented in Nanodash alone. nanopub-java now has it too
 ([nanopub-java#91](https://github.com/Nanopublication/nanopub-java/issues/91),
@@ -51,3 +52,26 @@ makes, on publishing and on preview, and writes one line to the log for each, pl
 finding. It decides nothing: publishing goes ahead whatever is found, and a failure of the check
 is only logged. Its purpose is to show where the form and the library disagree while both
 exist. Look for `Template compliance:` in the log.
+
+## The fill guard
+
+The next step of #936 has the form make its nanopublications with the library's
+`TemplateFiller`. Before it does, `TemplateFillGuard` makes each nanopublication a second time
+that way, on publishing and on preview. The form's own nanopublication is the one that is signed
+and published. The guard logs whether the library's comes out the same, and if not, which
+triples only one of them has, or why the library would not fill the template.
+
+- **The request.** `FormRequest` turns what is filled in into the library's `FillRequest`.
+  - Each field's model goes in under the name its `param_` link parameter has, with its
+    language tag.
+  - The fill mode and the source go in, as do the space and the namespace that dynamic
+    prefixes resolve to.
+  - So do the labels the form looked up, the names of agents, and the site's address.
+  - A field that still holds the template's default is left out. The library takes the
+    default by itself, and leaves it out with an optional statement that lacks other values,
+    as the form does.
+- **The comparison.** It is made triple by triple in each graph, with each nanopublication's
+  URI and what is minted under it written relative to it. The head, the creation time and the
+  signature are left out.
+
+Look for `Template fill:` in the log.
