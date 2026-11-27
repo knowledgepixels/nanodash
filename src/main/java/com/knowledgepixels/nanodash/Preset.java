@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
  * A class representing a Preset: a named bundle of default views and roles that
  * can be assigned to a resource (a user, a space, or a maintained resource).
  *
- * <p>This mirrors {@link View}: a preset carries a stable <em>kind</em> (via
- * {@code dct:isVersionOf}) so its identity survives across superseding versions,
+ * <p>This mirrors {@link View}: a preset carries a stable <em>version-independent IRI</em>
+ * (via {@code dct:isVersionOf}) so its identity survives across superseding versions,
  * and {@link #get(String)} automatically resolves to the latest version.</p>
  *
  * <p>See {@code doc/presets.md} and nanodash issue #302.</p>
@@ -38,8 +38,9 @@ public class Preset implements Serializable {
         .build();
 
     /**
-     * Get a Preset by its ID, resolving to the latest version of its kind. A version that
-     * declares {@code gen:governedBy} resolves within its {@code (kind, space)} pair via
+     * Get a Preset by its ID, resolving to the latest version of the preset. A version that
+     * declares {@code gen:governedBy} resolves within its
+     * {@code (version-independent IRI, space)} pair via
      * {@link GovernedVersions}; one that doesn't follows its supersedes chain, and on into a
      * space's versions if the chain ends at a version handing the preset over to that space.
      *
@@ -61,7 +62,7 @@ public class Preset implements Serializable {
      * @return true if the preset declares both
      */
     public static boolean isSpaceGoverned(Preset preset) {
-        return preset != null && preset.getGoverningSpace() != null && preset.getPresetKindIri() != null;
+        return preset != null && preset.getGoverningSpace() != null && preset.getVersionIndependentIri() != null;
     }
 
     /**
@@ -76,8 +77,9 @@ public class Preset implements Serializable {
     }
 
     /**
-     * Resolves a preset to its current version: within its {@code (kind, space)} pair if it
-     * declares {@code gen:governedBy} and the space maintains the kind, along its own
+     * Resolves a preset to its current version: within its
+     * {@code (version-independent IRI, space)} pair if it declares {@code gen:governedBy} and
+     * the space maintains that IRI, along its own
      * supersedes chain otherwise, and on into a space's versions where that chain ends at a
      * version handing the preset over to it (see {@link GovernedVersions#resolve(Nanopub)}).
      * The pin is the floor.
@@ -142,7 +144,7 @@ public class Preset implements Serializable {
 
     private String id;
     private Nanopub nanopub;
-    private IRI presetKind;
+    private IRI versionIndependentIri;
     private IRI governingSpace;
     private String label;
     private String description;
@@ -163,7 +165,7 @@ public class Preset implements Serializable {
                     presetTypeFound = true;
                 }
             } else if (st.getPredicate().equals(DCTERMS.IS_VERSION_OF) && st.getObject() instanceof IRI objIri) {
-                presetKind = objIri;
+                versionIndependentIri = objIri;
             } else if (st.getPredicate().equals(KPXL_TERMS.GOVERNED_BY) && st.getObject() instanceof IRI objIri) {
                 governingSpace = objIri;
             } else if (st.getPredicate().equals(RDFS.LABEL)) {
@@ -198,13 +200,13 @@ public class Preset implements Serializable {
     }
 
     /**
-     * Gets the stable preset kind (the {@code dct:isVersionOf} target), which is
-     * version-independent and what assignments and lookups should reference.
+     * Gets the version-independent IRI (the {@code dct:isVersionOf} target), which is what
+     * assignments and lookups should reference.
      *
-     * @return the preset kind IRI, or null if not set
+     * @return the version-independent IRI, or null if not set
      */
-    public IRI getPresetKindIri() {
-        return presetKind;
+    public IRI getVersionIndependentIri() {
+        return versionIndependentIri;
     }
 
     /**

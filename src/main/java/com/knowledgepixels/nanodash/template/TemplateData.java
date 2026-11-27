@@ -282,12 +282,12 @@ public class TemplateData implements Serializable {
     /**
      * Resolves a template ID to the ID of the latest version of that template.
      * A version declaring {@code gen:governedBy} resolves space-based: the newest
-     * version of its (kind, space) pair signed by a current member+ of the
+     * version of its (version-independent IRI, space) pair signed by a current member+ of the
      * governing space, checked server-side by the
      * {@link QueryApiAccess#GET_LATEST_GOVERNED_VERSION} query, with the pinned
      * version as the floor on an empty result or failure. A version without it
      * follows the supersedes chain of the containing nanopublication, and so does
-     * a governed version whose kind isn't a maintained resource of the space yet
+     * a governed version whose version-independent IRI isn't a maintained resource of the space yet
      * (answered by the same governed-version query). A supersedes chain that ends
      * at a version handing the template over to a space is followed on into that
      * space's versions ({@link GovernedVersions#resolve(org.nanopub.Nanopub)}). Accepts
@@ -353,8 +353,8 @@ public class TemplateData implements Serializable {
     }
     /**
      * Resolves the pinned template with {@link GovernedVersions#resolve(org.nanopub.Nanopub)}:
-     * the latest space-governed version of its (kind, space) pair, or, if it declares no
-     * governance or the space doesn't maintain the kind, the head of the pin's own supersedes
+     * the latest space-governed version of its (version-independent IRI, space) pair, or, if it
+     * declares no governance or the space doesn't maintain that IRI, the head of the pin's own supersedes
      * chain, followed on into a space's versions where that head hands the template over.
      *
      * @return the canonical ID of the version reached, or null if resolution stays at the pin,

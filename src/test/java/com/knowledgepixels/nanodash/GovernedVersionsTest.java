@@ -32,7 +32,7 @@ class GovernedVersionsTest {
         GovernedVersions.GovernedRef ref = GovernedVersions.findGovernedRef(load("np-governed-definition.trig"));
 
         assertNotNull(ref);
-        assertEquals("https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/templateKind", ref.getKind());
+        assertEquals("https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/templateKind", ref.getVersionIndependentIri());
         assertEquals("https://w3id.org/spaces/knowledgepixels/nanoarguments", ref.getSpace());
         assertEquals("https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", ref.getNanopubId());
     }
@@ -48,7 +48,7 @@ class GovernedVersionsTest {
     }
 
     @Test
-    void queryRefCarriesKindSpaceAndPin() {
+    void queryRefCarriesVersionIndependentIriSpaceAndPin() {
         String url = GovernedVersions.getQueryRef("https://example.org/kind", "https://example.org/space",
                 "https://example.org/np/RAp").getAsUrlString();
 
@@ -63,7 +63,7 @@ class GovernedVersionsTest {
         GovernedVersions.GovernedRef ref = GovernedVersions.findGovernedRef(load("np-governed-definition.trig"));
 
         String url = GovernedVersions.getQueryRef(ref).getAsUrlString();
-        assertEquals(GovernedVersions.getQueryRef(ref.getKind(), ref.getSpace(), ref.getNanopubId()).getAsUrlString(), url);
+        assertEquals(GovernedVersions.getQueryRef(ref.getVersionIndependentIri(), ref.getSpace(), ref.getNanopubId()).getAsUrlString(), url);
         assertTrue(url.contains("pin=" + Utils.urlEncode("https://w3id.org/np/RAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")));
     }
 
