@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
  * An identifier for a resource that does not exist yet carries no artifact code, so nothing
  * makes it unique and the publish form has to check it against the identifiers already in use
  * (#646). Which values those are is the template author's call, declared by tagging the
- * placeholder with {@link Template#NEW_URI_PLACEHOLDER}: a tagged placeholder is checked
+ * placeholder with {@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER}: a tagged placeholder is checked
  * however its value was formed, and an untagged one is never checked, even when its IRI is
  * built from a prefix and already exists.
  */

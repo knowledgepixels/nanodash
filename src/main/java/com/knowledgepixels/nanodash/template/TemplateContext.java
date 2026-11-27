@@ -691,7 +691,7 @@ public class TemplateContext implements Serializable {
 
     /**
      * Returns the IRIs this context formed for placeholders the template marks as naming a
-     * resource that does not exist yet ({@link Template#NEW_URI_PLACEHOLDER}).
+     * resource that does not exist yet ({@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER}).
      * <p>
      * Such an identifier carries no artifact code, so nothing makes it unique: two people
      * filling the same form with the same name arrive at the same IRI, and the second
@@ -980,7 +980,7 @@ public class TemplateContext implements Serializable {
 
     /**
      * Whether an IRI formed for a placeholder is one to check against the identifiers already in
-     * use: the placeholder is tagged with {@link Template#NEW_URI_PLACEHOLDER}, and the IRI is not
+     * use: the placeholder is tagged with {@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER}, and the IRI is not
      * under the nanopublication's own namespace, whose artifact code makes it unique.
      *
      * @param placeholder the placeholder the value was entered into

@@ -104,7 +104,7 @@ public class IriTextfieldPrefixItemTest {
         creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX, vf.createLiteral(prefix));
         creator.addAssertionStatement(RESOURCE, NTEMPLATE.HAS_PREFIX_LABEL, vf.createLiteral("Class"));
         creator.addAssertionStatement(RESOURCE, RDFS.LABEL, vf.createLiteral("resource"));
-        if (newUri) creator.addAssertionStatement(RESOURCE, RDF.TYPE, Template.NEW_URI_PLACEHOLDER);
+        if (newUri) creator.addAssertionStatement(RESOURCE, RDF.TYPE, NTEMPLATE.NEW_URI_PLACEHOLDER);
         Template template = TemplateTestUtil.parseTemplate(creator.finalizeNanopub());
 
         TemplateData templateDataMock = mock(TemplateData.class);
