@@ -1897,6 +1897,12 @@ a.meta:active,
   color: #A01208;
 }
 
+.new-uri-taken {
+  display: block;
+  margin: 2px 0 6px 0;
+  font-size: 0.9em;
+}
+
 .valueitem {
   margin: 2px 6px 2px 0;
   overflow-wrap: anywhere;
