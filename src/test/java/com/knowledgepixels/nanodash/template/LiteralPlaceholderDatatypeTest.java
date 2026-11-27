@@ -18,12 +18,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.NanopubCreator;
+import org.nanopub.templates.TemplateFillException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -33,7 +35,8 @@ import static org.mockito.Mockito.when;
  * Regression tests for issue #564: a nt:LiteralPlaceholder with a datatype other
  * than xsd:date/xsd:dateTime (e.g. xsd:gYear) must produce a typed literal from
  * the entered text instead of silently dropping the value, which made non-optional
- * statements fail with "Field of statement not set." despite being filled in.
+ * statements fail with "Field of statement not set." despite being filled in. The
+ * nanopublication is made by the filler of nanopub-java, as the publishing form does (#936).
  */
 public class LiteralPlaceholderDatatypeTest {
 
@@ -90,16 +93,22 @@ public class LiteralPlaceholderDatatypeTest {
         when(templateDataMock.getTemplate(NP_URI)).thenReturn(template);
     }
 
-    private TemplateContext contextWithValue(String enteredText) {
+    private TemplateContext contextWithValue(Serializable entered) {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
-        context.getComponentModels().put(VALUE, Model.of(enteredText));
+        context.getComponentModels().put(THING, Model.of("https://example.org/thing"));
+        context.getComponentModels().put(VALUE, Model.of(entered));
         return context;
+    }
+
+    // The value the form publishes for the literal placeholder.
+    private static Value published(TemplateContext context) throws TemplateFillException {
+        return TestFill.object(context, RDFS.LABEL);
     }
 
     @Test
     void gYearDatatypeProducesTypedLiteral() throws Exception {
         mockTemplate(vf.createIRI(XSD.NAMESPACE + "gYear"), null);
-        Value result = contextWithValue("2026").processValue(VALUE);
+        Value result = published(contextWithValue("2026"));
         assertTrue(result instanceof Literal, "entered value must not be dropped");
         Literal l = (Literal) result;
         assertEquals("2026", l.stringValue());
@@ -109,7 +118,7 @@ public class LiteralPlaceholderDatatypeTest {
     @Test
     void integerDatatypeProducesTypedLiteral() throws Exception {
         mockTemplate(vf.createIRI(XSD.NAMESPACE + "integer"), null);
-        Value result = contextWithValue("42").processValue(VALUE);
+        Value result = published(contextWithValue("42"));
         assertTrue(result instanceof Literal);
         Literal l = (Literal) result;
         assertEquals("42", l.stringValue());
@@ -119,10 +128,9 @@ public class LiteralPlaceholderDatatypeTest {
     @Test
     void dateTimeLiteralAlwaysHasSeconds() throws Exception {
         mockTemplate(XSD.DATETIME, null);
-        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
         // A time entered without seconds, which is what the picker asks for by default:
-        context.getComponentModels().put(VALUE, Model.of(ZonedDateTime.parse("2026-05-17T10:15+02:00")));
-        Literal l = (Literal) context.processValue(VALUE);
+        TemplateContext context = contextWithValue(ZonedDateTime.parse("2026-05-17T10:15+02:00"));
+        Literal l = (Literal) published(context);
         assertEquals("2026-05-17T10:15:00+02:00", l.stringValue());
         assertEquals(XSD.DATETIME, l.getDatatype());
     }
@@ -130,15 +138,14 @@ public class LiteralPlaceholderDatatypeTest {
     @Test
     void dateTimeLiteralKeepsEnteredSeconds() throws Exception {
         mockTemplate(XSD.DATETIME, null);
-        TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
-        context.getComponentModels().put(VALUE, Model.of(ZonedDateTime.parse("2026-05-17T10:15:30Z")));
-        assertEquals("2026-05-17T10:15:30Z", context.processValue(VALUE).stringValue());
+        TemplateContext context = contextWithValue(ZonedDateTime.parse("2026-05-17T10:15:30Z"));
+        assertEquals("2026-05-17T10:15:30Z", published(context).stringValue());
     }
 
     @Test
     void plainLiteralStillWorks() throws Exception {
         mockTemplate(null, null);
-        Value result = contextWithValue("some text").processValue(VALUE);
+        Value result = published(contextWithValue("some text"));
         assertTrue(result instanceof Literal);
         Literal l = (Literal) result;
         assertEquals("some text", l.stringValue());
@@ -148,7 +155,7 @@ public class LiteralPlaceholderDatatypeTest {
     @Test
     void languageTagStillWorks() throws Exception {
         mockTemplate(null, "en");
-        Value result = contextWithValue("some text").processValue(VALUE);
+        Value result = published(contextWithValue("some text"));
         assertTrue(result instanceof Literal);
         Literal l = (Literal) result;
         assertEquals("some text", l.stringValue());
@@ -156,9 +163,10 @@ public class LiteralPlaceholderDatatypeTest {
     }
 
     @Test
-    void emptyValueStillResolvesToNull() throws Exception {
+    void anEmptyValueLeavesTheStatementWithoutValue() throws Exception {
         mockTemplate(vf.createIRI(XSD.NAMESPACE + "gYear"), null);
-        assertNull(contextWithValue("").processValue(VALUE));
+        // The statement is not optional, so the nanopublication cannot be made.
+        assertThrows(TemplateFillException.class, () -> published(contextWithValue("")));
     }
 
 }

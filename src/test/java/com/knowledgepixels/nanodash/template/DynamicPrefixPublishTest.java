@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.templates.TemplateFillException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -154,12 +156,9 @@ public class DynamicPrefixPublishTest {
         context.getComponentModels().put(TemplateContext.getPrefixModelKey(DynamicPrefix.getToken(rawPrefix)), Model.of(base));
     }
 
+    // The nanopublication the form makes, with the filler of nanopub-java (#936).
     private Nanopub publish(TemplateContext context) throws Exception {
-        NanopubCreator creator = new NanopubCreator("http://purl.org/nanopub/temp/result/");
-        context.propagateStatements(creator);
-        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
-        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
-        return creator.finalizeNanopub();
+        return TestFill.fill(context);
     }
 
     private static Value partOf(Nanopub np) {
@@ -237,10 +236,11 @@ public class DynamicPrefixPublishTest {
     void localResourceWithoutDynamicPrefixIsStillMintedUnderTheTargetNamespace() throws Exception {
         TemplateContext context = contextWith("https://example.org/", null, true);
         setText(context, "thing");
-        Value v = partOf(publish(context));
+        Nanopub np = publish(context);
+        Value v = partOf(np);
         assertNotNull(v);
-        assertTrue(v.stringValue().startsWith(Template.DEFAULT_TARGET_NAMESPACE),
-                "expected minting under the target namespace but got " + v);
+        assertTrue(v.stringValue().startsWith(np.getUri().stringValue()),
+                "expected minting under the namespace of the nanopublication but got " + v);
     }
 
 
@@ -266,7 +266,8 @@ public class DynamicPrefixPublishTest {
     void unresolvedPrefixPublishesNothing() throws Exception {
         TemplateContext context = contextWith("~~SPACE~~/r/", null);
         setText(context, "thing");
-        assertNull(partOf(publish(context)), "an unresolved dynamic prefix must not mint an IRI");
+        // The value cannot be used, so the nanopublication is not made.
+        assertThrows(TemplateFillException.class, () -> publish(context), "an unresolved dynamic prefix must not mint an IRI");
     }
 
     @Test

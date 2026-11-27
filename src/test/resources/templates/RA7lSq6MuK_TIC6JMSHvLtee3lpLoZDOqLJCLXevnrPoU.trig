@@ -1,0 +1,61 @@
+@prefix this: <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU> .
+@prefix sub: <https://w3id.org/np/RA7lSq6MuK_TIC6JMSHvLtee3lpLoZDOqLJCLXevnrPoU#> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix ns1: <http://purl.org/np/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  prov:wasAttributedTo rdfs:label "is attributed to" .
+  
+  sub:agent a nt:AgentPlaceholder;
+    nt:hasDefaultValue nt:CREATOR .
+  
+  sub:assertion a nt:ProvenanceTemplate;
+    rdfs:label "Attributed to myself/others";
+    nt:hasStatement sub:st1 .
+  
+  sub:st1 a nt:RepeatableStatement;
+    rdf:object sub:agent;
+    rdf:predicate prov:wasAttributedTo;
+    rdf:subject nt:ASSERTION .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  
+  sub:sig npx:hasAlgorithm "RSA";
+    npx:hasPublicKey "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCwUtewGCpT5vIfXYE1bmf/Uqu1ojqnWdYxv+ySO80ul8Gu7m8KoyPAwuvaPj0lvPtHrg000qMmkxzKhYknEjq8v7EerxZNYp5B3/3+5ZpuWOYAs78UnQVjbHSmDdmryr4D4VvvNIiUmd0yxci47dTFUj4DvfHnGd6hVe5+goqdcwIDAQAB";
+    npx:hasSignature "Aht6n3mu00ypOEoVMYOYJWe+43SvqEG2+OYhSnXDhqWJOfiW3jr8RP/YFEYBYGM3HyPpwynZmxZyPhNwqibhLOtDSHfKtAsTWqsSesYD9IAi529rmyNKdmYxcoYHnrngQp9L8du4qSkxBNrS4Myx649uvFzzUVmdQ+3N20q2VU0=";
+    npx:hasSignatureTarget this:;
+    npx:signedBy orcid:0000-0002-1267-0234 .
+  
+  this: dct:created "2024-11-13T12:40:03.697Z"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:supersedes <https://w3id.org/np/RAXB27PAPqR3E8bOwgPJxkCSxGN-cLIr_m9IhOua8lCoI>;
+    npx:wasCreatedAt <http://localhost:37373/>;
+    rdfs:label "Provenance template: Attributed to myself/others";
+    nt:wasCreatedFromProvenanceTemplate ns1:RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM;
+    nt:wasCreatedFromPubinfoTemplate ns1:RAA2MfqdBCzmz9yVWjKLXNbyfBNcwsMmOqcNUxkk1maIM,
+      ns1:RAh1gm83JiG5M6kDxXhaYT1l49nCzyrckMvTzcPn-iv90, ns1:RAjpBMlw3owYhJUBo3DtsuDlXsNAJ8cnGeWAutDVjuAuI;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RA4G-jlJDG3s1FYMQOLEVbqMMNLYBSSy1YNyPs4G0lH68> .
+}

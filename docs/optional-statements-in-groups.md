@@ -95,6 +95,11 @@ For a member statement `st` of group `g`:
 
 ### 2. Publishing — easy
 
+> Since #936, Nanodash no longer writes the triples itself: the nanopublication is made by
+> nanopub-java's `TemplateFiller` from the form's values, which leaves out an optional member
+> of a group that lacks a value and keeps the rest. `addTriplesTo` and `hasEmptyElements`
+> are gone, so the line numbers below are to their former places.
+
 In `StatementItem` (`StatementItem.java:154-165`, `589-626`):
 
 - `hasEmptyElements()` → only report true for **required** members with an unresolved

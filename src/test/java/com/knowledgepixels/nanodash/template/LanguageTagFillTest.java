@@ -177,10 +177,10 @@ public class LanguageTagFillTest {
         assertEquals("maison", context.getComponentModels().get(COMMENT).getObject());
         IModel<?> langModel = context.getComponentModels().get(TemplateContext.getLanguageModelKey(COMMENT));
         assertEquals("fr", langModel.getObject(), "fill must set the language model");
-        Value processed = context.processValue(COMMENT);
+        Value processed = TestFill.object(context, RDFS.COMMENT);
         assertTrue(processed instanceof Literal);
         assertEquals("fr", ((Literal) processed).getLanguage().orElse(null),
-                "the filled tag must round-trip through processValue");
+                "the filled tag must round-trip into the nanopublication the form makes");
     }
 
     @Test

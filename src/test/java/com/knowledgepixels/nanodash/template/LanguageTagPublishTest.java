@@ -19,8 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.templates.TemplateFillException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -109,12 +112,16 @@ public class LanguageTagPublishTest {
         context.getComponentModels().put(TemplateContext.getLanguageModelKey(COMMENT), Model.of(tag));
     }
 
+    // The nanopublication the form makes, with the filler of nanopub-java (#936).
     private Nanopub publish(TemplateContext context) throws Exception {
-        NanopubCreator creator = new NanopubCreator("http://purl.org/nanopub/temp/result/");
-        context.propagateStatements(creator);
-        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
-        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
-        return creator.finalizeNanopub();
+        return TestFill.fill(context);
+    }
+
+    // The filler refuses a text without a language tag where the template asks for one,
+    // rather than leaving it out or publishing it untagged.
+    private void assertRefusedForWantOfATag(TemplateContext context) {
+        TemplateFillException ex = assertThrows(TemplateFillException.class, () -> publish(context));
+        assertTrue(ex.getMessage().contains("needs a language tag"), ex.getMessage());
     }
 
     private static Literal commentLiteral(Nanopub np) {
@@ -151,8 +158,8 @@ public class LanguageTagPublishTest {
     void textWithoutTagIsNeverPublishedUntagged() throws Exception {
         TemplateContext context = contextWith(true, null);
         setText(context, "Haus");
-        // no language model at all
-        assertNull(commentLiteral(publish(context)), "optional statement with unresolved object must be dropped");
+        // no language model at all; form validation says so before the form gets here
+        assertRefusedForWantOfATag(context);
     }
 
     @Test
@@ -160,7 +167,7 @@ public class LanguageTagPublishTest {
         TemplateContext context = contextWith(true, null);
         setText(context, "Haus");
         setLang(context, "");
-        assertNull(commentLiteral(publish(context)));
+        assertRefusedForWantOfATag(context);
     }
 
     @Test

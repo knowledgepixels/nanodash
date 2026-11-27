@@ -70,11 +70,12 @@ own nanopubs. Menu action: `UpdateAction` ("update").
 Keeping the introduced IRI applies **however the template declares the introduced
 resource** — as a sub-IRI of the template nanopub (`sub:class`), or as an absolute
 IRI in a foreign namespace carrying the `~~ARTIFACTCODE~~` marker (the idiom used
-by "Defining a biochementity"). The pin lives in `TemplateContext#processValue`
-and is keyed on `isIntroducedResource` alone; it must **not** be gated on
-`isLocalResource`, which `Template#tagIfUntypedLocal` only ever attaches to
-sub-IRIs of the template nanopub. Gating it there made supersede/override silently
-mint a *new* resource for marker-style templates — regression test:
+by "Defining a biochementity"). Since #936 the filler of nanopub-java keeps it: it
+takes the source's introduced resources from its publication info, and keeps the one a
+position stands for whatever the template says about it otherwise. Nanodash's own code
+used to gate the pin on `isLocalResource`, which `Template#tagIfUntypedLocal` only ever
+attaches to sub-IRIs of the template nanopub. That made supersede/override silently mint
+a *new* resource for marker-style templates — regression test:
 `OverrideIntroducedResourceIriTest`.
 
 ### Derive
@@ -142,8 +143,9 @@ its own URI in the root slot (`SourceFill`; until #936, `ValueFiller` wrote the
 `local:nanopub` sentinel, which `ReadonlyItem` turned into that URI). Without a source,
 the slot holds the sentinel.
 
-Before the fix, `TemplateContext.processValue` resolved the root slot the same
-way for `DERIVE` and `SUPERSEDE`:
+Before the fix, Nanodash's own code (`TemplateContext.processValue`, which #936
+replaced by the filler of nanopub-java) resolved the root slot the same way for
+`DERIVE` and `SUPERSEDE`:
 
 - sentinel `local:nanopub` → the **source** nanopub's URI;
 - an explicit external root IRI → **kept** as-is.
@@ -189,8 +191,10 @@ external root value was migrated from the source.
 - **`template/SourceFill.java`** — reads the source for the form's templates with
   nanopub-java's `SourceReader` and gives the fields their values; keeps introduced
   IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints them otherwise.
-- **`template/TemplateContext.java`** — `processValue` resolves the root-nanopub
-  placeholder (above) and the introduced-resource placeholders per mode.
+- **`template/FormRequest.java`** — gives the filler of nanopub-java the mode and the
+  source, and leaves the root slot out where it holds the sentinel; the filler resolves
+  the root-nanopub placeholder (above) and keeps or re-mints the introduced resources per
+  mode.
 - **`component/ValueItem.java`** — renders introduced resources read-only in
   `SUPERSEDE`/`OVERRIDE` mode (their IRIs are fixed).
 - **`component/ReadonlyItem.java`** — root-slot display, incl.

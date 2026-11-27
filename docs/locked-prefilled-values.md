@@ -80,7 +80,7 @@ listener of a component that is not visible, so a hidden `+` cannot be triggered
 editing the page either.
 
 **Optional statements** need no separate parameter to be kept: an optional statement is
-dropped by leaving one of its fields empty (`StatementItem.addTriplesTo`), so a locked
+dropped by leaving one of its fields empty (when the nanopublication is made), so a locked
 value already forces it to stay. Forcing an optional statement to stay *absent* is a
 different feature — hiding the field rather than locking it — and is deliberately not
 part of this.

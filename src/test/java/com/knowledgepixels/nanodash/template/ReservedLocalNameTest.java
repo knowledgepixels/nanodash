@@ -6,7 +6,6 @@ import com.knowledgepixels.nanodash.WicketApplication;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -15,12 +14,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.NanopubUtils;
+import org.nanopub.templates.TemplateFillException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -30,7 +32,8 @@ import static org.mockito.Mockito.when;
  * Tests for issue #29: a nanopublication keeps a few local names for itself — its four graphs
  * and its signature element — and a resource minted under one of them is that part rather than
  * a resource of its own. Nothing can be corrected after publishing, so such a value is caught
- * while the form is still open.
+ * while the form is still open: the filler of nanopub-java refuses it when it makes the
+ * nanopublication from the form (#936).
  */
 class ReservedLocalNameTest {
 
@@ -97,43 +100,62 @@ class ReservedLocalNameTest {
         return context;
     }
 
-    @Test
-    void aNameTheNanopublicationUsesForItselfIsRecorded() throws Exception {
-        // The case from the issue: "...#assertion" would be the assertion graph, not a resource.
+    // The form with the given values in its two fields.
+    private TemplateContext context(String local, String topic) throws Exception {
         TemplateContext context = context();
-        context.getComponentModels().put(LOCAL_FIELD, Model.of("assertion"));
-        Value processed = context.processValue(LOCAL_FIELD);
-        assertEquals(TARGET_NAMESPACE + "assertion", processed.stringValue());
-        assertTrue(context.getReservedIris().contains(processed), "publishing this has to be refused");
+        context.getComponentModels().put(LOCAL_FIELD, Model.of(local));
+        context.getComponentModels().put(TOPIC_FIELD, Model.of(topic));
+        return context;
+    }
+
+    // Why the filler refuses to make the nanopublication from the form; empty if it does not.
+    private static List<String> problems(TemplateContext context) {
+        try {
+            TestFill.fill(context);
+            return List.of();
+        } catch (TemplateFillException ex) {
+            return ex.getProblems();
+        }
+    }
+
+    private static boolean isRefusedAsAPart(TemplateContext context, String name) {
+        return problems(context).stream().anyMatch(p -> p.contains("'" + name + "' is what the nanopublication calls one of its own parts"));
+    }
+
+    // Whether the nanopublication the form makes has the given IRI in its assertion, the
+    // namespace of the nanopublication written as "this:".
+    private static boolean mentions(TemplateContext context, String iri) throws Exception {
+        Nanopub np = TestFill.fill(context);
+        String ns = np.getUri().stringValue();
+        return np.getAssertion().stream().anyMatch(st -> st.getSubject().stringValue().replace(ns, "this:").equals(iri));
+    }
+
+    @Test
+    void aNameTheNanopublicationUsesForItselfIsRefused() throws Exception {
+        // The case from the issue: "...#assertion" would be the assertion graph, not a resource.
+        assertTrue(isRefusedAsAPart(context("assertion", "a-topic"), "assertion"), "publishing this has to be refused");
     }
 
     @Test
     void everyPartOfANanopublicationCounts() throws Exception {
         for (String reserved : NanopubUtils.RESERVED_LOCAL_NAMES) {
-            TemplateContext context = context();
-            context.getComponentModels().put(LOCAL_FIELD, Model.of(reserved));
-            Value processed = context.processValue(LOCAL_FIELD);
-            assertTrue(context.getReservedIris().contains(processed), reserved + " is a part of a nanopublication");
+            assertTrue(isRefusedAsAPart(context(reserved, "a-topic"), reserved), reserved + " is a part of a nanopublication");
         }
     }
 
     @Test
     void anOrdinaryNameIsLeftAlone() throws Exception {
-        TemplateContext context = context();
-        context.getComponentModels().put(LOCAL_FIELD, Model.of("my-record"));
-        Value processed = context.processValue(LOCAL_FIELD);
-        assertEquals(TARGET_NAMESPACE + "my-record", processed.stringValue());
-        assertTrue(context.getReservedIris().isEmpty());
+        TemplateContext context = context("my-record", "a-topic");
+        assertEquals(List.of(), problems(context));
+        assertTrue(mentions(context, "this:my-record"));
     }
 
     @Test
     void theSameNameBelowAnotherPrefixCollidesWithNothing() throws Exception {
         // Only the nanopublication's own namespace has parts to collide with.
-        TemplateContext context = context();
-        context.getComponentModels().put(TOPIC_FIELD, Model.of("assertion"));
-        Value processed = context.processValue(TOPIC_FIELD);
-        assertEquals(TOPIC_PREFIX + "assertion", processed.stringValue());
-        assertTrue(context.getReservedIris().isEmpty());
+        TemplateContext context = context("my-record", "assertion");
+        assertEquals(List.of(), problems(context));
+        assertTrue(mentions(context, TOPIC_PREFIX + "assertion"));
     }
 
     @Test
@@ -161,11 +183,8 @@ class ReservedLocalNameTest {
 
     @Test
     void aNameThatOnlyLooksLikeAPartIsLeftAlone() throws Exception {
-        TemplateContext context = context();
-        context.getComponentModels().put(LOCAL_FIELD, Model.of("assertions"));
-        assertFalse(context.isReservedIri((IRI) context.processValue(LOCAL_FIELD)));
-        context.getComponentModels().put(LOCAL_FIELD, Model.of("Assertion"));
-        assertFalse(context.isReservedIri((IRI) context.processValue(LOCAL_FIELD)),
+        assertEquals(List.of(), problems(context("assertions", "a-topic")));
+        assertEquals(List.of(), problems(context("Assertion", "a-topic")),
                 "the parts are named in the case a nanopublication writes them");
     }
 

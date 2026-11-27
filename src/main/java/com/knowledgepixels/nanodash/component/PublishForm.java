@@ -10,9 +10,10 @@ import com.knowledgepixels.nanodash.page.NanodashPage;
 import com.knowledgepixels.nanodash.page.PreviewPage;
 import com.knowledgepixels.nanodash.template.*;
 import org.nanopub.templates.FillRequest;
+import org.nanopub.templates.NanopubResolver;
 import org.nanopub.templates.Template;
-import com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS;
-import org.apache.commons.lang3.Strings;
+import org.nanopub.templates.TemplateFillException;
+import org.nanopub.templates.TemplateFiller;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -43,17 +44,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.FOAF;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.nanopub.MalformedNanopubException;
+import org.eclipse.rdf4j.model.Value;
 import org.nanopub.Nanopub;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
 import org.nanopub.extra.security.SignNanopub;
 import org.nanopub.extra.security.SignatureAlgorithm;
 import org.nanopub.extra.security.TransformContext;
@@ -61,7 +54,6 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
-import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -79,8 +71,6 @@ import java.util.function.BiConsumer;
 public class PublishForm extends Panel {
 
     private static final Logger logger = LoggerFactory.getLogger(PublishForm.class);
-
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     public static final String CREATOR_PUB_INFO_TEMPLATE = "https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI";
     public static final String LICENSE_PUB_INFO_TEMPLATE = "https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8";
@@ -705,11 +695,9 @@ public class PublishForm extends Panel {
                 try {
                     Nanopub np = createNanopub();
                     logger.info("Nanopublication created: {}", np.getUri());
-                    if (!areNewUrisUnused() || !noReservedIdentifiers()) {
+                    if (!areNewUrisUnused(np)) {
                         return;
                     }
-                    // Only logs what it finds; see TemplateFillGuard.
-                    TemplateFillGuard.check(np, PublishForm.this::toFillRequest);
                     TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
                     signedNp = SignNanopub.signAndTransform(np, tc);
                     logger.info("Nanopublication signed: {}", signedNp.getUri());
@@ -718,6 +706,10 @@ public class PublishForm extends Panel {
                     Utils.cacheNanopub(signedNp);
                     // Only logs what it finds; see TemplateComplianceGuard.
                     TemplateComplianceGuard.check(signedNp);
+                } catch (TemplateFillException ex) {
+                    signedNp = null;
+                    logger.error("Nanopublication publishing failed: {}", ex.getMessage());
+                    showFillProblems(ex);
                 } catch (Exception ex) {
                     signedNp = null;
                     logger.error("Nanopublication publishing failed: {}", ex.getMessage());
@@ -1639,17 +1631,19 @@ public class PublishForm extends Panel {
             Nanopub np = createNanopub();
             // Checked here too: a preview publishes the nanopublication it was given,
             // without coming back through this form.
-            if (!areNewUrisUnused() || !noReservedIdentifiers()) {
+            if (!areNewUrisUnused(np)) {
                 return null;
             }
-            // Only logs what it finds; see TemplateFillGuard.
-            TemplateFillGuard.check(np, this::toFillRequest);
             TransformContext tc = new TransformContext(SignatureAlgorithm.RSA, NanodashSession.get().getKeyPair(), NanodashSession.get().getUserIri(), false, false, false);
             Nanopub signedNp = SignNanopub.signAndTransform(np, tc);
             // Only logs what it finds; see TemplateComplianceGuard. Here and not on the
             // preview, which publishes whatever nanopublication it is given.
             TemplateComplianceGuard.check(signedNp);
             return signedNp;
+        } catch (TemplateFillException ex) {
+            logger.error("Preview failed: {}", ex.getMessage());
+            showFillProblems(ex);
+            return null;
         } catch (Exception ex) {
             logger.error("Preview failed: {}", ex.getMessage());
             String message = ex.getClass().getName();
@@ -1723,7 +1717,7 @@ public class PublishForm extends Panel {
 
     /**
      * Returns what is filled in on this form as a request for the filler of nanopub-java, which
-     * {@link TemplateFillGuard} makes the nanopublication a second time from (#936).
+     * makes the nanopublication from it (#936).
      *
      * @return the request
      */
@@ -1733,156 +1727,65 @@ public class PublishForm extends Panel {
                 User.getName(userIri), NanodashPreferences.get().getWebsiteUrl());
     }
 
-    private synchronized Nanopub createNanopub() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        assertionContext.getIntroducedIris().clear();
-        assertionContext.getNewUriIris().clear();
-        assertionContext.getReservedIris().clear();
-        assertionContext.getRolePropertyPins().clear();
-        NanopubCreator npCreator = new NanopubCreator(targetNamespace);
-        npCreator.setAssertionUri(vf.createIRI(targetNamespace + "assertion"));
-        assertionContext.propagateStatements(npCreator);
-        provenanceContext.propagateStatements(npCreator);
-        for (TemplateContext c : pubInfoContexts) {
-            c.propagateStatements(npCreator);
-        }
-        for (IRI introducedIri : assertionContext.getIntroducedIris()) {
-            npCreator.addPubinfoStatement(NPX.INTRODUCES, introducedIri);
-        }
-        for (IRI embeddedIri : assertionContext.getEmbeddedIris()) {
-            npCreator.addPubinfoStatement(NPX.EMBEDS, embeddedIri);
-        }
-        Map<IRI, IRI> rolePropertyPins = assertionContext.getRolePropertyPins();
-        if (!rolePropertyPins.isEmpty()) {
-            // A role predicate carrying a direction pin makes this a role-instantiation
-            // nanopub; nanopub-query's pin-resolution branch is gated on this type (#525).
-            npCreator.addPubinfoStatement(NPX.HAS_NANOPUB_TYPE, KPXL_TERMS.ROLE_INSTANTIATION);
-            for (Map.Entry<IRI, IRI> pin : rolePropertyPins.entrySet()) {
-                npCreator.addPubinfoStatement(pin.getKey(), RDF.TYPE, pin.getValue());
-            }
-        }
-        npCreator.addNamespace("this", targetNamespace);
-        npCreator.addNamespace("sub", targetNamespace + "/");
-        npCreator.addTimestampNow();
-        // The canonical template ID: the embedded template-node IRI for templates
-        // with embedded identity, the nanopub URI for legacy ones.
-        IRI templateUri = vf.createIRI(assertionContext.getTemplate().getId());
-        npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, templateUri);
-        IRI prTemplateUri = vf.createIRI(provenanceContext.getTemplate().getId());
-        npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PROVENANCE_TEMPLATE, prTemplateUri);
-        for (TemplateContext c : pubInfoContexts) {
-            IRI piTemplateUri = vf.createIRI(c.getTemplate().getId());
-            npCreator.addPubinfoStatement(NTEMPLATE.WAS_CREATED_FROM_PUBINFO_TEMPLATE, piTemplateUri);
-        }
-        String nanopubLabel = getNanopubLabel(npCreator);
-        if (nanopubLabel != null) {
-            npCreator.addPubinfoStatement(RDFS.LABEL, vf.createLiteral(nanopubLabel));
-        }
-        for (IRI type : assertionContext.getTemplate().getTargetNanopubTypes()) {
-            npCreator.addPubinfoStatement(NPX.HAS_NANOPUB_TYPE, type);
-        }
-        IRI userIri = NanodashSession.get().getUserIri();
-        if (User.getName(userIri) != null) {
-            npCreator.addPubinfoStatement(userIri, FOAF.NAME, vf.createLiteral(User.getName(userIri)));
-            npCreator.addNamespace("foaf", FOAF.NAMESPACE);
-        }
-        String websiteUrl = NanodashPreferences.get().getWebsiteUrl();
-        if (websiteUrl != null) {
-            npCreator.addPubinfoStatement(NPX.WAS_CREATED_AT, vf.createIRI(websiteUrl));
-        }
-        checkProtectedMarker(npCreator);
-        return npCreator.finalizeNanopub();
+    /**
+     * Makes the nanopublication from what is filled in on this form, with the filler of
+     * nanopub-java (#936). It is not signed yet.
+     *
+     * @return the nanopublication
+     * @throws TemplateFillException if the values do not make a nanopublication of the templates
+     */
+    private Nanopub createNanopub() throws TemplateFillException {
+        Nanopub np = new TemplateFiller(getFillResolver()).fill(toFillRequest());
+        checkProtectedMarker(np);
+        return np;
     }
 
     /**
-     * Refuses to build a nanopublication that says it is protected in a way no registry acts on
+     * Retrieves what the filler asks for: the nanopublication this one is made from, which the
+     * form has already, and the templates from Nanodash's template data, where they are parsed
+     * and cached already.
+     *
+     * @return the resolver
+     */
+    private NanopubResolver getFillResolver() {
+        Nanopub source = assertionContext.getFillSource();
+        return id -> {
+            if (source != null && source.getUri().stringValue().equals(id)) return source;
+            Template template = TemplateData.get().getTemplate(id);
+            return template != null ? template.getNanopub() : TemplateData.RESOLVER.getNanopub(id);
+        };
+    }
+
+    /**
+     * Shows why the filler could not make the nanopublication, one problem per message.
+     *
+     * @param ex what the filler threw
+     */
+    private void showFillProblems(TemplateFillException ex) {
+        for (String problem : ex.getProblems()) {
+            feedbackPanel.error(problem);
+        }
+    }
+
+    /**
+     * Refuses a nanopublication that says it is protected in a way no registry acts on
      * (#671). Registries look for {@code rdf:type npx:ProtectedNanopub} on the nanopublication
      * itself, which only the template behind the protected checkbox produces. The generic
      * "Nanopublication type" pubinfo element, for one, produces {@code npx:hasNanopubType
      * npx:ProtectedNanopub} instead: it looks right in the form, and publishing it would send the
      * content to the public network.
      *
-     * @param npCreator the creator holding the statements about to be finalized
+     * @param np the nanopublication made from the form, not signed yet
      */
-    private void checkProtectedMarker(NanopubCreator npCreator) {
+    private void checkProtectedMarker(Nanopub np) {
         if (protectedContext != null) return;
-        for (Statement st : npCreator.getCurrentPubinfoStatements()) {
+        for (Statement st : np.getPubinfo()) {
             if (!st.getObject().equals(NPX.PROTECTED_NANOPUB)) continue;
             throw new IllegalStateException("This nanopublication is marked as protected in a way that " +
                     "registries do not recognize, so it would be published to the public network. Remove " +
                     "the publication info element that states it" +
                     (ProtectedNanopubs.isOffered() ? ", and use the protected checkbox instead." : "."));
         }
-    }
-
-    private String getNanopubLabel(NanopubCreator npCreator) {
-        if (assertionContext.getTemplate().getNanopubLabelPattern() == null) {
-            return null;
-        }
-
-        Map<IRI, String> labelMap = new HashMap<>();
-        for (Statement st : npCreator.getCurrentPubinfoStatements()) {
-            if (st.getPredicate().equals(RDFS.LABEL) && st.getObject() instanceof Literal objL) {
-                labelMap.put((IRI) st.getSubject(), objL.stringValue());
-            }
-        }
-
-        String nanopubLabel = assertionContext.getTemplate().getNanopubLabelPattern();
-        while (nanopubLabel.matches(".*\\$\\{[_a-zA-Z0-9-]+\\}.*")) {
-            String placeholderPostfix = nanopubLabel.replaceFirst("^.*\\$\\{([_a-zA-Z0-9-]+)\\}.*$", "$1");
-            IRI placeholderIriHash = vf.createIRI(assertionContext.getTemplateNanopubUri() + "#" + placeholderPostfix);
-            IRI placeholderIriSlash = vf.createIRI(assertionContext.getTemplateNanopubUri() + "/" + placeholderPostfix);
-            IRI placeholderIri;
-            String placeholderValue = "";
-            if (assertionContext.getComponentModels().get(placeholderIriSlash) != null) {
-                placeholderIri = placeholderIriSlash;
-            } else {
-                placeholderIri = placeholderIriHash;
-            }
-            IModel<String> m = (IModel<String>) assertionContext.getComponentModels().get(placeholderIri);
-            if (m != null) {
-                placeholderValue = m.orElse("").getObject();
-            }
-            if (placeholderValue == null) {
-                placeholderValue = "";
-            }
-            String placeholderLabel = placeholderValue;
-            if (assertionContext.getTemplate().isUriPlaceholder(placeholderIri)) {
-                try {
-                    // TODO Fix this. It doesn't work for placeholders with auto-encode placeholders, etc.
-                    //      Not sure we need labels for these, but this code should be improved anyway.
-                    String prefix = assertionContext.getPrefix(placeholderIri);
-                    if (prefix != null) {
-                        placeholderValue = prefix + placeholderValue;
-                    }
-                    IRI placeholderValueIri = vf.createIRI(placeholderValue);
-                    String l = assertionContext.getTemplate().getLabel(placeholderValueIri);
-                    if (labelMap.containsKey(placeholderValueIri)) {
-                        l = labelMap.get(placeholderValueIri);
-                    }
-                    if (l == null) {
-                        l = GuidedChoiceItem.getLabel(placeholderValue);
-                    }
-                    if (assertionContext.getTemplate().isAgentPlaceholder(placeholderIri) && !placeholderValue.isEmpty()) {
-                        l = User.getName(vf.createIRI(placeholderValue));
-                    }
-                    if (l != null && !l.isEmpty()) {
-                        placeholderLabel = l.replaceFirst(" - .*$", "");
-                    } else {
-                        placeholderLabel = Utils.getShortNameFromURI(placeholderValueIri);
-                    }
-                } catch (Exception ex) {
-                    logger.error("Nanopub label placeholder IRI error: {}", ex.getMessage());
-                }
-            }
-            // HTML in a value is a rendering detail with no place in a label: SVG
-            // figures are dropped entirely and the remaining tags stripped.
-            placeholderLabel = Utils.toLabelText(placeholderLabel);
-            if (placeholderLabel.length() > 100) {
-                placeholderLabel = placeholderLabel.substring(0, 97) + "...";
-            }
-            nanopubLabel = Strings.CS.replace(nanopubLabel, "${" + placeholderPostfix + "}", placeholderLabel);
-        }
-        return nanopubLabel;
     }
 
     private NanodashPage getConfirmPage(Nanopub signedNp, PageParameters pageParams) {
@@ -1917,55 +1820,8 @@ public class PublishForm extends Panel {
         return false;
     }
 
-    private boolean noReservedIdentifiers() {
-        IRI reserved = findReservedIdentifier(assertionContext);
-        if (reserved == null) {
-            return true;
-        }
-        String part = reserved.stringValue().replaceFirst("^.*/", "");
-        feedbackPanel.error("The identifier " + reserved.stringValue() + " is one this nanopublication uses for"
-                + " itself (its " + part + "), so it cannot also name something the nanopublication is about."
-                + " Pick a different name.");
-        return false;
-    }
-
-    /**
-     * Returns the first identifier the given assertion context mints under one of the names a
-     * nanopublication keeps for its own parts (issue #29), or null if there is none.
-     * <p>
-     * A name the superseded or overridden nanopublication already used is not one of them: it
-     * is published and cannot be taken back, and a new version keeps the shape of the old one.
-     * A legacy template, whose template node is its own assertion graph, is republished this
-     * way.
-     *
-     * @param assertionContext the assertion context, after its values have been processed
-     * @return the first reserved identifier minted here, or null if there is none
-     */
-    static IRI findReservedIdentifier(TemplateContext assertionContext) {
-        FillMode fillMode = assertionContext.getFillMode();
-        Nanopub source = (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
-                ? assertionContext.getReferenceNanopub() : null;
-        for (IRI reserved : assertionContext.getReservedIris()) {
-            if (source != null && NewUriCheck.isUsedIn(source, sameNameIn(source, reserved))) continue;
-            return reserved;
-        }
-        return null;
-    }
-
-    /**
-     * The IRI the given nanopublication uses for the same local name, so that a name carried
-     * over from it is recognised though the new version mints it afresh.
-     *
-     * @param nanopub the nanopublication to read the name under
-     * @param iri     the IRI minted here
-     * @return the same local name under the given nanopublication
-     */
-    private static IRI sameNameIn(Nanopub nanopub, IRI iri) {
-        return vf.createIRI(nanopub.getUri().stringValue() + "/" + iri.stringValue().replaceFirst("^.*/", ""));
-    }
-
-    private boolean areNewUrisUnused() {
-        IRI takenId = findTakenNewUri(assertionContext);
+    private boolean areNewUrisUnused(Nanopub np) {
+        IRI takenId = findTakenNewUri(assertionContext, np);
         if (takenId == null) {
             return true;
         }
@@ -1976,9 +1832,9 @@ public class PublishForm extends Panel {
     }
 
     /**
-     * Returns the first identifier the given assertion context forms for a placeholder the
-     * template marks as naming a resource that does not exist yet -- the IRI of a new space,
-     * say -- that is already in use, or null if all of them are free.
+     * Returns the first identifier in the assertion of the given nanopublication that a field of
+     * the form gives a resource that does not exist yet -- the IRI of a new space, say -- and
+     * that is already in use, or null if all of them are free.
      * <p>
      * Such an identifier carries no artifact code, so nothing makes it unique: filling the
      * same form with the same name twice yields the same IRI, and the second nanopublication
@@ -1987,25 +1843,39 @@ public class PublishForm extends Panel {
      * publishing rather than after (#646).
      * <p>
      * Only a placeholder the template tags with {@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER} is
-     * checked; everything else publishes as before, whether or not its IRI already exists.
+     * checked; everything else publishes as before, whether or not its IRI already exists. Which
+     * identifier a field gives is told by {@link TemplateContext#getNewUriIri(IRI, String)}, as
+     * for the check made while the field is filled in.
      * <p>
      * Superseding and overriding exempt the identifiers the source already carries, since a new
      * version keeps the resource it is a version of, and finding that one in use is the expected
      * answer rather than a collision. They are not exempt wholesale: a prefix-minted identifier
      * carries no artifact code, so nothing re-mints it for the new version, and editing the name
-     * while superseding defines a genuinely new resource that can collide like any other. (An
-     * identifier minted under the nanopublication's own namespace does change with the new
-     * artifact code, but those never reach here -- see TemplateContext#recordIfNewUri.) With no
+     * while superseding defines a genuinely new resource that can collide like any other. With no
      * source to compare against, nothing is checked, so an unrecognised fill leaves publishing
      * exactly as it was.
      *
-     * @param assertionContext the assertion context, after its values have been processed
+     * @param assertionContext the assertion context of the form
+     * @param np               the nanopublication made from the form
      * @return the first identifier for a new resource that is already in use, or null if none is
      */
-    public static IRI findTakenNewUri(TemplateContext assertionContext) {
-        for (IRI newUri : assertionContext.getNewUriIris()) {
-            if (NewUriCheck.isExempt(assertionContext, newUri)) continue;
-            if (QueryApiAccess.isUriIntroduced(newUri.stringValue())) return newUri;
+    public static IRI findTakenNewUri(TemplateContext assertionContext, Nanopub np) {
+        Set<IRI> newUris = new HashSet<>();
+        for (Map.Entry<IRI, IModel<?>> e : assertionContext.getComponentModels().entrySet()) {
+            Object value = e.getValue() == null ? null : e.getValue().getObject();
+            if (!(value instanceof String text)) continue;
+            IRI newUri = assertionContext.getNewUriIri(e.getKey(), text);
+            if (newUri != null) newUris.add(newUri);
+        }
+        if (newUris.isEmpty()) return null;
+        // In the order of the assertion, and only those that made it into the nanopublication.
+        Set<IRI> checked = new HashSet<>();
+        for (Statement st : np.getAssertion()) {
+            for (Value v : new Value[]{st.getSubject(), st.getPredicate(), st.getObject()}) {
+                if (!(v instanceof IRI iri) || !newUris.contains(iri) || !checked.add(iri)) continue;
+                if (NewUriCheck.isExempt(assertionContext, iri)) continue;
+                if (QueryApiAccess.isUriIntroduced(iri.stringValue())) return iri;
+            }
         }
         return null;
     }

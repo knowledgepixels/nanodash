@@ -15,9 +15,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.templates.TemplateFillException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -64,6 +64,11 @@ public class OptionalGroupMemberPublishTest {
      * TemplateData under its nanopub URI.
      */
     private TemplateContext mixedGroupContext() throws Exception {
+        return mixedGroupContext(false);
+    }
+
+    // As above, with the group as a whole optional or not.
+    private TemplateContext mixedGroupContext(boolean optionalGroup) throws Exception {
         NanopubCreator creator = new NanopubCreator(NP_URI);
         creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
@@ -72,6 +77,7 @@ public class OptionalGroupMemberPublishTest {
         creator.addAssertionStatement(templateNode, RDFS.LABEL, vf.createLiteral("Group test template"));
         creator.addAssertionStatement(templateNode, NTEMPLATE.HAS_STATEMENT, GROUP);
         creator.addAssertionStatement(GROUP, RDF.TYPE, NTEMPLATE.GROUPED_STATEMENT);
+        if (optionalGroup) creator.addAssertionStatement(GROUP, RDF.TYPE, NTEMPLATE.OPTIONAL_STATEMENT);
         creator.addAssertionStatement(GROUP, NTEMPLATE.HAS_STATEMENT, ST1);
         creator.addAssertionStatement(GROUP, NTEMPLATE.HAS_STATEMENT, ST2);
         creator.addAssertionStatement(ST1, RDF.SUBJECT, THING);
@@ -101,12 +107,9 @@ public class OptionalGroupMemberPublishTest {
         ((org.apache.wicket.model.IModel<Object>) context.getComponentModels().get(placeholder)).setObject(value);
     }
 
+    // The nanopublication the form makes, with the filler of nanopub-java (#936).
     private Nanopub publish(TemplateContext context) throws Exception {
-        NanopubCreator creator = new NanopubCreator("http://purl.org/nanopub/temp/result/");
-        context.propagateStatements(creator);
-        creator.addProvenanceStatement(vf.createStatement(creator.getAssertionUri(), RDFS.SEEALSO, creator.getAssertionUri()));
-        creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), RDFS.SEEALSO, creator.getNanopubUri()));
-        return creator.finalizeNanopub();
+        return TestFill.fill(context);
     }
 
     private static boolean hasAssertionTriple(Nanopub np, Value subj, Value pred, Value obj) {
@@ -150,7 +153,17 @@ public class OptionalGroupMemberPublishTest {
         TemplateContext context = mixedGroupContext();
         // THING stays empty, so the required member st1 cannot be resolved
         setModel(context, NAME, "some label");
-        assertThrows(MalformedNanopubException.class, () -> publish(context));
+        assertThrows(TemplateFillException.class, () -> publish(context));
+    }
+
+    @Test
+    void aValueInAnOptionalGroupWhoseRequiredMemberIsEmptyIsNotDroppedSilently() throws Exception {
+        TemplateContext context = mixedGroupContext(true);
+        // THING stays empty, so the group cannot be made. Nanodash's own code used to leave it
+        // out silently, name and all; the filler of nanopub-java says the name would be lost.
+        setModel(context, NAME, "some label");
+        TemplateFillException ex = assertThrows(TemplateFillException.class, () -> publish(context));
+        assertTrue(ex.getMessage().contains("would be lost"), ex.getMessage());
     }
 
 }

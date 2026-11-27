@@ -141,7 +141,9 @@ class SourceFillTest {
         TemplateContext context = fill(escapingSource(), FillMode.SUPERSEDE, Map.of());
 
         assertEquals("A sentence, with a comma.", valueOf(context, "sentence"));
-        assertEquals(vf.createIRI(SENTENCE_IRI), context.processValue(SENTENCE));
+        IRI made = vf.createIRI(SENTENCE_IRI);
+        assertTrue(TestFill.fill(context).getAssertion().stream().anyMatch(st -> made.equals(st.getSubject()) || made.equals(st.getObject())),
+                "the nanopublication the form makes must spell the IRI as the source does");
     }
 
     // ---------- fixtures ----------
