@@ -25,7 +25,6 @@ import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.extra.security.MalformedCryptoElementException;
 import org.nanopub.extra.security.SignatureUtils;
 import org.nanopub.vocabulary.NPX;
-import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -235,6 +234,7 @@ public class NanopubItem extends Panel {
         }
 
         final TemplateData td = TemplateData.get();
+        final ViewFill viewFill = new ViewFill(n.getNanopub());
 
         WebMarkupContainer assertion = new WebMarkupContainer("assertion");
 
@@ -246,13 +246,11 @@ public class NanopubItem extends Panel {
             if (assertionTemplate == null) {
                 assertionTemplate = td.getTemplate("http://purl.org/np/RAFu2BNmgHrjOTJ8SKRnKaRp-VP8AOOb7xX88ob0DZRsU");
             }
-            List<StatementItem> assertionStatements = new ArrayList<>();
-            ValueFiller assertionFiller = new ValueFiller(n.getNanopub(), ContextType.ASSERTION, false);
             TemplateContext context = new TemplateContext(ContextType.ASSERTION, assertionTemplate.getId(), "assertion-statement", n.getNanopub());
-            populateStatementItemList(context, assertionFiller, assertionStatements);
+            List<Statement> unusedAssertion = viewFill.fillAssertion(context);
 
-            assertion.add(createStatementView("assertion-statements", assertionStatements));
-            assertion.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(assertionFiller.getUnusedStatements())) {
+            assertion.add(createStatementView("assertion-statements", getShownStatementItems(context)));
+            assertion.add(new DataView<Statement>("unused-assertion-statements", new ListDataProvider<Statement>(unusedAssertion)) {
 
                 @Override
                 protected void populateItem(Item<Statement> item) {
@@ -270,12 +268,10 @@ public class NanopubItem extends Panel {
             Template provenanceTemplate = td.getProvenanceTemplate(n.getNanopub());
             if (provenanceTemplate == null)
                 provenanceTemplate = td.getTemplate("http://purl.org/np/RA3Jxq5JJjluUNEpiMtxbiIHa7Yt-w8f9FiyexEstD5R4");
-            List<StatementItem> provenanceStatements = new ArrayList<>();
-            ValueFiller provenanceFiller = new ValueFiller(n.getNanopub(), ContextType.PROVENANCE, false);
             TemplateContext prContext = new TemplateContext(ContextType.PROVENANCE, provenanceTemplate.getId(), "provenance-statement", n.getNanopub());
-            populateStatementItemList(prContext, provenanceFiller, provenanceStatements);
-            provenance.add(createStatementView("provenance-statements", provenanceStatements));
-            provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(provenanceFiller.getUnusedStatements())) {
+            List<Statement> unusedProvenance = viewFill.fillProvenance(prContext);
+            provenance.add(createStatementView("provenance-statements", getShownStatementItems(prContext)));
+            provenance.add(new DataView<Statement>("unused-provenance-statements", new ListDataProvider<Statement>(unusedProvenance)) {
 
                 @Override
                 protected void populateItem(Item<Statement> item) {
@@ -290,8 +286,6 @@ public class NanopubItem extends Panel {
         if (hidePubinfo) {
             pubInfo.setVisible(false);
         } else {
-            ValueFiller pubinfoFiller = new ValueFiller(n.getNanopub(), ContextType.PUBINFO, false);
-
             // TODO We should do this better:
             List<String> pubinfoAuthorTemplateIds = new ArrayList<>();
             List<String> pubinfoTemplateIds = new ArrayList<>();
@@ -329,10 +323,7 @@ public class NanopubItem extends Panel {
                 // templates; here the element is left out, and the triples it would have rendered
                 // are taken by the generic context at the end of this list.
                 if (piContext.getTemplate() == null) continue;
-                if (piContext.willMatchAnyTriple()) {
-                    genericContexts.add(piContext);
-                } else if (piContext.getTemplate().hasId("https://w3id.org/np/RAE-zsHxw2VoE6emhSY_Fkr5p_li5Qb8FrREqUwdWdzyM")) {
-                    // TODO: This is a work-around; check why this template doesn't give true to willMatchAnyTriple()
+                if (ViewFill.isCatchAll(piContext.getTemplate(), n.getNanopub())) {
                     genericContexts.add(piContext);
                 } else {
                     contexts.add(piContext);
@@ -342,8 +333,8 @@ public class NanopubItem extends Panel {
             List<WebMarkupContainer> elements = new ArrayList<>();
             for (TemplateContext piContext : contexts) {
                 WebMarkupContainer pubInfoElement = new WebMarkupContainer("pubinfo-element");
-                List<StatementItem> pubinfoStatements = new ArrayList<>();
-                populateStatementItemList(piContext, pubinfoFiller, pubinfoStatements);
+                viewFill.fillPubinfo(piContext);
+                List<StatementItem> pubinfoStatements = getShownStatementItems(piContext);
                 if (!pubinfoStatements.isEmpty()) {
                     pubInfoElement.add(createStatementView("pubinfo-statements", pubinfoStatements));
                     elements.add(pubInfoElement);
@@ -505,17 +496,15 @@ public class NanopubItem extends Panel {
         super.onBeforeRender();
     }
 
-    private void populateStatementItemList(TemplateContext context, ValueFiller filler, List<StatementItem> list) {
-        context.initStatements();
-        if (signerId != null) {
-            context.getComponentModels().put(NTEMPLATE.CREATOR_PLACEHOLDER, Model.of(signerId.stringValue()));
-        }
-        filler.fill(context);
+    // The statements of a filled context that the nanopublication has triples for.
+    private static List<StatementItem> getShownStatementItems(TemplateContext context) {
+        List<StatementItem> list = new ArrayList<>();
         for (StatementItem si : context.getStatementItems()) {
             if (si.isMatched()) {
                 list.add(si);
             }
         }
+        return list;
     }
 
     private DataView<StatementItem> createStatementView(String elementId, List<StatementItem> list) {

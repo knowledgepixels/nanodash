@@ -62,7 +62,6 @@ public class LiteralDateItem extends AbstractContextComponent {
         if (modelIsNew && context.hasValue(postfix)) {
             try {
                 model.setObject(format.parse(context.getValue(postfix)));
-                if (context.hasParam(postfix)) context.setParamFilled(iri);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -130,9 +129,13 @@ public class LiteralDateItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * Checks whether this field can take a value: one that is valid here, while the field is
+     * empty or holds that value already. The default value the template gives a field is put in
+     * this way ({@link #finalizeValues()}).
+     *
+     * @param v the value, or null for none
+     * @return true if the field can take the value
      */
-    @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) {
             return true;
@@ -158,9 +161,12 @@ public class LiteralDateItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * Puts a value into this field, as the default value the template gives it
+     * ({@link #finalizeValues()}).
+     *
+     * @param v the value, or null for none
+     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
      */
-    @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) {
             return;
@@ -176,13 +182,6 @@ public class LiteralDateItem extends AbstractContextComponent {
             datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
             datatypeComp.setVisible(true);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
     }
 
     /**

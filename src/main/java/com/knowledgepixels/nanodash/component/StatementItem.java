@@ -5,7 +5,7 @@ import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.TemplateDescriptions;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
+import org.nanopub.templates.TemplateMatch;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -19,7 +19,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -271,78 +270,25 @@ public class StatementItem extends Panel {
     }
 
     /**
-     * Checks if this statement item will match any triple.
+     * Shows this statement in a read-only view as the nanopublication has it: once for each
+     * repetition the matcher found triples for, and without the optional members of a group it
+     * found none for. The values of the fields come from the context
+     * ({@link TemplateContext#setShownValues}). A statement the nanopublication has no triples for
+     * is not shown at all.
      *
-     * @return true if it will match any triple, false otherwise
+     * @param matches the repetitions of this statement that triples were assigned to, in order
      */
-    public boolean willMatchAnyTriple() {
-        return repetitionGroups.get(0).matches(dummyStatementList);
-    }
-
-    /**
-     * Fills this statement item with the provided list of statements, matching them against the repetition groups.
-     *
-     * @param statements the list of statements to match against
-     * @throws com.knowledgepixels.nanodash.template.UnificationException if the statements cannot be unified with this statement item
-     */
-    public void fill(List<Statement> statements) throws UnificationException {
-        if (isMatched) return;
-        if (repetitionGroups.size() == 1) {
-            RepetitionGroup rg = repetitionGroups.get(0);
-            if (rg.matches(statements)) {
-                rg.fill(statements);
-            } else {
-                return;
+    public void show(List<TemplateMatch.StatementMatch> matches) {
+        isMatched = !matches.isEmpty();
+        for (int i = 0; i < matches.size(); i++) {
+            if (i == repetitionGroups.size()) addRepetitionGroup();
+            RepetitionGroup rg = repetitionGroups.get(i);
+            rg.unmatchedParts.clear();
+            // The triples are keyed by member; that of a statement that is not grouped is keyed
+            // by the statement itself.
+            for (IRI part : statementPartIds) {
+                if (!matches.get(i).triples().containsKey(part)) rg.unmatchedParts.add(part);
             }
-        } else {
-            return;
-        }
-        isMatched = true;
-        if (!isRepeatable()) return;
-        while (true) {
-            Set<IRI> modelsBefore = new HashSet<>(context.getComponentModels().keySet());
-            List<Statement> statementsBefore = new ArrayList<>(statements);
-            RepetitionGroup newGroup = new RepetitionGroup();
-            boolean filled;
-            if (newGroup.matches(statements)) {
-                try {
-                    newGroup.fill(statements);
-                    filled = true;
-                } catch (UnificationException ex) {
-                    // matches() validates unifiability statelessly, but fill() mutates shared
-                    // placeholder models via unifyWith as it goes, so binding an earlier part can
-                    // make a later one non-unifiable ("seemed to work but then didn't"). Treat this
-                    // like end-of-repetitions rather than letting it abort the whole template fill:
-                    // roll back the partial statement consumption and discard the trial group.
-                    logger.warn("Repetition fill failed after matches() succeeded for {}; stopping repetitions of this statement", statementId, ex);
-                    statements.clear();
-                    statements.addAll(statementsBefore);
-                    filled = false;
-                }
-            } else {
-                filled = false;
-            }
-            if (!filled) {
-                newGroup.disconnect();
-                // The trial group's constructor registered fresh (empty) component
-                // models for its narrow-scope placeholders (e.g. public-key__N). If
-                // left behind, a later real repetition group at the same index reuses
-                // the stale empty model and skips param seeding — the "derive new
-                // introduction" empty-fields bug. Drop exactly the models this trial
-                // group added; shared (wide-scope) models existed before and stay.
-                context.getComponentModels().keySet().retainAll(modelsBefore);
-                return;
-            }
-            addRepetitionGroup(newGroup);
-        }
-    }
-
-    /**
-     * Marks the filling of this statement item as finished, indicating that all values have been filled.
-     */
-    public void fillFinished() {
-        for (RepetitionGroup rg : repetitionGroups) {
-            rg.fillFinished();
         }
     }
 
@@ -356,7 +302,8 @@ public class StatementItem extends Panel {
     }
 
     /**
-     * Returns true if the statement item has been matched with a set of statements.
+     * Returns true if the nanopublication shown in a read-only view has triples for this
+     * statement ({@link #show(List)}).
      *
      * @return true if matched, false otherwise
      */
@@ -379,10 +326,8 @@ public class StatementItem extends Panel {
     public class RepetitionGroup implements Serializable {
 
         private List<StatementPartItem> statementParts;
-        private List<ValueItem> localItems = new ArrayList<>();
-        private boolean filled = false;
-        // Optional group members that were left unassigned by a successful fill();
-        // read-only rendering hides these rows:
+        // The members of a group the nanopublication shown in a read-only view has no triples
+        // for, which are optional ones; read-only rendering hides these rows:
         private Set<IRI> unmatchedParts = new HashSet<>();
 
         private List<ValueItem> items = new ArrayList<>();
@@ -510,18 +455,8 @@ public class StatementItem extends Panel {
                 iriSet.add((IRI) value);
             }
             ValueItem vi = new ValueItem(id, transform(value), statementPartId, this);
-            localItems.add(vi);
             items.add(vi);
             return vi;
-        }
-
-        private void disconnect() {
-            for (ValueItem vi : new ArrayList<>(localItems)) {
-                // TODO These remove operations on list are slow. Improve:
-                localItems.remove(vi);
-                items.remove(vi);
-                vi.removeFromContext();
-            }
         }
 
         /**
@@ -535,7 +470,7 @@ public class StatementItem extends Panel {
 
         /**
          * Returns the statement parts to render: in read-only contexts, optional group
-         * members that were left unassigned by fill() are hidden; in editable contexts
+         * members the nanopublication has no triples for are hidden; in editable contexts
          * (fresh publish, derive, update) all parts are shown, with skipped members
          * rendering as empty fields.
          *
@@ -912,148 +847,6 @@ public class StatementItem extends Panel {
         }
 
         /**
-         * Checks if this repetition group matches the provided list of statements.
-         *
-         * @param statements the list of statements to match against
-         * @return true if the repetition group matches, false otherwise
-         */
-        public boolean matches(List<Statement> statements) {
-            if (filled) return false;
-            // matches() must agree with fill(): because fill() binds shared placeholder models as it
-            // goes, a valid assignment can only be confirmed by actually simulating those bindings.
-            // We do exactly that (with backtracking) but on a copy and then restore the models, so
-            // matches() stays side-effect free.
-            Map<IRI, Object> snapshot = snapshotModels();
-            Set<IRI> unmatchedBefore = new HashSet<>(unmatchedParts);
-            try {
-                List<Statement> copy = new ArrayList<>(statements);
-                // A match must consume at least one statement: with optional members, an
-                // assignment that skips every part would otherwise "match" without evidence,
-                // which would also keep the repetition loop in fill() spinning forever.
-                return assignParts(0, copy) && copy.size() < statements.size();
-            } finally {
-                restoreModels(snapshot);
-                unmatchedParts.clear();
-                unmatchedParts.addAll(unmatchedBefore);
-            }
-        }
-
-        /**
-         * Fills this repetition group with the provided list of statements, unifying them with the statement parts.
-         *
-         * @param statements the list of statements to match against
-         * @throws UnificationException if the statements cannot be unified with this repetition group
-         */
-        public void fill(List<Statement> statements) throws UnificationException {
-            if (filled) throw new UnificationException("Already filled");
-            // Backtracking assignment: a greedy first-match can bind a shared placeholder in a way
-            // that blocks a later part even though a consistent assignment exists. assignParts tries
-            // alternatives and rolls back the model bindings between attempts. On success the matched
-            // statements are removed from the list and the winning bindings are kept.
-            unmatchedParts.clear();
-            int sizeBefore = statements.size();
-            if (!assignParts(0, statements) || statements.size() == sizeBefore) {
-                throw new UnificationException("Unification seemed to work but then didn't");
-            }
-            filled = true;
-        }
-
-        /**
-         * Tries to assign each remaining statement part (from index {@code partIndex} on) to a distinct
-         * statement in {@code available} such that all bindings of shared placeholder models are mutually
-         * consistent. Uses backtracking: on a failed branch the model bindings are restored and the next
-         * candidate is tried. On success the chosen statements are removed from {@code available} and the
-         * winning bindings remain applied to the component models.
-         *
-         * @param partIndex the index of the next statement part to assign
-         * @param available the statements still available for assignment (mutated in place)
-         * @return true if all remaining parts could be assigned consistently
-         */
-        private boolean assignParts(int partIndex, List<Statement> available) {
-            if (partIndex == statementParts.size()) return true;
-            StatementPartItem p = statementParts.get(partIndex);
-            for (int i = 0; i < available.size(); i++) {
-                Statement s = available.get(i);
-                Map<IRI, Object> snapshot = snapshotModels();
-                if (unifyPart(p.getPredicate(), s.getPredicate())  // checking predicate first optimizes performance
-                        && unifyPart(p.getSubject(), s.getSubject())
-                        && unifyPart(p.getObject(), s.getObject())) {
-                    available.remove(i);
-                    if (assignParts(partIndex + 1, available)) return true;
-                    available.add(i, s);
-                }
-                restoreModels(snapshot);
-            }
-            IRI partId = statementPartIds.get(partIndex);
-            if (isGrouped() && getTemplate().isOptionalStatement(partId)) {
-                // Optional group member with no consistent candidate: leave it unassigned and
-                // move on. Trying all candidates first (above) keeps fills maximal — a member
-                // is only skipped when no consistent assignment exists.
-                unmatchedParts.add(partId);
-                if (assignParts(partIndex + 1, available)) return true;
-                unmatchedParts.remove(partId);
-            }
-            return false;
-        }
-
-        /**
-         * Checks unifiability and, if unifiable, applies the binding. Returns false instead of throwing,
-         * so the caller can backtrack. (A partial binding left behind here is rolled back by the caller's
-         * model snapshot.)
-         * <p>
-         * A field pre-filled from a parameter matches whatever the source nanopublication carries and
-         * keeps the parameter's value: the parameter states what the user asked for, so it overrides
-         * the source rather than blocking the match, which would roll the whole statement back and
-         * empty the other fields of its repetition group (issue #73).
-         *
-         * @param item the item to bind
-         * @param v    the value to bind it to
-         * @return true if the item was bound, or holds a parameter value that overrides it
-         */
-        private boolean unifyPart(ValueItem item, Value v) {
-            if (item.holdsParamValue()) return true;
-            if (!item.isUnifiableWith(v)) return false;
-            try {
-                item.unifyWith(v);
-                return true;
-            } catch (UnificationException ex) {
-                return false;
-            }
-        }
-
-        /**
-         * Snapshots the current values of all shared component models, so a trial binding can be rolled back.
-         */
-        private Map<IRI, Object> snapshotModels() {
-            Map<IRI, Object> snapshot = new HashMap<>();
-            for (Map.Entry<IRI, IModel<?>> e : context.getComponentModels().entrySet()) {
-                snapshot.put(e.getKey(), e.getValue().getObject());
-            }
-            return snapshot;
-        }
-
-        /**
-         * Restores component model values captured by {@link #snapshotModels()}.
-         */
-        @SuppressWarnings("unchecked")
-        private void restoreModels(Map<IRI, Object> snapshot) {
-            Map<IRI, IModel<?>> models = context.getComponentModels();
-            for (Map.Entry<IRI, Object> e : snapshot.entrySet()) {
-                IModel<?> m = models.get(e.getKey());
-                if (m != null) ((IModel<Object>) m).setObject(e.getValue());
-            }
-        }
-
-        /**
-         * Marks the filling of this repetition group as finished, indicating that all values have been filled.
-         */
-        public void fillFinished() {
-            for (ValueItem vi : items) {
-                vi.fillFinished();
-            }
-        }
-
-        /**
          * Finalizes the values of all ValueItems in this repetition group.
          */
         public void finalizeValues() {
@@ -1065,6 +858,5 @@ public class StatementItem extends Panel {
     }
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
-    private static final List<Statement> dummyStatementList = new ArrayList<Statement>(Collections.singletonList(vf.createStatement(vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"), vf.createIRI("http://dummy.com/"))));
 
 }

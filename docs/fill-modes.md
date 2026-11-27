@@ -188,8 +188,7 @@ external root value was migrated from the source.
   action reopen the nanopub the view is showing. See docs/magic-query-params.md.
 - **`template/SourceFill.java`** — reads the source for the form's templates with
   nanopub-java's `SourceReader` and gives the fields their values; keeps introduced
-  IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints them otherwise. (`template/ValueFiller.java`
-  still fills the read-only view of a nanopublication.)
+  IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints them otherwise.
 - **`template/TemplateContext.java`** — `processValue` resolves the root-nanopub
   placeholder (above) and the introduced-resource placeholders per mode.
 - **`component/ValueItem.java`** — renders introduced resources read-only in

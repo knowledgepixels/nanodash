@@ -1,10 +1,8 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.template.UnificationException;
 import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,59 +61,6 @@ class LiteralItemTest {
         assertTrue(html.contains("&quot;&lt;p&gt;not html&lt;/p&gt;&quot;"),
                 "escaped, and still shown in quotes as any other literal: " + html);
         assertFalse(html.contains("<p>not html</p>"), html);
-    }
-
-    @Test
-    void isUnifiableWithReturnsTrueForSameLiteralValue() {
-        Literal lit1 = TestUtils.vf.createLiteral("value");
-        Literal lit2 = TestUtils.vf.createLiteral("value");
-        LiteralItem item = new LiteralItem("id", "parent", lit1, null);
-
-        assertTrue(item.isUnifiableWith(lit2));
-    }
-
-    @Test
-    void isUnifiableWithReturnsFalseForDifferentLiteralValue() {
-        Literal lit1 = TestUtils.vf.createLiteral("value1");
-        Literal lit2 = TestUtils.vf.createLiteral("value2");
-        LiteralItem item = new LiteralItem("id", "parent", lit1, null);
-
-        assertFalse(item.isUnifiableWith(lit2));
-    }
-
-    @Test
-    void isUnifiableWithReturnsFalseForNonLiteralValue() {
-        Literal lit1 = TestUtils.vf.createLiteral("value");
-        Value nonLiteral = TestUtils.vf.createIRI("https://example.org");
-        LiteralItem item = new LiteralItem("id", "parent", lit1, null);
-
-        assertFalse(item.isUnifiableWith(nonLiteral));
-    }
-
-    @Test
-    void isUnifiableWithReturnsFalseForNullValue() {
-        Literal lit1 = TestUtils.vf.createLiteral("value");
-        LiteralItem item = new LiteralItem("id", "parent", lit1, null);
-
-        assertFalse(item.isUnifiableWith(null));
-    }
-
-    @Test
-    void unifyWithDoesNotThrowForUnifiableLiteral() {
-        Literal lit1 = TestUtils.vf.createLiteral("value");
-        Literal lit2 = TestUtils.vf.createLiteral("value");
-        LiteralItem item = new LiteralItem("id", "parent", lit1, null);
-
-        assertDoesNotThrow(() -> item.unifyWith(lit2));
-    }
-
-    @Test
-    void unifyWithThrowsForNonUnifiableLiteral() {
-        Literal lit1 = TestUtils.vf.createLiteral("value1");
-        Literal lit2 = TestUtils.vf.createLiteral("value2");
-        LiteralItem item = new LiteralItem("id", "parent", lit1, null);
-
-        assertThrows(UnificationException.class, () -> item.unifyWith(lit2));
     }
 
     @Test

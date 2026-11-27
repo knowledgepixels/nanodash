@@ -108,6 +108,13 @@ In `StatementItem` (`StatementItem.java:154-165`, `589-626`):
 
 ### 3. Fill/unification — the careful part
 
+> Since #936, Nanodash no longer matches triples against a template itself: the form is
+> filled with nanopub-java's `SourceReader` (`template/SourceFill`), and the read-only view
+> with its `TemplateMatcher` (`template/ViewFill`). The matcher follows the rules below
+> (match over skip, at least one triple per repetition), and `StatementItem.show` hides the
+> members a repetition got no triple for. `assignParts`, `matches()` and `fill()` are gone,
+> so the line numbers below are to their former places.
+
 `RepetitionGroup.assignParts(partIndex, available)` gets a skip branch
 (`StatementItem.java:698-714`):
 
@@ -169,7 +176,8 @@ While at it, make the exclusions explicit instead of silently misbehaving:
 
 ## Touch points checked and *not* affected
 
-- `willMatchAnyTriple()` (`StatementItem.java:235-237`) — uses `matches()` on a dummy
+- `willMatchAnyTriple()` (`StatementItem.java:235-237`, replaced by
+  `ViewFill.isCatchAll` in #936) — uses `matches()` on a dummy
   statement; with the ≥1-consumed guard a group still needs to match the dummy triple
   with some member, unchanged in practice.
 - `isEmpty()` / `RepetitionGroup.isEmpty()` — used to detect untouched optional items;

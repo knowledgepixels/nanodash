@@ -2,13 +2,10 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
 
 /**
  * Represents a sequence element item.
@@ -55,32 +52,6 @@ public class SequenceElementItem extends AbstractContextComponent {
      */
     @Override
     public void removeFromContext() {
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (v instanceof Literal) return false;
-        return v.stringValue().equals(SEQUENCE_ELEMENT_PROPERTY_PREFIX + number);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
     }
 
     /**

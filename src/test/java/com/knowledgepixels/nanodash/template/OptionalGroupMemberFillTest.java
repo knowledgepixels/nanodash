@@ -21,6 +21,7 @@ import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -117,13 +118,12 @@ public class OptionalGroupMemberFillTest {
     }
 
     /**
-     * Mirrors the viewer flow (NanopubItem.populateStatementItemList): read-only
+     * Mirrors the viewer flow (NanopubItem with ViewFill): read-only
      * context built from the template, fed the data nanopub's assertion triples.
      */
-    private TemplateContext fill(Nanopub dataNp, ValueFiller filler) {
+    private TemplateContext fill(Nanopub dataNp, List<Statement> unused) {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", dataNp);
-        context.initStatements();
-        filler.fill(context);
+        unused.addAll(new ViewFill(dataNp).fillAssertion(context));
         return context;
     }
 
@@ -141,13 +141,13 @@ public class OptionalGroupMemberFillTest {
     void nanopubOmittingOptionalTripleMatches() throws Exception {
         mockTemplate(false);
         Nanopub dataNp = dataNanopub(vf.createStatement(THING1, RDF.TYPE, SOME_CLASS));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fill(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fill(dataNp, unused);
 
         StatementItem si = context.getStatementItems().get(0);
         assertTrue(si.isMatched(), "group must match despite the missing optional triple");
-        assertTrue(filler.getUnusedStatements().isEmpty(),
-                "all statements must be consumed, but these stayed unused:\n" + filler.getUnusedStatements());
+        assertTrue(unused.isEmpty(),
+                "all statements must be consumed, but these stayed unused:\n" + unused);
         assertEquals(Set.of(ST2), getUnmatchedParts(si), "the skipped optional member must be tracked for row hiding");
     }
 
@@ -157,13 +157,13 @@ public class OptionalGroupMemberFillTest {
         Nanopub dataNp = dataNanopub(
                 vf.createStatement(THING1, RDF.TYPE, SOME_CLASS),
                 vf.createStatement(THING1, RDFS.LABEL, vf.createLiteral("thing one")));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fill(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fill(dataNp, unused);
 
         StatementItem si = context.getStatementItems().get(0);
         assertTrue(si.isMatched());
-        assertTrue(filler.getUnusedStatements().isEmpty(),
-                "all statements must be consumed, but these stayed unused:\n" + filler.getUnusedStatements());
+        assertTrue(unused.isEmpty(),
+                "all statements must be consumed, but these stayed unused:\n" + unused);
         assertTrue(getUnmatchedParts(si).isEmpty(), "nothing was skipped, so no row may be hidden");
     }
 
@@ -171,12 +171,12 @@ public class OptionalGroupMemberFillTest {
     void optionalTripleAloneDoesNotMatchGroup() throws Exception {
         mockTemplate(false);
         Nanopub dataNp = dataNanopub(vf.createStatement(THING1, RDFS.LABEL, vf.createLiteral("thing one")));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fill(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fill(dataNp, unused);
 
         StatementItem si = context.getStatementItems().get(0);
         assertFalse(si.isMatched(), "required member has no candidate, so the group must not match");
-        assertEquals(1, filler.getUnusedStatements().size(), "the label triple must stay unused");
+        assertEquals(1, unused.size(), "the label triple must stay unused");
     }
 
     @Test
@@ -187,15 +187,15 @@ public class OptionalGroupMemberFillTest {
                 vf.createStatement(THING1, RDF.TYPE, SOME_CLASS),
                 vf.createStatement(THING1, RDFS.LABEL, vf.createLiteral("thing one")),
                 vf.createStatement(THING2, RDF.TYPE, SOME_CLASS));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fill(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fill(dataNp, unused);
 
         StatementItem si = context.getStatementItems().get(0);
         assertTrue(si.isMatched());
         assertEquals(2, si.getRepetitionCount(),
                 "one repetition with the optional triple, one without");
-        assertTrue(filler.getUnusedStatements().isEmpty(),
-                "all statements must be consumed, but these stayed unused:\n" + filler.getUnusedStatements());
+        assertTrue(unused.isEmpty(),
+                "all statements must be consumed, but these stayed unused:\n" + unused);
     }
 
     @Test
@@ -203,14 +203,14 @@ public class OptionalGroupMemberFillTest {
     void repeatableGroupTerminatesWhenNothingIsLeft() throws Exception {
         mockTemplate(true);
         Nanopub dataNp = dataNanopub(vf.createStatement(THING1, RDF.TYPE, SOME_CLASS));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fill(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fill(dataNp, unused);
 
         StatementItem si = context.getStatementItems().get(0);
         assertTrue(si.isMatched());
         // The all-consumed statement list must not allow further vacuous "matches"
         // (every member skipped): the repetition loop has to stop.
-        assertTrue(filler.getUnusedStatements().isEmpty());
+        assertTrue(unused.isEmpty());
     }
 
 }

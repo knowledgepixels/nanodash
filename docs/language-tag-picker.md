@@ -233,8 +233,8 @@ For a placeholder `p` typed `nt:LanguageTaggedLiteralPlaceholder`:
 ## Touch points checked and *not* affected
 
 - **`Utils` literal serialization** (`Utils.java:920-974`) — already round-trips
-  `"…"@tag`; `ValueFiller` feeds statements to unification as parsed `Literal`s, so no
-  serialization change is needed.
+  `"…"@tag`; the source and the view are matched as parsed `Literal`s (`SourceFill`,
+  `ViewFill`), so no serialization change is needed.
 - **`LiteralDateItem` / `LiteralDateTimeItem`** — selected on datatype
   (`ValueItem.java:72-75`), disjoint from language-tagged literals by RDF semantics.
 - **`GuidedChoiceItem` / `RestrictedChoiceItem`** — choice placeholders produce IRIs
