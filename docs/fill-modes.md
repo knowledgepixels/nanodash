@@ -119,14 +119,14 @@ other fields of that statement's **repetition group** were emptied, and the
 statement was reported under *"Some content from the existing nanopublication
 could not be filled in:"* although it had been replaced on purpose.
 
-`StatementItem.RepetitionGroup.unifyPart` now lets a field that was pre-filled
-from a parameter match whatever the source carries, and keeps the parameter's
-value: the statement counts as consumed (so no leftover warning) and its
-siblings fill normally. Which fields those are is recorded by the items as they
-seed themselves (`TemplateContext.setParamFilled` / `isParamFilled`), so it
-covers every placeholder type and only fields a parameter actually filled —
-a placeholder whose parameter was ignored (e.g. a field under a
-space-dependent prefix) still unifies with the source as before.
+The form is now filled from the source differently (#936): the source is read with
+nanopub-java's `SourceReader` for the form's templates, and each value becomes the value its
+field starts with (`TemplateContext.setSourceValue`), under the same name a parameter has.
+This happens before the fields are built, and a field takes a parameter's value over the
+source's (`TemplateContext.getValue`). The statement counts as read, so there is no leftover
+warning, and its siblings and further repetitions keep the source's values. A field under a
+space-dependent prefix ignores a parameter, but takes the source's value, under the base the
+form has (see `template/SourceFill.java`).
 
 Regression test: `ParamOverridesFillTest`.
 
@@ -137,9 +137,10 @@ A template can mark one slot as the **root-nanopub placeholder**
 a nanopub declares which nanopub *defines* the resource it is about (e.g. a
 Space or maintained resource pointing at its own root definition).
 
-When filling from a source, `ValueFiller.transform` rewrites the source's own
-URI to the `local:nanopub` sentinel, so a source that is its own root arrives at
-the form carrying that sentinel in the root slot.
+When filling from a source, a source that is its own root arrives at the form with
+its own URI in the root slot (`SourceFill`; until #936, `ValueFiller` wrote the
+`local:nanopub` sentinel, which `ReadonlyItem` turned into that URI). Without a source,
+the slot holds the sentinel.
 
 Before the fix, `TemplateContext.processValue` resolved the root slot the same
 way for `DERIVE` and `SUPERSEDE`:
@@ -185,9 +186,10 @@ external root value was migrated from the source.
 - **`component/ViewActionMappings.java`** — a view action can open a fill mode from
   the page it is shown on: mapping the `@sourceNp` page source to `@override` makes the
   action reopen the nanopub the view is showing. See docs/magic-query-params.md.
-- **`template/ValueFiller.java`** — copies the source graph and rewrites URIs;
-  `transform(Value)` keeps introduced IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints
-  them otherwise.
+- **`template/SourceFill.java`** — reads the source for the form's templates with
+  nanopub-java's `SourceReader` and gives the fields their values; keeps introduced
+  IRIs for `SUPERSEDE`/`OVERRIDE`, re-mints them otherwise. (`template/ValueFiller.java`
+  still fills the read-only view of a nanopublication.)
 - **`template/TemplateContext.java`** — `processValue` resolves the root-nanopub
   placeholder (above) and the introduced-resource placeholders per mode.
 - **`component/ValueItem.java`** — renders introduced resources read-only in
@@ -197,6 +199,5 @@ external root value was migrated from the source.
 - **`action/{DeriveAction,UpdateAction,OverrideAction}.java`** — the nanopub
   action-menu entries that build these URLs; registered in
   `action/NanopubAction.java`.
-- **`component/StatementItem.java`** — `unifyPart` lets a parameter-filled field
-  override the source's value (#73); `component/ValueItem.java` answers
-  `holdsParamValue()` for it.
+- **`template/TemplateContext.java`** — `getValue` gives a field a parameter's value over
+  the source's (#73).

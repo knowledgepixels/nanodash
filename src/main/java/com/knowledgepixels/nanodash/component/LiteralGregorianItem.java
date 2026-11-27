@@ -299,9 +299,9 @@ public class LiteralGregorianItem extends AbstractContextComponent {
             if (previous != null) model.setObject(previous.toString());
             componentModels.put(iri, model);
             String postfix = Utils.getUriPostfix(iri);
-            if (previous == null && context.hasParam(postfix)) {
-                model.setObject(context.getParam(postfix));
-                context.setParamFilled(iri);
+            if (previous == null && context.hasValue(postfix)) {
+                model.setObject(context.getValue(postfix));
+                if (context.hasParam(postfix)) context.setParamFilled(iri);
             }
         }
 

@@ -69,9 +69,9 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (modelIsNew && context.hasParam(postfix)) {
-            model.setObject(context.getParam(postfix));
-            context.setParamFilled(iri);
+        if (modelIsNew && context.hasValue(postfix)) {
+            model.setObject(context.getValue(postfix));
+            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         AbstractTextComponent<String> tc = initTextComponent(model);
         if (!optional) tc.setRequired(true);
@@ -174,8 +174,8 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
             langModel = Model.of("");
             context.getComponentModels().put(langModelKey, langModel);
             String langParam = Utils.getUriPostfix(iri) + TemplateContext.LANGUAGE_SUFFIX;
-            if (context.hasParam(langParam)) {
-                langModel.setObject(context.getParam(langParam));
+            if (context.hasValue(langParam)) {
+                langModel.setObject(context.getValue(langParam));
             } else if (template.getLanguageTag(iri) != null) {
                 langModel.setObject(template.getLanguageTag(iri));
             }

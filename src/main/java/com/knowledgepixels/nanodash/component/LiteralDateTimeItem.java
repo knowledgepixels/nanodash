@@ -70,11 +70,15 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
             modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (modelIsNew && context.hasParam(postfix)) {
-            String zoncontext = context.getParam(postfix);
-            if (zoncontext != null) {
+        if (modelIsNew && context.hasValue(postfix)) {
+            String zoncontext = context.getValue(postfix);
+            if (zoncontext != null && zoncontext.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                // A date alone, as older nanopublications give for a date and time (see unifyWith).
+                model.setObject(ZonedDateTime.parse(zoncontext + "T00:00:00Z"));
+                if (context.hasParam(postfix)) context.setParamFilled(iri);
+            } else if (zoncontext != null) {
                 model.setObject(ZonedDateTime.parse(zoncontext));
-                context.setParamFilled(iri);
+                if (context.hasParam(postfix)) context.setParamFilled(iri);
             } else {
                 model.setObject(null);
             }
