@@ -112,8 +112,8 @@ public class LanguageTagFillTest {
      */
     private TemplateContext fillEditable(Nanopub dataNp) {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
+        new SourceFill(dataNp, null, null).fillAssertion(context);
         context.initStatements();
-        new ValueFiller(dataNp, ContextType.ASSERTION, true).fill(context);
         return context;
     }
 

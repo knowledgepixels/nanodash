@@ -42,6 +42,7 @@ public class TemplateContext implements Serializable {
     private final Template template;
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
+    private final Map<String, String> sourceValues = new HashMap<>();
     private final Set<String> lockedParams = new HashSet<>();
     private final Set<IRI> paramFilledIris = new HashSet<>();
     private final Set<String> lockedStatements = new HashSet<>();
@@ -121,7 +122,8 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * Finalizes the statements by processing all parameters and setting the repetition counts.
+     * Finalizes the statements by processing all parameters and values from the source, and
+     * setting the repetition counts.
      */
     public void finalizeStatements() {
         Map<StatementItem, Integer> finalRepetitionCount = new HashMap<>();
@@ -132,7 +134,7 @@ public class TemplateContext implements Serializable {
             int i = si.getRepetitionCount();
             while (true) {
                 String p = postfix + "__" + i;
-                if (hasParam(p)) {
+                if (hasValue(p)) {
                     si.addRepetitionGroup();
                 } else {
                     break;
@@ -254,6 +256,63 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasParam(String name) {
         return params.containsKey(name);
+    }
+
+    /**
+     * Sets a value read from the nanopublication the form is filled from, under the name of
+     * its field, as a parameter would give it ({@link SourceFill}). The field starts with it
+     * unless a parameter gives the field a value: that is what the user asked for, so it wins
+     * over the source (issue #73).
+     *
+     * @param name  the name of the field, with any repetition or language suffix
+     * @param value the value, as it would be typed into the field
+     */
+    public void setSourceValue(String name, String value) {
+        sourceValues.put(name, value);
+    }
+
+    /**
+     * Checks whether the nanopublication the form is filled from gives a value for the field of
+     * the given name.
+     *
+     * @param name the name of the field
+     * @return true if the source gives a value
+     */
+    public boolean hasSourceValue(String name) {
+        return sourceValues.containsKey(name);
+    }
+
+    /**
+     * Returns the value the nanopublication the form is filled from gives for the field of the
+     * given name.
+     *
+     * @param name the name of the field
+     * @return the value, or null if the source gives none
+     */
+    public String getSourceValue(String name) {
+        return sourceValues.get(name);
+    }
+
+    /**
+     * Checks whether a parameter or the nanopublication the form is filled from gives a value
+     * for the field of the given name.
+     *
+     * @param name the name of the field
+     * @return true if there is a value to start the field with
+     */
+    public boolean hasValue(String name) {
+        return params.containsKey(name) || sourceValues.containsKey(name);
+    }
+
+    /**
+     * Returns the value to start the field of the given name with: the one a parameter gives,
+     * or else the one from the nanopublication the form is filled from.
+     *
+     * @param name the name of the field
+     * @return the value, or null if there is none
+     */
+    public String getValue(String name) {
+        return params.containsKey(name) ? params.get(name) : sourceValues.get(name);
     }
 
     /**

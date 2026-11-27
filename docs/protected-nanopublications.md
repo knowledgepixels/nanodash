@@ -56,8 +56,8 @@ placeholders: adding it adds the marker.
 
 Going through a template rather than emitting the triple in code buys two things: the
 statement has a `nt:wasCreatedFromPubinfoTemplate` link like every other one, and
-`ValueFiller` claims it when a protected nanopublication is superseded, instead of
-sweeping it into the hand-coded catch-all.
+the fill from the source (`SourceFill`) gives it to that template when a protected
+nanopublication is superseded, instead of sweeping it into the hand-coded catch-all.
 
 The template is `nt:UnlistedTemplate`, so it does not appear in the "add element…"
 dropdown. Where a nanopublication may be stored is not a description of its content, and

@@ -7,6 +7,7 @@ import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -18,6 +19,8 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NPX;
 import org.nanopub.vocabulary.NTEMPLATE;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -96,6 +99,9 @@ public class MetaTemplateNodePlaceholderTest {
 
     private static Nanopub templateNanopub(String npUri, IRI templateNode, String label) throws Exception {
         NanopubCreator creator = new NanopubCreator(npUri);
+        // As a published nanopublication names its graphs, so that what is minted within it
+        // follows its URI and a slash:
+        creator.setAssertionUri(npUri + "/assertion");
         IRI node = (templateNode == null ? creator.getAssertionUri() : templateNode);
         creator.addAssertionStatement(node, RDF.TYPE, NTEMPLATE.ASSERTION_TEMPLATE);
         creator.addAssertionStatement(node, RDFS.LABEL, vf.createLiteral(label));
@@ -139,31 +145,29 @@ public class MetaTemplateNodePlaceholderTest {
     @Test
     void fillFromLegacyTemplateUnifiesNodeToAssertion() throws Exception {
         context.setFillMode(FillMode.SUPERSEDE);
-        context.initStatements();
         Nanopub legacy = templateNanopub(LEGACY_URI, null, "My old template");
         context.setFillSource(legacy);
-        ValueFiller filler = new ValueFiller(legacy, ContextType.ASSERTION, true, FillMode.SUPERSEDE);
-        filler.fill(context);
+        List<Statement> unused = new SourceFill(legacy, FillMode.SUPERSEDE, null).fillAssertion(context);
+        context.initStatements();
         context.finalizeStatements();
         assertEquals("assertion", modelValue(NODE_PLACEHOLDER));
         assertEquals("My old template", modelValue(LABEL_PLACEHOLDER));
-        assertEquals(0, filler.getUnusedStatements().size(),
-                "all statements of the legacy template should unify: " + filler.getUnusedStatements());
+        assertEquals(0, unused.size(),
+                "all statements of the legacy template should unify: " + unused);
     }
 
     @Test
     void fillFromEmbeddedIdentityTemplateUnifiesNodeToLocalName() throws Exception {
         context.setFillMode(FillMode.SUPERSEDE);
-        context.initStatements();
         Nanopub newStyle = templateNanopub(NEWSTYLE_URI, vf.createIRI(NEWSTYLE_URI + "/my-nice-template"), "My new template");
         context.setFillSource(newStyle);
-        ValueFiller filler = new ValueFiller(newStyle, ContextType.ASSERTION, true, FillMode.SUPERSEDE);
-        filler.fill(context);
+        List<Statement> unused = new SourceFill(newStyle, FillMode.SUPERSEDE, null).fillAssertion(context);
+        context.initStatements();
         context.finalizeStatements();
         assertEquals("my-nice-template", modelValue(NODE_PLACEHOLDER));
         assertEquals("My new template", modelValue(LABEL_PLACEHOLDER));
-        assertEquals(0, filler.getUnusedStatements().size(),
-                "all statements of the new-style template should unify: " + filler.getUnusedStatements());
+        assertEquals(0, unused.size(),
+                "all statements of the new-style template should unify: " + unused);
     }
 
     // Regression for issue #549: an introduced-resource placeholder in an optional
@@ -175,9 +179,8 @@ public class MetaTemplateNodePlaceholderTest {
         context.setFillMode(FillMode.SUPERSEDE);
         Nanopub legacy = templateNanopub(LEGACY_URI, null, "My old template");
         context.setFillSource(legacy);
+        new SourceFill(legacy, FillMode.SUPERSEDE, null).fillAssertion(context);
         context.initStatements();
-        ValueFiller filler = new ValueFiller(legacy, ContextType.ASSERTION, true, FillMode.SUPERSEDE);
-        filler.fill(context);
         context.finalizeStatements();
         assertTrue(kindHasEditableField(),
                 "the kind field must be editable when the superseded nanopub introduces nothing");
@@ -198,16 +201,15 @@ public class MetaTemplateNodePlaceholderTest {
         creator.addPubinfoStatement(vf.createStatement(creator.getNanopubUri(), NPX.INTRODUCES, kind));
         Nanopub governed = creator.finalizeNanopub();
         context.setFillSource(governed);
+        List<Statement> unused = new SourceFill(governed, FillMode.SUPERSEDE, null).fillAssertion(context);
         context.initStatements();
-        ValueFiller filler = new ValueFiller(governed, ContextType.ASSERTION, true, FillMode.SUPERSEDE);
-        filler.fill(context);
         context.finalizeStatements();
         assertFalse(kindHasEditableField(),
                 "the kind field must be pinned read-only when the superseded nanopub introduces it");
         assertEquals(kind.stringValue(), modelValue(KIND_PLACEHOLDER),
                 "the pinned kind must keep the original full IRI");
-        assertEquals(0, filler.getUnusedStatements().size(),
-                "all statements should unify: " + filler.getUnusedStatements());
+        assertEquals(0, unused.size(),
+                "all statements should unify: " + unused);
     }
 
 }

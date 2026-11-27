@@ -40,12 +40,11 @@ class DeriveIntroducedResourceFillTest {
         String targetNamespace = "https://example.org/np/~~~ARTIFACTCODE~~~/";
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, TEMPLATE, "statement", targetNamespace);
         context.setFillMode(FillMode.DERIVE);
-        context.initStatements();
-
         Nanopub deriveFrom = Utils.getNanopub(DERIVE_FROM);
         assertNotNull(deriveFrom, "derive-source nanopub should be fetchable");
-        ValueFiller filler = new ValueFiller(deriveFrom, ContextType.ASSERTION, true, FillMode.DERIVE);
-        filler.fill(context);
+        context.setFillSource(deriveFrom);
+        new SourceFill(deriveFrom, FillMode.DERIVE, null).fillAssertion(context);
+        context.initStatements();
 
         context.finalizeStatements();
 

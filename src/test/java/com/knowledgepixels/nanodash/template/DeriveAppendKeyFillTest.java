@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * existing introduction, the relative {@code __.1} params (which add the local
  * key alongside the derived key declarations) created the extra repetition
  * group but left its fields empty. Drives the same sequence as
- * {@code PublishForm}: set params, initStatements, derive-fill, finalizeStatements.
+ * {@code PublishForm}: set params, derive-fill, initStatements, finalizeStatements.
  */
 class DeriveAppendKeyFillTest {
 
@@ -44,12 +44,11 @@ class DeriveAppendKeyFillTest {
         context.setParam("key-declaration-ref__.1", "M..UtewG..");
         context.setParam("key-location__.1", "http://localhost:37373/");
 
-        context.initStatements();
-
         Nanopub deriveFrom = Utils.getNanopub(DERIVE_FROM);
         assertNotNull(deriveFrom, "derive-source nanopub should be fetchable");
-        ValueFiller filler = new ValueFiller(deriveFrom, ContextType.ASSERTION, true, FillMode.DERIVE);
-        filler.fill(context);
+        context.setFillSource(deriveFrom);
+        new SourceFill(deriveFrom, FillMode.DERIVE, null).fillAssertion(context);
+        context.initStatements();
 
         context.finalizeStatements();
 

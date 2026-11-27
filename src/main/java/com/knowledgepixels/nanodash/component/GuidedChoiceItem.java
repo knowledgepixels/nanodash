@@ -131,13 +131,16 @@ public class GuidedChoiceItem extends AbstractContextComponent {
             modelIsNew = true;
         }
         String postfix = Utils.getUriPostfix(iri);
-        if (modelIsNew && context.hasParam(postfix)) {
-            String objId = context.getParam(postfix);
-            if (AbstractResourceWithProfile.get(objId) != null && AbstractResourceWithProfile.get(objId).getLabel() != null) {
+        if (modelIsNew && context.hasValue(postfix)) {
+            String objId = context.getValue(postfix);
+            // A value from the nanopublication the form is filled from keeps the label known for
+            // it, such as the one that nanopublication gives (SourceFill.keepLabels).
+            boolean keepLabel = !context.hasParam(postfix) && labelMap.containsKey(objId);
+            if (!keepLabel && AbstractResourceWithProfile.get(objId) != null && AbstractResourceWithProfile.get(objId).getLabel() != null) {
                 labelMap.put(objId, AbstractResourceWithProfile.get(objId).getLabel());
             }
             model.setObject(objId);
-            context.setParamFilled(iri);
+            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         final List<String> possibleValues = new ArrayList<>();
         for (Value v : template.getPossibleValues(iri)) {

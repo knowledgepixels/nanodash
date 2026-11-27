@@ -20,8 +20,14 @@ one in the library, which kept its method names. Other documents in this folder 
 `Template.java` and line numbers in it; those are to its former place in
 `com.knowledgepixels.nanodash.template`.
 
-`TemplateData`, `TemplateContext`, `ValueFiller`, the form components and the `lookup`
-package are unchanged.
+`TemplateData`, `TemplateContext`, the form components and the `lookup` package are
+unchanged.
+
+The form reads a nanopublication it is filled from (`use`, `supersede`, `derive` and the
+others) with the library's `SourceReader` (nanopub-java 1.100.0 or later), in
+`template/SourceFill`: the values it finds start the fields, as parameters of a link do.
+`ValueFiller` and the unification in the form components still fill the read-only view of a
+nanopublication.
 
 ## What Nanodash does itself
 

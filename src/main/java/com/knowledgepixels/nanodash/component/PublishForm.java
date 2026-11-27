@@ -62,7 +62,6 @@ import org.nanopub.extra.services.ApiResponse;
 import org.nanopub.extra.services.ApiResponseEntry;
 import org.nanopub.extra.services.QueryRef;
 import org.nanopub.vocabulary.NPX;
-import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -510,13 +509,6 @@ public class PublishForm extends Panel {
             }
         }
 
-        // Init statements only now, in order to pick up parameter values:
-        assertionContext.initStatements();
-        provenanceContext.initStatements();
-        for (TemplateContext c : pubInfoContexts) {
-            c.initStatements();
-        }
-
         String latestAssertionId = td.getLatestTemplateId(assertionContext.getTemplateId());
         if (!assertionContext.getTemplateId().equals(latestAssertionId)) {
             add(new Label("newversion", "There is a new version of this assertion template:"));
@@ -534,55 +526,27 @@ public class PublishForm extends Panel {
         final List<Statement> unusedStatementList = new ArrayList<>();
         final List<Statement> unusedPrStatementList = new ArrayList<>();
         final List<Statement> unusedPiStatementList = new ArrayList<>();
+        // The values of the source, read with the library for the templates of the form, are
+        // the values the fields start with. Parameters still win. This comes before the
+        // statements are made, as a field takes its value when it is made.
         if (fillNp != null) {
-            ValueFiller filler = new ValueFiller(fillNp, ContextType.ASSERTION, true, fillMode);
-            filler.fill(assertionContext);
-            unusedStatementList.addAll(filler.getUnusedStatements());
-
+            SourceFill sourceFill = new SourceFill(fillNp, fillMode, NanodashSession.get().getUserIri());
+            unusedStatementList.addAll(sourceFill.fillAssertion(assertionContext));
             if (!fillOnlyAssertion) {
-                ValueFiller prFiller = new ValueFiller(fillNp, ContextType.PROVENANCE, true);
-                prFiller.fill(provenanceContext);
-                unusedPrStatementList.addAll(prFiller.getUnusedStatements());
-
-                ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO, true);
-                if (!assertionContext.getTemplate().getTargetNanopubTypes().isEmpty()) {
-                    for (Statement st : new ArrayList<>(piFiller.getUnusedStatements())) {
-                        if (st.getSubject().stringValue().equals(LocalUri.of("nanopub").stringValue()) && st.getPredicate().equals(NPX.HAS_NANOPUB_TYPE)) {
-                            if (assertionContext.getTemplate().getTargetNanopubTypes().contains(st.getObject())) {
-                                piFiller.removeUnusedStatement(st);
-                            }
-                        }
-                    }
-                }
-                // Consume the transient templates' statements first, so they neither
-                // fill into another template below nor end up as unused-statement
-                // warnings; the throwaway contexts are then simply discarded. One
-                // context consumes only one fill's worth, so repeat with fresh
-                // contexts until nothing more is consumed (e.g. several
-                // prov:wasDerivedFrom triples from a multi-source derivation):
+                sourceFill.keepLabels();
+                unusedPrStatementList.addAll(sourceFill.fillProvenance(provenanceContext));
+                // The source's templates whose latest version is transient: what they say is
+                // about the source alone, so it is taken away without being filled in anywhere.
                 for (String tid : transientPiTemplateIds) {
-                    int unusedBefore;
-                    do {
-                        unusedBefore = piFiller.getUnusedStatements().size();
-                        TemplateContext c = newContext(ContextType.PUBINFO, tid, "pi-statement");
-                        c.setFillSource(fillNp);
-                        // The creator slot is preset to the session user and then only
-                        // unifies with them; a throwaway must consume the template's
-                        // triples whoever they were about, so clear the preset:
-                        IModel<?> creatorModel = c.getComponentModels().get(NTEMPLATE.CREATOR_PLACEHOLDER);
-                        if (creatorModel instanceof Model) {
-                            ((Model<String>) creatorModel).setObject("");
-                        }
-                        c.initStatements();
-                        piFiller.fill(c);
-                    } while (piFiller.getUnusedStatements().size() < unusedBefore);
+                    Template transientTemplate = td.getTemplate(tid);
+                    if (transientTemplate != null && transientTemplate.isPubinfoTemplate()) sourceFill.skipPubinfo(transientTemplate);
                 }
-                // The hand-coded catch-all (present already when the source was made with
-                // it) is filled last, after the cleanup below, so it only gets what no
-                // other template and no cleanup rule has claimed:
+                // The hand-coded catch-all (present already when the source was made with it)
+                // is filled last, so it only gets what no other template has claimed:
                 final String handcodedStatementsTemplateId = "https://w3id.org/np/RAMEgudZsQ1bh1fZhfYnkthqH6YSXpghSE_DEN1I-6eAI";
                 final String handcodedIdLatest = td.getLatestTemplateId(handcodedStatementsTemplateId);
                 TemplateContext handcodedContext = null;
+                List<TemplateContext> filled = new ArrayList<>();
                 for (TemplateContext c : pubInfoContexts) {
                     String latestId = td.getLatestTemplateId(c.getTemplateId());
                     if (isTransientTemplate(latestId)) {
@@ -595,46 +559,35 @@ public class PublishForm extends Panel {
                         handcodedContext = c;
                         continue;
                     }
-                    piFiller.fill(c);
+                    filled.add(c);
                 }
-                piFiller.removeUnusedStatements(NanodashSession.get().getUserIri(), FOAF.NAME, null);
-                // The name triples of the source's creators are auto-generated alongside
-                // the creator statements; with those discarded as transient, keeping the
-                // orphaned names would leak them into hand-coded statements:
-                for (IRI creator : SimpleCreatorPattern.getCreators(fillNp)) {
-                    piFiller.removeUnusedStatements(creator, FOAF.NAME, null);
-                }
-                if (piFiller.hasUnusedStatements() && fillMode != FillMode.PARTIAL) {
+                sourceFill.fillPubinfo(filled);
+                if (!sourceFill.getUnusedPubinfo().isEmpty() && fillMode != FillMode.PARTIAL) {
                     // A partial fill discards what does not match rather than sweeping it into
                     // the catch-all, which would publish it after all.
                     if (handcodedContext == null) {
                         handcodedContext = createPubInfoContext(handcodedStatementsTemplateId);
                         handcodedContext.setFillSource(fillNp);
-                        handcodedContext.initStatements();
                     }
-                    piFiller.fill(handcodedContext);
+                    sourceFill.fillPubinfo(List.of(handcodedContext));
                 } else if (handcodedContext != null && !requiredPubInfoContexts.contains(handcodedContext)) {
                     // Everything was claimed or discarded: an empty catch-all would only
                     // block publishing on its required statement, so drop it.
                     pubInfoContexts.remove(handcodedContext);
                     pubInfoContextMap.values().remove(handcodedContext);
                 }
-                unusedPiStatementList.addAll(piFiller.getUnusedStatements());
-                // TODO: Also use pubinfo templates stated in nanopub to be filled in?
-//				Set<IRI> pubinfoTemplateIds = Template.getPubinfoTemplateIds(fillNp);
-//				if (!pubinfoTemplateIds.isEmpty()) {
-//					ValueFiller piFiller = new ValueFiller(fillNp, ContextType.PUBINFO);
-//					for (IRI pubinfoTemplateId : pubinfoTemplateIds) {
-//						// TODO: Make smart choice on the ordering in trying to fill in all pubinfo elements
-//						piFiller.fill(pubInfoContextMap.get(pubinfoTemplateId.stringValue()));
-//					}
-//					warningMessage += (piFiller.getWarningMessage() == null ? "" : "Publication info: " + piFiller.getWarningMessage() + " ");
-//				}
+                unusedPiStatementList.addAll(sourceFill.getUnusedPubinfo());
             }
         } else if (improveNp != null) {
-            ValueFiller filler = new ValueFiller(improveNp, ContextType.ASSERTION, true);
-            filler.fill(assertionContext);
-            unusedStatementList.addAll(filler.getUnusedStatements());
+            unusedStatementList.addAll(new SourceFill(improveNp, null, NanodashSession.get().getUserIri()).fillAssertion(assertionContext));
+        }
+
+        // Init statements only now, in order to pick up parameter values and the values of the
+        // source:
+        assertionContext.initStatements();
+        provenanceContext.initStatements();
+        for (TemplateContext c : pubInfoContexts) {
+            c.initStatements();
         }
         if (fillMode == FillMode.PARTIAL) {
             // A partial fill takes what matches and drops the rest without telling the user:

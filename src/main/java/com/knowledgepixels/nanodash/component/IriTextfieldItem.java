@@ -82,11 +82,19 @@ public class IriTextfieldItem extends AbstractContextComponent {
         // typically with a full IRI, which bypasses the prefix altogether -- so it is
         // ignored here, leaving the field to be filled the same way whatever the prefix's
         // trailing path is.
-        if (modelIsNew && dynamicPrefixToken == null && context.hasParam(postfix)) {
-            model.setObject(context.getParam(postfix));
-            context.setParamFilled(iri);
+        if (modelIsNew && dynamicPrefixToken == null && context.hasValue(postfix)) {
+            model.setObject(context.getValue(postfix));
+            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         prefixModel = new PrefixModel(iri, context);
+        if (modelIsNew && dynamicPrefixToken != null && context.hasSourceValue(postfix)) {
+            // A value from the nanopublication the form is filled from is taken all the same:
+            // under the base the form has, it is the name below it.
+            String value = context.getSourceValue(postfix);
+            String base = prefixModel.getObject();
+            if (!base.isEmpty() && value.startsWith(base)) value = value.substring(base.length());
+            model.setObject(value);
+        }
         // The navigation context takes precedence; only when it determines no base does the
         // user get to pick one.
         boolean showPrefixChoice = dynamicPrefixToken != null

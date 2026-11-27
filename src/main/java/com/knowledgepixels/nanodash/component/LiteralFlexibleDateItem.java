@@ -442,9 +442,9 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         if (previous != null) created.setObject(previous.toString());
         componentModels.put(iri, created);
         String postfix = Utils.getUriPostfix(iri);
-        if (previous == null && context.hasParam(postfix)) {
-            created.setObject(context.getParam(postfix));
-            context.setParamFilled(iri);
+        if (previous == null && context.hasValue(postfix)) {
+            created.setObject(context.getValue(postfix));
+            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         return created;
     }

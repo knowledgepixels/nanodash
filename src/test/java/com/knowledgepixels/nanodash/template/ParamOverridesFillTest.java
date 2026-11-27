@@ -6,10 +6,12 @@ import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.nanopub.Nanopub;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,20 +42,21 @@ class ParamOverridesFillTest {
         new WicketTester(new WicketApplication());
     }
 
-    private static ValueFiller fill(TemplateContext context, String sourceNanopubId) {
+    // As PublishForm does it: the values of the source come before the statements are made.
+    private static List<Statement> fill(TemplateContext context, String sourceNanopubId) {
         Nanopub sourceNanopub = Utils.getNanopub(sourceNanopubId);
         assertNotNull(sourceNanopub, "source nanopublication should be fetchable");
-        ValueFiller filler = new ValueFiller(sourceNanopub, ContextType.ASSERTION, true, context.getFillMode());
-        filler.fill(context);
+        context.setFillSource(sourceNanopub);
+        List<Statement> unused = new SourceFill(sourceNanopub, context.getFillMode(), null).fillAssertion(context);
+        context.initStatements();
         context.finalizeStatements();
-        return filler;
+        return unused;
     }
 
     private static TemplateContext supersedingContext(String templateId, Map<String, String> params) {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, templateId, "statement", (String) null);
         context.setFillMode(FillMode.SUPERSEDE);
         params.forEach(context::setParam);
-        context.initStatements();
         return context;
     }
 
@@ -87,23 +90,23 @@ class ParamOverridesFillTest {
 
     @Test
     void theOverriddenStatementIsNotReportedAsUnfilled() {
-        ValueFiller withoutParam = fill(supersedingContext(SPACE_TEMPLATE, Map.of()), SPACE_NANOPUB);
-        ValueFiller withParam = fill(supersedingContext(SPACE_TEMPLATE, Map.of("label", OWN_LABEL)), SPACE_NANOPUB);
+        List<Statement> withoutParam = fill(supersedingContext(SPACE_TEMPLATE, Map.of()), SPACE_NANOPUB);
+        List<Statement> withParam = fill(supersedingContext(SPACE_TEMPLATE, Map.of("label", OWN_LABEL)), SPACE_NANOPUB);
 
-        assertEquals(withoutParam.getUnusedStatements().size(), withParam.getUnusedStatements().size(),
+        assertEquals(withoutParam.size(), withParam.size(),
                 "overriding a value must not leave the statement it replaces reported as unfilled");
     }
 
     @Test
     void parameterOverridesOneRepetitionWithoutEmptyingTheOthers() {
         TemplateContext context = supersedingContext(INTRO_TEMPLATE, Map.of("key-location", OWN_KEY_LOCATION));
-        ValueFiller filler = fill(context, INTRO_NANOPUB);
+        List<Statement> unused = fill(context, INTRO_NANOPUB);
 
         assertEquals(OWN_KEY_LOCATION, valueOf(context, "key-location"));
         assertEquals("https://nanodash.petapico.org/", valueOf(context, "key-location__1"));
         assertEquals("M..+Vopf..", valueOf(context, "key-declaration-ref"));
         assertEquals("M..A5FgU..", valueOf(context, "key-declaration-ref__1"));
-        assertTrue(filler.getUnusedStatements().isEmpty(),
+        assertTrue(unused.isEmpty(),
                 "every statement of the superseded nanopublication should still be accounted for");
     }
 }
