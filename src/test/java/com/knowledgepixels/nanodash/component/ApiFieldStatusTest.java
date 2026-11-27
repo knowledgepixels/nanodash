@@ -11,7 +11,7 @@ import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.TemplateTestUtil;
-import com.knowledgepixels.nanodash.template.ValueFiller;
+import com.knowledgepixels.nanodash.template.ViewFill;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.model.IModel;
@@ -125,8 +125,7 @@ class ApiFieldStatusTest {
         Nanopub np = creator.finalizeNanopub();
 
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", np);
-        context.initStatements();
-        new ValueFiller(np, ContextType.ASSERTION, false).fill(context);
+        new ViewFill(np).fillAssertion(context);
         return context;
     }
 

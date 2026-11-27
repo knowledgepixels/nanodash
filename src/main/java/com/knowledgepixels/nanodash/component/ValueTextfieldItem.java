@@ -57,7 +57,6 @@ public class ValueTextfieldItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasValue(postfix)) {
             model.setObject(context.getValue(postfix));
-            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         textfield = new TextField<>("textfield", model);
         if (!optional) textfield.setRequired(true);
@@ -136,9 +135,13 @@ public class ValueTextfieldItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * Checks whether this field can take a value: one that is valid here, while the field is
+     * empty or holds that value already. The default value the template gives a field is put in
+     * this way ({@link #finalizeValues()}).
+     *
+     * @param v the value, or null for none
+     * @return true if the field can take the value
      */
-    @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
         String vs = v.stringValue();
@@ -159,9 +162,12 @@ public class ValueTextfieldItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * Puts a value into this field, as the default value the template gives it
+     * ({@link #finalizeValues()}).
+     *
+     * @param v the value, or null for none
+     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
      */
-    @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
@@ -213,13 +219,6 @@ public class ValueTextfieldItem extends AbstractContextComponent {
             }
         }
 
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
     }
 
     /**

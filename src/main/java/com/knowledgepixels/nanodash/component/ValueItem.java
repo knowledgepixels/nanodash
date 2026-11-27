@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
 import org.nanopub.templates.Template;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -177,41 +176,6 @@ public class ValueItem extends AbstractContextComponent {
     public void removeFromContext() {
         component.removeFromContext();
         context.getComponents().remove(apiStatus);
-    }
-
-    /**
-     * Checks whether this item's field was pre-filled from a parameter of the link that opened
-     * the form. Such a value is the one the user asked for, so it overrides what the
-     * nanopublication being filled in says (issue #73).
-     *
-     * @return true if the field holds a value that came from a parameter
-     */
-    public boolean holdsParamValue() {
-        return value instanceof IRI && context.isParamFilled((IRI) value);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isUnifiableWith(Value v) {
-        return component.isUnifiableWith(v);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unifyWith(Value v) throws UnificationException {
-        component.unifyWith(v);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
-        component.fillFinished();
     }
 
     /**

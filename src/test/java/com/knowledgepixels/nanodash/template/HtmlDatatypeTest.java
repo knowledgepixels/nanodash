@@ -113,9 +113,8 @@ public class HtmlDatatypeTest {
     private String renderReadOnly(Value comment) throws Exception {
         Nanopub dataNp = dataNanopub(comment);
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", dataNp);
-        context.initStatements();
-        new ValueFiller(dataNp, ContextType.ASSERTION, false).fill(context);
-        assertTrue(context.getStatementItems().get(0).isMatched(), "value must unify with the placeholder");
+        new ViewFill(dataNp).fillAssertion(context);
+        assertTrue(context.getStatementItems().get(0).isMatched(), "value must match the placeholder");
         tester.startComponentInPage(context.getStatementItems().get(0));
         return tester.getLastResponseAsString();
     }

@@ -43,8 +43,8 @@ public class TemplateContext implements Serializable {
     private final String componentId;
     private final Map<String, String> params = new HashMap<>();
     private final Map<String, String> sourceValues = new HashMap<>();
+    private final Map<IRI, Value> shownValues = new HashMap<>();
     private final Set<String> lockedParams = new HashSet<>();
-    private final Set<IRI> paramFilledIris = new HashSet<>();
     private final Set<String> lockedStatements = new HashSet<>();
     private List<Component> components = new ArrayList<>();
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
@@ -316,25 +316,32 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * Records that the field of the given placeholder was pre-filled from a parameter.
+     * Sets the values a read-only view shows, as the matcher of nanopub-java has bound them to
+     * the positions of the template ({@link ViewFill}). A field takes its value when it is made,
+     * so these have to be set before the statements are built.
      *
-     * @param iri the placeholder IRI, including any repetition suffix
+     * @param values the values, by the value the template has in each position, with the
+     *               repetition suffix {@code __N} where the position has a value of its own in each
+     *               repetition
      */
-    public void setParamFilled(IRI iri) {
-        paramFilledIris.add(iri);
+    public void setShownValues(Map<IRI, Value> values) {
+        shownValues.clear();
+        shownValues.putAll(values);
     }
 
     /**
-     * Checks whether the field of the given placeholder was pre-filled from a parameter. Such a
-     * value takes precedence over the one carried by the nanopublication this context is filled
-     * from: the statement it appears in is still matched and consumed, but the field keeps the
-     * parameter's value (issue #73).
+     * Returns the value a read-only view shows in a position.
      *
-     * @param iri the placeholder IRI, including any repetition suffix
-     * @return true if the field was pre-filled from a parameter
+     * @param iri the value of the template in that position, as the form names it: with any
+     *            repetition suffix, and with the artifact code marker it renders
+     * @return the value, or null if the view shows none there
      */
-    public boolean isParamFilled(IRI iri) {
-        return paramFilledIris.contains(iri);
+    public Value getShownValue(IRI iri) {
+        if (shownValues.isEmpty()) return null;
+        // The form renders the artifact code marker of a template with an extra tilde on each
+        // side (StatementItem.RepetitionGroup#transform); the matcher keys it as the template has it.
+        String key = iri.stringValue().replace("~~~ARTIFACTCODE~~~", "~~ARTIFACTCODE~~");
+        return shownValues.get(vf.createIRI(key));
     }
 
     /**
@@ -854,7 +861,7 @@ public class TemplateContext implements Serializable {
                 && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
                 && tfObjectGeneric instanceof String pinnedIri && !pinnedIri.isEmpty()) {
             // An introduced resource keeps its IRI across versions (docs/fill-modes.md), so
-            // supersede/override pin the source's IRI that ValueFiller left in the (read-only)
+            // supersede/override pin the source's IRI that SourceFill left in the (read-only)
             // model. This must not be gated on isLocalResource: LOCAL_RESOURCE is only ever
             // attached to sub-IRIs of the template nanopub (Template#tagIfUntypedLocal), while a
             // template may introduce an absolute IRI in a foreign namespace via the
@@ -1031,44 +1038,6 @@ public class TemplateContext implements Serializable {
      */
     public boolean hasNarrowScope(IRI iri) {
         return narrowScopeMap.containsKey(iri);
-    }
-
-    /**
-     * Checks if any of the statement items in this context will match any triple.
-     *
-     * @return true if any statement item will match any triple, false otherwise
-     */
-    public boolean willMatchAnyTriple() {
-        initStatements();
-        for (StatementItem si : statementItems) {
-            if (si.willMatchAnyTriple()) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Fills the context with statements, processing each StatementItem.
-     *
-     * @param statements the list of statements to fill
-     * @throws UnificationException if there is an error during unification of statements
-     */
-    public void fill(List<Statement> statements) throws UnificationException {
-        for (StatementItem si : statementItems) {
-            // Isolate each statement: a unification failure on one must not abort the rest,
-            // otherwise every later template statement is left unmatched. Roll back any partial
-            // statement consumption so the next statement sees an intact pool.
-            List<Statement> statementsBefore = new ArrayList<>(statements);
-            try {
-                si.fill(statements);
-            } catch (UnificationException ex) {
-                logger.warn("Could not fill statement; continuing with the remaining statements", ex);
-                statements.clear();
-                statements.addAll(statementsBefore);
-            }
-        }
-        for (StatementItem si : statementItems) {
-            si.fillFinished();
-        }
     }
 
     /**

@@ -26,8 +26,11 @@ unchanged.
 The form reads a nanopublication it is filled from (`use`, `supersede`, `derive` and the
 others) with the library's `SourceReader` (nanopub-java 1.100.0 or later), in
 `template/SourceFill`: the values it finds start the fields, as parameters of a link do.
-`ValueFiller` and the unification in the form components still fill the read-only view of a
-nanopublication.
+The read-only view of a nanopublication is matched against its templates with the library's
+`TemplateMatcher`, in `template/ViewFill`: a statement is shown once for each repetition the
+matcher assigned triples to, and its fields show the values it bound. The form components no
+longer unify values with RDF, except for the default value a template gives a field, which
+the editable fields still put in with their `isUnifiableWith`/`unifyWith`.
 
 ## What Nanodash does itself
 

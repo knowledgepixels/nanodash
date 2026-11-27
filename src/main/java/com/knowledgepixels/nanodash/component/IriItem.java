@@ -10,7 +10,6 @@ import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
 import org.nanopub.templates.Template;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
@@ -173,59 +172,6 @@ public class IriItem extends AbstractContextComponent {
     @Override
     public void removeFromContext() {
         // Nothing to be done here.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isUnifiableWith(Value v) {
-        if (!(v instanceof IRI)) return false;
-        // TODO: Check that template URIs don't have regex characters:
-        String iriS = iri.stringValue().replaceFirst("^" + context.getTemplateNanopubUri() + "[#/]?", LocalUri.PREFIX);
-        String vs = v.stringValue();
-        if (context.isReadOnly()) {
-            vs = vs.replaceFirst("^" + context.getExistingNanopub().getUri() + "[#/]?", LocalUri.PREFIX);
-        }
-        if (iriS.contains(ARTIFACT_CODE_MARKER)) {
-            // A fresh artifact code is minted for this resource at publish time, so the
-            // "~~~ARTIFACTCODE~~~" marker acts as a wildcard: a source resource that already
-            // carries a concrete artifact code (supersede/derive/override) must still unify.
-            return vs.matches(artifactCodeUnifyRegex(iriS));
-        }
-        return iriS.equals(vs);
-    }
-
-    // Marker left in the IRI once StatementItem.transform has expanded a template's
-    // "~~ARTIFACTCODE~~" placeholder (see StatementItem#transform).
-    private static final String ARTIFACT_CODE_MARKER = "~~~ARTIFACTCODE~~~";
-
-    // Turns an IRI holding the artifact-code marker into a regex that matches the same IRI
-    // with any (trusty) artifact code in that position; all other characters stay literal.
-    private static String artifactCodeUnifyRegex(String iriWithMarker) {
-        String[] parts = iriWithMarker.split(java.util.regex.Pattern.quote(ARTIFACT_CODE_MARKER), -1);
-        StringBuilder regex = new StringBuilder();
-        for (int i = 0; i < parts.length; i++) {
-            if (i > 0) regex.append("[A-Za-z0-9_-]+");
-            regex.append(java.util.regex.Pattern.quote(parts[i]));
-        }
-        return regex.toString();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unifyWith(Value v) throws UnificationException {
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        // Nothing left to be done here.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
     }
 
     /**

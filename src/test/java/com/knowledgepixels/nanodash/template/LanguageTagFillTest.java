@@ -21,6 +21,9 @@ import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
 import org.nanopub.vocabulary.NTEMPLATE;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -100,10 +103,9 @@ public class LanguageTagFillTest {
     /**
      * Mirrors the viewer flow: read-only context (ReadonlyItem) filled from the data nanopub.
      */
-    private TemplateContext fillReadOnly(Nanopub dataNp, ValueFiller filler) {
+    private TemplateContext fillReadOnly(Nanopub dataNp, List<Statement> unused) {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", dataNp);
-        context.initStatements();
-        filler.fill(context);
+        unused.addAll(new ViewFill(dataNp).fillAssertion(context));
         return context;
     }
 
@@ -121,39 +123,39 @@ public class LanguageTagFillTest {
     void readOnlyUnifiesAnyTagWhenUnrestricted() throws Exception {
         mockTemplate(true, null);
         Nanopub dataNp = dataNanopub(vf.createLiteral("maison", "fr"));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fillReadOnly(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fillReadOnly(dataNp, unused);
         assertTrue(context.getStatementItems().get(0).isMatched());
-        assertTrue(filler.getUnusedStatements().isEmpty());
+        assertTrue(unused.isEmpty());
     }
 
     @Test
     void readOnlyRejectsTagOutsideRestrictedSet() throws Exception {
         mockTemplate(true, null, "en", "de");
         Nanopub dataNp = dataNanopub(vf.createLiteral("maison", "fr"));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fillReadOnly(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fillReadOnly(dataNp, unused);
         assertFalse(context.getStatementItems().get(0).isMatched(),
                 "a tag outside the restricted set must not unify");
-        assertEquals(1, filler.getUnusedStatements().size());
+        assertEquals(1, unused.size());
     }
 
     @Test
     void readOnlyAcceptsTagInsideRestrictedSet() throws Exception {
         mockTemplate(true, null, "en", "de");
         Nanopub dataNp = dataNanopub(vf.createLiteral("Haus", "de"));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fillReadOnly(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fillReadOnly(dataNp, unused);
         assertTrue(context.getStatementItems().get(0).isMatched());
-        assertTrue(filler.getUnusedStatements().isEmpty());
+        assertTrue(unused.isEmpty());
     }
 
     @Test
     void readOnlyRejectsUntaggedLiteral() throws Exception {
         mockTemplate(true, null);
         Nanopub dataNp = dataNanopub(vf.createLiteral("maison"));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fillReadOnly(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fillReadOnly(dataNp, unused);
         assertFalse(context.getStatementItems().get(0).isMatched(),
                 "an untagged literal must not unify with a language-tagged placeholder");
     }
@@ -162,8 +164,8 @@ public class LanguageTagFillTest {
     void defaultTagIsNotAConstraint() throws Exception {
         mockTemplate(true, "en");
         Nanopub dataNp = dataNanopub(vf.createLiteral("maison", "fr"));
-        ValueFiller filler = new ValueFiller(dataNp, ContextType.ASSERTION, false);
-        TemplateContext context = fillReadOnly(dataNp, filler);
+        List<Statement> unused = new ArrayList<>();
+        TemplateContext context = fillReadOnly(dataNp, unused);
         assertTrue(context.getStatementItems().get(0).isMatched(),
                 "the declared default must not block other tags");
     }
@@ -191,21 +193,22 @@ public class LanguageTagFillTest {
     }
 
     @Test
-    void fixedTagPlaceholderStaysStrict() throws Exception {
+    void fixedTagPlaceholderShowsAnotherTagAsItIs() throws Exception {
         mockTemplate(false, "en");
         TemplateContext context = fillEditable(dataNanopub(vf.createLiteral("maison", "fr")));
         // Pre-entered text simulates the situation where the fixed-tag check applies:
         assertEquals("maison", context.getComponentModels().get(COMMENT).getObject());
         Nanopub dataNp2 = dataNanopub(vf.createLiteral("house", "en"));
-        ValueFiller filler = new ValueFiller(dataNp2, ContextType.ASSERTION, false);
-        TemplateContext roContext = fillReadOnly(dataNp2, filler);
+        TemplateContext roContext = fillReadOnly(dataNp2, new ArrayList<>());
         assertTrue(roContext.getStatementItems().get(0).isMatched(),
-                "matching fixed tag must still unify");
+                "matching fixed tag must still match");
+        // nanopub-java reads a value with another tag than the fixed one and reports the
+        // difference rather than refusing it (#936), so the view shows it, with its own tag.
         Nanopub dataNp3 = dataNanopub(vf.createLiteral("maison", "fr"));
-        ValueFiller filler3 = new ValueFiller(dataNp3, ContextType.ASSERTION, false);
-        TemplateContext roContext3 = fillReadOnly(dataNp3, filler3);
-        assertFalse(roContext3.getStatementItems().get(0).isMatched(),
-                "non-matching fixed tag must still be rejected in read-only display");
+        TemplateContext roContext3 = fillReadOnly(dataNp3, new ArrayList<>());
+        assertTrue(roContext3.getStatementItems().get(0).isMatched(),
+                "a value with another tag is shown as the nanopublication has it");
+        assertEquals("\"maison\"", roContext3.getComponentModels().get(COMMENT).getObject());
     }
 
 }

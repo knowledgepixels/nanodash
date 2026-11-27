@@ -13,7 +13,7 @@ import java.util.Collection;
  * <p>
  * The marker itself is added by an ordinary pubinfo template ({@link #TEMPLATE_ID}), so that the
  * resulting statement has a template behind it like every other one and round-trips through
- * {@code ValueFiller} when a protected nanopublication is superseded. The template is unlisted,
+ * {@code SourceFill} when a protected nanopublication is superseded. The template is unlisted,
  * though: it is not a description of the content but a decision about where the nanopublication
  * may be stored, and it deserves an affordance of its own rather than a line in the "add
  * element..." dropdown, which is behind "show more" and easy to get subtly wrong (the generic

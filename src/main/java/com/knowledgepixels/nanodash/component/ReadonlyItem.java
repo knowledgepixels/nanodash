@@ -2,7 +2,6 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NavigationContext;
-import com.knowledgepixels.nanodash.RestrictedChoice;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
@@ -13,20 +12,13 @@ import com.knowledgepixels.nanodash.page.ExplorePage;
 import com.knowledgepixels.nanodash.repository.MaintainedResourceRepository;
 import com.knowledgepixels.nanodash.repository.SpaceRepository;
 import com.knowledgepixels.nanodash.template.ContextType;
-import org.nanopub.templates.DatePrecision;
 import org.nanopub.templates.Template;
-import com.knowledgepixels.nanodash.template.UnificationException;
-import net.trustyuri.TrustyUriUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.Validatable;
-import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
@@ -37,14 +29,10 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubUtils;
-import org.nanopub.SimpleCreatorPattern;
 import org.nanopub.vocabulary.NTEMPLATE;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,7 +41,6 @@ import java.util.Map;
 public class ReadonlyItem extends AbstractContextComponent {
 
     private static final int LONG_LITERAL_LENGTH = 100;
-    private static final Logger logger = LoggerFactory.getLogger(ReadonlyItem.class);
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private IModel<String> model;
@@ -62,7 +49,6 @@ public class ReadonlyItem extends AbstractContextComponent {
     private Label extraComp, languageComp, datatypeComp;
     private IModel<String> extraModel, languageModel, datatypeModel;
     private IRI iri;
-    private RestrictedChoice restrictedChoice;
     private Label showMoreLabelLiteral, showMoreLabelHTML;
     private final Template template;
 
@@ -89,7 +75,6 @@ public class ReadonlyItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (modelIsNew && context.hasValue(postfix)) {
             model.setObject(context.getValue(postfix));
-            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         if (model.getObject().isEmpty() && template.isRootNanopubPlaceholder(iri) && context.getReferenceNanopub() == null) {
             model.setObject(LocalUri.of("nanopub").stringValue());
@@ -104,9 +89,6 @@ public class ReadonlyItem extends AbstractContextComponent {
 
         prefix = context.getPrefix(iri);
         if (prefix == null) prefix = "";
-        if (template.isRestrictedChoicePlaceholder(iri)) {
-            restrictedChoice = new RestrictedChoice(iri, context);
-        }
         add(new Label("prefix", new Model<String>() {
 
             @Override
@@ -275,24 +257,72 @@ public class ReadonlyItem extends AbstractContextComponent {
         showMoreLabelHTML = new Label("show-more-html", "");
         add(showMoreLabelHTML);
         showMoreLabelHTML.setVisible(false);
+
+        Value shown = context.getShownValue(iri);
+        if (shown != null) show(shown);
     }
 
     /**
-     * {@inheritDoc}
+     * Shows the value the nanopublication of a read-only view has in this position: an IRI
+     * without the prefix of the placeholder, and a literal in quotes, with its language or
+     * datatype, as HTML where it is HTML, and folded where it is long.
+     *
+     * @param v the value
      */
-    @Override
-    public void fillFinished() {
-        String obj = getFullValue();
-        if (obj != null) {
-            if (isAssertionValue(obj)) {
-                linkComp.add(new AttributeAppender("class", "this-assertion"));
-            } else if (isNanopubValue(obj)) {
-                linkComp.add(new AttributeAppender("class", "this-nanopub"));
-            } else if (context.getExistingNanopub() != null) {
-                Nanopub np = context.getExistingNanopub();
-                if (NanopubUtils.getIntroducedIriIds(np).contains(obj) || NanopubUtils.getEmbeddedIriIds(np).contains(obj)) {
-                    linkComp.add(AttributeAppender.append("class", "introduced"));
+    private void show(Value v) {
+        String vs = v.stringValue();
+        if (v instanceof IRI) {
+            if (!prefix.isEmpty() && vs.startsWith(prefix)) {
+                vs = vs.substring(prefix.length());
+            }
+            if (template.isAutoEscapePlaceholder(iri)) {
+                // Before decoding, so the exact IRI can be given back unchanged:
+                // see TemplateContext.autoEscape.
+                context.setAutoEscapeSource(iri, vs);
+                vs = Utils.urlDecode(vs);
+            }
+            model.setObject(vs);
+        } else if (v instanceof Literal vL) {
+            if (vs.length() >= LONG_LITERAL_LENGTH) {
+                linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+                showMoreLabelLiteral.setVisible(true);
+            }
+            boolean renderAsHtml = renderAsHtml(vL);
+            boolean showDatatype = !vL.getDatatype().equals(XSD.STRING);
+            model.setObject("\"" + vs + "\"");
+            if (vL.getLanguage().isPresent()) {
+                languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
+                languageComp.setVisible(true);
+            } else if (showDatatype) {
+                datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
+                datatypeComp.setVisible(true);
+            }
+            if (renderAsHtml) {
+                linkComp.setVisible(false);
+                extraModel.setObject(Utils.sanitizeHtml(vs));
+                extraComp.setEscapeModelStrings(false);
+                extraComp.setVisible(true);
+                showMoreLabelLiteral.setVisible(false);
+                // Only content that is actually too long to show is cut off and given the
+                // "show more" arrow, and its length is the length of the text rather than of
+                // the markup carrying it. Whether it then really doesn't fit is settled in the
+                // browser, which is the only place that knows how many lines it takes
+                // (adjustLongLiterals in nanodash.js).
+                if (Utils.htmlToPlainText(vs).length() >= LONG_LITERAL_LENGTH) {
+                    extraComp.add(AttributeAppender.append("class", "long-literal collapsed"));
+                    showMoreLabelHTML.setVisible(true);
                 }
+            }
+        }
+        String obj = getFullValue();
+        if (isAssertionValue(obj)) {
+            linkComp.add(new AttributeAppender("class", "this-assertion"));
+        } else if (isNanopubValue(obj)) {
+            linkComp.add(new AttributeAppender("class", "this-nanopub"));
+        } else if (context.getExistingNanopub() != null) {
+            Nanopub np = context.getExistingNanopub();
+            if (NanopubUtils.getIntroducedIriIds(np).contains(obj) || NanopubUtils.getEmbeddedIriIds(np).contains(obj)) {
+                linkComp.add(AttributeAppender.append("class", "introduced"));
             }
         }
     }
@@ -378,142 +408,6 @@ public class ReadonlyItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (v instanceof IRI) {
-            String vs = v.stringValue();
-            if (vs.equals(LocalUri.of("nanopub").stringValue())) {
-                vs = getNanopubValue();
-            } else if (vs.equals(LocalUri.of("assertion").stringValue())) {
-                vs = getAssertionValue();
-            }
-            if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-//			if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-            if (template.isAutoEscapePlaceholder(iri)) {
-                vs = Utils.urlDecode(vs);
-            }
-            Validatable<String> validatable = new Validatable<>(vs);
-//			if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-//				vs = Utils.getUriPostfix(vs);
-//			}
-            new Validator().validate(validatable);
-            if (!validatable.isValid()) {
-                return false;
-            }
-            if (model.getObject().isEmpty()) {
-                return true;
-            }
-            return vs.equals(model.getObject());
-        } else if (v instanceof Literal vL) {
-            if (template.getRegex(iri) != null && !v.stringValue().matches(template.getRegex(iri))) {
-                return false;
-            }
-            String languagetag = template.getLanguageTag(iri);
-            IRI datatype = template.getDatatype(iri);
-            if (template.isLanguageTagSelectable(iri)) {
-                // Any tag from the allowed set unifies (any tag at all if unrestricted);
-                // a declared nt:hasLanguageTag is only the picker's default.
-                if (vL.getLanguage().isEmpty()) {
-                    return false;
-                }
-                List<String> possibleTags = template.getPossibleLanguageTags(iri);
-                if (possibleTags != null && !possibleTags.contains(Literals.normalizeLanguageTag(vL.getLanguage().get()))) {
-                    return false;
-                }
-            } else if (languagetag != null) {
-                if (vL.getLanguage().isEmpty() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
-                    return false;
-                }
-            } else if (template.isDatePlaceholder(iri)) {
-                if (!template.getDatePrecisions(iri).contains(DatePrecision.of(vL.getDatatype()))) {
-                    return false;
-                }
-            } else if (datatype != null) {
-                if (!vL.getDatatype().equals(datatype)) {
-                    return false;
-                }
-            }
-            if (linkComp.getDefaultModelObject() == null || linkComp.getDefaultModelObject().toString().isEmpty()) {
-                return true;
-            }
-            return linkComp.getDefaultModelObject().equals("\"" + v.stringValue() + "\"");
-        }
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        String vs = v.stringValue();
-        if (!isUnifiableWith(v)) {
-            logger.error("Cannot unify {}", v);
-            throw new UnificationException(vs);
-        }
-        if (v instanceof IRI) {
-            if (vs.equals(LocalUri.of("nanopub").stringValue())) {
-                vs = getNanopubValue();
-            } else if (vs.equals(LocalUri.of("assertion").stringValue())) {
-                vs = getAssertionValue();
-            }
-            if (!prefix.isEmpty() && vs.startsWith(prefix)) {
-                vs = vs.substring(prefix.length());
-                // With read-only items, we don't need preliminary local identifiers:
-//			} else if (Utils.isLocalURI(vs)) {
-//				vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-//			} else if (template.isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-//				vs = Utils.getUriPostfix(vs);
-            }
-            if (template.isAutoEscapePlaceholder(iri)) {
-                // Before decoding, so the exact IRI can be given back unchanged:
-                // see TemplateContext.autoEscape.
-                context.setAutoEscapeSource(iri, vs);
-                vs = Utils.urlDecode(vs);
-            }
-            model.setObject(vs);
-        } else if (v instanceof Literal vL) {
-            if (vs.length() >= LONG_LITERAL_LENGTH) {
-                linkComp.add(AttributeAppender.append("class", "long-literal collapsed"));
-                showMoreLabelLiteral.setVisible(true);
-            }
-            boolean renderAsHtml = renderAsHtml(vL);
-            boolean showDatatype = !vL.getDatatype().equals(XSD.STRING);
-            if (vL.getLanguage().isPresent()) {
-                model.setObject("\"" + vs + "\"");
-                languageModel.setObject("(" + Literals.normalizeLanguageTag(vL.getLanguage().get()) + ")");
-                languageComp.setVisible(true);
-            } else if (showDatatype) {
-                model.setObject("\"" + vs + "\"");
-                datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
-                datatypeComp.setVisible(true);
-            } else {
-                model.setObject("\"" + vs + "\"");
-            }
-            if (renderAsHtml) {
-                linkComp.setVisible(false);
-                extraModel.setObject(Utils.sanitizeHtml(vs));
-                extraComp.setEscapeModelStrings(false);
-                extraComp.setVisible(true);
-                showMoreLabelLiteral.setVisible(false);
-                // Only content that is actually too long to show is cut off and given the
-                // "show more" arrow, and its length is the length of the text rather than of
-                // the markup carrying it. Whether it then really doesn't fit is settled in the
-                // browser, which is the only place that knows how many lines it takes
-                // (adjustLongLiterals in nanodash.js).
-                if (Utils.htmlToPlainText(vs).length() >= LONG_LITERAL_LENGTH) {
-                    extraComp.add(AttributeAppender.append("class", "long-literal collapsed"));
-                    showMoreLabelHTML.setVisible(true);
-                }
-            }
-        }
-    }
-
-    /**
      * Decides whether a literal's content is to be rendered as HTML rather than escaped.
      *
      * <p>The datatype decides: {@code rdf:HTML} on the literal itself, or declared by the
@@ -532,78 +426,6 @@ public class ReadonlyItem extends AbstractContextComponent {
         IRI declaredDatatype = literal.getLanguage().isPresent() ? null : template.getDatatype(iri);
         if (declaredDatatype != null) return RDF.HTML.equals(declaredDatatype);
         return Utils.looksLikeHtml(literal.stringValue());
-    }
-
-    /**
-     * Validator class for validating the input.
-     */
-    protected class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-        /**
-         * Default constructor for Validator.
-         */
-        public Validator() {
-        }
-
-        @Override
-        public void validate(IValidatable<String> s) {
-            String sv = s.getValue();
-            String p = prefix;
-            if (template.isAutoEscapePlaceholder(iri)) {
-                sv = context.autoEscape(iri, sv);
-            }
-            if (Utils.isUriValue(sv)) {
-                p = "";
-            } else if (sv.contains(":")) {
-                s.error(new ValidationError("Colon character is not allowed in postfix"));
-            }
-            String iriString = p + sv;
-            if (iriString.matches("[^:# ]+")) {
-                p = LocalUri.PREFIX;
-                iriString = p + sv;
-            }
-            if (!Utils.isWellFormedUri(iriString)) {
-                s.error(new ValidationError("IRI not well-formed"));
-            }
-            if (p.isEmpty() && !Utils.isLocalURI(sv) && !Utils.isUriValue(sv)) {
-                s.error(new ValidationError("IRI scheme not allowed here; use one of: " + Utils.getAllowedUriSchemesLabel()));
-            }
-            String regex = template.getRegex(iri);
-            if (regex != null) {
-                if (!sv.matches(regex)) {
-                    s.error(new ValidationError("Value '" + sv + "' doesn't match the pattern '" + regex + "'"));
-                }
-            }
-            if (template.isRestrictedChoicePlaceholder(iri)) {
-                if (!restrictedChoice.getPossibleValues().contains(iriString) && !restrictedChoice.hasPossibleRefValues()) {
-                    // not checking the possible ref values can overgenerate, but normally works
-                    s.error(new ValidationError("Invalid choice"));
-                }
-            }
-            if (template.isExternalUriPlaceholder(iri)) {
-                if (!Utils.isUriValue(iriString)) {
-                    s.error(new ValidationError("Not an external IRI"));
-                }
-            }
-            if (template.isTrustyUriPlaceholder(iri)) {
-                if (!TrustyUriUtils.isPotentialTrustyUri(iriString)) {
-                    s.error(new ValidationError("Not a trusty URI"));
-                }
-            }
-            if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
-                boolean found = false;
-                for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
-                    if (creator.stringValue().equals(iriString)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    s.error(new ValidationError("Not a creator of nanopub"));
-                }
-            }
-        }
-
     }
 
     /**

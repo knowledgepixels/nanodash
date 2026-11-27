@@ -44,14 +44,10 @@ class GroupedSharedPlaceholderFillTest {
         Nanopub fixture = Utils.getNanopub(FIXTURE);
         assertNotNull(fixture, "fixture nanopub should be fetchable from the registry");
 
-        // Mirror the viewer flow (NanopubItem.populateStatementItemList): read-only context built
-        // from the meta-template, fed the fixture's assertion triples.
-        ValueFiller filler = new ValueFiller(fixture, ContextType.ASSERTION, false);
+        // Mirror the viewer flow (NanopubItem with ViewFill): read-only context built from the
+        // meta-template, filled from the fixture's assertion.
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, META_TEMPLATE, "assertion-statement", fixture);
-        context.initStatements();
-        filler.fill(context);
-
-        List<Statement> unused = filler.getUnusedStatements();
+        List<Statement> unused = new ViewFill(fixture).fillAssertion(context);
         // The previously-failing triples are the contextalias grouped sub-statement reifications.
         List<Statement> unusedContextAlias = unused.stream()
                 .filter(st -> {

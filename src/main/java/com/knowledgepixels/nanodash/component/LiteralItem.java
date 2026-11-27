@@ -2,17 +2,14 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.component.StatementItem.RepetitionGroup;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
 
 /**
  * A component that represents a literal value in the context of a statement.
- * It displays the literal's string value and implements the ContextComponent interface
- * to allow for unification with other values.
+ * It displays the literal's string value.
  */
 public class LiteralItem extends Panel implements ContextComponent {
 
@@ -50,32 +47,6 @@ public class LiteralItem extends Panel implements ContextComponent {
     @Override
     public void removeFromContext() {
         // Nothing to be done here.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isUnifiableWith(Value v) {
-        if (!(v instanceof Literal)) return false;
-        Literal vL = (Literal) v;
-        return vL.equals(literal);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void unifyWith(Value v) throws UnificationException {
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        // Nothing left to be done here.
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
     }
 
     /**

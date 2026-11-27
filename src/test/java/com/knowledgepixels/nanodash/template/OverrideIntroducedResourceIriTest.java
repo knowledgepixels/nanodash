@@ -32,7 +32,7 @@ class OverrideIntroducedResourceIriTest {
     // What RepetitionGroup.transform hands to processValue (see StatementItem#transform).
     private static final IRI RENDERED_INTRODUCED =
             Utils.vf.createIRI("https://w3id.org/peh/biochementities/~~~ARTIFACTCODE~~~");
-    // The concrete IRI of the resource being overridden, as ValueFiller leaves it in
+    // The concrete IRI of the resource being overridden, as SourceFill leaves it in
     // the (read-only) component model on supersede/override.
     private static final String SOURCE_IRI =
             "https://w3id.org/peh/biochementities/RABgnhJuxuXZpUkUQVoi2femjGVEm2Ij-tRFFkwKgJ-AA";

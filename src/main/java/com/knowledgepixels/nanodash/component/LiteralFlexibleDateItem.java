@@ -444,7 +444,6 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
         String postfix = Utils.getUriPostfix(iri);
         if (previous == null && context.hasValue(postfix)) {
             created.setObject(context.getValue(postfix));
-            if (context.hasParam(postfix)) context.setParamFilled(iri);
         }
         return created;
     }
@@ -847,13 +846,15 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * Checks whether this field can take a value: one that is valid here, while the field is
+     * empty or holds that value already. The default value the template gives a field is put in
+     * this way ({@link #finalizeValues()}).
      * <p>
-     * A value of any accepted precision unifies, whichever precision the field holds: a
-     * nanopublication being superseded may well have been published with less, or more, than
-     * the user now knows.
+     * A value of any accepted precision fits, whichever precision the field holds.
+     *
+     * @param v the value, or null for none
+     * @return true if the field can take the value
      */
-    @Override
     public boolean isUnifiableWith(Value v) {
         if (v == null) return true;
         if (!(v instanceof Literal vL)) return false;
@@ -867,20 +868,16 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * {@inheritDoc}
+     * Puts a value into this field, as the default value the template gives it
+     * ({@link #finalizeValues()}).
+     *
+     * @param v the value, or null for none
+     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
      */
-    @Override
     public void unifyWith(Value v) throws UnificationException {
         if (v == null) return;
         if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
         model.setObject(v.stringValue());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void fillFinished() {
     }
 
     /**

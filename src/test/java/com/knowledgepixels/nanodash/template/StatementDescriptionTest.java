@@ -190,8 +190,7 @@ class StatementDescriptionTest {
         creator.addAssertionStatement(vf.createStatement(vf.createIRI("http://example.com/subject"), RDFS.LABEL, vf.createLiteral("A title")));
         Nanopub dataNp = creator.finalizeNanopub();
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", dataNp);
-        context.initStatements();
-        new ValueFiller(dataNp, ContextType.ASSERTION, false).fill(context);
+        new ViewFill(dataNp).fillAssertion(context);
         String html = render(context, 0);
         assertFalse(html.contains("statement-description"), html);
     }
