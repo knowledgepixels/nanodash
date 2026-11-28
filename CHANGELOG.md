@@ -1,3 +1,34 @@
+## [5.24.0](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.23.2...nanodash-5.24.0) (2026-11-28)
+
+### Features
+
+* check a new-URI identifier while it is typed ([#713](https://github.com/knowledgepixels/nanodash/issues/713)) ([91ccf90](https://github.com/knowledgepixels/nanodash/commit/91ccf909cb8262b2b69f71699b1e84f2a94c8116))
+
+### Dependency updates
+
+* **core-deps:** update dependency org.nanopub:nanopub to v1.102.0 ([4c52829](https://github.com/knowledgepixels/nanodash/commit/4c52829e1a294b307765093cff8dfe889be2ac0a)), closes [Nanopublication/nanopub-java#249](https://github.com/Nanopublication/nanopub-java/issues/249) [#248](https://github.com/knowledgepixels/nanodash/issues/248)
+
+### Bug Fixes
+
+* show a date and time without timezone in a date field ([c3f75ba](https://github.com/knowledgepixels/nanodash/commit/c3f75ba46f9102239037c1edf70ee6110ef6e000))
+
+### Tests
+
+* set the user in the form test of template defaults ([97906b0](https://github.com/knowledgepixels/nanodash/commit/97906b08428bf6ac719dedeffced208710b3ed27))
+* use the library's new-URI placeholder type after [#903](https://github.com/knowledgepixels/nanodash/issues/903) ([50365f9](https://github.com/knowledgepixels/nanodash/commit/50365f9d6b2b2850ce95b1d1bffd295b0f0a4a79)), closes [#939](https://github.com/knowledgepixels/nanodash/issues/939)
+
+### General maintenance
+
+* setting next snapshot version [skip ci] ([6e15da5](https://github.com/knowledgepixels/nanodash/commit/6e15da57d1e7562078935d3199dbbde301c25e56))
+
+### Refactoring
+
+* check fields and fill in defaults with nanopub-java ([#936](https://github.com/knowledgepixels/nanodash/issues/936)) ([4ec2d3a](https://github.com/knowledgepixels/nanodash/commit/4ec2d3a978031d88d6843c902cc6fb6cd9b79b7b)), closes [Nanopublication/nanopub-java#249](https://github.com/Nanopublication/nanopub-java/issues/249)
+* make the form's nanopublications with nanopub-java's filler ([#936](https://github.com/knowledgepixels/nanodash/issues/936)) ([4c6ca6b](https://github.com/knowledgepixels/nanodash/commit/4c6ca6b8a8b655e320ea19087142af0fc3af87e3))
+* name the dct:isVersionOf target the version-independent IRI ([#830](https://github.com/knowledgepixels/nanodash/issues/830)) ([1d21f0b](https://github.com/knowledgepixels/nanodash/commit/1d21f0b801aa05ced8371109cfbc353f0d0fce5c)), closes [#906](https://github.com/knowledgepixels/nanodash/issues/906) [#906](https://github.com/knowledgepixels/nanodash/issues/906) [Nanopublication/nanopub-java#248](https://github.com/Nanopublication/nanopub-java/issues/248)
+* **publish:** fill the form from a nanopublication with nanopub-java ([#936](https://github.com/knowledgepixels/nanodash/issues/936)) ([8d6ed7f](https://github.com/knowledgepixels/nanodash/commit/8d6ed7f469cd36565f4258e2732cb6efb3a26d2d))
+* **view:** show a nanopublication with nanopub-java's matcher ([#936](https://github.com/knowledgepixels/nanodash/issues/936)) ([90ef428](https://github.com/knowledgepixels/nanodash/commit/90ef4289a936d2a5f050bac7a77884a9f9dc5bd5))
+
 ## [5.23.2](https://github.com/knowledgepixels/nanodash/compare/nanodash-5.23.1...nanodash-5.23.2) (2026-11-27)
 
 ### Dependency updates
