@@ -1,7 +1,6 @@
 package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.TemplateDescriptions;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -22,12 +21,6 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.nanopub.MalformedNanopubException;
-import org.nanopub.NanopubAlreadyFinalizedException;
-import org.nanopub.NanopubCreator;
-import org.nanopub.vocabulary.NTEMPLATE;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -45,7 +38,6 @@ public class StatementItem extends Panel {
     private boolean repetitionGroupsChanged = true;
     private Set<IRI> iriSet = new HashSet<>();
     private boolean isMatched = false;
-    private static final Logger logger = LoggerFactory.getLogger(StatementItem.class);
 
     /**
      * Constructor for creating a StatementItem with a specific ID and statement ID.
@@ -167,26 +159,6 @@ public class StatementItem extends Panel {
         }
     }
 
-    /**
-     * Adds the triples of this statement item to the given NanopubCreator.
-     *
-     * @param npCreator the NanopubCreator to which the triples will be added
-     * @throws org.nanopub.MalformedNanopubException        if the statement item is not properly set up
-     * @throws org.nanopub.NanopubAlreadyFinalizedException if the NanopubCreator has already been finalized
-     */
-    public void addTriplesTo(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        if (hasEmptyElements()) {
-            if (isOptional()) {
-                return;
-            } else {
-                throw new MalformedNanopubException("Field of statement not set.");
-            }
-        }
-        for (RepetitionGroup rg : repetitionGroups) {
-            rg.addTriplesTo(npCreator);
-        }
-    }
-
     private Template getTemplate() {
         return context.getTemplate();
     }
@@ -249,15 +221,6 @@ public class StatementItem extends Panel {
      */
     public boolean isRepeatable() {
         return getTemplate().isRepeatableStatement(statementId);
-    }
-
-    /**
-     * Checks if this statement item has empty elements.
-     *
-     * @return true if any of the repetition groups has empty elements, false otherwise
-     */
-    public boolean hasEmptyElements() {
-        return repetitionGroups.get(0).hasEmptyElements();
     }
 
     /**
@@ -773,75 +736,17 @@ public class StatementItem extends Panel {
         }
 
         /**
-         * Adds the triples of this repetition group to the given NanopubCreator.
-         *
-         * @param npCreator the NanopubCreator to which the triples will be added
-         * @throws org.nanopub.NanopubAlreadyFinalizedException if the NanopubCreator has already been finalized
-         */
-        public void addTriplesTo(NanopubCreator npCreator) throws NanopubAlreadyFinalizedException {
-            Template t = getTemplate();
-            for (IRI s : statementPartIds) {
-                IRI subj = context.processIri((IRI) transform(t.getSubject(s)));
-                IRI pred = context.processIri((IRI) transform(t.getPredicate(s)));
-                Value obj = context.processValue(transform(t.getObject(s)));
-                if (isGrouped() && t.isOptionalStatement(s) && (subj == null || pred == null || obj == null)) {
-                    // Optional group member without all elements resolved: drop just this
-                    // triple; the rest of the group is still emitted.
-                    continue;
-                }
-                if (context.getType() == ContextType.ASSERTION) {
-                    npCreator.addAssertionStatement(subj, pred, obj);
-                } else if (context.getType() == ContextType.PROVENANCE) {
-                    npCreator.addProvenanceStatement(subj, pred, obj);
-                } else if (context.getType() == ContextType.PUBINFO) {
-                    npCreator.addPubinfoStatement(subj, pred, obj);
-                }
-            }
-            for (ValueItem vi : items) {
-                if (vi.getComponent() instanceof GuidedChoiceItem) {
-                    String value = ((GuidedChoiceItem) vi.getComponent()).getModel().getObject();
-                    if (value != null && GuidedChoiceItem.getLabel(value) != null) {
-                        String label = GuidedChoiceItem.getLabel(value);
-                        if (label.length() > 1000) label = label.substring(0, 997) + "...";
-                        try {
-                            npCreator.addPubinfoStatement(vf.createIRI(value), NTEMPLATE.HAS_LABEL_FROM_API, vf.createLiteral(label));
-                        } catch (IllegalArgumentException ex) {
-                            logger.error("Could not create IRI from value: {}", value, ex);
-                        }
-                    }
-                }
-            }
-        }
-
-        private boolean hasEmptyElements() {
-            for (IRI s : statementPartIds) {
-                // Optional group members may stay empty; they are dropped at triple-creation
-                // time and must not block or drop the rest of the group:
-                if (isGrouped() && getTemplate().isOptionalStatement(s)) continue;
-                if (context.processIri((IRI) transform(getTemplate().getSubject(s))) == null) return true;
-                if (context.processIri((IRI) transform(getTemplate().getPredicate(s))) == null) return true;
-                if (context.processValue(transform(getTemplate().getObject(s))) == null) return true;
-            }
-            return false;
-        }
-
-        /**
          * Checks if this repetition group is empty, meaning it has no filled items.
          *
          * @return true if the repetition group is empty, false otherwise
          */
         public boolean isEmpty() {
+            Template t = getTemplate();
             for (IRI s : statementPartIds) {
-                Template t = getTemplate();
-                IRI subj = t.getSubject(s);
-                if (t.isPlaceholder(subj) && context.hasNarrowScope(subj) && context.processIri((IRI) transform(subj)) != null)
-                    return false;
-                IRI pred = t.getPredicate(s);
-                if (t.isPlaceholder(pred) && context.hasNarrowScope(pred) && context.processIri((IRI) transform(pred)) != null)
-                    return false;
-                Value obj = t.getObject(s);
-                if (obj instanceof IRI && t.isPlaceholder((IRI) obj) && context.hasNarrowScope((IRI) obj) && context.processValue(transform(obj)) != null)
-                    return false;
+                for (Value v : new Value[]{t.getSubject(s), t.getPredicate(s), t.getObject(s)}) {
+                    if (v instanceof IRI iri && t.isPlaceholder(iri) && context.hasNarrowScope(iri)
+                            && context.hasFieldValue((IRI) transform(iri))) return false;
+                }
             }
             return true;
         }

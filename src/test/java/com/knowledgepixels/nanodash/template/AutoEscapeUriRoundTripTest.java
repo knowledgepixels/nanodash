@@ -7,6 +7,10 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.nanopub.templates.FillRequest;
+import org.nanopub.templates.PlaceholderMatcher;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -17,7 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  * "+" and "%20" decode to a space, and encoding only ever gives back "+" — so rebuilding
  * the IRI from the decoded text used to respell a value written with "%20", pointing the
  * form's links, and any superseding version, at a different resource: one nothing else
- * refers to, so its /explore page showed no references at all.
+ * refers to, so its /explore page showed no references at all. The IRI is the one the filler
+ * of nanopub-java forms from what the form asks it for (#936).
  */
 class AutoEscapeUriRoundTripTest {
 
@@ -48,7 +53,7 @@ class AutoEscapeUriRoundTripTest {
         TemplateContext context = context();
         context.setAutoEscapeSource(AIDA, SOURCE_ESCAPED);
         context.getComponentModels().put(AIDA, Model.of(SENTENCE));
-        String result = context.processValue(AIDA).stringValue();
+        String result = formed(context);
         assertEquals(PREFIX + SOURCE_ESCAPED, result,
                 "an unedited value must keep the exact IRI it was filled from");
         assertNotEquals(PREFIX + Utils.urlEncode(SENTENCE), result,
@@ -60,7 +65,7 @@ class AutoEscapeUriRoundTripTest {
         TemplateContext context = context();
         context.setAutoEscapeSource(AIDA, SOURCE_ESCAPED);
         context.getComponentModels().put(AIDA, Model.of("A different sentence."));
-        assertEquals(PREFIX + "A+different+sentence.", context.processValue(AIDA).stringValue(),
+        assertEquals(PREFIX + "A+different+sentence.", formed(context),
                 "text the user changed must be escaped afresh, not kept at the source spelling");
     }
 
@@ -69,7 +74,7 @@ class AutoEscapeUriRoundTripTest {
         TemplateContext context = context();
         context.getComponentModels().put(AIDA, Model.of(SENTENCE));
         // No source to preserve: the AIDA spec's own spelling, with "+" for the spaces.
-        assertEquals(PREFIX + Utils.urlEncode(SENTENCE), context.processValue(AIDA).stringValue(),
+        assertEquals(PREFIX + Utils.urlEncode(SENTENCE), formed(context),
                 "a newly typed sentence must still be escaped the way nanodash always has");
     }
 
@@ -79,6 +84,13 @@ class AutoEscapeUriRoundTripTest {
                 "the two spellings decode to the same sentence, which is why the respelling went unnoticed");
         assertNotEquals(SOURCE_ESCAPED, Utils.urlEncode(SENTENCE),
                 "but they are different strings, and so different IRIs");
+    }
+
+    // The IRI the filler forms for the field, from the value the form's request gives it.
+    private static String formed(TemplateContext context) {
+        FillRequest request = FormRequest.of(context, null, List.of(), TARGET_NAMESPACE, null, null, null);
+        return PlaceholderMatcher.of(context.getTemplate(), AIDA)
+                .toValue(request.getValues().get("aida"), context.newBindingContext()).stringValue();
     }
 
     private TemplateContext context() {

@@ -51,7 +51,8 @@ public final class FormRequest {
      * Builds the request for what a publishing form has filled in.
      *
      * @param assertion       the context of the assertion template
-     * @param provenance      the context of the provenance template
+     * @param provenance      the context of the provenance template, or null for the one the
+     *                        assertion template names, or else the default one
      * @param pubinfo         the contexts of the publication info templates
      * @param targetNamespace the namespace the form makes the nanopublication in, with or
      *                        without the artifact-code marker after it
@@ -64,8 +65,10 @@ public final class FormRequest {
                                  String targetNamespace, IRI creator, String creatorName, String creationSite) {
         FillRequest request = new FillRequest(assertion.getTemplate().getId());
         copyValues(assertion, request.getValues(), request);
-        request.setProvenanceTemplate(provenance.getTemplate().getId());
-        copyValues(provenance, request.getProvenanceValues(), request);
+        if (provenance != null) {
+            request.setProvenanceTemplate(provenance.getTemplate().getId());
+            copyValues(provenance, request.getProvenanceValues(), request);
+        }
         for (TemplateContext context : pubinfo) {
             copyValues(context, request.addPubinfoTemplate(context.getTemplate().getId()), request);
         }
@@ -124,9 +127,22 @@ public final class FormRequest {
             if (languageModel != null && template.isLanguageTagSelectable(templateIri)) {
                 languageTag = toText(languageModel.getObject());
             }
-            values.set(TemplateValues.getName(key), new RawValue(text, languageTag));
             if (!text.isEmpty() && template.isUriPlaceholder(templateIri)) addLabels(context, key, templateIri, text, request);
+            if (!text.isEmpty() && template.isAutoEscapePlaceholder(templateIri)) text = keepSourceSpelling(context, key, text);
+            values.set(TemplateValues.getName(key), new RawValue(text, languageTag));
         }
+    }
+
+    // An auto-escape value that is left as it was filled in keeps the spelling it was filled
+    // from, which escaping the text afresh does not give back where the source wrote "%20"
+    // (TemplateContext#autoEscape). The filler takes an IRI after the prefix of the
+    // placeholder as it is.
+    private static String keepSourceSpelling(TemplateContext context, IRI key, String text) {
+        String escaped = context.autoEscape(key, text);
+        if (escaped.equals(Utils.urlEncode(text))) return text;
+        String prefix = context.getPrefix(key);
+        if (prefix == null || prefix.isEmpty()) return text;
+        return prefix + escaped;
     }
 
     // Whether a field holds the default value of its placeholder, in one of the ways the form

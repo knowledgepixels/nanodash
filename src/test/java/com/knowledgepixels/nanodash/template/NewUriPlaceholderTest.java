@@ -10,7 +10,6 @@ import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -21,17 +20,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.NanopubUtils;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 /**
@@ -136,15 +138,23 @@ class NewUriPlaceholderTest {
         return context;
     }
 
+    // The form with a value in each field, the given one in the given field.
+    private TemplateContext filledContext(IRI field, String value) throws Exception {
+        TemplateContext context = spaceTemplateContext();
+        context.getComponentModels().put(SPACE_FIELD, Model.of("a-space"));
+        context.getComponentModels().put(FULL_IRI_FIELD, Model.of("https://example.org/records/a-record"));
+        context.getComponentModels().put(TOPIC_FIELD, Model.of("a-topic"));
+        context.getComponentModels().put(LOCAL_FIELD, Model.of("a-record"));
+        context.getComponentModels().put(field, Model.of(value));
+        return context;
+    }
+
     // The headline case: the user types "my-space" and the template's prefix turns it into a
     // full IRI that nothing else guarantees to be free.
     @Test
     void aTaggedNameBelowAPrefixIsChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(SPACE_FIELD, Model.of("my-space"));
-        Value processed = context.processValue(SPACE_FIELD);
-        assertEquals(SPACE_PREFIX + "my-space", processed.stringValue());
-        assertTrue(context.getNewUriIris().contains(processed),
+        assertEquals(vf.createIRI(SPACE_PREFIX + "my-space"), context.getNewUriIri(SPACE_FIELD, "my-space"),
                 "a tagged placeholder has to be checked for collisions");
     }
 
@@ -153,10 +163,7 @@ class NewUriPlaceholderTest {
     @Test
     void aTaggedIriTypedOutInFullIsChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(FULL_IRI_FIELD, Model.of("https://example.org/records/new-one"));
-        Value processed = context.processValue(FULL_IRI_FIELD);
-        assertEquals("https://example.org/records/new-one", processed.stringValue());
-        assertTrue(context.getNewUriIris().contains(processed),
+        assertEquals(vf.createIRI("https://example.org/records/new-one"), context.getNewUriIri(FULL_IRI_FIELD, "https://example.org/records/new-one"),
                 "the tag decides, not whether a prefix was used");
     }
 
@@ -164,13 +171,10 @@ class NewUriPlaceholderTest {
     // publishing as before, prefix or no prefix, existing identifier or not.
     @Test
     void anUntaggedPlaceholderIsNeverChecked() throws Exception {
-        TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(TOPIC_FIELD, Model.of("cats"));
-        Value processed = context.processValue(TOPIC_FIELD);
-        assertEquals(TOPIC_PREFIX + "cats", processed.stringValue());
-        assertFalse(context.getNewUriIris().contains(processed),
+        TemplateContext context = filledContext(TOPIC_FIELD, "cats");
+        assertNull(context.getNewUriIri(TOPIC_FIELD, "cats"),
                 "an untagged placeholder is left alone even when its IRI is built from a prefix");
-        assertTrue(context.getIntroducedIris().contains(processed),
+        assertTrue(NanopubUtils.getIntroducedIriIds(TestFill.fill(context)).contains(TOPIC_PREFIX + "cats"),
                 "being an introduced resource is not by itself a reason to check");
     }
 
@@ -179,10 +183,7 @@ class NewUriPlaceholderTest {
     @Test
     void aTaggedResourceMintedUnderTheNanopubIsNotChecked() throws Exception {
         TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(LOCAL_FIELD, Model.of("record"));
-        Value processed = context.processValue(LOCAL_FIELD);
-        assertEquals(TARGET_NAMESPACE + "record", processed.stringValue());
-        assertFalse(context.getNewUriIris().contains(processed),
+        assertNull(context.getNewUriIri(LOCAL_FIELD, "record"),
                 "an identifier carrying the nanopublication's artifact code is unique by construction");
     }
 
@@ -190,23 +191,24 @@ class NewUriPlaceholderTest {
     // identifier that is taken.
     @Test
     void aTakenIdentifierIsReported() throws Exception {
-        TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
-        IRI newUri = (IRI) context.processValue(SPACE_FIELD);
+        TemplateContext context = filledContext(SPACE_FIELD, "example/bar");
+        Nanopub np = TestFill.fill(context);
+        IRI newUri = vf.createIRI(SPACE_PREFIX + "example/bar");
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
             q.when(() -> QueryApiAccess.isUriIntroduced(newUri.stringValue())).thenReturn(true);
-            assertEquals(newUri, PublishForm.findTakenNewUri(context));
+            assertEquals(newUri, PublishForm.findTakenNewUri(context, np));
         }
     }
 
     @Test
     void aFreeIdentifierLetsThePublicationThrough() throws Exception {
-        TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(SPACE_FIELD, Model.of("nobody-took-this"));
-        context.processValue(SPACE_FIELD);
+        TemplateContext context = filledContext(SPACE_FIELD, "nobody-took-this");
+        Nanopub np = TestFill.fill(context);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
             q.when(() -> QueryApiAccess.isUriIntroduced(anyString())).thenReturn(false);
-            assertNull(PublishForm.findTakenNewUri(context));
+            assertNull(PublishForm.findTakenNewUri(context, np));
+            // Both tagged fields, and nothing else:
+            q.verify(() -> QueryApiAccess.isUriIntroduced(anyString()), times(2));
         }
     }
 
@@ -214,12 +216,22 @@ class NewUriPlaceholderTest {
     // not merely tolerant of what it finds.
     @Test
     void anUntaggedPlaceholderIsNotLookedUpAtAll() throws Exception {
-        TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(TOPIC_FIELD, Model.of("cats"));
-        context.processValue(TOPIC_FIELD);
+        TemplateContext context = filledContext(TOPIC_FIELD, "cats");
+        Nanopub np = TestFill.fill(context);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
-            assertNull(PublishForm.findTakenNewUri(context));
-            q.verifyNoInteractions();
+            assertNull(PublishForm.findTakenNewUri(context, np));
+            q.verify(() -> QueryApiAccess.isUriIntroduced(TOPIC_PREFIX + "cats"), never());
+        }
+    }
+
+    // A value that does not make it into the nanopublication is not looked up either.
+    @Test
+    void anIdentifierLeftOutOfTheNanopublicationIsNotLookedUp() throws Exception {
+        TemplateContext context = filledContext(SPACE_FIELD, "example/bar");
+        Nanopub np = TestFill.fill(filledContext(SPACE_FIELD, "example/other"));
+        try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
+            assertNull(PublishForm.findTakenNewUri(context, np));
+            q.verify(() -> QueryApiAccess.isUriIntroduced(SPACE_PREFIX + "example/bar"), never());
         }
     }
 
@@ -227,14 +239,13 @@ class NewUriPlaceholderTest {
     // identifier in use is the expected answer rather than a collision.
     @Test
     void supersedingKeepsTheSourcesIdentifierWithoutAsking() throws Exception {
-        TemplateContext context = spaceTemplateContext();
+        TemplateContext context = filledContext(SPACE_FIELD, "example/bar");
         context.setFillMode(FillMode.SUPERSEDE);
         context.setFillSource(sourceUsing(SPACE_PREFIX + "example/bar"));
-        context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
-        context.processValue(SPACE_FIELD);
+        Nanopub np = TestFill.fill(context);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
-            assertNull(PublishForm.findTakenNewUri(context));
-            q.verifyNoInteractions();
+            assertNull(PublishForm.findTakenNewUri(context, np));
+            q.verify(() -> QueryApiAccess.isUriIntroduced(SPACE_PREFIX + "example/bar"), never());
         }
     }
 
@@ -243,14 +254,14 @@ class NewUriPlaceholderTest {
     // other. Exempting the whole fill mode used to let this through unchecked.
     @Test
     void supersedingUnderANewNameIsCheckedLikeAnyOther() throws Exception {
-        TemplateContext context = spaceTemplateContext();
+        TemplateContext context = filledContext(SPACE_FIELD, "example/renamed");
         context.setFillMode(FillMode.SUPERSEDE);
         context.setFillSource(sourceUsing(SPACE_PREFIX + "example/bar"));
-        context.getComponentModels().put(SPACE_FIELD, Model.of("example/renamed"));
-        IRI renamed = (IRI) context.processValue(SPACE_FIELD);
+        Nanopub np = TestFill.fill(context);
+        IRI renamed = vf.createIRI(SPACE_PREFIX + "example/renamed");
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
             q.when(() -> QueryApiAccess.isUriIntroduced(renamed.stringValue())).thenReturn(true);
-            assertEquals(renamed, PublishForm.findTakenNewUri(context));
+            assertEquals(renamed, PublishForm.findTakenNewUri(context, np));
         }
     }
 
@@ -258,12 +269,11 @@ class NewUriPlaceholderTest {
     // one being carried over, so publishing is left exactly as it was.
     @Test
     void supersedingWithoutAKnownSourceAsksNothing() throws Exception {
-        TemplateContext context = spaceTemplateContext();
+        TemplateContext context = filledContext(SPACE_FIELD, "example/bar");
         context.setFillMode(FillMode.SUPERSEDE);
-        context.getComponentModels().put(SPACE_FIELD, Model.of("example/bar"));
-        context.processValue(SPACE_FIELD);
+        Nanopub np = TestFill.fill(context);
         try (MockedStatic<QueryApiAccess> q = mockStatic(QueryApiAccess.class)) {
-            assertNull(PublishForm.findTakenNewUri(context));
+            assertNull(PublishForm.findTakenNewUri(context, np));
             q.verifyNoInteractions();
         }
     }
@@ -272,10 +282,11 @@ class NewUriPlaceholderTest {
     // identifier, formed the same way, for the same placeholders.
     @Test
     void theLiveCheckFormsTheSameIdentifierAsPublishing() throws Exception {
-        TemplateContext context = spaceTemplateContext();
-        context.getComponentModels().put(SPACE_FIELD, Model.of("my-space"));
-        Value processed = context.processValue(SPACE_FIELD);
-        assertEquals(processed, context.getNewUriIri(SPACE_FIELD, "my-space"));
+        TemplateContext context = filledContext(SPACE_FIELD, "my-space");
+        IRI checked = context.getNewUriIri(SPACE_FIELD, "my-space");
+        assertNotNull(checked);
+        assertTrue(TestFill.fill(context).getAssertion().stream().anyMatch(st -> st.getSubject().equals(checked)),
+                "the nanopublication the form makes has the identifier the live check looks up");
     }
 
     @Test

@@ -221,7 +221,9 @@ For a placeholder `p` typed `nt:LanguageTaggedLiteralPlaceholder`:
 4. **`TemplateContext.processValue`** — in the literal-placeholder branch
    (`TemplateContext.java:391-417`): if selectable, read the `__lang` model and
    create the tagged literal; keep the existing fixed-tag branch for plain
-   placeholders.
+   placeholders. (Since #936 the form gives the `__lang` model to nanopub-java's
+   filler with the text, `FormRequest`, and the filler makes the literal; it refuses
+   a text without a tag where the template asks for one.)
 5. **`ReadonlyItem`** — relax the tag-equality check (`ReadonlyItem.java:412-416`)
    to the same set-membership/any-tag rule; display needs no change
    (`ReadonlyItem.java:465-468` already shows the value's tag).

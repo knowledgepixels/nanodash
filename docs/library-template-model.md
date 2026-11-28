@@ -62,13 +62,13 @@ finding. It decides nothing: publishing goes ahead whatever is found, and a fail
 is only logged. Its purpose is to show where the form and the library disagree while both
 exist. Look for `Template compliance:` in the log.
 
-## The fill guard
+## Making the nanopublication
 
-The next step of #936 has the form make its nanopublications with the library's
-`TemplateFiller`. Before it does, `TemplateFillGuard` makes each nanopublication a second time
-that way, on publishing and on preview. The form's own nanopublication is the one that is signed
-and published. The guard logs whether the library's comes out the same, and if not, which
-triples only one of them has, or why the library would not fill the template.
+The publishing form makes its nanopublications with the library's `TemplateFiller`
+(`PublishForm.createNanopub`), on publishing and on preview. The form gives the values; the
+library binds them to the placeholders, forms the IRIs and literals, and writes the assertion,
+the provenance and the publication info, with the label, the introduced and embedded resources,
+the role pins, the nanopublication types, the creator's name and the site it was made at.
 
 - **The request.** `FormRequest` turns what is filled in into the library's `FillRequest`.
   - Each field's model goes in under the name its `param_` link parameter has, with its
@@ -78,9 +78,24 @@ triples only one of them has, or why the library would not fill the template.
   - So do the labels the form looked up, the names of agents, and the site's address.
   - A field that still holds the template's default is left out. The library takes the
     default by itself, and leaves it out with an optional statement that lacks other values,
-    as the form does.
-- **The comparison.** It is made triple by triple in each graph, with each nanopublication's
-  URI and what is minted under it written relative to it. The head, the creation time and the
-  signature are left out.
+    as the form did.
+  - An auto-escape value that is left as it was filled in goes in as the full IRI the source
+    spelled, which escaping the text afresh would not give back where the source wrote `%20`.
+- **What stays in Nanodash.** The form refuses a nanopublication that says it is protected in
+  a way registries do not recognize, and one with an identifier for a new resource that is
+  already in use (`PublishForm.findTakenNewUri`, below). The field validators are still the
+  form's own, so a value the library would refuse is usually caught before the form is
+  submitted.
+- **What the library refuses.** Where the values do not make a nanopublication of the
+  templates, the library says why, and the form shows each reason as a message: a statement
+  that lacks a value, a value that would be lost with an optional statement left out, a name
+  the nanopublication keeps for one of its own parts, and so on.
 
-Look for `Template fill:` in the log.
+Which IRI a field gives, for the check of new-resource identifiers while it is filled in and
+for showing a name as minted here, is also formed by the library
+(`TemplateContext.newBindingContext`), so that what the form checks or shows is what it
+publishes.
+
+From 5.23.2 until this step, `TemplateFillGuard` made each nanopublication a second time with
+the library, next to the form's own, and logged whether the two came out the same
+(`Template fill:` in the log).

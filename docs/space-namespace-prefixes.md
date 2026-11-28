@@ -53,8 +53,9 @@ from a space page) stays a single-field form.
   `nt:hasPrefix` literal verbatim, and resolution is a fill-time concern.
 - **`TemplateContext.getPrefix(IRI)`** is the resolved counterpart of
   `Template.getPrefix(IRI)` and is what every consumer now calls (`IriTextfieldItem`,
-  `GuidedChoiceItem`, `ReadonlyItem`, the nanopub-label pattern in `PublishForm`, and
-  `processValue`). It returns null both when the template declares no prefix and when it
+  `GuidedChoiceItem`, `ReadonlyItem`). The bases go to the filler of nanopub-java as the
+  request's space and namespace (`FormRequest`). It returns null both when the template
+  declares no prefix and when it
   declares an unresolved dynamic one; `hasUnresolvedPrefix(IRI)` tells the two apart.
   The navigation context is handed to the context via `setNavigationContextId`, which
   `PublishForm` fills from its page parameters.
@@ -82,9 +83,9 @@ from a space page) stays a single-field form.
   untouched optional field and a fully-typed-out URI both stay valid. The prefix used for
   display, validation, and unification is re-resolved on every access (`PrefixModel`), so
   picking a base updates the field without rebuilding the form.
-- **Publishing** with an unresolved prefix yields **no value** for the placeholder rather
-  than an IRI in the wrong namespace (`TemplateContext.processValue`); form validation
-  blocks the case anyway, this is the belt-and-braces half.
+- **Publishing** with an unresolved prefix is refused by the filler of nanopub-java rather
+  than minting an IRI in the wrong namespace; form validation blocks the case anyway, this
+  is the belt-and-braces half.
 
 ## Deliberately out of scope
 

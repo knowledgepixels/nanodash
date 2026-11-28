@@ -1,33 +1,28 @@
 package com.knowledgepixels.nanodash.template;
 
-import org.nanopub.templates.Template;
-import org.nanopub.templates.DateValue;
-
 import com.knowledgepixels.nanodash.DynamicPrefix;
 import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.LiteralDateItem;
-import com.knowledgepixels.nanodash.component.LiteralDateTimeItem;
 import com.knowledgepixels.nanodash.component.PublishForm.FillMode;
 import com.knowledgepixels.nanodash.component.StatementItem;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.model.vocabulary.XSD;
-import org.nanopub.*;
+import org.nanopub.Nanopub;
+import org.nanopub.templates.BindingContext;
+import org.nanopub.templates.PlaceholderMatcher;
+import org.nanopub.templates.RawValue;
+import org.nanopub.templates.Template;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -48,11 +43,6 @@ public class TemplateContext implements Serializable {
     private final Set<String> lockedStatements = new HashSet<>();
     private List<Component> components = new ArrayList<>();
     private final Map<IRI, IModel<?>> componentModels = new HashMap<>();
-    private Set<IRI> introducedIris = new HashSet<>();
-    private Set<IRI> embeddedIris = new HashSet<>();
-    private Set<IRI> newUriIris = new LinkedHashSet<>();
-    private final Set<IRI> reservedIris = new LinkedHashSet<>();
-    private Map<IRI, IRI> rolePropertyPins = new LinkedHashMap<>();
     private List<StatementItem> statementItems;
     private Set<IRI> iriSet = new HashSet<>();
     private Map<IRI, StatementItem> narrowScopeMap = new HashMap<>();
@@ -628,27 +618,24 @@ public class TemplateContext implements Serializable {
     /**
      * Whether the given value, held for the given placeholder, will be minted as a new IRI under
      * the namespace of the nanopublication being published, rather than referring to an existing
-     * one (issue #652). This mirrors what {@link #processValue(Value)} does with a plain name that
-     * has no prefix in front of it, and lets the form show such a value as what it is rather than
-     * as a bare word.
+     * one (issue #652). The IRI is formed by the library, as when the nanopublication is made
+     * ({@link #newBindingContext()}). This lets the form show such a value as what it is rather
+     * than as a bare word.
      *
      * @param iri   the placeholder IRI
      * @param value the value currently held for that placeholder
      * @return true if publishing would mint the value under the target namespace
      */
     public boolean isToBeMinted(IRI iri, String value) {
-        // The same rule processValue applies: a plain name (no colon, hash or space) gets the
-        // target namespace put in front of it. The colon also rules out anything that is a URI.
+        // Only a plain name (no colon, hash or space) is minted. An IRI typed out in full
+        // refers to what it names, even where it lies under the target namespace.
         if (value == null || !value.matches("[^:# ]+")) return false;
         // An external URI placeholder points at something that exists outside this
         // nanopublication, so there is nothing to mint for it (issue #676).
         if (template.isExternalUriPlaceholder(iri)) return false;
-        // A space-/namespace-dependent prefix mints the resource under the space or maintained
-        // resource instead, so it is not a local identifier of this nanopublication.
-        if (hasDynamicPrefix(iri)) return false;
-        if (template.isLocalResource(iri)) return true;
-        String prefix = getPrefix(iri);
-        return prefix == null || prefix.isEmpty();
+        BindingContext context = newBindingContext();
+        IRI formed = formIri(iri, value, context);
+        return formed != null && context.getLocalName(formed) != null;
     }
 
     /**
@@ -672,385 +659,80 @@ public class TemplateContext implements Serializable {
     }
 
     /**
-     * Returns the introduced IRIs in this context.
+     * Returns a binding context of nanopub-java for the nanopublication this form makes, with the
+     * bases of space-/namespace-dependent prefixes as they are resolved here. With it, the
+     * library forms the IRI for a value in the same way as when it makes the nanopublication
+     * ({@link PlaceholderMatcher#toValue}).
      *
-     * @return a set of introduced IRIs
+     * @return a new binding context, without bindings
      */
-    public Set<IRI> getIntroducedIris() {
-        return introducedIris;
+    public BindingContext newBindingContext() {
+        BindingContext context = BindingContext.forNewNanopub(template, targetNamespace, null);
+        context.setPrefixBase(BindingContext.SPACE_TOKEN, resolvePrefixBase(DynamicPrefix.SPACE_TOKEN));
+        context.setPrefixBase(BindingContext.NAMESPACE_TOKEN, resolvePrefixBase(DynamicPrefix.NAMESPACE_TOKEN));
+        return context;
     }
 
     /**
-     * Returns the embedded IRIs in this context.
+     * Returns the IRI that the library forms for a value of a placeholder: the value itself when
+     * it is a full IRI, and otherwise the value after the prefix of the placeholder, or minted
+     * within the nanopublication.
      *
-     * @return a set of embedded IRIs
+     * @param placeholder the placeholder, with a {@code __N} suffix in a repetition
+     * @param value       the value as it is entered
+     * @param context     the binding context to form it in, from {@link #newBindingContext()}
+     * @return the IRI, or null if the value is empty or forms no IRI, which includes a
+     * space-/namespace-dependent prefix that is not resolved yet
      */
-    public Set<IRI> getEmbeddedIris() {
-        return embeddedIris;
-    }
-
-    /**
-     * Returns the IRIs this context formed for placeholders the template marks as naming a
-     * resource that does not exist yet ({@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER}).
-     * <p>
-     * Such an identifier carries no artifact code, so nothing makes it unique: two people
-     * filling the same form with the same name arrive at the same IRI, and the second
-     * nanopublication silently extends the first one's resource. The publish form checks
-     * these against what has already been published (see #646).
-     * <p>
-     * Only the tag puts an IRI in here. How the value was formed makes no difference -- typed
-     * out in full, or a name placed under a prefix -- because whether a value names something
-     * new is the template author's call, not something to infer from the shape of the form.
-     *
-     * @return a set of IRIs for new resources, in the order they were processed
-     */
-    public Set<IRI> getNewUriIris() {
-        return newUriIris;
-    }
-
-    /**
-     * Returns the role-instantiation direction pins collected in this context, mapping
-     * each filled/constant role predicate to its pin class
-     * ({@link com.knowledgepixels.nanodash.vocabulary.KPXL_TERMS#INVERSE_ROLE_PROPERTY}
-     * or {@code REGULAR_ROLE_PROPERTY}). Emitted into pubinfo at publish time; see #525.
-     *
-     * @return a map of predicate IRI to direction-pin class
-     */
-    public Map<IRI, IRI> getRolePropertyPins() {
-        return rolePropertyPins;
-    }
-
-    /**
-     * Processes an IRI by applying the template's processing rules.
-     *
-     * @param iri the IRI to process
-     * @return the processed IRI, or null if the processing results in no value
-     */
-    public IRI processIri(IRI iri) {
-        Value v = processValue(iri);
-        if (v == null) return null;
-        if (v instanceof IRI) return (IRI) v;
-        return iri;
-    }
-
-    /**
-     * Turns the value of a date placeholder into a literal typed by its precision, so that a year
-     * is published as an {@code xsd:gYear} and a full date and time as an {@code xsd:dateTime}.
-     *
-     * @param lexical the lexical form held by the placeholder's model, which may be null
-     * @return the literal, or null if the placeholder holds no complete value
-     */
-    private Literal toDateLiteral(Object lexical) {
-        if (lexical == null) return null;
-        DateValue dateValue = DateValue.parse(lexical.toString());
-        if (dateValue == null) return null;
-        return vf.createLiteral(dateValue.toLexical(), dateValue.getPrecision().getDatatype());
-    }
-
-    /**
-     * Processes a Value according to the template's rules.
-     *
-     * @param value the Value to process
-     * @return the processed Value, or the original Value if no processing is applicable
-     */
-    public Value processValue(Value value) {
-        if (!(value instanceof IRI)) {
-            return value;
-        }
-        IRI iri = (IRI) value;
-        if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER)) {
-            iri = NanodashSession.get().getUserIri();
-        }
-        if (iri.equals(NTEMPLATE.ASSERTION_PLACEHOLDER)) {
-            iri = vf.createIRI(targetNamespace + "assertion");
-        } else if (iri.equals(NTEMPLATE.NANOPUB_PLACEHOLDER)) {
-            iri = vf.createIRI(targetNamespace);
-        } else if (template.isRootNanopubPlaceholder(iri)) {
-            IModel<?> rootModel = componentModels.get(iri);
-            String rootValue = (rootModel == null || rootModel.getObject() == null) ? "" : rootModel.getObject().toString();
-            if (fillMode == FillMode.DERIVE) {
-                // Deriving creates a new resource, so the new nanopub becomes its own root
-                // definition rather than keeping the source's root (issue #527).
-                iri = vf.createIRI(targetNamespace);
-            } else if (rootValue.equals(LocalUri.of("nanopub").stringValue())) {
-                // Sentinel: in supersede/override mode this means the existing nanopub was the root
-                Nanopub ref = getReferenceNanopub();
-                if (ref != null && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
-                    iri = vf.createIRI(ref.getUri().stringValue());
-                } else {
-                    iri = vf.createIRI(targetNamespace);
-                }
-            } else if (rootValue.isEmpty()) {
-                iri = vf.createIRI(targetNamespace);
-            } else {
-                iri = vf.createIRI(rootValue);
-            }
-        }
-        // TODO: Move this code below to the respective placeholder classes:
-        IModel<?> tf = componentModels.get(iri);
-        Value processedValue = null;
-        Object tfObjectGeneric = null;
-        if (tf != null) {
-            tfObjectGeneric = tf.getObject();
-        }
-        if (template.isRestrictedChoicePlaceholder(iri)) {
-            String tfObject = (String) tfObjectGeneric;
-            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                String prefix = getPrefix(iri);
-                boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(iri);
-                if (prefix == null) prefix = "";
-                // A dynamic prefix is how a template asks for its new resource to be minted
-                // under the space / maintained resource rather than under the nanopublication,
-                // so it wins over the local-resource default (issue #571).
-                if (template.isLocalResource(iri) && !hasDynamicPrefix(iri)) {
-                    prefix = targetNamespace;
-                    unresolvedPrefix = false;
-                }
-                if (Utils.isUriValue(tfObject)) {
-                    prefix = "";
-                    unresolvedPrefix = false;
-                }
-                // An unresolved space-/namespace-dependent prefix would mint the resource
-                // under the wrong namespace; leave the value unset instead. Form validation
-                // blocks publishing in this state.
-                if (!unresolvedPrefix) {
-                    String v = prefix + tf.getObject();
-                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                    if (Utils.isUriValue(v)) {
-                        processedValue = vf.createIRI(v);
-                        recordIfNewUri(iri, (IRI) processedValue);
-                        recordIfReserved((IRI) processedValue);
-                    } else {
-                        processedValue = vf.createLiteral(tfObject);
-                    }
-                }
-            }
-        } else if (template.isUriPlaceholder(iri)) {
-            String tfObject = (String) tfObjectGeneric;
-            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                IRI formed = formUriPlaceholderIri(iri, tfObject);
-                if (formed != null) {
-                    processedValue = formed;
-                    recordIfNewUri(iri, formed);
-                    recordIfReserved(formed);
-                }
-            }
-        } else if (template.isIntroducedResource(iri)
-                && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)
-                && tfObjectGeneric instanceof String pinnedIri && !pinnedIri.isEmpty()) {
-            // An introduced resource keeps its IRI across versions (docs/fill-modes.md), so
-            // supersede/override pin the source's IRI that SourceFill left in the (read-only)
-            // model. This must not be gated on isLocalResource: LOCAL_RESOURCE is only ever
-            // attached to sub-IRIs of the template nanopub (Template#tagIfUntypedLocal), while a
-            // template may introduce an absolute IRI in a foreign namespace via the
-            // "~~ARTIFACTCODE~~" marker (e.g. "Defining a biochementity"). Those used to fall
-            // through to the catch-all branch, keep the marker, and get a fresh artifact code
-            // substituted at signing time -- minting a new resource instead of a new version.
-            processedValue = vf.createIRI(pinnedIri);
-        } else if (template.isLocalResource(iri)) {
-            if (template.isIntroducedResource(iri) && (fillMode == FillMode.SUPERSEDE || fillMode == FillMode.OVERRIDE)) {
-                // Pinned by the branch above whenever a source IRI is known. With no source
-                // value the slot stays unresolved rather than minting a fresh identity, so an
-                // introduced identifier the old version didn't declare yet stays fillable
-                // (issue #549).
-            } else {
-                String prefix = Utils.getUriPrefix(iri);
-                processedValue = vf.createIRI(iri.stringValue().replace(prefix, targetNamespace));
-            }
-        } else if (template.isDatePlaceholder(iri)) {
-            processedValue = toDateLiteral(tfObjectGeneric);
-        } else if (template.isLiteralPlaceholder(iri)) {
-            IRI datatype = template.getDatatype(iri);
-            String languageTag = template.getLanguageTag(iri);
-            if (XSD.DATETIME.equals(datatype)) {
-                ZonedDateTime tfObject = (ZonedDateTime) tfObjectGeneric;
-                if (tfObject != null) {
-                    processedValue = vf.createLiteral(LiteralDateTimeItem.format.format(tfObject), datatype);
-                }
-            } else if (XSD.DATE.equals(datatype)) {
-                Date tfObject = (Date) tfObjectGeneric;
-                if (tfObject != null) {
-                    processedValue = vf.createLiteral(LiteralDateItem.format.format(tfObject), datatype);
-                }
-            } else {
-                String tfObject = (String) tfObjectGeneric;
-                if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                    if (template.isLanguageTagSelectable(iri)) {
-                        IModel<?> langModel = componentModels.get(getLanguageModelKey(iri));
-                        Object chosenTag = (langModel == null) ? null : langModel.getObject();
-                        if (chosenTag != null && !chosenTag.toString().isEmpty()) {
-                            processedValue = vf.createLiteral(tfObject, Literals.normalizeLanguageTag(chosenTag.toString()));
-                        }
-                        // No tag chosen: leave the value unresolved rather than emitting an
-                        // untagged literal; form validation blocks this case on submit.
-                    } else if (languageTag != null) {
-                        processedValue = vf.createLiteral(tfObject, languageTag);
-                    } else if (datatype != null) {
-                        processedValue = vf.createLiteral(tfObject, datatype);
-                    } else {
-                        processedValue = vf.createLiteral(tfObject);
-                    }
-                }
-            }
-        } else if (template.isValuePlaceholder(iri)) {
-            String tfObject = (String) tfObjectGeneric;
-            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                if (Utils.isValidLiteralSerialization(tfObject)) {
-                    processedValue = Utils.getParsedLiteral(tfObject);
-                } else {
-                    String v = tfObject;
-                    if (v.matches("[^:# ]+")) v = targetNamespace + v;
-                    processedValue = vf.createIRI(v);
-                }
-            }
-        } else if (template.isSequenceElementPlaceholder(iri)) {
-            String tfObject = (String) tfObjectGeneric;
-            if (tf != null && tfObject != null && !tfObject.isEmpty()) {
-                processedValue = vf.createIRI(tfObject);
-            }
-        } else {
-            processedValue = iri;
-        }
-        if (processedValue instanceof IRI pvIri && template.isIntroducedResource(iri)) {
-            introducedIris.add(pvIri);
-        }
-        if (processedValue instanceof IRI pvIri && template.isEmbeddedResource(iri)) {
-            embeddedIris.add(pvIri);
-        }
-        if (processedValue instanceof IRI pvIri) {
-            IRI directionPin = template.getRoleDirectionPin(iri);
-            if (directionPin != null) rolePropertyPins.put(pvIri, directionPin);
-        }
-        return processedValue;
-    }
-
-    /**
-     * Whether an IRI names one of the parts a nanopublication is made of, rather than
-     * something the nanopublication is about. True only for the nanopublication being
-     * published here: the same local name under any other namespace collides with nothing.
-     *
-     * @param iri the IRI a value was formed into
-     * @return true if the IRI is one this nanopublication already uses for itself
-     */
-    public boolean isReservedIri(IRI iri) {
-        if (iri == null) return false;
-        String value = iri.stringValue();
-        if (!value.startsWith(targetNamespace)) return false;
-        return NanopubUtils.isReservedLocalName(value.substring(targetNamespace.length()));
-    }
-
-    /**
-     * The IRIs formed here that the nanopublication already uses for one of its own parts, in
-     * the order they were formed. Cleared and refilled whenever the values are processed, like
-     * the other records this context keeps.
-     *
-     * @return the reserved IRIs a value was formed into
-     */
-    public Set<IRI> getReservedIris() {
-        return reservedIris;
-    }
-
-    /**
-     * Records an IRI that turned out to name one of the nanopublication's own parts, so that
-     * the publish form can refuse it (issue #29). Recorded rather than rejected here, because
-     * this runs while the form is being filled and a value is not wrong until it is published.
-     *
-     * @param iri the IRI that was just formed
-     */
-    private void recordIfReserved(IRI iri) {
-        if (isReservedIri(iri)) reservedIris.add(iri);
-    }
-
-    /**
-     * Records an IRI formed for a placeholder the template marks as naming a resource that
-     * does not exist yet, so that the publish form can check it against the identifiers
-     * already in use (#646).
-     * <p>
-     * An untagged placeholder records nothing and is never checked, whatever its value looks
-     * like. An IRI still sitting under the nanopublication's own namespace is left out as
-     * well: its artifact code is substituted at signing time, which both makes it unique and
-     * means the value seen here is not the one that gets published.
-     *
-     * @param placeholder the placeholder the value was entered into
-     * @param iri         the IRI that was just formed
-     */
-    private void recordIfNewUri(IRI placeholder, IRI iri) {
-        if (isCheckedNewUri(placeholder, iri)) newUriIris.add(iri);
-    }
-
-    /**
-     * Whether an IRI formed for a placeholder is one to check against the identifiers already in
-     * use: the placeholder is tagged with {@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER}, and the IRI is not
-     * under the nanopublication's own namespace, whose artifact code makes it unique.
-     *
-     * @param placeholder the placeholder the value was entered into
-     * @param iri         the IRI formed for it
-     * @return true if the IRI is to be checked
-     */
-    private boolean isCheckedNewUri(IRI placeholder, IRI iri) {
-        return template.isNewUriPlaceholder(placeholder) && !iri.stringValue().startsWith(targetNamespace);
-    }
-
-    /**
-     * The IRI a URI placeholder forms from the value entered into it: the value itself when it is
-     * a full IRI, and the placeholder's prefix in front of it otherwise. A local resource without
-     * a space-/namespace-dependent prefix goes under the nanopublication's own namespace, and so
-     * does a bare name with no prefix at all. A dynamic prefix wins over the local-resource
-     * default, as it is how a template asks for its new resource to be minted under the space or
-     * maintained resource rather than under the nanopublication (issue #571).
-     *
-     * @param placeholder the URI placeholder
-     * @param value       the value entered into it, not empty
-     * @return the IRI, or null while the placeholder's space-/namespace-dependent prefix is not
-     * resolved yet, which would mint the resource under the wrong namespace
-     */
-    private IRI formUriPlaceholderIri(IRI placeholder, String value) {
-        String prefix = getPrefix(placeholder);
-        boolean unresolvedPrefix = prefix == null && hasUnresolvedPrefix(placeholder);
-        if (prefix == null) prefix = "";
-        if (template.isLocalResource(placeholder) && !hasDynamicPrefix(placeholder)) {
-            prefix = targetNamespace;
-            unresolvedPrefix = false;
-        }
-        String v;
-        if (template.isAutoEscapePlaceholder(placeholder)) {
-            v = prefix + autoEscape(placeholder, value);
-        } else {
-            if (Utils.isUriValue(value)) {
-                prefix = "";
-                unresolvedPrefix = false;
-            }
-            v = prefix + value;
-        }
-        if (unresolvedPrefix) return null;
-        if (v.matches("[^:# ]+")) v = targetNamespace + v;
-        return vf.createIRI(v);
-    }
-
-    /**
-     * The identifier a value entered into a URI placeholder would give a new resource, if that
-     * identifier is one the publish form checks against the identifiers already in use (see
-     * {@link #getNewUriIris()}). It is formed the same way as when the form is processed, so that
-     * a check made while the field is filled in looks up exactly what publishing would.
-     *
-     * @param placeholder the URI placeholder
-     * @param value       the value entered into it
-     * @return the identifier, or null if there is nothing to check: an untagged placeholder, an
-     * empty value, a space-/namespace-dependent prefix that is not resolved yet, a value that
-     * forms no valid IRI, or an IRI under the nanopublication's own namespace
-     */
-    public IRI getNewUriIri(IRI placeholder, String value) {
+    private IRI formIri(IRI placeholder, String value, BindingContext context) {
         if (value == null || value.isEmpty()) return null;
-        if (!template.isUriPlaceholder(placeholder) || template.isRestrictedChoicePlaceholder(placeholder)) return null;
-        if (!template.isNewUriPlaceholder(placeholder)) return null;
-        IRI formed;
         try {
-            formed = formUriPlaceholderIri(placeholder, value);
+            Value formed = PlaceholderMatcher.of(template, placeholder).toValue(new RawValue(value), context);
+            return formed instanceof IRI iri ? iri : null;
         } catch (IllegalArgumentException ex) {
             return null;
         }
+    }
+
+    /**
+     * Whether the field of a placeholder holds a value.
+     *
+     * @param iri the placeholder, with a {@code __N} suffix in a repetition
+     * @return true if its model holds something other than nothing or an empty text
+     */
+    public boolean hasFieldValue(IRI iri) {
+        IModel<?> model = componentModels.get(iri);
+        Object value = model == null ? null : model.getObject();
+        return value != null && !value.toString().isEmpty();
+    }
+
+    /**
+     * The identifier a value entered for a placeholder gives a new resource, if it is one that is
+     * checked against the identifiers already in use: the template marks the placeholder with
+     * {@link org.nanopub.vocabulary.NTEMPLATE#NEW_URI_PLACEHOLDER}, and the value forms an IRI
+     * that is not minted within the nanopublication. Such an identifier carries no artifact code,
+     * so nothing makes it unique: two people filling the same form with the same name arrive at
+     * the same IRI, and the second nanopublication silently extends the first one's resource
+     * (#646). One minted within the nanopublication gets its artifact code when it is signed.
+     * <p>
+     * Only the tag makes an identifier one to check. How the value was formed makes no
+     * difference -- typed out in full, or a name placed under a prefix -- because whether a value
+     * names something new is the template author's call, not something to infer from the shape
+     * of the form. The IRI is formed by the library, as when the nanopublication is made, so that
+     * a check made while the field is filled in looks up exactly what publishing would.
+     *
+     * @param placeholder the placeholder, with a {@code __N} suffix in a repetition
+     * @param value       the value entered into it
+     * @return the identifier, or null if there is nothing to check: an untagged placeholder, an
+     * empty value, a space-/namespace-dependent prefix that is not resolved yet, a value that
+     * forms no valid IRI, or an IRI minted within the nanopublication
+     */
+    public IRI getNewUriIri(IRI placeholder, String value) {
+        if (!template.isNewUriPlaceholder(placeholder)) return null;
+        BindingContext context = newBindingContext();
+        IRI formed = formIri(placeholder, value, context);
         if (formed == null || !Utils.isUriValue(formed.stringValue())) return null;
-        return isCheckedNewUri(placeholder, formed) ? formed : null;
+        return context.getLocalName(formed) == null ? formed : null;
     }
 
     /**
@@ -1060,25 +742,6 @@ public class TemplateContext implements Serializable {
      */
     public List<StatementItem> getStatementItems() {
         return statementItems;
-    }
-
-    /**
-     * Propagates the statements from this context to a NanopubCreator.
-     *
-     * @param npCreator the NanopubCreator to which the statements will be added
-     * @throws org.nanopub.MalformedNanopubException        if there is an error in the nanopub structure
-     * @throws org.nanopub.NanopubAlreadyFinalizedException if the nanopub has already been finalized
-     */
-    public void propagateStatements(NanopubCreator npCreator) throws MalformedNanopubException, NanopubAlreadyFinalizedException {
-        if (template.getNanopub() instanceof NanopubWithNs) {
-            NanopubWithNs np = (NanopubWithNs) template.getNanopub();
-            for (String p : np.getNsPrefixes()) {
-                npCreator.addNamespace(p, np.getNamespace(p));
-            }
-        }
-        for (StatementItem si : statementItems) {
-            si.addTriplesTo(npCreator);
-        }
     }
 
     /**

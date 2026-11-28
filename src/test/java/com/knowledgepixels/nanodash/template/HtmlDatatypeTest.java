@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubCreator;
+import org.nanopub.templates.TemplateFillException;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.net.URL;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -177,7 +179,7 @@ public class HtmlDatatypeTest {
         mockTemplate(RDF.HTML);
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
         context.getComponentModels().put(COMMENT, Model.of(HTML_CONTENT));
-        Value result = context.processValue(COMMENT);
+        Value result = TestFill.object(context, RDFS.COMMENT);
         assertTrue(result instanceof Literal, "entered value must not be dropped");
         Literal literal = (Literal) result;
         assertEquals(HTML_CONTENT, literal.stringValue());
@@ -292,8 +294,8 @@ public class HtmlDatatypeTest {
     }
 
     /**
-     * Publishes the given markup the way the form does, and gives back what the assertion
-     * would carry.
+     * Publishes the given markup the way the form does, with the filler of nanopub-java, and
+     * gives back what the assertion carries.
      */
     private Value published(String markup) throws Exception {
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, NP_URI, "statement", (String) null);
@@ -302,7 +304,7 @@ public class HtmlDatatypeTest {
         IModel<String> model = (IModel<String>) context.getComponentModels().get(COMMENT);
         model.setObject(markup);
         context.finalizeStatements();
-        return context.processValue(COMMENT);
+        return TestFill.object(context, RDFS.COMMENT);
     }
 
     @Test
@@ -334,7 +336,9 @@ public class HtmlDatatypeTest {
     @Test
     void markupThatIsOnlyBlankPublishesNoValue() throws Exception {
         mockTemplate(RDF.HTML);
-        assertNull(published("<div>&nbsp;</div>"), "an editor holding nothing but a space states nothing");
+        // The statement is not optional, so there is no nanopublication without it.
+        assertThrows(TemplateFillException.class, () -> published("<div>&nbsp;</div>"),
+                "an editor holding nothing but a space states nothing");
     }
 
     @Test
@@ -348,7 +352,7 @@ public class HtmlDatatypeTest {
         IModel<String> model = (IModel<String>) context.getComponentModels().get(COMMENT);
         model.setObject("<p onclick=\"alert('x')\">Hi</p><script>alert('x')</script>");
         context.finalizeStatements();
-        Value result = context.processValue(COMMENT);
+        Value result = TestFill.object(context, RDFS.COMMENT);
         assertTrue(result instanceof Literal, "entered value must not be dropped");
         Literal literal = (Literal) result;
         assertEquals(RDF.HTML, literal.getDatatype());

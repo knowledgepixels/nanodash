@@ -2,6 +2,7 @@ package com.knowledgepixels.nanodash.component;
 
 import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
+import com.knowledgepixels.nanodash.template.TestFill;
 import com.knowledgepixels.nanodash.template.ContextType;
 import com.knowledgepixels.nanodash.template.TemplateContext;
 import org.apache.wicket.model.IModel;
@@ -10,6 +11,7 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.nanopub.Nanopub;
 import org.nanopub.NanopubImpl;
 import org.nanopub.testsuite.NanopubTestSuite;
 import org.nanopub.testsuite.TestSuiteCategory;
@@ -83,12 +85,16 @@ class ClearOptionalStatementTest {
      * the optional statement out of the nanopublication.
      */
     @Test
-    void clearingEmptiesOnlyTheStatementsOwnPlaceholders() {
-        assertFalse(optionalStatement.hasEmptyElements());
+    void clearingEmptiesOnlyTheStatementsOwnPlaceholders() throws Exception {
+        assertTrue(hasComment(TestFill.fill(context)));
         optionalStatement.getRepetitionGroup(0).clear();
         assertNull(modelOf(COMMENT).getObject());
         assertEquals("10.3233/DS-170001", modelOf(PAPER).getObject());
-        assertTrue(optionalStatement.hasEmptyElements());
+        assertFalse(hasComment(TestFill.fill(context)), "the nanopublication the form makes leaves the statement out");
+    }
+
+    private static boolean hasComment(Nanopub np) {
+        return np.getAssertion().stream().anyMatch(st -> st.getObject().stringValue().equals("A comment that should go"));
     }
 
     /**

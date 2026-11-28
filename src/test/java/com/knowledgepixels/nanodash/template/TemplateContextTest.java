@@ -7,7 +7,6 @@ import com.knowledgepixels.nanodash.utils.TestUtils;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +14,11 @@ import org.junit.jupiter.api.Test;
 import org.nanopub.MalformedNanopubException;
 import org.nanopub.Nanopub;
 import org.nanopub.NanopubAlreadyFinalizedException;
+import org.nanopub.templates.FillRequest;
+import org.nanopub.templates.RawValue;
+import org.nanopub.templates.TemplateValues;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,20 +53,25 @@ class TemplateContextTest {
         assertNull(context.getReferenceNanopub());
     }
 
+    // The root definition, as the form asks the filler of nanopub-java for it (#936): left out
+    // where the nanopublication is its own root, or that of the nanopublication it is a new
+    // version of, which the filler finds itself.
+    private static RawValue requestedRoot(TemplateContext context) {
+        FillRequest request = FormRequest.of(context, null, List.of(), "https://example.org/np/~~~ARTIFACTCODE~~~/", null, null, null);
+        return request.getValues().get(TemplateValues.getName(rootSlot));
+    }
+
     @Test
-    void processValueRootNanopubFreshPublishResolvesToTargetNamespace() {
+    void aFreshPublishLeavesTheRootToTheFiller() {
         String targetNamespace = "https://example.org/np/~~~ARTIFACTCODE~~~/";
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, rootNpPlaceholderTemplateUri, "statement", targetNamespace);
         // Simulate the ReadonlyItem seed for fresh publish.
         context.getComponentModels().put(rootSlot, Model.of(LocalUri.of("nanopub").stringValue()));
-
-        Value result = context.processValue(rootSlot);
-        assertTrue(result instanceof IRI);
-        assertEquals(targetNamespace, result.stringValue());
+        assertNull(requestedRoot(context));
     }
 
     @Test
-    void processValueRootNanopubSupersedeResolvesToFillSourceUri() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void supersedingLeavesTheRootOfTheSourceToTheFiller() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         String targetNamespace = "https://example.org/np/~~~ARTIFACTCODE~~~/";
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, rootNpPlaceholderTemplateUri, "statement", targetNamespace);
         context.setFillMode(FillMode.SUPERSEDE);
@@ -71,13 +80,14 @@ class TemplateContextTest {
         // The sentinel represents "the nanopub being filled from was the root".
         context.getComponentModels().put(rootSlot, Model.of(LocalUri.of("nanopub").stringValue()));
 
-        Value result = context.processValue(rootSlot);
-        assertTrue(result instanceof IRI);
-        assertEquals(fillNp.getUri().stringValue(), result.stringValue());
+        assertNull(requestedRoot(context));
+        FillRequest request = FormRequest.of(context, null, List.of(), targetNamespace, null, null, null);
+        assertEquals(FillRequest.Mode.SUPERSEDE, request.getMode());
+        assertEquals(fillNp.getUri().stringValue(), request.getSource());
     }
 
     @Test
-    void processValueRootNanopubKeepsExplicitPriorValue() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
+    void anExplicitPriorRootIsKept() throws MalformedNanopubException, NanopubAlreadyFinalizedException {
         String targetNamespace = "https://example.org/np/~~~ARTIFACTCODE~~~/";
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, rootNpPlaceholderTemplateUri, "statement", targetNamespace);
         context.setFillMode(FillMode.SUPERSEDE);
@@ -85,20 +95,15 @@ class TemplateContextTest {
         String priorRoot = "https://w3id.org/np/RAoriginalRootXYZ";
         context.getComponentModels().put(rootSlot, Model.of(priorRoot));
 
-        Value result = context.processValue(rootSlot);
-        assertTrue(result instanceof IRI);
-        assertEquals(priorRoot, result.stringValue());
+        assertEquals(priorRoot, requestedRoot(context).text());
     }
 
     @Test
-    void processValueRootNanopubEmptyModelDefaultsToTargetNamespace() {
+    void anEmptyRootIsLeftToTheFiller() {
         String targetNamespace = "https://example.org/np/~~~ARTIFACTCODE~~~/";
         TemplateContext context = new TemplateContext(ContextType.ASSERTION, rootNpPlaceholderTemplateUri, "statement", targetNamespace);
         // No componentModels entry for the slot (simulates supersede with no matching statement).
-
-        Value result = context.processValue(rootSlot);
-        assertTrue(result instanceof IRI);
-        assertEquals(targetNamespace, result.stringValue());
+        assertNull(requestedRoot(context));
     }
 
 }

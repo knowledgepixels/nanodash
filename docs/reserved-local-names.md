@@ -25,7 +25,7 @@ can be done about it.
 | Where | What happens |
 | --- | --- |
 | The field, as it is filled | a validator on the field rejects a value that would be minted here under one of those names, saying which part it collides with |
-| Before publishing | `PublishForm.findReservedIdentifier` refuses, whichever way the value arrived — a choice field, a `param_…` in the link that opened the form, a locked pre-filled value |
+| Before publishing | the filler of nanopub-java refuses to make the nanopublication (#936), whichever way the value arrived — a choice field, a `param_…` in the link that opened the form, a locked pre-filled value |
 | The template itself | `Template.getStatementErrors` reports a template that mints such a name of its own accord, so the form says the template is invalid rather than letting it be filled in |
 
 ## Two exceptions
@@ -33,9 +33,14 @@ can be done about it.
 **A value already published is a fact, not a proposal.** Whether an existing value unifies
 with a placeholder is decided by `IriTextfieldItem.Validator`, and this check is
 deliberately kept out of it: superseding a nanopublication that carries such a name has to
-fill the form with what it says. For the same reason `findReservedIdentifier` lets through
-a name the superseded or overridden nanopublication already used — it is published and
-cannot be taken back, and a new version keeps the shape of the old one.
+fill the form with what it says. For the same reason the filler lets through a name the
+superseded or overridden nanopublication already used in its assertion — it is published and
+cannot be taken back, and a new version keeps the shape of the old one. Only the assertion
+counts: every nanopublication names its own parts in its head and its provenance, which says
+nothing about a resource of that name. (Before #936, the form looked at every graph, the head
+included, and the head names the assertion, provenance and publication info graphs. So for
+`assertion`, `provenance` and `pubinfo` the exception held whenever the superseded
+nanopublication's graphs had their usual names.)
 
 **A legacy template's node really is its own assertion graph.** Templates written before
 the template node was given a name of its own are shaped that way (`sub:assertion a

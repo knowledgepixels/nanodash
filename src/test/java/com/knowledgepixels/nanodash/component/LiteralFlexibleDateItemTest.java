@@ -5,6 +5,7 @@ import com.knowledgepixels.nanodash.page.PublishPage;
 import org.nanopub.templates.DatePrecision;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
+import com.knowledgepixels.nanodash.template.TestFill;
 import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxClientInfoBehavior;
@@ -150,8 +151,9 @@ class LiteralFlexibleDateItemTest {
         return item().getValueModel().getObject();
     }
 
+    // What the filler of nanopub-java makes of what the field holds (#936).
     private Value published(String npUri) {
-        return item().context.processValue(vf.createIRI(npUri + "/moment"));
+        return TestFill.formed(item().context, vf.createIRI(npUri + "/moment"));
     }
 
     private boolean isShown(String field) {

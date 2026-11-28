@@ -3,6 +3,7 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.domain.UserData;
+import com.knowledgepixels.nanodash.template.TestFill;
 import com.knowledgepixels.nanodash.template.ContextType;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
@@ -205,14 +206,14 @@ public class AgentChoiceItemTest {
 
     /**
      * The counterpart of the suggestion: a locally minted name ends up as an IRI under the
-     * namespace of the nanopublication being published.
+     * namespace of the nanopublication being published, as the filler of nanopub-java makes it.
      */
     @Test
     @SuppressWarnings("unchecked")
     void plainNameIsMintedUnderTheTargetNamespace() throws Exception {
         TemplateContext context = agentContext();
         ((org.apache.wicket.model.IModel<String>) context.getComponentModels().get(AGENT)).setObject("john-doe");
-        assertEquals(vf.createIRI(Template.DEFAULT_TARGET_NAMESPACE + "john-doe"), context.processIri(AGENT));
+        assertEquals(vf.createIRI(Template.DEFAULT_TARGET_NAMESPACE + "john-doe"), TestFill.formed(context, AGENT));
     }
 
     @Test
@@ -220,7 +221,7 @@ public class AgentChoiceItemTest {
     void enteredUriIsKeptAsIs() throws Exception {
         TemplateContext context = agentContext();
         ((org.apache.wicket.model.IModel<String>) context.getComponentModels().get(AGENT)).setObject("did:plc:z72i7hdynmk6r22z27h6tvur");
-        assertEquals(vf.createIRI("did:plc:z72i7hdynmk6r22z27h6tvur"), context.processIri(AGENT));
+        assertEquals(vf.createIRI("did:plc:z72i7hdynmk6r22z27h6tvur"), TestFill.formed(context, AGENT));
     }
 
 }

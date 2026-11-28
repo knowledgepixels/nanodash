@@ -1,0 +1,69 @@
+@prefix this: <https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8> .
+@prefix sub: <https://w3id.org/np/RACJ58Gvyn91LqCKIO9zu1eijDQIeEff28iyDrJgjSJF8/> .
+@prefix np: <http://www.nanopub.org/nschema#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix nt: <https://w3id.org/np/o/ntemplate/> .
+@prefix npx: <http://purl.org/nanopub/x/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix orcid: <https://orcid.org/> .
+@prefix ns1: <http://purl.org/np/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+sub:Head {
+  this: a np:Nanopublication;
+    np:hasAssertion sub:assertion;
+    np:hasProvenance sub:provenance;
+    np:hasPublicationInfo sub:pubinfo .
+}
+
+sub:assertion {
+  dct:license rdfs:label "is published under the license" .
+  
+  <https://creativecommons.org/licenses/by-sa/4.0/> rdfs:label "Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)" .
+  
+  <https://creativecommons.org/licenses/by/4.0/> rdfs:label "Attribution 4.0 International (CC BY 4.0)" .
+  
+  <https://creativecommons.org/publicdomain/zero/1.0/> rdfs:label "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication" .
+  
+  sub:assertion a nt:PubinfoTemplate;
+    rdfs:label "License";
+    nt:hasStatement sub:st1 .
+  
+  sub:license a nt:RestrictedChoicePlaceholder;
+    rdfs:label "select the license here";
+    nt:hasDefaultValue <https://creativecommons.org/licenses/by/4.0/>;
+    nt:possibleValue <https://creativecommons.org/licenses/by-sa/4.0/>, <https://creativecommons.org/licenses/by/4.0/>,
+      <https://creativecommons.org/publicdomain/zero/1.0/> .
+  
+  sub:st1 rdf:object sub:license;
+    rdf:predicate dct:license;
+    rdf:subject nt:NANOPUB .
+}
+
+sub:provenance {
+  sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 .
+}
+
+sub:pubinfo {
+  orcid:0000-0002-1267-0234 foaf:name "Tobias Kuhn" .
+  
+  this: dct:created "2026-03-11T09:51:11.841+01:00"^^xsd:dateTime;
+    dct:creator orcid:0000-0002-1267-0234;
+    dct:license <https://creativecommons.org/licenses/by/4.0/>;
+    npx:supersedes <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>;
+    npx:wasCreatedAt <http://localhost:37373/>;
+    rdfs:label "Pubinfo template: License";
+    nt:wasCreatedFromProvenanceTemplate ns1:RANwQa4ICWS5SOjw7gp99nBpXBasapwtZF1fIM3H2gYTM;
+    nt:wasCreatedFromPubinfoTemplate <https://w3id.org/np/RA0J4vUn_dekg-U1kK3AOEt02p9mT2WO03uGxLDec1jLw>,
+      <https://w3id.org/np/RAoTD7udB2KtUuOuAe74tJi1t3VzK0DyWS7rYVAq1GRvw>, <https://w3id.org/np/RAukAcWHRDlkqxk7H2XNSegc1WnHI569INvNr-xdptDGI>;
+    nt:wasCreatedFromTemplate <https://w3id.org/np/RA6vg0hTAnvNkbmYZXa3LJFo9APQII1hotXePb9abHbMQ> .
+  
+  sub:sig npx:hasAlgorithm "RSA";
+    npx:hasPublicKey "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCwUtewGCpT5vIfXYE1bmf/Uqu1ojqnWdYxv+ySO80ul8Gu7m8KoyPAwuvaPj0lvPtHrg000qMmkxzKhYknEjq8v7EerxZNYp5B3/3+5ZpuWOYAs78UnQVjbHSmDdmryr4D4VvvNIiUmd0yxci47dTFUj4DvfHnGd6hVe5+goqdcwIDAQAB";
+    npx:hasSignature "Pv4ueiYGY8Ox0ra6uJvtk4gA/gHbStfTnN4/YlXm1SH27C9FvUJDkwZtQ2wNew/M8vpetKz4qmXf5UhXam7vDhnA+tagP2FlG8E5lx6iGIYEJ4/b4dMvCoCC5yQala/GFdX8U3BOVZ9D+LNNALN+gEq1+MX3BUTk56n70uzVNKU=";
+    npx:hasSignatureTarget this:;
+    npx:signedBy orcid:0000-0002-1267-0234 .
+}

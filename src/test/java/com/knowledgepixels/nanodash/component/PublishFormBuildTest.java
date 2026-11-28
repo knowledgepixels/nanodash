@@ -5,10 +5,11 @@ import com.knowledgepixels.nanodash.Utils;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.page.PublishPage;
 import com.knowledgepixels.nanodash.template.TemplateData;
-import com.knowledgepixels.nanodash.template.TemplateFillGuard;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.WicketTester;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -26,15 +27,16 @@ import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests that the filler of nanopub-java makes the same nanopublication as the publishing form,
- * from what is filled in on the form ({@link TemplateFillGuard}, #936). The default provenance
- * and publication info templates are retrieved from the network, as the form does.
+ * Tests the nanopublication the publishing form makes, with the filler of nanopub-java from what
+ * is filled in on the form (#936). The default provenance and publication info templates are
+ * retrieved from the network, as the form does.
  */
-class PublishFormFillGuardTest {
+class PublishFormBuildTest {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
@@ -132,11 +134,12 @@ class PublishFormFillGuardTest {
         return (Nanopub) createNanopub.invoke(form);
     }
 
-    private static void assertSame(PublishForm form) throws Exception {
-        Nanopub np = createNanopub(form);
-        TemplateFillGuard.Comparison comparison = TemplateFillGuard.check(np, form::toFillRequest);
-        assertNotNull(comparison);
-        assertTrue(comparison.isSame(), comparison + "\nrequest: " + form.toFillRequest().toParams());
+    private static boolean has(Collection<Statement> statements, IRI subject, IRI predicate, Value object) {
+        return statements.stream().anyMatch(st -> st.getSubject().equals(subject) && st.getPredicate().equals(predicate) && st.getObject().equals(object));
+    }
+
+    private static boolean has(Collection<Statement> statements, IRI predicate, String object) {
+        return statements.stream().anyMatch(st -> st.getPredicate().equals(predicate) && st.getObject().stringValue().equals(object));
     }
 
     @Test
@@ -144,27 +147,43 @@ class PublishFormFillGuardTest {
         PublishForm form = openForm(new PageParameters().add("param_thing", "apple").add("param_name", "Apple")
                 .add("param_comment", "Ein Apfel").add("param_comment__lang", "de")
                 .add("param_keyword", "red").add("param_keyword__1", "green"));
-        assertSame(form);
         FillRequest request = form.toFillRequest();
         assertEquals("apple", request.getValues().get("thing").text());
         assertEquals("de", request.getValues().get("comment").languageTag());
         assertEquals("green", request.getValues().get("keyword__1").text());
+
+        Nanopub np = createNanopub(form);
+        String thing = np.getUri().stringValue().replaceFirst("[/#]?$", "/") + "apple";
+        assertTrue(has(np.getAssertion(), vf.createIRI(thing), RDFS.LABEL, vf.createLiteral("Apple")), np.getAssertion().toString());
+        assertTrue(has(np.getAssertion(), vf.createIRI(thing), RDFS.COMMENT, vf.createLiteral("Ein Apfel", "de")), np.getAssertion().toString());
+        assertTrue(has(np.getAssertion(), DCTERMS.SUBJECT, "red"), np.getAssertion().toString());
+        assertTrue(has(np.getAssertion(), DCTERMS.SUBJECT, "green"), np.getAssertion().toString());
+        assertTrue(has(np.getPubinfo(), NPX.INTRODUCES, thing), np.getPubinfo().toString());
+        assertTrue(has(np.getPubinfo(), RDFS.LABEL, "Thing: Apple"), np.getPubinfo().toString());
+        assertTrue(has(np.getPubinfo(), NTEMPLATE.WAS_CREATED_FROM_TEMPLATE, TEMPLATE), np.getPubinfo().toString());
+        assertTrue(has(np.getPubinfo(), DCTERMS.CREATOR, ME.stringValue()), np.getPubinfo().toString());
+
+        // Signing gives it its place on the network, with what it mints below it.
+        Nanopub trusty = MakeTrustyNanopub.transform(np);
+        String uri = trusty.getUri().stringValue();
+        assertTrue(uri.matches("https://w3id\\.org/np/RA[A-Za-z0-9_-]{43}"), uri);
+        assertTrue(has(trusty.getPubinfo(), NPX.INTRODUCES, uri + "/apple"), trusty.getPubinfo().toString());
     }
 
     @Test
     void newNanopublicationWithoutTheOptionalStatements() throws Exception {
         PublishForm form = openForm(new PageParameters().add("param_thing", "apple").add("param_name", "Apple"));
-        assertSame(form);
         // The default the form filled in is not passed on as a value given, which the library
         // would refuse to leave out with its statement.
         assertFalse(form.toFillRequest().getValues().has("status"), form.toFillRequest().toParams().toString());
+        Nanopub np = createNanopub(form);
+        assertEquals(1, np.getAssertion().size(), np.getAssertion().toString());
     }
 
     @Test
     void defaultInAGroupThatIsFilledIn() throws Exception {
         PublishForm form = openForm(new PageParameters().add("param_thing", "apple").add("param_name", "Apple")
                 .add("param_link", "https://example.org/apple-source"));
-        assertSame(form);
         Nanopub np = createNanopub(form);
         assertTrue(np.getAssertion().stream().anyMatch(st -> st.getPredicate().equals(RDFS.COMMENT)
                 && st.getObject().stringValue().equals("checked")), np.getAssertion().toString());
@@ -179,9 +198,11 @@ class PublishFormFillGuardTest {
         Utils.cacheNanopub(before);
 
         PublishForm form = openForm(new PageParameters().add("supersede", before.getUri().stringValue()).add("param_name", "Apple tree"));
-        assertSame(form);
         // The new version keeps the IRI of what it introduces.
         Nanopub np = createNanopub(form);
+        assertTrue(has(np.getAssertion(), RDFS.LABEL, "Apple tree"), np.getAssertion().toString());
+        assertTrue(has(np.getAssertion(), DCTERMS.SUBJECT, "red"), "the rest is filled from the version before: " + np.getAssertion());
+        assertTrue(has(np.getPubinfo(), NPX.SUPERSEDES, before.getUri().stringValue()), np.getPubinfo().toString());
         assertTrue(np.getPubinfo().stream().anyMatch(st -> st.getPredicate().equals(NPX.INTRODUCES)
                 && st.getObject().stringValue().equals(before.getUri().stringValue() + "/apple")), np.getPubinfo().toString());
     }
