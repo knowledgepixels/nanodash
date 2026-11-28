@@ -1,5 +1,6 @@
 package com.knowledgepixels.nanodash.template;
 
+import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.WicketApplication;
 import com.knowledgepixels.nanodash.component.PublishForm;
 import com.knowledgepixels.nanodash.page.PublishPage;
@@ -138,6 +139,10 @@ class TemplateDefaultTest {
 
     @Test
     void theFormStartsWithTheDefaultsAndMakesThemAgain() throws Exception {
+        // The user the form is filled in by, whom nt:CREATOR stands for.
+        Field user = NanodashSession.class.getDeclaredField("userIri");
+        user.setAccessible(true);
+        user.set(NanodashSession.get(), CREATOR);
         PublishForm form = new PublishForm("panel", new PageParameters().add("template", TEMPLATE_URI), PublishPage.class, null);
         tester.startComponentInPage(form);
         Field field = PublishForm.class.getDeclaredField("assertionContext");
@@ -148,6 +153,7 @@ class TemplateDefaultTest {
         assertEquals("10.1234/abc", model(context, PAPER));
         assertEquals("item", model(context, THING));
         assertEquals("checked", model(context, STATUS));
+        assertEquals(CREATOR.stringValue(), model(context, AUTHOR));
         assertEquals("", model(context, CODE));
 
         @SuppressWarnings("unchecked")
@@ -157,6 +163,7 @@ class TemplateDefaultTest {
         String ns = np.getUri().stringValue();
         assertTrue(has(np, vf.createIRI(ns + "item"), vf.createIRI("http://example.com/p1"), vf.createIRI("https://example.com/start")), np.getAssertion().toString());
         assertTrue(has(np, vf.createIRI(ns + "item"), vf.createIRI("http://example.com/p2"), vf.createIRI("https://doi.org/10.1234/abc")), np.getAssertion().toString());
+        assertTrue(has(np, vf.createIRI(ns + "item"), vf.createIRI("http://example.com/p3"), CREATOR), np.getAssertion().toString());
         assertTrue(has(np, vf.createIRI(ns + "item"), vf.createIRI("http://example.com/p5"), vf.createLiteral("checked")), np.getAssertion().toString());
     }
 
