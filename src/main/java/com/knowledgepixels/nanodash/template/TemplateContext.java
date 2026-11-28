@@ -20,6 +20,7 @@ import org.nanopub.templates.BindingContext;
 import org.nanopub.templates.PlaceholderMatcher;
 import org.nanopub.templates.RawValue;
 import org.nanopub.templates.Template;
+import org.nanopub.templates.Violation;
 import org.nanopub.vocabulary.NTEMPLATE;
 
 import java.io.Serializable;
@@ -667,10 +668,96 @@ public class TemplateContext implements Serializable {
      * @return a new binding context, without bindings
      */
     public BindingContext newBindingContext() {
-        BindingContext context = BindingContext.forNewNanopub(template, targetNamespace, null);
+        return newBindingContext(null);
+    }
+
+    private BindingContext newBindingContext(IRI creator) {
+        BindingContext context = BindingContext.forNewNanopub(template, targetNamespace, creator);
         context.setPrefixBase(BindingContext.SPACE_TOKEN, resolvePrefixBase(DynamicPrefix.SPACE_TOKEN));
         context.setPrefixBase(BindingContext.NAMESPACE_TOKEN, resolvePrefixBase(DynamicPrefix.NAMESPACE_TOKEN));
         return context;
+    }
+
+    /**
+     * Returns the default value the template gives a placeholder, as it stands in the
+     * nanopublication this form makes ({@link PlaceholderMatcher#getDefault}): {@code nt:CREATOR}
+     * stands for the user, and an IRI within the template for the one of the same name minted
+     * within the nanopublication. A default that cannot stand there is none.
+     *
+     * @param placeholder the placeholder, with a {@code __N} suffix in a repetition
+     * @return the default value, or null if there is none
+     */
+    public Value getDefaultValue(IRI placeholder) {
+        return PlaceholderMatcher.of(template, placeholder).getDefault(newBindingContext(getCreator()));
+    }
+
+    /**
+     * Returns the default value of a placeholder as a person enters it into its field, which is
+     * how a field starts out that has no other value: the short form where there is one, such as
+     * the part after the prefix, as for a value filled in from an existing nanopublication.
+     *
+     * @param placeholder the placeholder, with a {@code __N} suffix in a repetition
+     * @return the default as it is entered, or null if there is none
+     */
+    public RawValue getDefaultRaw(IRI placeholder) {
+        PlaceholderMatcher matcher = PlaceholderMatcher.of(template, placeholder);
+        BindingContext context = newBindingContext(getCreator());
+        Value value = matcher.getDefault(context);
+        return value == null ? null : matcher.toRaw(value, context);
+    }
+
+    // The user the form makes the nanopublication for, which the form keeps as the value of
+    // nt:CREATOR; null when nobody is logged in.
+    private IRI getCreator() {
+        IModel<?> model = componentModels.get(NTEMPLATE.CREATOR_PLACEHOLDER);
+        Object creator = model == null ? null : model.getObject();
+        return creator == null || creator.toString().isEmpty() ? null : vf.createIRI(creator.toString());
+    }
+
+    /**
+     * Returns the raw value the form gives the library for what a field holds, as when the
+     * nanopublication is made ({@link FormRequest}). An auto-escape value that is left as it was
+     * filled in keeps the spelling it was filled from, which escaping the text afresh does not
+     * give back where the source wrote "%20" ({@link #autoEscape}); the library takes an IRI after
+     * the prefix of the placeholder as it is.
+     *
+     * @param placeholder the placeholder, with a {@code __N} suffix in a repetition
+     * @param text        the text of the field
+     * @param languageTag the language chosen for it, or null
+     * @return the raw value
+     */
+    public RawValue toRawValue(IRI placeholder, String text, String languageTag) {
+        if (!text.isEmpty() && template.isAutoEscapePlaceholder(placeholder)) {
+            String escaped = autoEscape(placeholder, text);
+            String prefix = getPrefix(placeholder);
+            if (!escaped.equals(Utils.urlEncode(text)) && prefix != null && !prefix.isEmpty()) {
+                text = prefix + escaped;
+            }
+        }
+        return new RawValue(text, languageTag);
+    }
+
+    /**
+     * Checks a value as it is entered into the field of a placeholder, by the rules the library
+     * makes the nanopublication by ({@link PlaceholderMatcher#match(RawValue, BindingContext)}).
+     *
+     * @param placeholder the placeholder, with a {@code __N} suffix in a repetition
+     * @param raw         the value as it is entered ({@link #toRawValue})
+     * @return the violations, with the binding context they were found in
+     */
+    public FieldCheck check(IRI placeholder, RawValue raw) {
+        BindingContext context = newBindingContext();
+        return new FieldCheck(PlaceholderMatcher.of(template, placeholder).match(raw, context).violations(), context);
+    }
+
+    /**
+     * What the check of a value finds ({@link #check}).
+     *
+     * @param violations the problems of the value, empty if there are none
+     * @param context    the binding context it was checked in, which tells the names minted within
+     *                   the nanopublication
+     */
+    public record FieldCheck(List<Violation> violations, BindingContext context) {
     }
 
     /**

@@ -1,15 +1,12 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.NanodashSession;
 import com.knowledgepixels.nanodash.Utils;
-import com.knowledgepixels.nanodash.component.IriTextfieldItem.Validator;
 import com.knowledgepixels.nanodash.domain.IndividualAgent;
 import com.knowledgepixels.nanodash.domain.User;
 import com.knowledgepixels.nanodash.page.ProfilePage;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import com.knowledgepixels.nanodash.domain.ProfilePicture;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,12 +19,9 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.ContextRelativeResourceReference;
-import org.apache.wicket.validation.Validatable;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
-import org.nanopub.vocabulary.NTEMPLATE;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nanopub.templates.RawValue;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -44,7 +38,6 @@ public class AgentChoiceItem extends AbstractContextComponent {
     private Label tooltipDescription;
     private IRI iri;
     private IModel<String> model;
-    private static final Logger logger = LoggerFactory.getLogger(AgentChoiceItem.class);
 
     private String getChoiceLabel(String choiceId) {
         IRI iri;
@@ -210,7 +203,7 @@ public class AgentChoiceItem extends AbstractContextComponent {
         if (!optional) textfield.setRequired(true);
         labelField(textfield, iri);
         textfield.add(new AttributeAppender("class", " wide"));
-        textfield.add(new Validator(iri, template, "", context));
+        textfield.add(new PlaceholderValidator(context, iri));
         context.getComponents().add(textfield);
         lockIfNeeded(textfield, iri);
 
@@ -301,67 +294,14 @@ public class AgentChoiceItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (v instanceof IRI) {
-            String vs = v.stringValue();
-            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-            Validatable<String> validatable = new Validatable<>(vs);
-            if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-                vs = Utils.getUriPostfix(vs);
-            }
-            new Validator(iri, context.getTemplate(), "", context).validate(validatable);
-            if (!validatable.isValid()) {
-                return false;
-            }
-            if (textfield.getModelObject() == null || textfield.getModelObject().isEmpty()) {
-                return true;
-            }
-            return vs.equals(textfield.getModelObject());
-        }
-        return false;
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        String vs = v.stringValue();
-        if (Utils.isLocalURI(vs)) {
-            vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-        }
-        textfield.setModelObject(vs);
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (NTEMPLATE.CREATOR_PLACEHOLDER.equals(defaultValue)) {
-            defaultValue = NanodashSession.get().getUserIri();
-        }
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify default value: {}", defaultValue, ex);
-            }
-        }
+        // A default of nt:CREATOR stands for the user.
+        if (textfield.getModelObject() != null && !textfield.getModelObject().isEmpty()) return;
+        RawValue defaultValue = context.getDefaultRaw(iri);
+        if (defaultValue != null) textfield.setModelObject(defaultValue.text());
     }
 
     /**

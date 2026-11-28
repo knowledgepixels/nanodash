@@ -5,8 +5,6 @@ import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
-import net.trustyuri.TrustyUriUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,17 +19,10 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.Validatable;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
-import org.nanopub.NanopubUtils;
-import org.nanopub.SimpleCreatorPattern;
-import org.nanopub.vocabulary.NTEMPLATE;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nanopub.templates.RawValue;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -53,7 +44,6 @@ public class IriTextfieldItem extends AbstractContextComponent {
     private String dynamicPrefixToken;
     private Select2Choice<String> prefixChoice;
     private String takenIdentifier;
-    private static final Logger logger = LoggerFactory.getLogger(IriTextfieldItem.class);
 
     /**
      * Constructor for creating an IRI text field item.
@@ -128,18 +118,8 @@ public class IriTextfieldItem extends AbstractContextComponent {
         if (template.isLocalResource(iri) || !prefix.isEmpty() || dynamicPrefixToken != null) {
             textfield.add(new AttributeAppender("class", " short"));
         }
-        textfield.add(new Validator(iri, template, prefixModel, context));
-        // Kept out of the Validator above, which also decides whether an existing value unifies
-        // with this placeholder: a value already published is a fact rather than a proposal,
-        // and a legacy template's node really is its own assertion graph (issue #29).
-        textfield.add((IValidator<String>) v -> {
-            String name = v.getValue();
-            if (context.isToBeMinted(iri, name) && NanopubUtils.isReservedLocalName(name)) {
-                v.error(new ValidationError("'" + name + "' is what this nanopublication calls one of its own"
-                        + " parts, so a resource of that name would be that part rather than something the"
-                        + " nanopublication is about. Pick a different name."));
-            }
-        });
+        // Also refuses a name the nanopublication uses for one of its own parts (issue #29).
+        textfield.add(new PlaceholderValidator(context, iri));
         context.getComponents().add(textfield);
         lockIfNeeded(textfield, iri, false);
         labelField(textfield, iri);
@@ -402,68 +382,6 @@ public class IriTextfieldItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (v instanceof IRI) {
-            String prefix = prefixModel.getObject();
-            String vs = v.stringValue();
-            if (vs.startsWith(prefix)) vs = vs.substring(prefix.length());
-            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-            if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
-                vs = Utils.urlDecode(vs);
-            }
-            Validatable<String> validatable = new Validatable<>(vs);
-            if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-                vs = Utils.getUriPostfix(vs);
-            }
-            new Validator(iri, context.getTemplate(), prefixModel, context).validate(validatable);
-            if (!validatable.isValid()) {
-                return false;
-            }
-            if (textfield.getModelObject() == null || textfield.getModelObject().isEmpty()) {
-                return true;
-            }
-            return vs.equals(textfield.getModelObject());
-        }
-        return false;
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        String prefix = prefixModel.getObject();
-        String vs = v.stringValue();
-        if (!isUnifiableWith(v)) throw new UnificationException(vs);
-        if (!prefix.isEmpty() && vs.startsWith(prefix)) {
-            vs = vs.substring(prefix.length());
-        } else if (Utils.isLocalURI(vs)) {
-            vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-        } else if (context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-            vs = Utils.getUriPostfix(vs);
-        }
-        if (context.getTemplate().isAutoEscapePlaceholder(iri)) {
-            // Before decoding, so the exact IRI can be given back unchanged:
-            // see TemplateContext.autoEscape.
-            context.setAutoEscapeSource(iri, vs);
-            vs = Utils.urlDecode(vs);
-        }
-        textfield.setModelObject(vs);
-    }
-
-    /**
      * The prefix a placeholder's value is built on, re-resolved on every access so that a
      * space-/namespace-dependent prefix picked after the form was built is taken into
      * account. Empty (rather than null) when the prefix is undeclared or unresolved, so
@@ -572,112 +490,14 @@ public class IriTextfieldItem extends AbstractContextComponent {
     }
 
     /**
-     * Validator class for validating IRI text fields.
-     */
-    protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-        private IRI iri;
-        private Template template;
-        private IModel<String> prefixModel;
-        private TemplateContext context;
-
-        /**
-         * Constructor for creating a validator for an IRI text field.
-         *
-         * @param iri      the IRI placeholder for this item
-         * @param template the template containing validation rules
-         * @param prefix   the prefix to be used in validation
-         * @param context  the template context containing models and components
-         */
-        public Validator(IRI iri, Template template, String prefix, TemplateContext context) {
-            this(iri, template, Model.of(prefix), context);
-        }
-
-        /**
-         * Constructor for creating a validator for an IRI text field whose prefix can change
-         * while the form is open (a space-/namespace-dependent prefix).
-         *
-         * @param iri         the IRI placeholder for this item
-         * @param template    the template containing validation rules
-         * @param prefixModel the model of the prefix to be used in validation
-         * @param context     the template context containing models and components
-         */
-        public Validator(IRI iri, Template template, IModel<String> prefixModel, TemplateContext context) {
-            this.iri = iri;
-            this.template = template;
-            this.prefixModel = prefixModel;
-            this.context = context;
-        }
-
-        @Override
-        public void validate(IValidatable<String> s) {
-            String sv = s.getValue();
-            String p = prefixModel.getObject();
-            if (p == null) p = "";
-            if (template.isAutoEscapePlaceholder(iri)) {
-                sv = context.autoEscape(iri, sv);
-            }
-            if (Utils.isUriValue(sv)) {
-                p = "";
-            } else if (sv.contains(":") || sv.contains("#")) {
-                s.error(new ValidationError("Invalid character in postfix (e.g., colon, hash)"));
-            }
-            String iriString = p + sv;
-            if (iriString.matches("[^:# ]+")) {
-                p = LocalUri.PREFIX;
-                iriString = p + sv;
-            }
-            if (!Utils.isWellFormedUri(iriString)) {
-                s.error(new ValidationError("IRI not well-formed"));
-            }
-            if (p.isEmpty() && !Utils.isLocalURI(sv) && !Utils.isUriValue(sv)) {
-                s.error(new ValidationError("IRI scheme not allowed here; use one of: " + Utils.getAllowedUriSchemesLabel()));
-            }
-            String regex = template.getRegex(iri);
-            if (regex != null) {
-                if (!sv.matches(regex)) {
-                    s.error(new ValidationError("Value '" + sv + "' doesn't match the pattern '" + regex + "'"));
-                }
-            }
-            if (template.isExternalUriPlaceholder(iri)) {
-                if (!Utils.isUriValue(iriString)) {
-                    s.error(new ValidationError("Not an external IRI"));
-                }
-            }
-            if (template.isTrustyUriPlaceholder(iri)) {
-                if (!TrustyUriUtils.isPotentialTrustyUri(iriString)) {
-                    s.error(new ValidationError("Not a trusty URI"));
-                }
-            }
-            if (iri.equals(NTEMPLATE.CREATOR_PLACEHOLDER) && context.getExistingNanopub() != null) {
-                boolean found = false;
-                for (IRI creator : SimpleCreatorPattern.getCreators(context.getExistingNanopub())) {
-                    if (creator.stringValue().equals(iriString)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    s.error(new ValidationError("Not a creator of nanopub"));
-                }
-            }
-        }
-
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify default value {} with text field {}", defaultValue, this, ex);
-            }
-        }
+        String current = textfield.getModelObject();
+        if (current != null && !current.isEmpty()) return;
+        RawValue defaultValue = context.getDefaultRaw(iri);
+        if (defaultValue != null) textfield.setModelObject(defaultValue.text());
     }
 
     /**

@@ -5,7 +5,6 @@ import org.nanopub.templates.DatePrecision;
 import org.nanopub.templates.DateValue;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.util.convert.ConversionException;
@@ -32,10 +31,9 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
+import org.nanopub.templates.RawValue;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,7 +62,6 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = LoggerFactory.getLogger(LiteralFlexibleDateItem.class);
 
     /**
      * The value as its parts, presented to the rest of the form as the lexical form of a literal
@@ -846,53 +843,14 @@ public class LiteralFlexibleDateItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     * <p>
-     * A value of any accepted precision fits, whichever precision the field holds.
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (!(v instanceof Literal vL)) return false;
-        DatePrecision precision = DatePrecision.of(vL.getDatatype());
-        if (precision == null || !precisions.contains(precision)) return false;
-        DateValue value = DateValue.parse(vL.stringValue());
-        if (value == null || value.getPrecision() != precision) return false;
-        if (regex != null && !vL.stringValue().matches(regex)) return false;
-        String current = model.getObject();
-        return current.isEmpty() || current.equals(vL.stringValue());
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        model.setObject(v.stringValue());
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify with default value.", ex);
-            }
-        }
+        String current = model.getObject();
+        if (current != null && !current.isEmpty()) return;
+        RawValue defaultValue = context.getDefaultRaw(iri);
+        if (defaultValue != null) model.setObject(defaultValue.text());
     }
 
     /**

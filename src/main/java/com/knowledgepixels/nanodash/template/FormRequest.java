@@ -14,7 +14,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.nanopub.Nanopub;
 import org.nanopub.templates.FillRequest;
-import org.nanopub.templates.RawValue;
+import org.nanopub.templates.PlaceholderMatcher;
 import org.nanopub.templates.Template;
 import org.nanopub.templates.TemplateValues;
 import org.nanopub.vocabulary.NTEMPLATE;
@@ -118,48 +118,32 @@ public final class FormRequest {
             if (!template.isPlaceholder(templateIri) || template.isSequenceElementPlaceholder(templateIri)) continue;
             String text = toText(e.getValue() == null ? null : e.getValue().getObject());
             if (template.isRootNanopubPlaceholder(templateIri) && (text.isEmpty() || text.equals(ROOT_IS_SOURCE))) continue;
-            // The form puts the default of the template into a field. Left as it is, it is not
-            // a value the person gave: the filler takes the default by itself, and leaves it out
-            // with its statement where that statement lacks other values, as the form does.
-            if (isDefault(context, key, text)) continue;
             String languageTag = null;
             IModel<?> languageModel = context.getComponentModels().get(TemplateContext.getLanguageModelKey(key));
             if (languageModel != null && template.isLanguageTagSelectable(templateIri)) {
                 languageTag = toText(languageModel.getObject());
             }
+            // The form puts the default of the template into a field. Left as it is, it is not
+            // a value the person gave: the filler takes the default by itself, and leaves it out
+            // with its statement where that statement lacks other values, as the form does.
+            if (isDefault(context, key, text, languageTag)) continue;
             if (!text.isEmpty() && template.isUriPlaceholder(templateIri)) addLabels(context, key, templateIri, text, request);
-            if (!text.isEmpty() && template.isAutoEscapePlaceholder(templateIri)) text = keepSourceSpelling(context, key, text);
-            values.set(TemplateValues.getName(key), new RawValue(text, languageTag));
+            values.set(TemplateValues.getName(key), context.toRawValue(key, text, languageTag));
         }
     }
 
-    // An auto-escape value that is left as it was filled in keeps the spelling it was filled
-    // from, which escaping the text afresh does not give back where the source wrote "%20"
-    // (TemplateContext#autoEscape). The filler takes an IRI after the prefix of the
-    // placeholder as it is.
-    private static String keepSourceSpelling(TemplateContext context, IRI key, String text) {
-        String escaped = context.autoEscape(key, text);
-        if (escaped.equals(Utils.urlEncode(text))) return text;
-        String prefix = context.getPrefix(key);
-        if (prefix == null || prefix.isEmpty()) return text;
-        return prefix + escaped;
-    }
-
-    // Whether a field holds the default value of its placeholder, in one of the ways the form
-    // writes it: a literal by its text, an IRI within the template by its local name, and any
-    // other IRI in full or after the prefix of the placeholder.
-    static boolean isDefault(TemplateContext context, IRI key, String text) {
+    // Whether a field holds the default value of its placeholder, in the form the form starts
+    // the field with or in any other that gives the same value, such as the IRI in full.
+    static boolean isDefault(TemplateContext context, IRI key, String text, String languageTag) {
         if (text.isEmpty()) return false;
-        Template template = context.getTemplate();
-        Value value = template.getDefault(key);
+        Value value = context.getDefaultValue(key);
         if (value == null) return false;
-        if (!(value instanceof IRI)) return text.equals(value.stringValue());
-        String iri = value.stringValue();
-        if (text.equals(iri)) return true;
-        String templateUri = template.getNanopub().getUri().stringValue();
-        if (iri.startsWith(templateUri) && !iri.equals(templateUri) && text.equals(Utils.getUriPostfix(iri))) return true;
-        String prefix = context.getPrefix(key);
-        return prefix != null && !prefix.isEmpty() && iri.startsWith(prefix) && text.equals(iri.substring(prefix.length()));
+        try {
+            return value.equals(PlaceholderMatcher.of(context.getTemplate(), key)
+                    .toValue(context.toRawValue(key, text, languageTag), context.newBindingContext()));
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     // The labels the form knows for the IRI a field holds: those looked up for a value chosen

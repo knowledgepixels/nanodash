@@ -3,18 +3,17 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -46,7 +45,6 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
     private AjaxZonedDateTimePicker zonedDateTimePicker;
     private final Label datatypeComp;
     private final IModel<String> datatypeModel;
-    private final String regex;
     private final IRI iri;
 
     /**
@@ -61,7 +59,6 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
         super(id, context);
         final Template template = context.getTemplate();
         this.iri = iri;
-        regex = template.getRegex(iri);
         IModel<ZonedDateTime> model = (IModel<ZonedDateTime>) context.getComponentModels().get(iri);
         boolean modelIsNew = false;
         if (model == null) {
@@ -73,7 +70,7 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
         if (modelIsNew && context.hasValue(postfix)) {
             String zoncontext = context.getValue(postfix);
             if (zoncontext != null && zoncontext.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
-                // A date alone, as older nanopublications give for a date and time (see unifyWith).
+                // A date alone, as older nanopublications give for a date and time (see finalizeValues).
                 model.setObject(ZonedDateTime.parse(zoncontext + "T00:00:00Z"));
             } else if (zoncontext != null) {
                 model.setObject(ZonedDateTime.parse(zoncontext));
@@ -121,76 +118,28 @@ public class LiteralDateTimeItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) {
-            return true;
-        }
-        if (v instanceof Literal vL) {
-            if (regex != null && !vL.stringValue().matches(regex)) {
-                return false;
-            }
-            if (zonedDateTimePicker.getModelObject() == null) {
-                return true;
-            }
-            IRI datatype = context.getTemplate().getDatatype(iri);
-            if (!vL.getDatatype().equals(datatype)) {
-                return false;
-            }
-            return ZonedDateTime.from(vL.temporalAccessorValue()).equals(zonedDateTimePicker.getModelObject());
-        }
-        return false;
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) {
-            return;
-        }
-        if (!isUnifiableWith(v)) {
-            throw new UnificationException(v.stringValue());
-        }
-        Literal vL = (Literal) v;
-        ZonedDateTime zdt;
-        if (vL.stringValue().matches("^\\d{4}-\\d{2}-\\d{2}$")) {
-            // this is for backward compatibility for date-only literals that were defined as datetime literals even though they are not valid datetime instances
-            String dateTimeString = vL.stringValue() + "T00:00:00Z";
-            zdt = ZonedDateTime.parse(dateTimeString);
-        } else {
-            zdt = ZonedDateTime.from(vL.temporalAccessorValue());
-        }
-        zonedDateTimePicker.setModelObject(zdt);
-
-        if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
-            datatypeComp.setVisible(true);
-        }
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify with default value.", ex);
+        if (zonedDateTimePicker.getModelObject() != null) return;
+        if (!(context.getDefaultValue(iri) instanceof Literal defaultValue)) return;
+        ZonedDateTime zdt;
+        try {
+            if (defaultValue.getLabel().matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                // A date alone, as older templates give for a date and time.
+                zdt = ZonedDateTime.parse(defaultValue.getLabel() + "T00:00:00Z");
+            } else {
+                zdt = ZonedDateTime.from(defaultValue.temporalAccessorValue());
             }
+        } catch (DateTimeException | IllegalArgumentException ex) {
+            logger.info("Default value is not a date and time: {}", defaultValue);
+            return;
+        }
+        zonedDateTimePicker.setModelObject(zdt);
+        if (context.getTemplate().getDatatype(iri) == null && !defaultValue.getDatatype().equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(defaultValue.getDatatype()) + ")");
+            datatypeComp.setVisible(true);
         }
     }
 

@@ -81,8 +81,9 @@ from a space page) stays a single-field form.
   prefix is dynamic and the navigation context resolves nothing. The dropdown is required
   exactly when the paired text field holds something that isn't already a full URI, so an
   untouched optional field and a fully-typed-out URI both stay valid. The prefix used for
-  display, validation, and unification is re-resolved on every access (`PrefixModel`), so
-  picking a base updates the field without rebuilding the form.
+  display and for checking the field is re-resolved on every access (`PrefixModel`,
+  `TemplateContext.newBindingContext`), so picking a base updates the field without rebuilding
+  the form. While no base is picked, the field leaves the problem to the picker.
 - **Publishing** with an unresolved prefix is refused by the filler of nanopub-java rather
   than minting an IRI in the wrong namespace; form validation blocks the case anyway, this
   is the belt-and-braces half.

@@ -30,10 +30,10 @@ can be done about it.
 
 ## Two exceptions
 
-**A value already published is a fact, not a proposal.** Whether an existing value unifies
-with a placeholder is decided by `IriTextfieldItem.Validator`, and this check is
-deliberately kept out of it: superseding a nanopublication that carries such a name has to
-fill the form with what it says. For the same reason the filler lets through a name the
+**A value already published is a fact, not a proposal.** For nanopub-java, such a name is a
+problem it reports, not one that keeps a value from its placeholder: the view of a
+nanopublication shows it, and superseding a nanopublication that carries such a name fills the
+form with what it says. For the same reason the filler lets through a name the
 superseded or overridden nanopublication already used in its assertion — it is published and
 cannot be taken back, and a new version keeps the shape of the old one. Only the assertion
 counts: every nanopublication names its own parts in its head and its provenance, which says
@@ -50,9 +50,10 @@ under here, rather than about every IRI a nanopublication mentions.
 
 ## The rule
 
-`TemplateContext.isReservedIri` is the rule itself: an IRI under **this nanopublication's**
-target namespace whose local name is one of nanopub-java's `NanopubUtils.RESERVED_LOCAL_NAMES`,
-the same names `NanopubCreator` and the signature utilities give the parts. The same local
+The rule is nanopub-java's (`Violation.Kind.RESERVED_NAME`; the field tells it through
+`PlaceholderValidator`): an IRI under **this nanopublication's** namespace whose local name is
+one of `NanopubUtils.RESERVED_LOCAL_NAMES`, the same names `NanopubCreator` and the signature
+utilities give the parts. The same local
 name below any other prefix — a space's namespace, say — collides with nothing and is left
 alone, and so is a name that only looks like one (`assertions`, `Assertion`), since the
 parts are named in the case a nanopublication writes them.

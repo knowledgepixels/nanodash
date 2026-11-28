@@ -1,11 +1,9 @@
 package com.knowledgepixels.nanodash.component;
 
-import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.RestrictedChoice;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -18,11 +16,8 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2Choice;
@@ -41,7 +36,6 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
     private Label tooltipDescription;
     private IModel<String> model;
     private RestrictedChoice restrictedChoice;
-    private static final Logger logger = LoggerFactory.getLogger(RestrictedChoiceItem.class);
 
     /**
      * Constructor for RestrictedChoiceItem.
@@ -210,57 +204,13 @@ public class RestrictedChoiceItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (v instanceof IRI) {
-            String vs = v.stringValue();
-            if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-            if (!restrictedChoice.hasPossibleRefValues() && !restrictedChoice.hasFixedPossibleValue(vs)) {
-                return false;
-            }
-            if (choice.getModelObject() == null || choice.getModelObject().isEmpty()) {
-                return true;
-            }
-            return vs.equals(choice.getModelObject());
-        }
-        return false;
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        String vs = v.stringValue();
-        if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-        if (!isUnifiableWith(v)) throw new UnificationException(vs);
-        choice.setModelObject(vs);
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify with default value: {}", defaultValue, ex);
-            }
-        }
+        if (choice.getModelObject() != null && !choice.getModelObject().isEmpty()) return;
+        // The choices are the values in full.
+        if (context.getDefaultValue(iri) instanceof IRI defaultValue) choice.setModelObject(defaultValue.stringValue());
     }
 
     /**
