@@ -3,7 +3,6 @@ package com.knowledgepixels.nanodash.component;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -13,7 +12,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,6 @@ public class LiteralDateItem extends AbstractContextComponent {
     private DatePicker datePicker;
     private Label datatypeComp;
     private IModel<String> datatypeModel;
-    private final String regex;
     private final IRI iri;
     private final static Logger logger = LoggerFactory.getLogger(LiteralDateItem.class);
     public static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -50,7 +47,6 @@ public class LiteralDateItem extends AbstractContextComponent {
         super(id, context);
         final Template template = context.getTemplate();
         this.iri = iri;
-        regex = template.getRegex(iri);
         IModel<Date> model = (IModel<Date>) context.getComponentModels().get(iri);
         boolean modelIsNew = false;
         if (model == null) {
@@ -129,73 +125,23 @@ public class LiteralDateItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) {
-            return true;
-        }
-        if (v instanceof Literal vL) {
-            if (regex != null && !vL.stringValue().matches(regex)) {
-                return false;
-            }
-            if (getDateComponent().getModelObject() == null) {
-                return true;
-            }
-            IRI datatype = context.getTemplate().getDatatype(iri);
-            if (!vL.getDatatype().equals(datatype)) {
-                return false;
-            }
-            try {
-                return format.parse(vL.stringValue()).toString().equals(getDateComponent().getModelObject().toString());
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) {
-            return;
-        }
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        Literal vL = (Literal) v;
-        try {
-            getDateComponent().setModelObject(format.parse(vL.stringValue()));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-        if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
-            datatypeComp.setVisible(true);
-        }
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify with default value.", ex);
+        if (getDateComponent().getModelObject() != null) return;
+        if (!(context.getDefaultValue(iri) instanceof Literal defaultValue)) return;
+        try {
+            synchronized (format) {
+                getDateComponent().setModelObject(format.parse(defaultValue.getLabel()));
             }
+        } catch (ParseException ex) {
+            logger.info("Default value is not a date: {}", defaultValue);
+            return;
+        }
+        if (context.getTemplate().getDatatype(iri) == null && !defaultValue.getDatatype().equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(defaultValue.getDatatype()) + ")");
+            datatypeComp.setVisible(true);
         }
     }
 

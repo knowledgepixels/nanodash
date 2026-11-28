@@ -140,17 +140,18 @@ class LiteralDatatypeValidationTest {
     }
 
     @Test
-    void illTypedValueFilledFromANanopubIsHighlighted() throws Exception {
+    void illTypedValueTheFieldStartsWithIsHighlighted() throws Exception {
+        // As a value filled in from a nanopublication does.
         LiteralTextfieldItem item = itemFor(XSD.INT);
-        item.unifyWith(vf.createLiteral("abc", XSD.INT));
+        item.getTextComponent().setModelObject("abc");
         tester.startComponentInPage(item);
         assertTrue(textfieldClass().contains("invalid"), textfieldClass());
     }
 
     @Test
-    void wellTypedValueFilledFromANanopubIsNotHighlighted() throws Exception {
+    void wellTypedValueTheFieldStartsWithIsNotHighlighted() throws Exception {
         LiteralTextfieldItem item = itemFor(XSD.INT);
-        item.unifyWith(vf.createLiteral("42", XSD.INT));
+        item.getTextComponent().setModelObject("42");
         tester.startComponentInPage(item);
         assertFalse(textfieldClass().contains("invalid"), textfieldClass());
     }

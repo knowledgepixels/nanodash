@@ -1,16 +1,17 @@
 # Template model from nanopub-java
 
-**Status:** 🚧 In progress — part of
-[#936](https://github.com/knowledgepixels/nanodash/issues/936): Nanodash reads templates with
-the `Template` class of nanopub-java, and the library's filler makes each nanopublication a
-second time, for comparison (see *The fill guard*). Filling, matching and lookups still run on
-Nanodash's own code.
+**Status:** ✅ Implemented
+([#936](https://github.com/knowledgepixels/nanodash/issues/936)): what a template means comes
+from nanopub-java. Nanodash reads templates with its `Template`, fills the form from a
+nanopublication and shows one with its reader and matcher, checks what is entered with its
+placeholder rules, and makes the nanopublication with its filler. The form itself, its caching
+of templates (`TemplateData`) and the lookups stay in Nanodash.
 
 What a template means was implemented in Nanodash alone. nanopub-java now has it too
 ([nanopub-java#91](https://github.com/Nanopublication/nanopub-java/issues/91),
 [#216](https://github.com/Nanopublication/nanopub-java/issues/216)), so that a program can
 check and fill a template without a form. As long as both implement it, they can come to
-disagree; #936 moves Nanodash onto the library step by step.
+disagree; #936 moved Nanodash onto the library step by step.
 
 ## What has moved
 
@@ -20,17 +21,24 @@ one in the library, which kept its method names. Other documents in this folder 
 `Template.java` and line numbers in it; those are to its former place in
 `com.knowledgepixels.nanodash.template`.
 
-`TemplateData`, `TemplateContext`, the form components and the `lookup` package are
-unchanged.
+`TemplateData` stays: it is the cache of templates, their listings and the resolution of
+versions, none of which is what a template means. So do the form components and the `lookup`
+package.
 
 The form reads a nanopublication it is filled from (`use`, `supersede`, `derive` and the
 others) with the library's `SourceReader` (nanopub-java 1.100.0 or later), in
 `template/SourceFill`: the values it finds start the fields, as parameters of a link do.
 The read-only view of a nanopublication is matched against its templates with the library's
 `TemplateMatcher`, in `template/ViewFill`: a statement is shown once for each repetition the
-matcher assigned triples to, and its fields show the values it bound. The form components no
-longer unify values with RDF, except for the default value a template gives a field, which
-the editable fields still put in with their `isUnifiableWith`/`unifyWith`.
+matcher assigned triples to, and its fields show the values it bound. The form components do
+not unify values with RDF any more.
+
+A field that has no value starts with the default its template gives
+(`TemplateContext.getDefaultRaw`, from the library's `PlaceholderMatcher.getDefault`, nanopub-java
+1.100.1 or later): `nt:CREATOR` stands for the user, an IRI within the template for the name
+minted within the nanopublication, and a default that cannot stand in its field is none. It is
+written the way the library writes that value for a field, as for a value filled in from a
+nanopublication: the part after the prefix, the name of a local resource, the text of a literal.
 
 ## What Nanodash does itself
 
@@ -83,9 +91,8 @@ the role pins, the nanopublication types, the creator's name and the site it was
     spelled, which escaping the text afresh would not give back where the source wrote `%20`.
 - **What stays in Nanodash.** The form refuses a nanopublication that says it is protected in
   a way registries do not recognize, and one with an identifier for a new resource that is
-  already in use (`PublishForm.findTakenNewUri`, below). The field validators are still the
-  form's own, so a value the library would refuse is usually caught before the form is
-  submitted.
+  already in use (`PublishForm.findTakenNewUri`, below). A value the library would refuse is
+  usually caught before the form is submitted, by the field checks below.
 - **What the library refuses.** Where the values do not make a nanopublication of the
   templates, the library says why, and the form shows each reason as a message: a statement
   that lacks a value, a value that would be lost with an optional statement left out, a name
@@ -99,3 +106,27 @@ publishes.
 From 5.23.2 until this step, `TemplateFillGuard` made each nanopublication a second time with
 the library, next to the form's own, and logged whether the two came out the same
 (`Template fill:` in the log).
+
+## Checking a field
+
+What is entered into a field is checked by the library's rules
+(`component/PlaceholderValidator`): the text is turned into the value it stands for and matched
+against the placeholder (`TemplateContext.check`, from `PlaceholderMatcher.match(RawValue, …)`),
+in the binding context the nanopublication is made in. This covers the IRI fields (also those of
+guided and agent choices), value fields and the text of literal fields: a malformed IRI, a
+scheme that is not allowed, a name with a colon or a hash, a pattern, an external or trusty
+URI, a name the nanopublication keeps for one of its own parts, a literal outside the lexical
+space of its datatype, a malformed literal.
+
+- **Wording.** Each problem is told in the words the form has used for it. Two are in those of
+  the library: a pattern that is not matched now names the field for IRIs too, as it did for
+  literals, and a text that is neither an IRI in an allowed scheme nor a name (such as
+  `10.1234/a:b` after a prefix) says so in one message, where the form had two.
+- **Left to other controls.** An unresolved space or namespace prefix is the picker's to tell,
+  which is required then. The language of a literal is the language picker's to check, so the
+  text is checked as one in a language not determined. The SPARQL of a query keeps its own check
+  (`SparqlSyntax`), whose message says where the query breaks.
+- **Kept in Nanodash.** The date fields check their parts themselves (a day without a month, a
+  day the month does not have, a precision the template does not take); a restricted choice
+  checks that the value is one it lists, including the values of other fields it refers to; and
+  the check of a new-resource identifier against those in use asks the query service.

@@ -85,7 +85,7 @@ public class TemplateIdentityTest {
         assertEquals("Test template", t.getLabel());
         assertEquals(1, t.getStatementIris().size());
         assertFalse(t.isUnlisted());
-        assertNull(t.getTemplateKindIri());
+        assertNull(t.getVersionIndependentIri());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class TemplateIdentityTest {
         assertEquals("A template for testing.", t.getDescription());
         assertEquals(1, t.getStatementIris().size());
         assertFalse(t.isUnlisted());
-        assertEquals(VERSION_INDEPENDENT_IRI, t.getTemplateKindIri());
+        assertEquals(VERSION_INDEPENDENT_IRI, t.getVersionIndependentIri());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class TemplateIdentityTest {
         creator.addAssertionStatement(creator.getAssertionUri(), DCTERMS.IS_VERSION_OF, VERSION_INDEPENDENT_IRI);
         Template t = new Template(creator.finalizeNanopub());
         assertEquals(NP_URI, t.getId());
-        assertEquals(VERSION_INDEPENDENT_IRI, t.getTemplateKindIri());
+        assertEquals(VERSION_INDEPENDENT_IRI, t.getVersionIndependentIri());
     }
 
     @Test
@@ -166,7 +166,7 @@ public class TemplateIdentityTest {
         creator.addAssertionStatement(TEMPLATE_NODE, KPXL_TERMS.GOVERNED_BY, space);
         Template t = new Template(creator.finalizeNanopub());
         assertEquals(space, t.getGoverningSpace());
-        assertEquals(VERSION_INDEPENDENT_IRI, t.getTemplateKindIri());
+        assertEquals(VERSION_INDEPENDENT_IRI, t.getVersionIndependentIri());
     }
 
     @Test

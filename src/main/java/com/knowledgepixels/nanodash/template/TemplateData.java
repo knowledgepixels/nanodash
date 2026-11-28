@@ -349,7 +349,7 @@ public class TemplateData implements Serializable {
      * @return true if the template declares both
      */
     public static boolean isSpaceGoverned(Template template) {
-        return template != null && template.getGoverningSpace() != null && template.getTemplateKindIri() != null;
+        return template != null && template.getGoverningSpace() != null && template.getVersionIndependentIri() != null;
     }
     /**
      * Resolves the pinned template with {@link GovernedVersions#resolve(org.nanopub.Nanopub)}:

@@ -117,8 +117,9 @@ public class ZoneChoice extends Panel {
             @Override
             protected void onConfigure() {
                 super.onConfigure();
-                getSettings().setAllowClear(isNoZoneAllowed());
+                // The placeholder first: Select2 refuses to allow clearing without one.
                 getSettings().setPlaceholder(isNoZoneAllowed() ? "no timezone" : "choose timezone");
+                getSettings().setAllowClear(isNoZoneAllowed());
             }
 
         };

@@ -6,7 +6,6 @@ import org.nanopub.templates.DatePrecision;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateData;
 import com.knowledgepixels.nanodash.template.TestFill;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxClientInfoBehavior;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -319,27 +318,35 @@ class LiteralFlexibleDateItemTest {
     }
 
     @Test
-    void anExistingValueOfAnyAcceptedPrecisionIsTakenAsItIs() throws Exception {
-        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex09");
-        LiteralFlexibleDateItem item = item();
+    void aDateAndTimeWithoutATimezoneIsShown() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex21";
+        startForm(np, new PageParameters().add("param_moment", "2026-11-16T09:00:00"), null);
 
-        assertTrue(item.isUnifiableWith(vf.createLiteral("2026", XSD.GYEAR)));
-        assertTrue(item.isUnifiableWith(vf.createLiteral("2026-11-16T09:00:00Z", XSD.DATETIME)));
-        assertFalse(item.isUnifiableWith(vf.createLiteral("2026-11-16", XSD.GYEAR)), "the datatype has to fit the value");
-        assertFalse(item.isUnifiableWith(vf.createLiteral("--11-16", XSD.GMONTHDAY)));
-        assertFalse(item.isUnifiableWith(vf.createLiteral("2026")), "a plain string is not a date");
+        assertEquals("2026-11-16T09:00:00", value(), "the timezone can be left out");
+    }
 
-        item.unifyWith(vf.createLiteral("2026-11-16T09:00:00", XSD.DATETIME));
-        assertEquals("2026-11-16T09:00:00", value(), "a date and time without a timezone keeps having none");
+    // What the field starts out with when the template gives the moment a default value.
+    private String startedWith(String npUri, Literal defaultValue, IRI... datatypes) throws Exception {
+        startForm(npUri, new PageParameters(), defaultValue, datatypes);
+        return value();
     }
 
     @Test
-    void anExistingValueOfAPrecisionTheTemplateDoesNotTakeIsRefused() throws Exception {
-        startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex10", XSD.DATE);
-        LiteralFlexibleDateItem item = item();
+    void aDefaultOfAnyAcceptedPrecisionIsTakenAsItIs() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flx09";
+        assertEquals("2026", startedWith(np + "a", vf.createLiteral("2026", XSD.GYEAR)));
+        assertEquals("2026-11-16T09:00:00Z", startedWith(np + "b", vf.createLiteral("2026-11-16T09:00:00Z", XSD.DATETIME)));
+        assertEquals("2026-11-16T09:00:00", startedWith(np + "c", vf.createLiteral("2026-11-16T09:00:00", XSD.DATETIME)),
+                "a date and time without a timezone keeps having none");
+        assertEquals("", startedWith(np + "d", vf.createLiteral("2026-11-16", XSD.GYEAR)), "the datatype has to fit the value");
+        assertEquals("", startedWith(np + "e", vf.createLiteral("--11-16", XSD.GMONTHDAY)));
+        assertEquals("", startedWith(np + "f", vf.createLiteral("2026")), "a plain string is not a date");
+    }
 
-        assertFalse(item.isUnifiableWith(vf.createLiteral("2026", XSD.GYEAR)));
-        assertThrows(UnificationException.class, () -> item.unifyWith(vf.createLiteral("2026", XSD.GYEAR)));
+    @Test
+    void aDefaultOfAPrecisionTheTemplateDoesNotTakeIsLeftOut() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex10";
+        assertEquals("", startedWith(np, vf.createLiteral("2026", XSD.GYEAR), XSD.DATE));
     }
 
     @Test

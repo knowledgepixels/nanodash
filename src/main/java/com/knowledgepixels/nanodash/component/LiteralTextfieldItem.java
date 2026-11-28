@@ -4,12 +4,10 @@ import com.knowledgepixels.nanodash.SparqlSyntax;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -24,14 +22,13 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
 import org.eclipse.rdf4j.model.util.Literals;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nanopub.templates.RawValue;
+import org.nanopub.templates.Violation;
 import org.wicketstuff.select2.Select2Choice;
 
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -44,9 +41,9 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
     private IModel<String> languageModel, datatypeModel;
     private Select2Choice<String> langChoice;
     private IModel<String> langModel;
-    private final String regex;
     private final IRI iri;
-    private final static Logger logger = LoggerFactory.getLogger(LiteralTextfieldItem.class);
+    // The language a text is checked in while its language is not picked yet.
+    private static final String UNDETERMINED_LANGUAGE = "und";
 
     /**
      * Constructs a LiteralTextfieldItem with the specified ID, IRI, optional flag, and template context.
@@ -60,7 +57,6 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         super(id, context);
         final Template template = context.getTemplate();
         this.iri = iri;
-        regex = template.getRegex(iri);
         IModel<String> model = (IModel<String>) context.getComponentModels().get(iri);
         boolean modelIsNew = false;
         if (model == null) {
@@ -78,13 +74,7 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
         if (context.getTemplate().getLabel(iri) != null) {
             tc.add(new AttributeModifier("placeholder", context.getTemplate().getLabel(iri)));
         }
-        tc.add((IValidator<String>) s -> {
-            if (regex != null) {
-                if (!s.getValue().matches(regex)) {
-                    s.error(new ValidationError("Value '" + s.getValue() + "' of '" + getFieldLabel(iri) + "' doesn't match the pattern '" + regex + "'"));
-                }
-            }
-        });
+        tc.add(new TextValidator());
 
         // A query whose SPARQL doesn't parse can never run, and a nanopublication can't be
         // edited afterwards: publishing one is a mistake that only a corrected version can
@@ -95,11 +85,6 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
                 String problem = SparqlSyntax.checkQuery(s.getValue());
                 if (problem != null) s.error(new ValidationError(problem));
             });
-        }
-
-        IRI datatype = template.getDatatype(iri);
-        if (DatatypeValidator.appliesTo(datatype)) {
-            tc.add(new DatatypeValidator(datatype, getFieldLabel(iri)));
         }
 
         tc.setOutputMarkupId(true);
@@ -271,145 +256,43 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
     }
 
     /**
-     * Validator that rejects values that are not in the lexical space of a built-in XSD datatype,
-     * checked the same way nanopub-java checks literals before signing. It also highlights a field
-     * whose current value is ill-typed, so a value filled in from an existing nanopublication is
-     * marked before the form is submitted.
+     * Checks the text by the rules of nanopub-java, such as the pattern of the placeholder and
+     * the lexical space of a built-in XSD datatype, as the nanopublication would not be valid
+     * otherwise (#751). The language is the picker's to check, so a field whose language is
+     * picked is checked here as one in a language not determined. A value the form starts with,
+     * such as one filled in from an existing nanopublication, is marked before the form is
+     * submitted when it is not valid.
      */
-    protected static class DatatypeValidator extends Behavior implements IValidator<String> {
-
-        private final IRI datatype;
-        private final String fieldLabel;
+    protected class TextValidator extends PlaceholderValidator {
 
         /**
-         * Creates a validator for the given datatype.
-         *
-         * @param datatype   a built-in XSD datatype
-         * @param fieldLabel the name of the field, used in the error message
+         * Creates the validator for the text of this field.
          */
-        public DatatypeValidator(IRI datatype, String fieldLabel) {
-            this.datatype = datatype;
-            this.fieldLabel = fieldLabel;
-        }
-
-        /**
-         * Tells whether values of the given datatype can be checked by this validator.
-         *
-         * @param datatype the datatype declared for a placeholder, or null
-         * @return true if the datatype is a built-in XSD datatype
-         */
-        public static boolean appliesTo(IRI datatype) {
-            return datatype != null && XMLDatatypeUtil.isBuiltInDatatype(datatype);
+        public TextValidator() {
+            super(context, iri, EnumSet.of(Violation.Kind.LANGUAGE_TAG));
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public void validate(IValidatable<String> s) {
-            if (isIllTyped(s.getValue())) {
-                s.error(new ValidationError("Value '" + s.getValue() + "' of '" + fieldLabel + "' is not a valid " + Utils.getDatatypeLabel(datatype)));
-            }
+        protected RawValue toRawValue(String text) {
+            return new RawValue(text, context.getTemplate().isLanguageTagSelectable(iri) ? UNDETERMINED_LANGUAGE : null);
         }
 
         /**
          * {@inheritDoc}
+         * <p>
+         * A field whose input is not valid is marked by its {@link InvalidityHighlighting}.
          */
         @Override
         public void onComponentTag(Component c, ComponentTag tag) {
             FormComponent<?> fc = (FormComponent<?>) c;
-            if (fc.isValid() && isIllTyped(fc.getDefaultModelObjectAsString())) {
+            if (fc.isValid() && !getProblems(fc.getDefaultModelObjectAsString()).isEmpty()) {
                 tag.append("class", "invalid", " ");
             }
         }
 
-        /**
-         * Tells whether a non-empty value lies outside the lexical space of the datatype.
-         *
-         * @param value the value to check, or null
-         * @return true if the value is non-empty and not valid for the datatype
-         */
-        private boolean isIllTyped(String value) {
-            return value != null && !value.isEmpty() && !XMLDatatypeUtil.isValidValue(value, datatype);
-        }
-
-    }
-
-    /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        if (v instanceof Literal vL) {
-            if (regex != null && !vL.stringValue().matches(regex)) {
-                return false;
-            }
-            if (context.getTemplate().isLanguageTagSelectable(iri)) {
-                // The value must carry a tag from the allowed set (any tag if
-                // unrestricted); a declared nt:hasLanguageTag is only the picker's
-                // default, not a constraint. Tag checks come before the empty-text
-                // shortcut so out-of-set values never unify vacuously.
-                if (vL.getLanguage().isEmpty()) return false;
-                String vTag = Literals.normalizeLanguageTag(vL.getLanguage().get());
-                List<String> possibleTags = context.getTemplate().getPossibleLanguageTags(iri);
-                if (possibleTags != null && !possibleTags.contains(vTag)) return false;
-                if (getTextComponent().getModelObject() == null || getTextComponent().getModelObject().isEmpty()) {
-                    return true;
-                }
-                if (langModel.getObject() != null && !langModel.getObject().isEmpty()
-                        && !vTag.equals(Literals.normalizeLanguageTag(langModel.getObject()))) {
-                    return false;
-                }
-                return vL.stringValue().equals(getTextComponent().getModelObject());
-            }
-            if (getTextComponent().getModelObject() == null || getTextComponent().getModelObject().isEmpty()) {
-                return true;
-            }
-            String languagetag = context.getTemplate().getLanguageTag(iri);
-            IRI datatype = context.getTemplate().getDatatype(iri);
-            if (languagetag != null) {
-                if (!vL.getLanguage().isPresent() || !Literals.normalizeLanguageTag(vL.getLanguage().get()).equals(languagetag)) {
-                    return false;
-                }
-            } else if (datatype != null) {
-                if (!vL.getDatatype().equals(datatype)) {
-                    return false;
-                }
-            }
-            return vL.stringValue().equals(getTextComponent().getModelObject());
-        }
-        return false;
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        Literal vL = (Literal) v;
-        getTextComponent().setModelObject(vL.stringValue());
-        if (context.getTemplate().isLanguageTagSelectable(iri)) {
-            // The dropdown shows the tag; the static "(tag)" label stays hidden.
-            if (vL.getLanguage().isPresent()) {
-                langModel.setObject(Literals.normalizeLanguageTag(vL.getLanguage().get()));
-            }
-        } else if (context.getTemplate().getLanguageTag(iri) == null && vL.getLanguage().isPresent()) {
-            languageModel.setObject("(" + vL.getLanguage().get().toLowerCase() + ")");
-            languageComp.setVisible(true);
-        } else if (context.getTemplate().getDatatype(iri) == null && !vL.getDatatype().equals(XSD.STRING)) {
-            datatypeModel.setObject("(" + Utils.getDatatypeLabel(vL.getDatatype()) + ")");
-            datatypeComp.setVisible(true);
-        }
     }
 
     /**
@@ -417,13 +300,20 @@ public class LiteralTextfieldItem extends AbstractContextComponent {
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Could not unify with default value.", ex);
-            }
+        String current = getTextComponent().getModelObject();
+        if (current != null && !current.isEmpty()) return;
+        if (!(context.getDefaultValue(iri) instanceof Literal defaultValue)) return;
+        getTextComponent().setModelObject(defaultValue.getLabel());
+        Template template = context.getTemplate();
+        if (template.isLanguageTagSelectable(iri)) {
+            // The dropdown shows the tag; the static "(tag)" label stays hidden.
+            defaultValue.getLanguage().ifPresent(tag -> langModel.setObject(Literals.normalizeLanguageTag(tag)));
+        } else if (template.getLanguageTag(iri) == null && defaultValue.getLanguage().isPresent()) {
+            languageModel.setObject("(" + defaultValue.getLanguage().get().toLowerCase() + ")");
+            languageComp.setVisible(true);
+        } else if (template.getDatatype(iri) == null && !defaultValue.getDatatype().equals(XSD.STRING)) {
+            datatypeModel.setObject("(" + Utils.getDatatypeLabel(defaultValue.getDatatype()) + ")");
+            datatypeComp.setVisible(true);
         }
     }
 

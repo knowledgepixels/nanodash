@@ -4,7 +4,6 @@ import com.knowledgepixels.nanodash.LocalUri;
 import com.knowledgepixels.nanodash.Utils;
 import org.nanopub.templates.Template;
 import com.knowledgepixels.nanodash.template.TemplateContext;
-import com.knowledgepixels.nanodash.template.UnificationException;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -14,15 +13,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.Validatable;
-import org.apache.wicket.validation.ValidationError;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.nanopub.templates.RawValue;
 
 
 /**
@@ -32,7 +24,6 @@ public class ValueTextfieldItem extends AbstractContextComponent {
 
     private TextField<String> textfield;
     private IRI iri;
-    private static final Logger logger = LoggerFactory.getLogger(ValueTextfieldItem.class);
 
     /**
      * Constructor for creating a text field item.
@@ -60,7 +51,7 @@ public class ValueTextfieldItem extends AbstractContextComponent {
         }
         textfield = new TextField<>("textfield", model);
         if (!optional) textfield.setRequired(true);
-        textfield.add(new Validator(iri, template));
+        textfield.add(new PlaceholderValidator(context, iri));
         context.getComponents().add(textfield);
         lockIfNeeded(textfield, iri, false);
         labelField(textfield, iri);
@@ -135,105 +126,13 @@ public class ValueTextfieldItem extends AbstractContextComponent {
     }
 
     /**
-     * Checks whether this field can take a value: one that is valid here, while the field is
-     * empty or holds that value already. The default value the template gives a field is put in
-     * this way ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @return true if the field can take the value
-     */
-    public boolean isUnifiableWith(Value v) {
-        if (v == null) return true;
-        String vs = v.stringValue();
-        if (v instanceof Literal vL) vs = Utils.getSerializedLiteral(vL);
-        if (Utils.isLocalURI(vs)) vs = vs.replaceFirst("^" + LocalUri.PREFIX, "");
-        Validatable<String> validatable = new Validatable<>(vs);
-        if (v instanceof IRI && context.getTemplate().isLocalResource(iri) && !Utils.isUriPostfix(vs)) {
-            vs = Utils.getUriPostfix(vs);
-        }
-        new Validator(iri, context.getTemplate()).validate(validatable);
-        if (!validatable.isValid()) {
-            return false;
-        }
-        if (textfield.getModelObject() == null || textfield.getModelObject().isEmpty()) {
-            return true;
-        }
-        return vs.equals(textfield.getModelObject());
-    }
-
-    /**
-     * Puts a value into this field, as the default value the template gives it
-     * ({@link #finalizeValues()}).
-     *
-     * @param v the value, or null for none
-     * @throws UnificationException if the field cannot take the value ({@link #isUnifiableWith(Value)})
-     */
-    public void unifyWith(Value v) throws UnificationException {
-        if (v == null) return;
-        if (!isUnifiableWith(v)) throw new UnificationException(v.stringValue());
-        String vs = v.stringValue();
-        if (Utils.isLocalURI(vs)) {
-            textfield.setModelObject(vs.replaceFirst("^" + LocalUri.PREFIX, ""));
-        } else if (v instanceof Literal vL) {
-            textfield.setModelObject(Utils.getSerializedLiteral(vL));
-        } else {
-            textfield.setModelObject(vs);
-        }
-    }
-
-
-    /**
-     * Validator class for validating the text field input.
-     */
-    protected static class Validator extends InvalidityHighlighting implements IValidator<String> {
-
-//		private IRI iri;
-//		private Template template;
-
-        /**
-         * Constructor for the validator.
-         *
-         * @param iri      the IRI associated with the value
-         * @param template the template containing the context
-         */
-        public Validator(IRI iri, Template template) {
-//			this.iri = iri;
-//			this.template = template;
-        }
-
-        @Override
-        public void validate(IValidatable<String> s) {
-            if (s.getValue().startsWith("\"")) {
-                if (!Utils.isValidLiteralSerialization(s.getValue())) {
-                    s.error(new ValidationError("Invalid literal value"));
-                }
-                return;
-            }
-            String p = "";
-            if (s.getValue().matches("[^:# ]+")) p = LocalUri.PREFIX;
-            if (!Utils.isWellFormedUri(p + s.getValue())) {
-                s.error(new ValidationError("IRI not well-formed"));
-            }
-            if (p.isEmpty() && !Utils.isLocalURI(s.getValue()) && !Utils.isUriValue(s.getValue())) {
-                s.error(new ValidationError("IRI scheme not allowed here; use one of: " + Utils.getAllowedUriSchemesLabel()));
-            }
-        }
-
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public void finalizeValues() {
-        Value defaultValue = context.getTemplate().getDefault(iri);
-        if (isUnifiableWith(defaultValue)) {
-            try {
-                unifyWith(defaultValue);
-            } catch (UnificationException ex) {
-                logger.error("Unification with default value failed: {}", ex.getMessage());
-            }
-        }
+        if (textfield.getModelObject() != null && !textfield.getModelObject().isEmpty()) return;
+        RawValue defaultValue = context.getDefaultRaw(iri);
+        if (defaultValue != null) textfield.setModelObject(defaultValue.text());
     }
 
     /**
