@@ -319,6 +319,14 @@ class LiteralFlexibleDateItemTest {
     }
 
     @Test
+    void aDateAndTimeWithoutATimezoneIsShown() throws Exception {
+        String np = "https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex21";
+        startForm(np, new PageParameters().add("param_moment", "2026-11-16T09:00:00"), null);
+
+        assertEquals("2026-11-16T09:00:00", value(), "the timezone can be left out");
+    }
+
+    @Test
     void anExistingValueOfAnyAcceptedPrecisionIsTakenAsItIs() throws Exception {
         startForm("https://w3id.org/np/RAAbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_Flex09");
         LiteralFlexibleDateItem item = item();
